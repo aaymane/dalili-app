@@ -32,6 +32,13 @@
       "expo-router",
       "expo-localization",
       [
+        "expo-image-picker",
+        {
+          "photosPermission": "DALILI utilise tes photos pour ta photo de profil et les documents que tu partages avec ton mentor.",
+          "cameraPermission": "DALILI utilise l’appareil photo pour ta photo de profil."
+        }
+      ],
+      [
         "expo-splash-screen",
         {
           "backgroundColor": "#0B1233",

@@ -34,6 +34,8 @@ const frError = (message?: string) => {
   if (/already registered|already exists/i.test(message)) return 'Un compte existe déjà avec cet email.';
   if (/expired|invalid.*otp|token/i.test(message)) return 'Code invalide ou expiré.';
   if (/rate|too many/i.test(message)) return 'Trop de tentatives. Attends un instant.';
+  if (/fetch|network|timeout/i.test(message)) return 'Connexion impossible. Vérifie ta connexion internet.';
+  if (/not confirmed/i.test(message)) return 'Confirme d’abord ton email avec le code reçu.';
   return message;
 };
 
