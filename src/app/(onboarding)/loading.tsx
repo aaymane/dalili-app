@@ -1,0 +1,100 @@
+import { useLocalSearchParams } from 'expo-router';
+import { Check } from 'lucide-react-native';
+import { useEffect, useState } from 'react';
+import { ActivityIndicator, StyleSheet, View } from 'react-native';
+import Animated, { FadeInDown, FadeInUp, ZoomIn } from 'react-native-reanimated';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
+import { LogoOrb } from '@/components/brand/LogoOrb';
+import { celebrate } from '@/components/feedback/Confetti';
+import { NightBackground } from '@/components/layout/NightBackground';
+import { Text } from '@/components/ui/Text';
+import { syncProfile } from '@/features/profile/api';
+import { useProfile } from '@/features/profile/store';
+import { haptics } from '@/lib/haptics';
+import { palette } from '@/theme/tokens';
+
+/** « Je prépare ton arrivée à Paris… » — construction animée de l'espace perso. */
+export default function Loading() {
+  const { role = 'student' } = useLocalSearchParams<{ role: 'student' | 'mentor' }>();
+  const insets = useSafeAreaInsets();
+  const profile = useProfile((s) => s.profile);
+  const complete = useProfile((s) => s.completeOnboarding);
+  const [done, setDone] = useState(-1);
+
+  const city = profile.destinationCity ?? profile.mentorCity;
+  const title = role === 'mentor' ? 'On prépare ton\nespace Mentor' : city ? `Je prépare ton arrivée\nà ${city}…` : 'Je prépare\nton arrivée…';
+  const items =
+    role === 'mentor'
+      ? ['Création de ton profil mentor', `Étudiants qui arrivent à ${city ?? 'ta ville'}`, 'Tes créneaux de disponibilité', 'Construction de ton espace perso']
+      : ['Sélection de mentors adaptés', 'Cartographie de tes démarches', 'Recherche d’hôtes à proximité', 'Construction de ton espace perso'];
+
+  useEffect(() => {
+    syncProfile(profile).catch(() => {});
+    const timers = items.map((_, k) =>
+      setTimeout(() => {
+        setDone(k);
+        haptics.select();
+      }, 700 + k * 750),
+    );
+    const end = setTimeout(() => {
+      haptics.success();
+      celebrate();
+      complete();
+    }, 700 + items.length * 750 + 500);
+    return () => {
+      timers.forEach(clearTimeout);
+      clearTimeout(end);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  return (
+    <View style={{ flex: 1, paddingTop: insets.top, paddingBottom: insets.bottom + 40 }}>
+      <NightBackground />
+      <View style={styles.hero}>
+        <Animated.View entering={FadeInUp.springify()}>
+          <LogoOrb size={120} />
+        </Animated.View>
+        <Animated.View entering={FadeInUp.delay(150)} style={{ alignItems: 'center', gap: 8 }}>
+          <Text variant="overline" color="#7FA6FF">
+            DALILI
+          </Text>
+          <Text variant="hero" color="#fff" align="center">
+            {title}
+          </Text>
+        </Animated.View>
+      </View>
+      <View style={{ gap: 12, paddingHorizontal: 20, maxWidth: 520, width: '100%', alignSelf: 'center' }}>
+        {items.map((label, k) => {
+          const state = k <= done ? 'done' : k === done + 1 ? 'active' : 'idle';
+          return (
+            <Animated.View key={label} entering={FadeInDown.delay(250 + k * 90).springify()} style={[styles.row, state === 'active' && styles.rowActive]}>
+              <View style={[styles.bullet, state === 'done' && { backgroundColor: palette.success, borderColor: palette.success }]}>
+                {state === 'done' ? (
+                  <Animated.View entering={ZoomIn.springify().damping(9)}>
+                    <Check size={12} color="#fff" strokeWidth={3.5} />
+                  </Animated.View>
+                ) : state === 'active' ? (
+                  <View style={styles.activeDot} />
+                ) : null}
+              </View>
+              <Text variant="smallStrong" color={state === 'idle' ? 'rgba(255,255,255,0.4)' : '#fff'} style={{ flex: 1 }}>
+                {label}
+              </Text>
+              {state === 'active' && <ActivityIndicator size="small" color="#7FA6FF" />}
+            </Animated.View>
+          );
+        })}
+      </View>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  hero: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 6 },
+  row: { flexDirection: 'row', alignItems: 'center', gap: 12, height: 54, paddingHorizontal: 16, borderRadius: 16, backgroundColor: 'rgba(255,255,255,0.06)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.06)' },
+  rowActive: { borderColor: 'rgba(91,139,255,0.7)', backgroundColor: 'rgba(91,139,255,0.12)' },
+  bullet: { width: 22, height: 22, borderRadius: 11, borderWidth: 1.5, borderColor: 'rgba(255,255,255,0.3)', alignItems: 'center', justifyContent: 'center' },
+  activeDot: { width: 10, height: 10, borderRadius: 5, backgroundColor: '#7FA6FF' },
+});

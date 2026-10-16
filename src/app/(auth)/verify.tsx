@@ -1,0 +1,151 @@
+import { router, useLocalSearchParams } from 'expo-router';
+import { Check } from 'lucide-react-native';
+import { useEffect, useRef, useState, type ComponentRef } from 'react';
+import { Pressable, StyleSheet, TextInput, View } from 'react-native';
+import Animated, { FadeInDown, FadeInUp, useAnimatedStyle, useSharedValue, withSequence, withTiming, ZoomIn } from 'react-native-reanimated';
+
+import { LogoMark } from '@/components/brand/Logo';
+import { toast } from '@/components/feedback/Toast';
+import { Screen } from '@/components/layout/Screen';
+import { Button } from '@/components/ui/Button';
+import { PressableScale } from '@/components/ui/PressableScale';
+import { Text } from '@/components/ui/Text';
+import { isDemoMode, useAuth } from '@/features/auth/store';
+import { haptics } from '@/lib/haptics';
+import { gradients, palette, radius } from '@/theme/tokens';
+
+const LEN = 6;
+
+/** Vérification de l'email par code à 6 chiffres. */
+export default function Verify() {
+  const { email = '' } = useLocalSearchParams<{ email: string }>();
+  const verifyOtp = useAuth((s) => s.verifyOtp);
+  const resendOtp = useAuth((s) => s.resendOtp);
+  const [code, setCode] = useState('');
+  const [seconds, setSeconds] = useState(42);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const input = useRef<ComponentRef<typeof TextInput>>(null);
+  const shake = useSharedValue(0);
+  const shakeStyle = useAnimatedStyle(() => ({ transform: [{ translateX: shake.value }] }));
+
+  useEffect(() => {
+    if (seconds <= 0) return;
+    const t = setTimeout(() => setSeconds((s) => s - 1), 1000);
+    return () => clearTimeout(t);
+  }, [seconds]);
+
+  const submit = async (value = code) => {
+    if (value.length !== LEN) return;
+    setLoading(true);
+    const res = await verifyOtp(email, value);
+    setLoading(false);
+    if (!res.ok) {
+      setError(res.error);
+      haptics.warning();
+      shake.value = withSequence(...[10, -10, 7, -7, 0].map((v) => withTiming(v, { duration: 55 })));
+      return;
+    }
+    haptics.success();
+  };
+
+  const resend = async () => {
+    const res = await resendOtp(email);
+    if (res.ok) {
+      setSeconds(42);
+      toast('Le code a été renvoyé à ton adresse e-mail.');
+    } else toast(res.error, 'info');
+  };
+
+  return (
+    <Screen
+      top={gradients.sky}
+      bg="#fff"
+      keyboard
+      footer={<Button label="Vérifier" icon={<Check size={18} color="#fff" strokeWidth={3} />} loading={loading} disabled={code.length !== LEN} onPress={() => submit()} />}>
+      <View style={styles.wrap}>
+        <Animated.View entering={ZoomIn.springify().damping(12)}>
+          <LogoMark size={110} />
+        </Animated.View>
+        <Animated.View entering={FadeInUp.delay(120)} style={{ alignItems: 'center', gap: 8 }}>
+          <Text variant="hero" align="center">
+            Vérifions que c’est{'\n'}bien toi.
+          </Text>
+          <Text variant="body" color={palette.subtle} align="center">
+            Code envoyé à <Text variant="bodyStrong">{email}</Text>
+          </Text>
+        </Animated.View>
+
+        <Animated.View entering={FadeInDown.delay(220)} style={[styles.boxes, shakeStyle]}>
+          <Pressable style={StyleSheet.absoluteFill} onPress={() => input.current?.focus()} />
+          {Array.from({ length: LEN }, (_, i) => {
+            const ch = code[i];
+            const active = i === code.length;
+            return (
+              <View key={i} pointerEvents="none" style={[styles.box, active && styles.boxActive, ch && styles.boxFilled, error && { borderColor: palette.danger }]}>
+                {ch ? (
+                  <Animated.View entering={ZoomIn.springify().damping(10)}>
+                    <Text variant="h1">{ch}</Text>
+                  </Animated.View>
+                ) : active ? (
+                  <View style={styles.caret} />
+                ) : null}
+              </View>
+            );
+          })}
+          <TextInput
+            ref={input}
+            value={code}
+            onChangeText={(t) => {
+              const v = t.replace(/\D/g, '').slice(0, LEN);
+              setError(null);
+              setCode(v);
+              if (v.length > code.length) haptics.select();
+              if (v.length === LEN) submit(v);
+            }}
+            keyboardType="number-pad"
+            textContentType="oneTimeCode"
+            autoComplete="one-time-code"
+            autoFocus
+            maxLength={LEN}
+            style={styles.hidden}
+          />
+        </Animated.View>
+        {error ? (
+          <Text variant="small" color={palette.danger}>
+            {error}
+          </Text>
+        ) : null}
+
+        <PressableScale disabled={seconds > 0} onPress={resend}>
+          <Text variant="small" color={palette.muted}>
+            Pas reçu ?{' '}
+            <Text variant="smallStrong" color={palette.electric}>
+              {seconds > 0 ? `Renvoyer dans 0:${String(seconds).padStart(2, '0')}` : 'Renvoyer le code'}
+            </Text>
+          </Text>
+        </PressableScale>
+        {isDemoMode ? (
+          <Text variant="caption" color={palette.muted} align="center">
+            Mode démo : tape n’importe quel code à 6 chiffres.
+          </Text>
+        ) : null}
+        <PressableScale onPress={() => router.back()}>
+          <Text variant="smallStrong" color={palette.subtle}>
+            Modifier mon email
+          </Text>
+        </PressableScale>
+      </View>
+    </Screen>
+  );
+}
+
+const styles = StyleSheet.create({
+  wrap: { alignItems: 'center', gap: 22, paddingTop: 40 },
+  boxes: { flexDirection: 'row', gap: 9, marginTop: 8 },
+  box: { width: 46, height: 56, borderRadius: radius.md, borderWidth: 1.5, borderColor: '#E1E5F0', backgroundColor: '#fff', alignItems: 'center', justifyContent: 'center' },
+  boxActive: { borderColor: palette.electric, borderWidth: 2 },
+  boxFilled: { borderColor: '#B9C9F7', backgroundColor: '#F6F8FF' },
+  caret: { width: 2, height: 24, backgroundColor: palette.electric, borderRadius: 1 },
+  hidden: { position: 'absolute', opacity: 0, width: 1, height: 1 },
+});
