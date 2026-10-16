@@ -100,7 +100,7 @@ export default function GuideReader() {
   const onScroll = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
     const { contentOffset, contentSize, layoutMeasurement } = e.nativeEvent;
     const max = Math.max(1, contentSize.height - layoutMeasurement.height);
-    p.value = withTiming(Math.min(1, contentOffset.y / max), { duration: 80 });
+    p.set(withTiming(Math.min(1, contentOffset.y / max), { duration: 80 }));
     if (contentOffset.y / max > 0.92) markRead(g.id);
   };
 

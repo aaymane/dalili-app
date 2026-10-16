@@ -59,7 +59,8 @@ function DocRow({ id, label, hint }: { id: string; label: string; hint?: string 
     <PressableScale
       haptic={false}
       onPress={() => {
-        on ? haptics.tap() : haptics.success();
+        if (on) haptics.tap();
+        else haptics.success();
         toggle(id);
       }}
       style={styles.row}>

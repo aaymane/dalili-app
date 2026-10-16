@@ -18,7 +18,7 @@ import { useJourneyStore } from '../store';
 export function AddStepCard({ defaultDate }: { defaultDate?: Date }) {
   const add = useJourneyStore((s) => s.addCustom);
   const [title, setTitle] = useState('');
-  const [date, setDate] = useState<Date>(defaultDate ?? new Date(Date.now() + 7 * 86_400_000));
+  const [date, setDate] = useState<Date>(() => defaultDate ?? new Date(Date.now() + 7 * 86_400_000));
   const [open, setOpen] = useState(false);
 
   const submit = () => {

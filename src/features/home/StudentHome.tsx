@@ -64,7 +64,8 @@ export function StudentHome() {
   const j = useJourney();
   const { data: mentors = [] } = useMentors();
   const { data: groups } = useGroups();
-  const bookings = useLocalDb((s) => s.bookings).filter((b) => b.status === 'confirmed' && new Date(b.startsAt) > new Date(Date.now() - 3_600_000));
+  const [since] = useState(() => Date.now() - 3_600_000);
+  const bookings = useLocalDb((s) => s.bookings).filter((b) => b.status === 'confirmed' && new Date(b.startsAt).getTime() > since);
   const { width } = useWindowDimensions();
   const cardW = Math.min(width, 560) - 40;
   const [slide, setSlide] = useState(0);

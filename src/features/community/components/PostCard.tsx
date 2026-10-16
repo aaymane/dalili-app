@@ -40,7 +40,7 @@ export function PostCard({ p, city }: { p: PostWithState; city?: string }) {
         <PressableScale
           haptic="select"
           onPress={() => {
-            scale.value = withSequence(withSpring(1.35, { damping: 6 }), withSpring(1));
+            scale.set(withSequence(withSpring(1.35, { damping: 6 }), withSpring(1)));
             toggleLike(p.id);
           }}
           style={styles.action}

@@ -29,7 +29,7 @@ export default function NewEvent() {
   const profile = useProfile((s) => s.profile);
   const addEvent = useLocalDb((s) => s.addEvent);
   const [title, setTitle] = useState('');
-  const [date, setDate] = useState(new Date(Date.now() + 7 * 86_400_000));
+  const [date, setDate] = useState(() => new Date(Date.now() + 7 * 86_400_000));
   const [hour, setHour] = useState('20:00');
   const [place, setPlace] = useState('');
   const [desc, setDesc] = useState('');

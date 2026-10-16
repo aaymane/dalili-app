@@ -8,7 +8,6 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Avatar } from '@/components/ui/Avatar';
 import { Button } from '@/components/ui/Button';
 import { PressableScale } from '@/components/ui/PressableScale';
-import { Tag } from '@/components/ui/Tag';
 import { Text } from '@/components/ui/Text';
 import { useMentor } from '@/data/hooks';
 import { palette, radius, shadow } from '@/theme/tokens';

@@ -34,7 +34,7 @@ function TabItem({ name, focused, onPress, accent }: { name: keyof typeof ICONS;
 function AiButton({ focused, onPress }: { focused: boolean; onPress: () => void }) {
   const pulse = useSharedValue(0);
   useEffect(() => {
-    pulse.value = withRepeat(withSequence(withTiming(1, { duration: 1400, easing: Easing.out(Easing.quad) }), withTiming(0, { duration: 0 })), -1);
+    pulse.set(withRepeat(withSequence(withTiming(1, { duration: 1400, easing: Easing.out(Easing.quad) }), withTiming(0, { duration: 0 })), -1));
   }, [pulse]);
   const ring = useAnimatedStyle(() => ({ opacity: 0.5 * (1 - pulse.value), transform: [{ scale: 1 + pulse.value * 0.45 }] }));
   return (

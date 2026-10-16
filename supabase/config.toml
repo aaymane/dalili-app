@@ -1,0 +1,14 @@
+# Configuration Supabase CLI (local). `npx supabase start` pour lancer la base en local.
+project_id = "dalili"
+
+[auth]
+site_url = "dalili://"
+additional_redirect_urls = ["dalili://auth/callback", "http://localhost:8081"]
+
+[auth.email]
+enable_signup = true
+enable_confirmations = true
+# Le template d'email doit contenir {{ .Token }} pour envoyer un code à 6 chiffres (écran « Vérifions que c'est bien toi »).
+
+[functions.dalili-ia]
+verify_jwt = true

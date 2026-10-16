@@ -6,6 +6,7 @@ import { effectiveArrival, useProfile } from '@/features/profile/store';
 import { addDays, toISODate } from '@/lib/date';
 import { persistStorage } from '@/lib/storage';
 
+import { syncCustomStep, syncStep } from './api';
 import { steps, type Phase, type Step } from './steps';
 
 export type CustomStep = { id: string; title: string; date: string; done: boolean };
@@ -30,15 +31,29 @@ export const useJourneyStore = create<JourneyState>()(
       overrides: {},
       custom: [],
       celebrated: [],
-      toggle: (id, done) => set((s) => ({ overrides: { ...s.overrides, [id]: done } })),
+      toggle: (id, done) => {
+        set((s) => ({ overrides: { ...s.overrides, [id]: done } }));
+        syncStep(id, done).catch(() => {});
+      },
       addCustom: (title, date) => {
         const item = { id: `custom-${Date.now()}`, title: title.trim(), date, done: false };
         set((s) => ({ custom: [...s.custom, item] }));
+        syncCustomStep(item).catch(() => {});
         return item;
       },
       toggleCustom: (id) =>
-        set((s) => ({ custom: s.custom.map((c) => (c.id === id ? { ...c, done: !c.done } : c)) })),
-      removeCustom: (id) => set((s) => ({ custom: s.custom.filter((c) => c.id !== id) })),
+        set((s) => {
+          const custom = s.custom.map((c) => (c.id === id ? { ...c, done: !c.done } : c));
+          const item = custom.find((c) => c.id === id);
+          if (item) syncCustomStep(item).catch(() => {});
+          return { custom };
+        }),
+      removeCustom: (id) =>
+        set((s) => {
+          const item = s.custom.find((c) => c.id === id);
+          if (item) syncCustomStep(item, true).catch(() => {});
+          return { custom: s.custom.filter((c) => c.id !== id) };
+        }),
       markCelebrated: (phase) => set((s) => ({ celebrated: [...new Set([...s.celebrated, phase])] })),
       reset: () => set({ overrides: {}, custom: [], celebrated: [] }),
     }),

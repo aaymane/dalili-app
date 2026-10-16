@@ -8,7 +8,7 @@ import { ProgressRing } from '@/components/ui/ProgressRing';
 import { Text } from '@/components/ui/Text';
 import { useProfile } from '@/features/profile/store';
 import { formatDayMonth, relativeDays } from '@/lib/date';
-import { gradients, palette, radius, shadow } from '@/theme/tokens';
+import { gradients, radius, shadow } from '@/theme/tokens';
 
 import { useJourney } from '../store';
 

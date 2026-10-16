@@ -33,7 +33,8 @@ export function MentorHome() {
   const pending = requests.filter((r) => r.status === 'pending');
 
   const answer = (id: string, ok: boolean) => {
-    ok ? haptics.success() : haptics.tap();
+    if (ok) haptics.success();
+    else haptics.tap();
     setRequests((rs) => (ok ? rs.map((r) => (r.id === id ? { ...r, status: 'accepted' as const } : r)) : rs.filter((r) => r.id !== id)));
     toast(ok ? 'Demande acceptée — l’étudiant est prévenu.' : 'Demande déclinée.', ok ? 'success' : 'info');
   };

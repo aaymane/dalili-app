@@ -11,12 +11,12 @@ type Props = { visible: boolean; onClose: () => void; children: ReactNode; scrol
 export function BottomSheet({ visible, onClose, children, scroll, maxHeight = '88%' }: Props) {
   const insets = useSafeAreaInsets();
   const [mounted, setMounted] = useState(visible);
+  // Monte immédiatement à l'ouverture ; démonte après l'animation de sortie.
+  if (visible && !mounted) setMounted(true);
   useEffect(() => {
-    if (visible) setMounted(true);
-    else {
-      const t = setTimeout(() => setMounted(false), 260);
-      return () => clearTimeout(t);
-    }
+    if (visible) return;
+    const t = setTimeout(() => setMounted(false), 260);
+    return () => clearTimeout(t);
   }, [visible]);
 
   if (!mounted) return null;

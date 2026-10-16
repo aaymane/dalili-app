@@ -30,8 +30,8 @@ function Piece({ seed, shot }: { seed: number; shot: number }) {
   }, [seed, shot, width]);
   const t = useSharedValue(0);
   useEffect(() => {
-    t.value = 0;
-    t.value = withDelay(cfg.delay, withTiming(1, { duration: cfg.dur, easing: Easing.out(Easing.quad) }));
+    t.set(0);
+    t.set(withDelay(cfg.delay, withTiming(1, { duration: cfg.dur, easing: Easing.out(Easing.quad) })));
   }, [cfg, t]);
   const style = useAnimatedStyle(() => ({
     opacity: t.value === 0 ? 0 : 1 - Math.max(0, (t.value - 0.75) * 4),

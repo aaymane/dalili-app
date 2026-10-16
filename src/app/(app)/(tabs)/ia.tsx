@@ -1,7 +1,7 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import { router, useLocalSearchParams } from 'expo-router';
 import { ArrowUp, ChevronRight, Mic, Sparkles, UserRoundCog } from 'lucide-react-native';
-import { useCallback, useEffect, useRef, useState, type ComponentRef } from 'react';
+import { useEffect, useEffectEvent, useRef, useState, type ComponentRef } from 'react';
 import { FlatList, KeyboardAvoidingView, Platform, StyleSheet, TextInput, View } from 'react-native';
 import Animated, { FadeInDown, FadeInUp, useAnimatedStyle, useSharedValue, withDelay, withRepeat, withSequence, withTiming } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -25,7 +25,7 @@ function TypingDots() {
   const dots = [useSharedValue(0), useSharedValue(0), useSharedValue(0)];
   useEffect(() => {
     dots.forEach((d, i) => {
-      d.value = withDelay(i * 140, withRepeat(withSequence(withTiming(-5, { duration: 260 }), withTiming(0, { duration: 260 })), -1));
+      d.set(withDelay(i * 140, withRepeat(withSequence(withTiming(-5, { duration: 260 }), withTiming(0, { duration: 260 })), -1)));
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -112,8 +112,7 @@ export default function DaliliIA() {
   const list = useRef<ComponentRef<typeof FlatList<AiMessage>>>(null);
   const lastQ = useRef<string | undefined>(undefined);
 
-  const ask = useCallback(
-    async (q: string) => {
+  const ask = async (q: string) => {
       const question = q.trim();
       if (!question || typing) return;
       haptics.tap();
@@ -143,16 +142,16 @@ export default function DaliliIA() {
         setAiHistory(next.map((x) => ({ role: x.role, content: x.content })));
         return next;
       });
-    },
-    [messages, typing, profile, j, setAiHistory],
-  );
+  };
 
+  // Question reçue depuis un autre écran (?q=…) — posée une seule fois.
+  const onIncoming = useEffectEvent((q: string) => ask(q));
   useEffect(() => {
     if (params.q && params.q !== lastQ.current) {
       lastQ.current = params.q;
-      ask(params.q);
+      onIncoming(params.q);
     }
-  }, [params.q, ask]);
+  }, [params.q]);
 
   useEffect(() => {
     setTimeout(() => list.current?.scrollToEnd({ animated: true }), 80);

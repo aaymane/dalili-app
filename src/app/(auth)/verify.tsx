@@ -43,7 +43,7 @@ export default function Verify() {
     if (!res.ok) {
       setError(res.error);
       haptics.warning();
-      shake.value = withSequence(...[10, -10, 7, -7, 0].map((v) => withTiming(v, { duration: 55 })));
+      shake.set(withSequence(...[10, -10, 7, -7, 0].map((v) => withTiming(v, { duration: 55 }))));
       return;
     }
     haptics.success();

@@ -10,7 +10,7 @@ import { LogoMark } from './Logo';
 export function LogoOrb({ size = 132, pulse = true }: { size?: number; pulse?: boolean }) {
   const t = useSharedValue(0);
   useEffect(() => {
-    if (pulse) t.value = withRepeat(withSequence(withTiming(1, { duration: 1600, easing: Easing.inOut(Easing.quad) }), withTiming(0, { duration: 1600, easing: Easing.inOut(Easing.quad) })), -1);
+    if (pulse) t.set(withRepeat(withSequence(withTiming(1, { duration: 1600, easing: Easing.inOut(Easing.quad) }), withTiming(0, { duration: 1600, easing: Easing.inOut(Easing.quad) })), -1));
   }, [pulse, t]);
   const glow = useAnimatedStyle(() => ({ opacity: 0.45 + t.value * 0.35, transform: [{ scale: 1 + t.value * 0.08 }] }));
   const core = useAnimatedStyle(() => ({ transform: [{ scale: 1 + t.value * 0.02 }] }));

@@ -32,7 +32,7 @@ export default function Call() {
   const [connected, setConnected] = useState(false);
   const ring = useSharedValue(0);
   useEffect(() => {
-    ring.value = withRepeat(withTiming(1, { duration: 1600 }), -1);
+    ring.set(withRepeat(withTiming(1, { duration: 1600 }), -1));
     const c = setTimeout(() => {
       setConnected(true);
       haptics.success();

@@ -15,6 +15,7 @@ import type { Role } from '@/theme/tokens';
 /** « Comment veux-tu vivre l'app aujourd'hui ? » — sélecteur de rôle persistant. */
 export default function RoleSwitcher() {
   const active = useProfile((s) => s.profile.activeRole);
+  const isMentor = useProfile((s) => s.profile.roles.includes('mentor'));
   const setActiveRole = useProfile((s) => s.setActiveRole);
 
   const choose = (r: Role) => {
@@ -29,7 +30,7 @@ export default function RoleSwitcher() {
 
   const cards: { role: Role; title: string; text: string; bullets?: string; colors: [string, string]; bg: string; fg: string; icon: React.ReactNode }[] = [
     { role: 'student', title: 'Étudiant', text: 'Tu arrives bientôt en France', bullets: 'Visa · Logement · CAF · Communauté', colors: ['#7FA6FF', '#3D78FF'], bg: '#E8EEFF', fg: palette.electric, icon: <Send size={20} color="#fff" /> },
-    { role: 'mentor', title: 'Mentor', text: 'Tu aides 3 étudiants ce mois', bullets: '1 demande en attente', colors: ['#34D399', palette.mentor], bg: '#E3F7EF', fg: palette.mentor, icon: <GraduationCap size={20} color="#fff" /> },
+    { role: 'mentor', title: 'Mentor', text: isMentor ? 'Tu aides 3 étudiants ce mois' : 'Aide les nouveaux arrivants', bullets: isMentor ? '1 demande en attente' : 'Partage ton expérience, gratuitement', colors: ['#34D399', palette.mentor], bg: '#E3F7EF', fg: palette.mentor, icon: <GraduationCap size={20} color="#fff" /> },
     { role: 'host', title: 'Hôte', text: 'Cette fonctionnalité arrive bientôt', colors: ['#FDBA74', palette.host], bg: '#FDEDE3', fg: palette.host, icon: <House size={20} color="#fff" /> },
   ];
 

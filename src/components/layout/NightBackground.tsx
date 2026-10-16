@@ -10,7 +10,7 @@ function Orb({ size, x, y, color, delay }: { size: number; x: number; y: number;
   const t = useSharedValue(0);
   useEffect(() => {
     const id = setTimeout(() => {
-      t.value = withRepeat(withTiming(1, { duration: 6000, easing: Easing.inOut(Easing.sin) }), -1, true);
+      t.set(withRepeat(withTiming(1, { duration: 6000, easing: Easing.inOut(Easing.sin) }), -1, true));
     }, delay);
     return () => clearTimeout(id);
   }, [t, delay]);

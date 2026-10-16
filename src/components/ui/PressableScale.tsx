@@ -22,11 +22,11 @@ export function PressableScale({ style, scaleTo = 0.96, haptic = 'tap', onPressI
       accessibilityRole="button"
       disabled={disabled}
       onPressIn={(e) => {
-        scale.value = withSpring(scaleTo, motion.spring);
+        scale.set(withSpring(scaleTo, motion.spring));
         onPressIn?.(e);
       }}
       onPressOut={(e) => {
-        scale.value = withSpring(1, motion.springBouncy);
+        scale.set(withSpring(1, motion.springBouncy));
         onPressOut?.(e);
       }}
       onPress={(e) => {

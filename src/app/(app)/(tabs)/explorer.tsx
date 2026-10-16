@@ -1,7 +1,7 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import { router, useLocalSearchParams } from 'expo-router';
 import { ArrowRight, Bookmark, BookOpen, CheckCircle2, Clock, House, Languages, Search, Sparkles } from 'lucide-react-native';
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import Animated, { FadeIn, FadeInDown, LinearTransition } from 'react-native-reanimated';
 
@@ -37,10 +37,10 @@ function TabPill({ label, icon, active, onPress, color }: { label: string; icon:
 /** Explorer : trouver un mentor, lire les guides, (bientôt) trouver un hôte. */
 export default function Explorer() {
   const params = useLocalSearchParams<{ tab?: Tab }>();
-  const [tab, setTab] = useState<Tab>(params.tab ?? 'mentors');
-  useEffect(() => {
-    if (params.tab) setTab(params.tab);
-  }, [params.tab]);
+  // L'onglet suit le paramètre d'URL (?tab=guides) tant que l'utilisateur ne change pas d'onglet.
+  const [picked, setPicked] = useState<{ from?: string; tab: Tab } | null>(null);
+  const tab: Tab = picked && picked.from === params.tab ? picked.tab : (params.tab ?? 'mentors');
+  const setTab = (t: Tab) => setPicked({ from: params.tab, tab: t });
   const profile = useProfile((s) => s.profile);
   const [q, setQ] = useState('');
   const [city, setCity] = useState<string | null>(profile.destinationCity);
