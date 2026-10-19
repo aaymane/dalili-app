@@ -138,6 +138,19 @@ export const motion = {
   base: 260,
   slow: 420,
   stagger: 60,
+  /** Nombre maximal de crans d'une cascade d'entrée (au-delà, tout arrive au dernier cran). */
+  staggerMax: 6,
+} as const;
+
+/** « 3D » : perspective et inclinaisons maximales (voir docs/DIRECTION.md §5). */
+export const depth = {
+  perspective: 900,
+  /** Inclinaison max au repos / au toucher (degrés). */
+  tilt: 6,
+  /** Inclinaison max pendant une entrée (degrés). */
+  tiltEntrance: 12,
+  /** Décalage max entre deux couches en parallaxe (px). */
+  parallax: 12,
 } as const;
 
 export const gradients = {
