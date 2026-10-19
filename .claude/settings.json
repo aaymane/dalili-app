@@ -1,7 +1,4 @@
 {
-  "enabledPlugins": {
-    "expo@claude-plugins-official": true
-  },
   "permissions": {
     "allow": [
       "Bash(npm run typecheck)",
@@ -14,5 +11,30 @@
       "Bash(git add:*)",
       "Bash(git commit:*)"
     ]
+  },
+  "enabledPlugins": {
+    "expo@claude-plugins-official": true,
+    "figma@claude-plugins-official": true,
+    "supabase@claude-plugins-official": true,
+    "frontend-design@claude-plugins-official": true,
+    "context7@claude-plugins-official": true,
+    "typescript-lsp@claude-plugins-official": true,
+    "skills@swmansion": true,
+    "building-react-native-apps@callstack-agent-skills": true,
+    "testing-react-native-apps@callstack-agent-skills": true
+  },
+  "extraKnownMarketplaces": {
+    "swmansion": {
+      "source": {
+        "source": "github",
+        "repo": "software-mansion-labs/skills"
+      }
+    },
+    "callstack-agent-skills": {
+      "source": {
+        "source": "github",
+        "repo": "callstackincubator/agent-skills"
+      }
+    }
   }
 }

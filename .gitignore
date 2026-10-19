@@ -44,3 +44,4 @@ example
 
 # secrets
 .env
+.captures/
