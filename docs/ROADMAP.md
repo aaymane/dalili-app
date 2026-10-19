@@ -1,7 +1,5 @@
 # Feuille de route DALILI
 
-Chaque ligne non cochée contient un **prompt prêt à coller** dans Claude Code.
-
 ## ✅ Fait (v0.1)
 
 - [x] Base Expo + Router + TypeScript strict, mode démo sans clés
