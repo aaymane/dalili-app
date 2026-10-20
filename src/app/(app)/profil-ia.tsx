@@ -115,7 +115,7 @@ export default function ProfilIA() {
         <View style={styles.privacy}>
           <ShieldCheck size={18} color={palette.success} />
           <Text variant="small" color={palette.subtle} style={{ flex: 1 }}>
-            Dalili ne vend jamais tes données. Tes conversations servent seulement à te répondre.
+            Dalili ne vend jamais tes données. Quand tu poses une question, seuls ta question, les derniers messages, ton pays et ton étape en cours sont envoyés. Les questions sont gardées sans ton nom ni ton email, pour améliorer nos guides.
           </Text>
         </View>
         <Button label="Poser une question à Dalili" iconLeft={<Sparkles size={18} color="#fff" />} accent={['#4D6BFF', '#7A5AF8']} onPress={() => router.navigate('/(app)/(tabs)/ia')} />

@@ -116,7 +116,7 @@ export async function remoteJoinGroup(groupId: string, join: boolean) {
   if (!supabase) return;
   const { data: u } = await supabase.auth.getUser();
   if (!u.user) return;
-  if (join) await supabase.from('group_members').upsert({ group_id: groupId, user_id: u.user.id });
+  if (join) await supabase.from('group_members').upsert({ group_id: groupId, user_id: u.user.id }, { ignoreDuplicates: true });
   else await supabase.from('group_members').delete().match({ group_id: groupId, user_id: u.user.id });
 }
 
@@ -132,7 +132,7 @@ export async function remoteJoinEvent(eventId: string, join: boolean) {
   if (!supabase) return;
   const { data: u } = await supabase.auth.getUser();
   if (!u.user) return;
-  if (join) await supabase.from('event_attendees').upsert({ event_id: eventId, user_id: u.user.id });
+  if (join) await supabase.from('event_attendees').upsert({ event_id: eventId, user_id: u.user.id }, { ignoreDuplicates: true });
   else await supabase.from('event_attendees').delete().match({ event_id: eventId, user_id: u.user.id });
 }
 
@@ -193,15 +193,4 @@ export async function remoteCreateBooking(b: Omit<Booking, 'id' | 'status'>) {
     .from('bookings')
     .insert({ student_id: u.user.id, mentor_id: b.mentorId, starts_at: b.startsAt, topic: b.topic, status: 'confirmed' });
   if (error) throw error;
-}
-
-/** Dalili IA — Edge Function `dalili-ia` (clé Anthropic côté serveur uniquement). */
-export async function askDaliliRemote(
-  messages: { role: 'user' | 'assistant'; content: string }[],
-  context: Record<string, unknown>,
-): Promise<string | null> {
-  if (!supabase) return null;
-  const { data, error } = await supabase.functions.invoke('dalili-ia', { body: { messages, context } });
-  if (error) throw error;
-  return (data as { reply?: string })?.reply ?? null;
 }

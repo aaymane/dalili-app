@@ -47,7 +47,8 @@ src/
 supabase/
   migrations/             # schéma SQL + RLS (testé)
   seed.sql                # mentors, groupes, événements de départ
-  functions/dalili-ia/    # Edge Function → Claude (clé Anthropic côté serveur)
+  tests/                  # schéma actuel du site + tests RLS (npm run test:migrations)
+  functions/dalili-ia/    # ANCIENNE Edge Function, plus appelée : à supprimer une fois /api/v1/assistant testé en ligne
 ```
 
 ## Règles d'or (à respecter à chaque modification)
@@ -86,5 +87,7 @@ supabase/
 
 - MVP (MoSCoW) : Must → Parcours-quête (stepper + calendrier), fiches de clarification, mentorat (réservation + appel), communauté & événements par ville. Should → Dalili IA. Won't (V2) → Hôte.
 - Recherche : 82 % jugent la préparation difficile, 15 % font confiance aux infos trouvées, 74 % redoutent l'isolement.
+- Dalili IA = UN seul cerveau, celui du site (`lib/assistant/answer.ts`) : l'app appelle `/api/v1/assistant` (session Supabase, quota par compte, streaming) via `src/features/ai/api.ts`, ou `/api/assistant` en mode démo. L'app n'écrit jamais de réponse elle-même.
+- Supabase : un seul projet, celui du site (`dalili.web`). Toute migration passe par `npm run test:migrations` avant la prod (voir `docs/SUPABASE.md`).
 - Le site dalili.study (75 guides) est la SEULE source du contenu administratif : l'app le lit via `/api/content/v1` (`src/data/content.ts`, `useContent`, `useGuide`). Ne jamais écrire un montant ou une démarche en dur dans l'app : on corrige le site. Instantané hors ligne : `npm run content:snapshot`.
 - Feuille de route détaillée : `docs/ROADMAP.md`.
