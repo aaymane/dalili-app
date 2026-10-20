@@ -2,7 +2,7 @@
 
 > Projet cible : **`dalili.web`** (`aiyyvgdrtaxvtedcuxnn`, eu-west-1, Postgres 17). Audit du 19/10/2026, en lecture seule.
 > Le projet « aaymane's Project » (`idgfoqxtiynllikcekvx`) n'est **jamais** touché.
-> Migration prévue au jalon **M1**. Rien n'a été appliqué.
+> Migration préparée et testée en local au jalon **M1** (20/10/2026). **Rien n'est appliqué en prod** : il faut ton feu vert, après la sauvegarde du §4.
 
 ## 1. État actuel du projet du site
 
@@ -51,3 +51,34 @@ Tests réalisés dans des transactions annulées (`begin; set local role anon; s
 - [ ] Noter les clés et secrets actuels (anon, service role, Resend, Voyage, Anthropic) : on n'en change aucun, mais il faut pouvoir revenir en arrière
 - [ ] Vérifier que `content_chunks` peut être reconstruite (`npm run generate-embeddings`) : c'est la seule table régénérable
 - [ ] Fenêtre de migration hors des heures de forte activité ; site en lecture seule non nécessaire (migrations additives uniquement)
+
+## 5. Migration M1 : prête, testée en local, PAS appliquée
+
+| Fichier (`supabase/migrations/`) | Contenu |
+|---|---|
+| `20261017000000_init.sql` | Schéma de l'app (13 tables, RLS) |
+| `20261019000000_pays_dalili_study.sql` | 7 pays + « autre » |
+| `20261020000000_durcissement_site.sql` | Suppression de `waitlist_public_insert`, `TRUNCATE` révoqué, `search_path` de `set_updated_at` |
+| `20261020000100_durcissement_app.sql` | `search_path` vide sur les fonctions *security definer* ; fiches mentor **validées par l'équipe** (`is_active = false` par défaut, note/séances/avis non modifiables) ; compteurs des groupes et événements protégés ; aucune table de l'app lisible sans compte |
+| `20261020000200_assistant_app.sql` | Journal enrichi (canal, langue, pays, étape, jetons, coût, `requested`) **sans identifiant de personne** ; `assistant_usage` (quota et coût par compte et par jour) ; RPC `assistant_consume` et `assistant_record_usage` réservées à la clé service ; `assistant_feedback` |
+
+**Test** : `npm run test:migrations`. Le script lance un Postgres jetable (Docker), puis rejoue le schéma actuel du site (`supabase/tests/01_site_prod.sql`, relevé le 20/10), toutes les migrations, le seed et **38 tests de sécurité** (`supabase/tests/rls.sql`) : anon, deux comptes, clé service. Résultat du 20/10 : tous verts.
+
+### Ordre d'application (le moment venu)
+
+1. Sauvegarde : checklist du §4.
+2. Appliquer les 5 fichiers **dans l'ordre**, avec le SQL Editor du Dashboard ou `apply_migration`, uniquement sur `dalili.web`.
+3. Relancer les advisors de sécurité (`get_advisors`) : aucun nouvel avertissement attendu.
+4. Vérifier en prod, dans une transaction annulée : `set local role anon; select count(*) from waitlist;` doit renvoyer 0.
+5. Dans Vercel (projet du site), facultatif : `ASSISTANT_DAILY_LIMIT` (30 par défaut).
+6. Auth du projet `dalili.web` (Dashboard → Authentication) :
+   - template d'email avec `{{ .Token }}` (code à 6 chiffres) ;
+   - URL de redirection `dalili://auth/callback` ;
+   - Google et Apple, si on les garde.
+7. Dans l'app, `.env` : `EXPO_PUBLIC_SUPABASE_URL` et `EXPO_PUBLIC_SUPABASE_ANON_KEY` de `dalili.web`.
+
+**Si le site est déployé avant la migration** : rien ne casse. Le journal du site se replie sur les anciennes colonnes, et `/api/v1/assistant` répond 503 « Dalili IA arrive très bientôt dans l'app ». En mode démo, l'app utilise le point d'accès public du site.
+
+### Suppression de `supabase/functions/dalili-ia`
+
+L'app ne l'appelle plus depuis M1. Le dossier reste dans le dépôt jusqu'au test de `/api/v1/assistant` en ligne avec un vrai compte (§5, étape 7). On le supprimera ensuite (garde-fou validé).

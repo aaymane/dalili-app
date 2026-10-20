@@ -1,0 +1,98 @@
+-- Tests de sécurité, rejoués après chaque migration (scripts/test-migrations.sh).
+-- Chaque échec lève une exception : psql s'arrête (ON_ERROR_STOP) et le script échoue.
+
+create schema tests;
+grant usage on schema tests to anon, authenticated, service_role;
+
+create function tests.must_fail(label text, q text) returns void language plpgsql as $$
+begin
+  execute q;
+  raise exception 'ÉCHEC — aurait dû être refusé : %', label;
+exception
+  when raise_exception then raise;
+  when others then raise notice 'ok  refusé : % (%)', label, sqlerrm;
+end $$;
+
+create function tests.must_count(label text, q text, expected bigint) returns void language plpgsql as $$
+declare n bigint;
+begin
+  execute format('select count(*) from (%s) t', q) into n;
+  if n <> expected then raise exception 'ÉCHEC — % : % ligne(s), % attendue(s)', label, n, expected; end if;
+  raise notice 'ok  % (% ligne(s))', label, n;
+end $$;
+grant execute on all functions in schema tests to anon, authenticated, service_role;
+
+-- Deux comptes : A (Aymen) et B.
+insert into auth.users (id, email, email_confirmed_at) values
+  ('00000000-0000-0000-0000-00000000000a', 'a@test.local', now()),
+  ('00000000-0000-0000-0000-00000000000b', 'b@test.local', now());
+insert into public.groups (id, name, city) values ('00000000-0000-0000-0000-0000000000c1', 'Groupe test', 'Paris')
+  on conflict do nothing;
+
+-- ───────────── anon (clé publique, sans compte) ─────────────
+begin;
+set local role anon;
+select tests.must_count('anon ne lit pas la waitlist', 'select * from public.waitlist', 0);
+select tests.must_count('anon : waitlist_stats vide', 'select * from public.waitlist_stats where total > 0', 0);
+select tests.must_fail('anon insère dans la waitlist', $q$insert into public.waitlist (email) values ('pirate@x.fr')$q$);
+select tests.must_fail('anon vide la waitlist (TRUNCATE)', 'truncate public.waitlist');
+select tests.must_count('anon ne lit pas le journal', 'select * from public.assistant_queries', 0);
+select tests.must_count('anon ne lit pas les extraits', 'select * from public.content_chunks', 0);
+select tests.must_fail('anon lit les quotas', 'select * from public.assistant_usage');
+select tests.must_fail('anon lit les retours', 'select * from public.assistant_feedback');
+select tests.must_fail('anon consomme un quota', $q$select public.assistant_consume('00000000-0000-0000-0000-00000000000a', 30)$q$);
+select tests.must_fail('anon lit les profils', 'select * from public.profiles');
+select tests.must_fail('anon lit les mentors', 'select * from public.mentors');
+select tests.must_fail('anon lit les posts', 'select * from public.posts_with_author');
+rollback;
+
+-- ───────────── compte A connecté ─────────────
+begin;
+set local role authenticated;
+set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-00000000000a","email":"a@test.local","role":"authenticated"}';
+select tests.must_count('A ne lit pas la waitlist', 'select * from public.waitlist', 0);
+select tests.must_fail('A insère dans la waitlist', $q$insert into public.waitlist (email) values ('b@test.local')$q$);
+select tests.must_fail('A vide la waitlist (TRUNCATE)', 'truncate public.waitlist');
+select tests.must_count('A ne lit pas le journal', 'select * from public.assistant_queries', 0);
+select tests.must_fail('A lit les quotas', 'select * from public.assistant_usage');
+select tests.must_fail('A s''offre du quota', $q$select public.assistant_consume('00000000-0000-0000-0000-00000000000a', 9999)$q$);
+select tests.must_fail('A écrit un retour', $q$insert into public.assistant_feedback (query_id, reason) select id, 'faux' from public.assistant_queries limit 1$q$);
+select tests.must_count('A voit son profil (créé à l''inscription)', 'select * from public.profiles', 1);
+select tests.must_count('A ne voit pas le profil de B', $q$select * from public.profiles where id = '00000000-0000-0000-0000-00000000000b'$q$, 0);
+select tests.must_fail('A coche une étape pour B', $q$insert into public.step_progress (user_id, step_id) values ('00000000-0000-0000-0000-00000000000b', 'visa')$q$);
+select tests.must_fail('A se donne une note de mentor', $q$insert into public.mentors (user_id, first_name, last_name, city, rating) values (auth.uid(), 'A', 'A', 'Paris', 5)$q$);
+select tests.must_fail('A s''affiche tout seul comme mentor', $q$insert into public.mentors (user_id, first_name, last_name, city, is_active) values (auth.uid(), 'A', 'A', 'Paris', true)$q$);
+insert into public.mentors (user_id, first_name, last_name, city) values (auth.uid(), 'A', 'A', 'Paris');
+select tests.must_count('A voit sa fiche mentor en attente', 'select * from public.mentors where not is_active', 1);
+select tests.must_fail('A gonfle le nombre de membres', 'update public.groups set members_count = 9999');
+select tests.must_fail('A publie dans un groupe sans en être membre', $q$insert into public.posts (group_id, body) select id, 'spam' from public.groups where id = '00000000-0000-0000-0000-0000000000c1'$q$);
+insert into public.group_members (group_id) select id from public.groups where id = '00000000-0000-0000-0000-0000000000c1';
+select tests.must_count('le compteur suit l''adhésion', $q$select * from public.groups where id = '00000000-0000-0000-0000-0000000000c1' and members_count = 1$q$, 1);
+insert into public.posts (group_id, body) select id, 'Salut !' from public.groups where id = '00000000-0000-0000-0000-0000000000c1';
+select tests.must_count('A lit le fil de son groupe', 'select * from public.posts_with_author', 1);
+rollback;
+
+-- ───────────── compte B : ne voit pas la fiche mentor en attente de A ─────────────
+begin;
+set local role authenticated;
+set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-00000000000a","role":"authenticated"}';
+insert into public.mentors (user_id, first_name, last_name, city) values (auth.uid(), 'A', 'A', 'Paris');
+set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-00000000000b","role":"authenticated"}';
+select tests.must_count('B ne voit pas un mentor non validé', 'select * from public.mentors', 0);
+rollback;
+
+-- ───────────── serveur du site (clé service) ─────────────
+begin;
+set local role service_role;
+select tests.must_count('quota : 1re question acceptée', $q$select * from public.assistant_consume('00000000-0000-0000-0000-00000000000a', 2) where allowed$q$, 1);
+select tests.must_count('quota : 2e question acceptée', $q$select * from public.assistant_consume('00000000-0000-0000-0000-00000000000a', 2) where allowed$q$, 1);
+select tests.must_count('quota : 3e question refusée', $q$select * from public.assistant_consume('00000000-0000-0000-0000-00000000000a', 2) where not allowed and used = 2$q$, 1);
+select tests.must_count('quota : B a son propre compteur', $q$select * from public.assistant_consume('00000000-0000-0000-0000-00000000000b', 2) where allowed$q$, 1);
+select public.assistant_record_usage('00000000-0000-0000-0000-00000000000a', 1200, 300, 0.0027);
+select tests.must_count('coûts enregistrés', $q$select * from public.assistant_usage where input_tokens = 1200 and cost_usd = 0.0027$q$, 1);
+select tests.must_count('le site lit toujours la waitlist', 'select * from public.waitlist', 1);
+insert into public.assistant_feedback (query_id, reason) select id, 'faux' from public.assistant_queries limit 1;
+rollback;
+
+\o
+\echo 'Tous les tests de sécurité passent ✓'

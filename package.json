@@ -57,7 +57,8 @@
     "check": "tsc --noEmit && expo lint",
     "doctor": "npx expo-doctor",
     "content:snapshot": "node scripts/snapshot-content.mjs",
-    "check:budget": "npx -y tsx scripts/check-budget.ts"
+    "check:budget": "npx -y tsx scripts/check-budget.ts",
+    "test:migrations": "bash scripts/test-migrations.sh"
   },
   "private": true
 }
