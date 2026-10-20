@@ -1,6 +1,8 @@
+import type { CountryCode } from '@/data/content';
 import type { Role } from '@/theme/tokens';
 
-export type Country = 'MA' | 'DZ' | 'TN' | 'other';
+/** Les 7 pays couverts par les guides dalili.study, ou « Autre ». */
+export type Country = CountryCode | 'other';
 export type Gender = 'male' | 'female' | 'other';
 export type Situation = 'abroad' | 'in_france';
 export type StudyLevel = 'bac' | 'licence' | 'master' | 'doctorat';
@@ -61,6 +63,10 @@ export const countries: { id: Country; label: string; flag: string; city: string
   { id: 'MA', label: 'Maroc', flag: '🇲🇦', city: 'Casablanca' },
   { id: 'DZ', label: 'Algérie', flag: '🇩🇿', city: 'Alger' },
   { id: 'TN', label: 'Tunisie', flag: '🇹🇳', city: 'Tunis' },
+  { id: 'SN', label: 'Sénégal', flag: '🇸🇳', city: 'Dakar' },
+  { id: 'CI', label: 'Côte d’Ivoire', flag: '🇨🇮', city: 'Abidjan' },
+  { id: 'CM', label: 'Cameroun', flag: '🇨🇲', city: 'Douala' },
+  { id: 'LB', label: 'Liban', flag: '🇱🇧', city: 'Beyrouth' },
   { id: 'other', label: 'Autre pays', flag: '🌍', city: 'chez toi' },
 ];
 

@@ -64,3 +64,10 @@ export function toISODate(d: Date) {
 export function isSameDay(a: Date | string, b: Date | string) {
   return startOfDay(new Date(a)).getTime() === startOfDay(new Date(b)).getTime();
 }
+
+/** « 2026-08-06 » → « 6 août 2026 » (date de mise à jour d'un guide). */
+export function formatFullDate(iso: string) {
+  const [y, m, d] = iso.split('-').map(Number);
+  if (!y || !m || !d) return iso;
+  return `${d === 1 ? '1er' : d} ${MONTHS[m - 1]} ${y}`;
+}

@@ -5,7 +5,7 @@ import { Montserrat_900Black } from '@expo-google-fonts/montserrat/900Black';
 import { OpenSans_400Regular } from '@expo-google-fonts/open-sans/400Regular';
 import { OpenSans_600SemiBold } from '@expo-google-fonts/open-sans/600SemiBold';
 import { OpenSans_700Bold } from '@expo-google-fonts/open-sans/700Bold';
-import { QueryClientProvider } from '@tanstack/react-query';
+import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client';
 import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
@@ -19,7 +19,7 @@ import { ToastHost } from '@/components/feedback/Toast';
 import { useAuth } from '@/features/auth/store';
 import { GlossarySheetHost } from '@/features/guides/components/GlossarySheet';
 import { useProfile } from '@/features/profile/store';
-import { queryClient } from '@/lib/query';
+import { persistOptions, queryClient } from '@/lib/query';
 import { useHydrated } from '@/lib/useHydrated';
 import { palette } from '@/theme/tokens';
 
@@ -54,7 +54,7 @@ export default function RootLayout() {
   const signedIn = status === 'signedIn';
 
   return (
-    <QueryClientProvider client={queryClient}>
+    <PersistQueryClientProvider client={queryClient} persistOptions={persistOptions}>
       <SafeAreaProvider>
         <StatusBar style="dark" />
         <Stack screenOptions={{ headerShown: false, animation: 'fade', contentStyle: { backgroundColor: palette.bg } }}>
@@ -72,6 +72,6 @@ export default function RootLayout() {
         <ConfettiLayer />
         <ToastHost />
       </SafeAreaProvider>
-    </QueryClientProvider>
+    </PersistQueryClientProvider>
   );
 }

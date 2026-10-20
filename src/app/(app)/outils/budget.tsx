@@ -1,6 +1,6 @@
 import { Check, Info, TriangleAlert } from 'lucide-react-native';
 import { useMemo, useState } from 'react';
-import { ScrollView, StyleSheet, Switch, View } from 'react-native';
+import { ScrollView, StyleSheet, View } from 'react-native';
 import Animated, { FadeIn, useAnimatedStyle, withSpring } from 'react-native-reanimated';
 
 import { AppHeader } from '@/components/layout/AppHeader';
@@ -9,15 +9,14 @@ import { PressableScale } from '@/components/ui/PressableScale';
 import { Segmented } from '@/components/ui/Segmented';
 import { Chip } from '@/components/ui/Tag';
 import { Text } from '@/components/ui/Text';
-import { cities, cityByName } from '@/data/cities';
+import { computeBudget, type BudgetHousing, type BudgetSituation } from '@/data/content';
+import { useContent } from '@/data/hooks';
+import { openLink } from '@/features/guides/components/RichText';
 import { useProfile } from '@/features/profile/store';
 import { gradients, motion, palette, radius, shadow } from '@/theme/tokens';
 
-type Housing = 'crous' | 'coloc' | 'studio';
-const VISA_MIN = 615;
-
 function Bar({ label, value, max, color }: { label: string; value: number; max: number; color: string }) {
-  const s = useAnimatedStyle(() => ({ width: withSpring(`${Math.max(4, (value / max) * 100)}%`, motion.springSoft) }));
+  const s = useAnimatedStyle(() => ({ width: withSpring(`${Math.max(4, (Math.abs(value) / max) * 100)}%`, motion.springSoft) }));
   return (
     <View style={{ gap: 6 }}>
       <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
@@ -34,35 +33,44 @@ function Bar({ label, value, max, color }: { label: string; value: number; max: 
   );
 }
 
-/** Simulateur de budget mensuel par ville, avec estimation APL (brut / net). */
+const SITUATIONS: { value: BudgetSituation; label: string }[] = [
+  { value: 'aucune', label: 'Ni bourse ni job' },
+  { value: 'autre_bourse', label: 'Bourse de mon pays, Eiffel…' },
+  { value: 'bcs', label: 'Boursier CROUS' },
+  { value: 'alternance', label: 'Alternance' },
+  { value: 'salarie', label: 'Salarié·e' },
+];
+
+/**
+ * Simulateur de budget mensuel : même formule et mêmes données que dalili.study/simulateur.
+ * L'APL n'est comptée que si ta situation y ouvre droit (réforme du 1er juillet 2026).
+ */
 export default function Budget() {
   const profile = useProfile((s) => s.profile);
-  const [city, setCity] = useState(cityByName(profile.destinationCity)?.name ?? 'Paris');
-  const [housing, setHousing] = useState<Housing>('crous');
-  const [net, setNet] = useState(true);
-  const c = cityByName(city)!;
+  const { data: tools } = useContent('tools');
+  const { data: figures } = useContent('figures');
+  const t = tools.budget;
+  const [city, setCity] = useState(() => t.cities.find((c) => c.name === profile.destinationCity)?.slug ?? t.cities[0].slug);
+  const [housing, setHousing] = useState<BudgetHousing>('crous');
+  const [situation, setSituation] = useState<BudgetSituation>('aucune');
+  const level = profile.studyLevel === 'master' ? 'master' : profile.studyLevel === 'doctorat' ? 'doctorat' : 'licence';
 
-  const b = useMemo(() => {
-    const rent = c.rent[housing];
-    const apl = Math.round((housing === 'crous' ? 0.3 : housing === 'coloc' ? 0.28 : 0.25) * rent);
-    const phone = 10;
-    const insurance = 12;
-    const leisure = 80;
-    const gross = rent + c.food + c.transport + phone + insurance + leisure;
-    return { rent, apl, phone, insurance, leisure, gross, net: gross - apl };
-  }, [c, housing]);
-
-  const total = net ? b.net : b.gross;
-  const max = Math.max(b.rent, c.food, 100);
+  const b = useMemo(() => computeBudget({ city, housing, level, monthlyTuition: false, situation }, t), [city, housing, level, situation, t]);
+  const resources = figures.verified.compteBloqueMensuel;
+  if (!b) return null;
+  const cityName = t.cities.find((c) => c.slug === city)?.name ?? '';
+  const max = Math.max(b.housing, b.food, 100);
+  const savings = b.gross - b.net;
+  const resourcesValue = resources?.current.value ?? 0;
 
   return (
     <Screen top={gradients.mint} padded={false} header={<AppHeader back />}>
       <View style={{ paddingHorizontal: 20, gap: 16 }}>
         <Text variant="hero">Simulateur{'\n'}de budget</Text>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginHorizontal: -20 }} contentContainerStyle={{ gap: 8, paddingHorizontal: 20 }}>
-          {cities.map((x) => (
-            <PressableScale key={x.id} haptic="select" onPress={() => setCity(x.name)}>
-              <Chip label={x.name} active={city === x.name} color={palette.success} />
+          {t.cities.map((x) => (
+            <PressableScale key={x.slug} haptic="select" onPress={() => setCity(x.slug)}>
+              <Chip label={x.name} active={city === x.slug} color={palette.success} />
             </PressableScale>
           ))}
         </ScrollView>
@@ -72,47 +80,69 @@ export default function Budget() {
           onChange={setHousing}
           options={[
             { value: 'crous', label: 'CROUS' },
-            { value: 'coloc', label: 'Colocation' },
+            { value: 'coloc', label: 'Coloc' },
             { value: 'studio', label: 'Studio' },
+            { value: 'habitant', label: 'Habitant' },
           ]}
         />
-        <Animated.View key={`${city}-${housing}-${net}`} entering={FadeIn.duration(250)} style={styles.total}>
+        <View style={{ gap: 8 }}>
+          <Text variant="smallStrong">Ta situation (elle décide de ton droit à l’APL)</Text>
+          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+            {SITUATIONS.map((s) => (
+              <PressableScale key={s.value} haptic="select" onPress={() => setSituation(s.value)}>
+                <Chip label={s.label} active={situation === s.value} color={palette.success} />
+              </PressableScale>
+            ))}
+          </View>
+        </View>
+
+        <Animated.View key={`${city}-${housing}-${situation}`} entering={FadeIn.duration(250)} style={styles.total}>
           <Text variant="overline" color="rgba(255,255,255,0.65)">
-            Ton budget mensuel à {city}
+            Ton budget mensuel à {cityName}
           </Text>
           <Text variant="hero" color="#fff" style={{ fontSize: 44, lineHeight: 50 }}>
-            ≈ {total} €
+            ≈ {b.net} €
           </Text>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-            <Text variant="small" color="rgba(255,255,255,0.8)" style={{ flex: 1 }}>
-              {net ? 'Après aides (APL estimée)' : 'Avant aides'}
-            </Text>
-            <Text variant="smallStrong" color="#fff">
-              Net
-            </Text>
-            <Switch value={net} onValueChange={setNet} trackColor={{ true: '#34D399', false: 'rgba(255,255,255,0.3)' }} thumbColor="#fff" />
-          </View>
+          <Text variant="small" color="rgba(255,255,255,0.8)">
+            ≈ {b.gross} € avant les économies étudiantes ({savings} € en moins par mois).
+          </Text>
         </Animated.View>
+
         <View style={styles.card}>
-          <Bar label="Loyer" value={b.rent} max={max} color="#3D78FF" />
-          {net && <Bar label="APL (estimation)" value={-b.apl} max={max} color="#16A34A" />}
-          <Bar label="Courses & repas" value={c.food} max={max} color="#F97316" />
-          <Bar label="Transport (tarif jeune)" value={c.transport} max={max} color="#A855F7" />
-          <Bar label="Téléphone" value={b.phone} max={max} color="#0EA5E9" />
-          <Bar label="Assurance & mutuelle" value={b.insurance} max={max} color="#E11D48" />
-          <Bar label="Sorties & imprévus" value={b.leisure} max={max} color="#EAB308" />
+          <Bar label="Loyer" value={b.housing} max={max} color="#3D78FF" />
+          <Bar label="Courses & repas" value={b.food} max={max} color="#F97316" />
+          <Bar label="Transport" value={b.transport} max={max} color="#A855F7" />
+          <Bar label="Téléphone, santé, loisirs" value={b.fixed} max={max} color="#0EA5E9" />
+          <Bar label="Repas au resto U, transport réduit, CSS" value={-(savings - b.aplMid)} max={max} color="#16A34A" />
+          {b.aplEligible ? <Bar label="APL (estimation)" value={-b.aplMid} max={max} color="#16A34A" /> : null}
         </View>
-        <View style={[styles.note, { backgroundColor: palette.electricSoft }]}>
-          {b.gross <= VISA_MIN * 1.6 ? <Check size={18} color={palette.electric} /> : <TriangleAlert size={18} color={palette.warning} />}
-          <Text variant="small" style={{ flex: 1 }}>
-            Pour le visa, tu dois justifier au moins <Text variant="smallStrong">{VISA_MIN} € par mois</Text>. Ici, prévois plutôt{' '}
-            <Text variant="smallStrong">{Math.max(VISA_MIN, b.gross)} €</Text> pour vivre sereinement.
+
+        <View style={[styles.note, { backgroundColor: b.aplEligible ? palette.successSoft : palette.warningSoft }]}>
+          {b.aplEligible ? <Check size={18} color={palette.success} /> : <TriangleAlert size={18} color={palette.warningInk} />}
+          <Text variant="small" style={{ flex: 1 }} color={b.aplEligible ? palette.navy : palette.warningInk}>
+            {b.aplEligible
+              ? `Ta situation peut t’ouvrir l’APL : environ ${b.aplMin} à ${b.aplMax} € par mois. Le montant réel se calcule sur caf.fr.`
+              : 'Depuis le 1er juillet 2026, ta situation n’ouvre plus droit à l’APL. Ce budget n’en compte donc aucune.'}
           </Text>
         </View>
+
+        {resources ? (
+          <View style={[styles.note, { backgroundColor: palette.electricSoft }]}>
+            <Info size={18} color={palette.electric} />
+            <Text variant="small" style={{ flex: 1 }}>
+              Pour le visa, tu dois prouver <Text variant="smallStrong">{resources.display}</Text>. Ici, prévois plutôt{' '}
+              <Text variant="smallStrong">≈ {Math.max(Math.round(resourcesValue), b.gross)} €</Text> pour vivre sereinement.{' '}
+              <Text variant="caption" color={palette.electric} onPress={() => openLink(resources.current.source)} accessibilityRole="link">
+                Source : {resources.current.sourceLabel}
+              </Text>
+            </Text>
+          </View>
+        ) : null}
+
         <View style={styles.note}>
           <Info size={16} color={palette.muted} />
           <Text variant="caption" color={palette.muted} style={{ flex: 1 }}>
-            Estimations indicatives. L’APL réelle dépend de tes ressources et de ton logement : fais ta simulation officielle sur caf.fr.
+            Même calcul que le simulateur de dalili.study. Frais d’inscription en plus : ≈ {b.tuitionAnnual} € par an + CVEC ≈ {b.cvec} €.
           </Text>
         </View>
       </View>
@@ -122,7 +152,7 @@ export default function Budget() {
 
 const styles = StyleSheet.create({
   total: { gap: 6, padding: 20, borderRadius: radius.xxl, backgroundColor: '#0F3B2E', ...shadow.md },
-  card: { gap: 14, padding: 18, borderRadius: radius.xl, backgroundColor: '#fff', ...shadow.sm },
+  card: { gap: 14, padding: 18, borderRadius: radius.xl, backgroundColor: palette.surface, ...shadow.sm },
   track: { height: 8, borderRadius: 4, backgroundColor: '#EEF1F7', overflow: 'hidden' },
   fill: { height: 8, borderRadius: 4 },
   note: { flexDirection: 'row', gap: 10, alignItems: 'center', padding: 14, borderRadius: radius.lg },

@@ -12,10 +12,11 @@ import { Input } from '@/components/ui/Input';
 import { PressableScale } from '@/components/ui/PressableScale';
 import { Chip } from '@/components/ui/Tag';
 import { Text } from '@/components/ui/Text';
-import { cities } from '@/data/cities';
-import { useMentors } from '@/data/hooks';
+import { readMinutes } from '@/data/content';
+import { useContent, useMentors } from '@/data/hooks';
 import { useLocalDb } from '@/data/local-db';
-import { categories, guides, type GuideCategory } from '@/features/guides/guides';
+import { categories, categoryOf, type GuideCategory } from '@/features/guides/categories';
+import { countryOf } from '@/features/journey/steps';
 import { ToolsGrid } from '@/features/home/ToolsGrid';
 import { MentorRow } from '@/features/mentors/components/MentorCard';
 import { useProfile } from '@/features/profile/store';
@@ -59,10 +60,17 @@ export default function Explorer() {
     );
   }, [mentors, city, q]);
 
+  const { data: manifest } = useContent('manifest');
+  const { data: cities } = useContent('cities');
+  const country = countryOf(profile);
   const guideList = useMemo(() => {
     const t = q.trim().toLowerCase();
-    return guides.filter((g) => (!cat || g.category === cat) && (!t || `${g.title} ${g.subtitle}`.toLowerCase().includes(t)));
-  }, [cat, q]);
+    // Les guides de ton pays et les guides généraux ; ceux d'autres pays restent sur le site.
+    return manifest.guides
+      .filter((g) => !country || g.countries.includes(country))
+      .filter((g) => (!cat || categoryOf(g.category) === cat) && (!t || `${g.title} ${g.excerpt}`.toLowerCase().includes(t)))
+      .sort((a, b) => Number(b.countries.length === 1) - Number(a.countries.length === 1) || b.updatedDate.localeCompare(a.updatedDate));
+  }, [cat, q, manifest, country]);
 
   const cityCounts = useMemo(() => {
     const c: Record<string, number> = {};
@@ -151,12 +159,12 @@ export default function Explorer() {
           </ScrollView>
           <Animated.View layout={LinearTransition.springify()} style={{ gap: 10 }}>
             {guideList.map((g, i) => {
-              const c = categories[g.category];
+              const c = categories[categoryOf(g.category)];
               return (
-                <Animated.View key={g.id} entering={FadeInDown.delay(i * 40).springify()} layout={LinearTransition.springify()}>
-                  <PressableScale onPress={() => router.push({ pathname: '/(app)/guide/[id]', params: { id: g.id } })} style={styles.guide}>
+                <Animated.View key={g.slug} entering={FadeInDown.delay(Math.min(i, 6) * 40).springify()} layout={LinearTransition.springify()}>
+                  <PressableScale onPress={() => router.push({ pathname: '/(app)/guide/[id]', params: { id: g.slug } })} style={styles.guide}>
                     <View style={[styles.emoji, { backgroundColor: c.soft }]}>
-                      <Text style={{ fontSize: 24 }}>{g.emoji}</Text>
+                      <Text style={{ fontSize: 24 }}>{c.emoji}</Text>
                     </View>
                     <View style={{ flex: 1, gap: 3 }}>
                       <Text variant="caption" color={c.color}>
@@ -168,9 +176,9 @@ export default function Explorer() {
                       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
                         <Clock size={12} color={palette.muted} />
                         <Text variant="caption" color={palette.muted}>
-                          {g.minutes} min
+                          {readMinutes(g.readTime)} min
                         </Text>
-                        {read.includes(g.id) ? (
+                        {read.includes(g.slug) ? (
                           <>
                             <CheckCircle2 size={12} color={palette.success} style={{ marginLeft: 6 }} />
                             <Text variant="caption" color={palette.success}>
@@ -180,8 +188,8 @@ export default function Explorer() {
                         ) : null}
                       </View>
                     </View>
-                    <PressableScale onPress={() => toggleSaved(g.id)} haptic="select" hitSlop={10} accessibilityLabel="Enregistrer le guide">
-                      <Bookmark size={20} color={saved.includes(g.id) ? palette.electric : palette.muted} fill={saved.includes(g.id) ? palette.electric : 'transparent'} />
+                    <PressableScale onPress={() => toggleSaved(g.slug)} haptic="select" hitSlop={10} accessibilityLabel="Enregistrer le guide">
+                      <Bookmark size={20} color={saved.includes(g.slug) ? palette.electric : palette.muted} fill={saved.includes(g.slug) ? palette.electric : 'transparent'} />
                     </PressableScale>
                   </PressableScale>
                 </Animated.View>

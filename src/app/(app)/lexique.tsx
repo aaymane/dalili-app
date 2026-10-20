@@ -9,16 +9,19 @@ import { Input } from '@/components/ui/Input';
 import { PressableScale } from '@/components/ui/PressableScale';
 import { Text } from '@/components/ui/Text';
 import { openTerm } from '@/features/guides/components/GlossarySheet';
-import { glossary } from '@/features/guides/glossary';
+import { useGlossary } from '@/features/guides/glossary';
 import { palette, radius, shadow } from '@/theme/tokens';
 
 /** Lexique A→Z des démarches françaises, en mots simples. */
 export default function Lexique() {
   const [q, setQ] = useState('');
+  const glossary = useGlossary();
   const list = useMemo(() => {
     const t = q.trim().toLowerCase();
-    return glossary.filter((g) => !t || `${g.term} ${g.full ?? ''} ${g.simple}`.toLowerCase().includes(t));
-  }, [q]);
+    return [...glossary]
+      .sort((a, b) => a.term.localeCompare(b.term, 'fr'))
+      .filter((g) => !t || `${g.term} ${g.full ?? ''} ${g.simple}`.toLowerCase().includes(t));
+  }, [q, glossary]);
   const letters = [...new Set(list.map((g) => g.term[0].toUpperCase()))];
   return (
     <Screen top={['#CDB6FF', '#EFE8FF', '#F5F7FD']} padded={false} header={<AppHeader back />}>

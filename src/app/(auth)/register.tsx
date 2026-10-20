@@ -1,7 +1,7 @@
 import { router } from 'expo-router';
 import { ArrowRight, Calendar as CalIcon, Check, ChevronDown, Globe, IdCard, Lock, Mail, User } from 'lucide-react-native';
 import { useMemo, useState } from 'react';
-import { View } from 'react-native';
+import { ScrollView, View } from 'react-native';
 import Animated, { FadeInRight, FadeOutLeft, useAnimatedStyle, withTiming } from 'react-native-reanimated';
 
 import { BottomSheet } from '@/components/feedback/BottomSheet';
@@ -205,7 +205,7 @@ export default function Register() {
         <Text variant="h2" style={{ marginBottom: 14 }}>
           Ton pays de résidence
         </Text>
-        <View style={{ gap: 10 }}>
+        <ScrollView style={{ maxHeight: 440 }} contentContainerStyle={{ gap: 10 }} showsVerticalScrollIndicator={false}>
           {countries.map((c) => (
             <OptionCard
               key={c.id}
@@ -217,7 +217,7 @@ export default function Register() {
               }}
             />
           ))}
-        </View>
+        </ScrollView>
       </BottomSheet>
     </Screen>
   );

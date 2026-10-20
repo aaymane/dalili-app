@@ -3,8 +3,9 @@
  * Cherche la démarche ou le terme concerné et répond en actions simples.
  * En production, l'Edge Function `dalili-ia` (Claude) prend le relais.
  */
-import { glossary } from '@/features/guides/glossary';
-import { steps, type Step } from '@/features/journey/steps';
+import { snapshot } from '@/data/content';
+import { snapshotGlossary } from '@/features/guides/glossary';
+import { snapshotSteps, type Step } from '@/features/journey/steps';
 import type { Profile } from '@/features/profile/types';
 
 export type AiMessage = {
@@ -31,7 +32,7 @@ const KEYWORDS: Record<string, string[]> = {
   cvec: ['cvec', 'cotisation'],
   logement: ['logement', 'crous', 'appart', 'colocation', 'coloc', 'residence'],
   garant: ['garant', 'visale', 'caution'],
-  banque: ['banque', 'compte', 'rib', 'iban'],
+  banque: ['banque', 'compte bancaire', 'rib', 'iban'],
   'campus-france': ['campus france', 'eef', 'candidature', 'entretien'],
   tcf: ['tcf', 'delf', 'niveau de francais', 'test de francais'],
   mutuelle: ['mutuelle', 'css', 'complementaire'],
@@ -39,9 +40,15 @@ const KEYWORDS: Record<string, string[]> = {
   transport: ['transport', 'navigo', 'metro', 'bus', 'tram'],
   assurance: ['assurance habitation', 'assurer'],
   arrivee: ['arrivee', 'premier jour', 'aeroport', 'atterris'],
+  ressources: ['compte bloque', 'ressources', 'justificatif de ressources', '877'],
+  documents: ['apostille', 'legalis', 'traduction', 'traduire'],
+  bourses: ['bourse', 'boursier'],
+  medecin: ['medecin', 'docteur', 'generaliste'],
+  travail: ['travail', 'travailler', 'job', 'heures'],
+  renouvellement: ['renouvel', 'titre de sejour expire', 'prolonger'],
 };
 
-function findStep(q: string): Step | undefined {
+function findStep(q: string, steps: Step[]): Step | undefined {
   const n = norm(q);
   let best: { step: Step; score: number } | undefined;
   for (const s of steps) {
@@ -61,7 +68,7 @@ export function greeting(p: Profile, daysToArrival: number) {
 
 export function localAnswer(q: string, p: Profile): Omit<AiMessage, 'id' | 'role'> {
   const n = norm(q);
-  const step = findStep(q);
+  const step = findStep(q, snapshotSteps(p));
   if (step) {
     const isWhat = /c.?est quoi|ca veut dire|definition|signifie/.test(n);
     if (isWhat) {
@@ -78,7 +85,7 @@ export function localAnswer(q: string, p: Profile): Omit<AiMessage, 'id' | 'role
       followUp: step.terms?.[0] ? `C'est quoi « ${step.terms[0]} » ?` : undefined,
     };
   }
-  const term = glossary.find((g) => n.includes(norm(g.term)));
+  const term = snapshotGlossary().find((g) => n.includes(norm(g.term)));
   if (term) {
     return { content: `**${term.term}**${term.full ? ` (${term.full})` : ''} : ${term.simple}${term.example ? `\n\n💡 ${term.example}` : ''}`, stepId: term.stepId };
   }
@@ -90,8 +97,8 @@ export function localAnswer(q: string, p: Profile): Omit<AiMessage, 'id' | 'role
   }
   if (/budget|argent|combien|cout|cher/.test(n)) {
     return {
-      content: `Pour ${p.destinationCity ?? 'ta ville'}, compte le loyer, la nourriture (≈ 200-250 €), le transport et le téléphone. Pour le visa, il faut justifier au moins 615 € par mois. Ouvre le simulateur de budget pour un calcul précis, APL incluse.`,
-      followUp: 'Comment demander les APL ?',
+      content: `Pour ${p.destinationCity ?? 'ta ville'}, compte le loyer, la nourriture, le transport et le téléphone. Pour le visa, il faut justifier au moins ${snapshot.figures.verified.compteBloqueMensuel?.display ?? 'le montant officiel'} (source : ${snapshot.figures.verified.compteBloqueMensuel?.current.sourceLabel ?? 'service-public.fr'}). Ouvre le simulateur de budget : il fait le même calcul que dalili.study.`,
+      followUp: 'Ai-je droit à l’APL ?',
     };
   }
   return {

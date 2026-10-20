@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useMemo } from 'react';
 
 import { fetchEvents, fetchGroups, fetchMentors, fetchPosts } from './api';
+import { fetchCore, fetchGuide, snapshot, snapshotGuide, type Core, type CoreKey } from './content';
 import { useLocalDb } from './local-db';
 
 export function useMentors() {
@@ -60,3 +61,37 @@ export function usePosts(groupId?: string) {
 export type GroupWithState = ReturnType<typeof useGroups>['data'][number];
 export type EventWithState = ReturnType<typeof useEvents>['data'][number];
 export type PostWithState = ReturnType<typeof usePosts>['data'][number];
+
+// ───────────── Contenu dalili.study (guides, parcours, chiffres…) ─────────────
+
+const DAY = 86_400_000;
+const snapshotAt = new Date(snapshot.snapshotAt).getTime();
+
+/**
+ * Une partie du contenu du site. Jamais vide : l'instantané embarqué sert de valeur
+ * initiale, puis la version en ligne la remplace (rafraîchie au plus une fois par jour).
+ */
+export function useContent<K extends CoreKey>(key: K) {
+  const q = useQuery<Core[K]>({
+    queryKey: ['content', key],
+    queryFn: () => fetchCore(key),
+    initialData: snapshot[key],
+    initialDataUpdatedAt: snapshotAt,
+    staleTime: DAY,
+    gcTime: 30 * DAY,
+  });
+  return { ...q, data: q.data ?? snapshot[key] };
+}
+
+/** Un guide complet. Hors ligne : version embarquée ; `isFallback` signale qu'elle peut dater. */
+export function useGuide(slug?: string) {
+  const q = useQuery({
+    queryKey: ['content', 'guide', slug],
+    queryFn: () => fetchGuide(slug!),
+    enabled: !!slug,
+    staleTime: DAY,
+    gcTime: 30 * DAY,
+  });
+  const fallback = slug && !q.data ? snapshotGuide(slug) : undefined;
+  return { ...q, data: q.data ?? fallback, isFallback: !q.data && !!fallback };
+}

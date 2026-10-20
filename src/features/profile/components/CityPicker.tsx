@@ -7,10 +7,29 @@ import { IconTile } from '@/components/ui/IconTile';
 import { Input } from '@/components/ui/Input';
 import { PressableScale } from '@/components/ui/PressableScale';
 import { Text } from '@/components/ui/Text';
-import { cities } from '@/data/cities';
+import { useContent } from '@/data/hooks';
 import { palette, radius, shadow } from '@/theme/tokens';
 
-function CityCard({ name, members, color, selected, onPress }: { name: string; members: number; color: string; selected: boolean; onPress: () => void }) {
+/** Accents décoratifs des pastilles de ville (pas une couleur d'action). */
+const ACCENTS: Record<string, string> = {
+  paris: '#3D78FF',
+  lyon: '#A855F7',
+  toulouse: '#F43F5E',
+  bordeaux: '#22C55E',
+  marseille: '#F97316',
+  lille: '#6366F1',
+  nantes: '#14B8A6',
+  montpellier: '#EAB308',
+  strasbourg: '#EC4899',
+  rennes: '#0EA5E9',
+  grenoble: '#84CC16',
+  nice: '#06B6D4',
+  'clermont-ferrand': '#8B5CF6',
+  dijon: '#D946EF',
+  caen: '#64748B',
+};
+
+function CityCard({ name, budget, color, selected, onPress }: { name: string; budget: string; color: string; selected: boolean; onPress: () => void }) {
   const s = useAnimatedStyle(() => ({ borderColor: withTiming(selected ? palette.electric : '#EEF0F6', { duration: 160 }) }));
   return (
     <PressableScale onPress={onPress} haptic="select">
@@ -22,7 +41,7 @@ function CityCard({ name, members, color, selected, onPress }: { name: string; m
           {name}
         </Text>
         <Text variant="caption" color={palette.muted} style={{ fontSize: 10 }}>
-          {members.toLocaleString('fr-FR')} membres
+          {budget}
         </Text>
       </Animated.View>
     </PressableScale>
@@ -32,7 +51,8 @@ function CityCard({ name, members, color, selected, onPress }: { name: string; m
 /** Choix de ville : « je ne sais pas encore » + recherche + grille. */
 export function CityPicker({ value, onChange, allowUnknown = true }: { value: string | null | undefined; onChange: (v: string | null) => void; allowUnknown?: boolean }) {
   const [q, setQ] = useState('');
-  const list = useMemo(() => cities.filter((c) => c.name.toLowerCase().includes(q.trim().toLowerCase())), [q]);
+  const { data: cities } = useContent('cities');
+  const list = useMemo(() => cities.filter((c) => c.name.toLowerCase().includes(q.trim().toLowerCase())), [q, cities]);
   return (
     <View style={{ gap: 14 }}>
       {allowUnknown && (
@@ -55,7 +75,13 @@ export function CityPicker({ value, onChange, allowUnknown = true }: { value: st
       <Animated.View layout={LinearTransition.springify()} style={styles.grid}>
         {list.map((c) => (
           <Animated.View key={c.id} entering={FadeIn} layout={LinearTransition} style={{ width: '31.5%' }}>
-            <CityCard name={c.name} members={c.members} color={c.color} selected={value === c.name} onPress={() => onChange(c.name)} />
+            <CityCard
+              name={c.name}
+              budget={`≈ ${c.monthlyBudget.min}–${c.monthlyBudget.max} €/mois`}
+              color={ACCENTS[c.id] ?? palette.electricLight}
+              selected={value === c.name}
+              onPress={() => onChange(c.name)}
+            />
           </Animated.View>
         ))}
       </Animated.View>

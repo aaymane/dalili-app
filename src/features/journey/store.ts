@@ -7,7 +7,7 @@ import { addDays, toISODate } from '@/lib/date';
 import { persistStorage } from '@/lib/storage';
 
 import { syncCustomStep, syncStep } from './api';
-import { steps, type Phase, type Step } from './steps';
+import { useSteps, type Phase, type Step } from './steps';
 
 export type CustomStep = { id: string; title: string; date: string; done: boolean };
 
@@ -72,6 +72,7 @@ export function useJourney() {
   const profile = useProfile((s) => s.profile);
   const overrides = useJourneyStore((s) => s.overrides);
   const custom = useJourneyStore((s) => s.custom);
+  const steps = useSteps();
 
   return useMemo(() => {
     const arrival = effectiveArrival(profile);
@@ -126,5 +127,5 @@ export function useJourney() {
         return { done: items.filter((i) => i.done).length, total: items.length };
       },
     };
-  }, [profile, overrides, custom]);
+  }, [profile, overrides, custom, steps]);
 }

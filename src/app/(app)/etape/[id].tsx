@@ -1,6 +1,6 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
-import { ArrowUpRight, BookOpen, Check, CircleDot, MessageCircleQuestion, Sparkles, UsersRound } from 'lucide-react-native';
+import { ArrowUpRight, BookOpen, Check, ChevronRight, CircleDot, ShieldAlert, Sparkles, UsersRound } from 'lucide-react-native';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -11,10 +11,12 @@ import { IconTile } from '@/components/ui/IconTile';
 import { PressableScale } from '@/components/ui/PressableScale';
 import { StatusPill, Tag } from '@/components/ui/Tag';
 import { Text } from '@/components/ui/Text';
+import { readMinutes } from '@/data/content';
+import { useContent, useGuide } from '@/data/hooks';
 import { openTerm } from '@/features/guides/components/GlossarySheet';
-import { guideById } from '@/features/guides/guides';
+import { DocumentsCard, FaqList, FigureList, KeyFactsCard, SourcesCard } from '@/features/guides/components/GuideParts';
 import { StepIcon } from '@/features/journey/components/StepIcon';
-import { stepById } from '@/features/journey/steps';
+import { useStep } from '@/features/journey/steps';
 import { useJourney, useJourneyStore } from '@/features/journey/store';
 import { formatLong } from '@/lib/date';
 import { haptics } from '@/lib/haptics';
@@ -24,14 +26,19 @@ import { palette, radius, shadow } from '@/theme/tokens';
 export default function StepSheet() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const insets = useSafeAreaInsets();
-  const step = stepById(id);
+  const step = useStep(id);
   const j = useJourney();
   const toggle = useJourneyStore((s) => s.toggle);
+  const { data: guide } = useGuide(step?.guides[0]);
+  const { data: manifest } = useContent('manifest');
+  const { data: journey } = useContent('journey');
   if (!step) return null;
   const item = j.all.find((i) => i.kind === 'official' && i.step.id === id);
   const done = !!item?.done;
   const current = !!item?.current;
-  const guide = step.guideId ? guideById(step.guideId) : null;
+  const otherGuides = step.guides.slice(1).map((slug) => manifest.guides.find((g) => g.slug === slug)).filter((g) => !!g);
+  const showSafety = journey.safety.stepIds.includes(step.id);
+  const openGuide = (slug: string) => router.push({ pathname: '/(app)/guide/[id]', params: { id: slug } });
 
   const markDone = () => {
     toggle(step.id, !done);
@@ -84,13 +91,7 @@ export default function StepSheet() {
         <Text variant="body">{step.why}</Text>
       </Animated.View>
 
-      <Animated.View entering={FadeInDown.delay(160).springify()} style={{ flexDirection: 'row', gap: 10 }}>
-        <View style={styles.stat}>
-          <Text variant="overline" color={palette.muted} style={{ fontSize: 9 }}>
-            Budget
-          </Text>
-          <Text variant="h3">{step.budget}</Text>
-        </View>
+      <Animated.View entering={FadeInDown.delay(160).springify()} style={{ gap: 10 }}>
         <View style={styles.stat}>
           <Text variant="overline" color={palette.muted} style={{ fontSize: 9 }}>
             Quand
@@ -102,6 +103,7 @@ export default function StepSheet() {
             </Text>
           ) : null}
         </View>
+        <FigureList figures={step.figures} />
       </Animated.View>
 
       <Animated.View entering={FadeInDown.delay(190).springify()} style={{ gap: 10 }}>
@@ -125,7 +127,9 @@ export default function StepSheet() {
         ))}
       </Animated.View>
 
-      {step.needs?.length ? (
+      {guide?.documents.length ? (
+        <DocumentsCard documents={guide.documents} />
+      ) : step.needs?.length ? (
         <Animated.View entering={FadeInDown.delay(210).springify()} style={{ gap: 8 }}>
           <Text variant="overline" color={palette.muted}>
             Ce qu’il te faut
@@ -168,9 +172,69 @@ export default function StepSheet() {
           size="md"
           variant="white"
           icon={<ArrowUpRight size={16} color={palette.navy} />}
-          onPress={() => (step.action.url ? WebBrowser.openBrowserAsync(step.action.url) : guide ? router.push({ pathname: '/(app)/guide/[id]', params: { id: guide.id } }) : ask(step.title))}
+          onPress={() => (step.action.url ? WebBrowser.openBrowserAsync(step.action.url) : guide ? openGuide(guide.slug) : ask(step.title))}
         />
       </Animated.View>
+
+      {guide ? (
+        <View style={{ gap: 14 }}>
+          <View style={{ gap: 4 }}>
+            <Text variant="overline" color={palette.muted}>
+              D’après notre guide
+            </Text>
+            <PressableScale onPress={() => openGuide(guide.slug)} style={styles.guide} accessibilityRole="link">
+              <BookOpen size={18} color={palette.electric} />
+              <View style={{ flex: 1 }}>
+                <Text variant="smallStrong">{guide.title}</Text>
+                <Text variant="caption" color={palette.muted}>
+                  {readMinutes(guide.readTime)} min de lecture
+                </Text>
+              </View>
+              <ChevronRight size={16} color={palette.muted} />
+            </PressableScale>
+            {!step.hasCountryGuide ? (
+              <Text variant="caption" color={palette.subtle}>
+                Notre guide spécifique pour ton pays arrive bientôt. En attendant, voici le guide général.
+              </Text>
+            ) : null}
+          </View>
+          <KeyFactsCard guide={guide} />
+          <FaqList faq={guide.faq} limit={3} />
+          <SourcesCard guide={guide} />
+        </View>
+      ) : null}
+
+      {otherGuides.length ? (
+        <View style={{ gap: 8 }}>
+          <Text variant="overline" color={palette.muted}>
+            Pour aller plus loin
+          </Text>
+          {otherGuides.map((g) => (
+            <PressableScale key={g.slug} onPress={() => openGuide(g.slug)} style={styles.guide} accessibilityRole="link">
+              <BookOpen size={18} color={palette.subtle} />
+              <Text variant="smallStrong" style={{ flex: 1 }}>
+                {g.title}
+              </Text>
+              <ChevronRight size={16} color={palette.muted} />
+            </PressableScale>
+          ))}
+        </View>
+      ) : null}
+
+      {showSafety ? (
+        <PressableScale onPress={() => openGuide(journey.safety.guide)} style={[styles.guide, { backgroundColor: palette.warningSoft, borderColor: palette.warningSoft }]}>
+          <ShieldAlert size={18} color={palette.warningInk} />
+          <View style={{ flex: 1 }}>
+            <Text variant="smallStrong" color={palette.warningInk}>
+              {journey.safety.title}
+            </Text>
+            <Text variant="caption" color={palette.warningInk}>
+              {journey.safety.oneLiner}
+            </Text>
+          </View>
+          <ChevronRight size={16} color={palette.warningInk} />
+        </PressableScale>
+      ) : null}
 
       <View style={{ gap: 10 }}>
         <Button
@@ -190,18 +254,6 @@ export default function StepSheet() {
             <Button label="Dalili IA" size="md" variant="secondary" iconLeft={<Sparkles size={16} color={palette.aiIndigo} />} onPress={() => ask(`Explique-moi : ${step.title}`)} />
           </View>
         </View>
-        {guide ? (
-          <PressableScale onPress={() => router.push({ pathname: '/(app)/guide/[id]', params: { id: guide.id } })} style={styles.guide}>
-            <BookOpen size={18} color={palette.electric} />
-            <View style={{ flex: 1 }}>
-              <Text variant="smallStrong">Lire le guide : {guide.title}</Text>
-              <Text variant="caption" color={palette.muted}>
-                {guide.minutes} min de lecture
-              </Text>
-            </View>
-            <MessageCircleQuestion size={16} color={palette.muted} />
-          </PressableScale>
-        ) : null}
       </View>
     </ScrollView>
   );

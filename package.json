@@ -8,7 +8,9 @@
     "@react-native-async-storage/async-storage": "2.2.0",
     "@shopify/react-native-skia": "2.6.2",
     "@supabase/supabase-js": "^2.118.0",
+    "@tanstack/query-async-storage-persister": "^5.104.5",
     "@tanstack/react-query": "^5.104.3",
+    "@tanstack/react-query-persist-client": "^5.104.5",
     "expo": "~57.0.30",
     "expo-blur": "~57.0.3",
     "expo-constants": "~57.0.22",
@@ -53,7 +55,9 @@
     "lint": "expo lint",
     "typecheck": "tsc --noEmit",
     "check": "tsc --noEmit && expo lint",
-    "doctor": "npx expo-doctor"
+    "doctor": "npx expo-doctor",
+    "content:snapshot": "node scripts/snapshot-content.mjs",
+    "check:budget": "npx -y tsx scripts/check-budget.ts"
   },
   "private": true
 }

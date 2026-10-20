@@ -31,6 +31,8 @@ export const palette = {
   dangerSoft: '#FDE8E8',
   warning: '#F59E0B',
   warningSoft: '#FEF3DC',
+  /** Texte sur warningSoft (contraste AA) : « À vérifier ». */
+  warningInk: '#92600A',
 
   // Neutres
   white: '#FFFFFF',

@@ -8,6 +8,7 @@ import { AppHeader } from '@/components/layout/AppHeader';
 import { Screen } from '@/components/layout/Screen';
 import { PressableScale } from '@/components/ui/PressableScale';
 import { Text } from '@/components/ui/Text';
+import { useContent } from '@/data/hooks';
 import { useLocalDb } from '@/data/local-db';
 import { haptics } from '@/lib/haptics';
 import { gradients, motion, palette, radius, shadow } from '@/theme/tokens';
@@ -45,13 +46,16 @@ const GROUPS: { title: string; emoji: string; items: { id: string; label: string
     title: 'Argent',
     emoji: '💶',
     items: [
-      { id: 'resources', label: 'Justificatif de ressources', hint: 'Au moins 615 € / mois' },
+      { id: 'resources', label: 'Justificatif de ressources' },
       { id: 'rib', label: 'RIB français' },
     ],
   },
 ];
 
-function DocRow({ id, label, hint }: { id: string; label: string; hint?: string }) {
+function DocRow({ id, label, hint: staticHint }: { id: string; label: string; hint?: string }) {
+  const { data: figures } = useContent('figures');
+  // Le montant exigé vient des chiffres officiels du site (il a changé le 1er août 2026).
+  const hint = id === 'resources' && figures.verified.compteBloqueMensuel ? `Au moins ${figures.verified.compteBloqueMensuel.display}` : staticHint;
   const on = useLocalDb((s) => !!s.documents[id]);
   const toggle = useLocalDb((s) => s.toggleDocument);
   const box = useAnimatedStyle(() => ({ transform: [{ scale: withSpring(on ? 1 : 0.92, motion.springBouncy) }], backgroundColor: on ? palette.success : '#EEF1F7' }));

@@ -7,10 +7,10 @@ import { BottomSheet } from '@/components/feedback/BottomSheet';
 import { Button } from '@/components/ui/Button';
 import { IconTile } from '@/components/ui/IconTile';
 import { Text } from '@/components/ui/Text';
-import { stepById } from '@/features/journey/steps';
+import { useStep } from '@/features/journey/steps';
 import { palette } from '@/theme/tokens';
 
-import { findTerm } from '../glossary';
+import { findTerm, useGlossary } from '../glossary';
 
 const useGlossarySheet = create<{ term: string | null; open: (t: string) => void; close: () => void }>((set) => ({
   term: null,
@@ -23,8 +23,9 @@ export const openTerm = (t: string) => useGlossarySheet.getState().open(t);
 /** Définition d'un terme du lexique, accessible depuis n'importe quel texte. */
 export function GlossarySheetHost() {
   const { term, close } = useGlossarySheet();
-  const t = term ? findTerm(term) : null;
-  const step = t?.stepId ? stepById(t.stepId) : null;
+  const glossary = useGlossary();
+  const t = term ? findTerm(glossary, term) : null;
+  const step = useStep(t?.stepId);
   return (
     <BottomSheet visible={!!term} onClose={close}>
       {t ? (
