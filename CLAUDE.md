@@ -9,8 +9,8 @@ Rôles : **Étudiant** (MVP, bleu `#014DF8`), **Mentor** (MVP, vert `#1FB17C`), 
 
 ## Stack
 
-- Expo SDK 58 · React Native 0.88 · React 19 (React Compiler activé) · TypeScript strict
-- Expo Router (routes typées) · Reanimated 4 · react-native-svg · expo-linear-gradient · expo-haptics
+- Expo SDK 57 (Expo Go App Store) · React Native 0.86 · React 19 (React Compiler activé) · TypeScript strict
+- Expo Router (routes typées) · Reanimated 4 · Skia (l'Âme de Dalili) · react-native-svg · expo-linear-gradient · expo-haptics
 - Supabase (Postgres + RLS, Auth email/OTP + Google/Apple, Edge Functions) · TanStack Query · Zustand (persisté)
 - Icônes : `lucide-react-native` · Polices : Montserrat (titres) + Open Sans (texte)
 
@@ -86,5 +86,5 @@ supabase/
 
 - MVP (MoSCoW) : Must → Parcours-quête (stepper + calendrier), fiches de clarification, mentorat (réservation + appel), communauté & événements par ville. Should → Dalili IA. Won't (V2) → Hôte.
 - Recherche : 82 % jugent la préparation difficile, 15 % font confiance aux infos trouvées, 74 % redoutent l'isolement.
-- Le site dalili.study (114 pages, 64 guides) est la source des contenus des guides.
+- Le site dalili.study (75 guides) est la SEULE source du contenu administratif : l'app le lit via `/api/content/v1` (`src/data/content.ts`, `useContent`, `useGuide`). Ne jamais écrire un montant ou une démarche en dur dans l'app : on corrige le site. Instantané hors ligne : `npm run content:snapshot`.
 - Feuille de route détaillée : `docs/ROADMAP.md`.

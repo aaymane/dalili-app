@@ -149,3 +149,22 @@ Ces points sont repris et argumentés dans `VISION.md` §8 :
 - **Le billet ne doit pas remplacer l'action du jour** : après le visa restent le logement, la CVEC, la validation sur l'ANEF… On garde le billet au-dessus de l'action, pas à sa place.
 - **Lecture à voix haute en darija** : aucune voix système ne la prend en charge. La lecture se fera en arabe standard ou en français, et il faut le dire.
 - **Brief mentor** : l'étudiant doit voir et valider le résumé avant qu'il parte au mentor.
+
+---
+
+## 7. Chiffres à vérifier par l'équipe (mis à jour le 19/10/2026, M0)
+
+Ces chiffres ne sont **pas tranchés**. Sur le site comme dans l'app, ils s'affichent « à vérifier » ou « en cours de vérification », avec la source à consulter. Ils sont listés dans `PENDING_FIGURES` (`dalili.study/lib/data/regulatory-figures.ts`). Une fois un chiffre confirmé, il faut le déplacer dans `REGULATORY_FIGURES` avec sa source officielle : le site et l'app suivent automatiquement.
+
+| Chiffre | Valeurs trouvées | Où vérifier |
+|---|---|---|
+| Prix du TCF au Maroc | 350 MAD (guide TCF Maroc) · ≈ 1 900 MAD (sources signalées par l'équipe) | Institut français du Maroc |
+| Taxe de validation du VLS-TS | 50 € (ancienne fiche de l'app, sources externes) · 150 € (guide OFII) | service-public.gouv.fr F2231 |
+| Frais Campus France (CEF) Maroc | 2 200 MAD (KeyFacts, FAQ) · 1 900 MAD (corps des guides) | maroc.campusfrance.org |
+| Frais Campus France (CEF) Tunisie | 230 TND (guide Campus France Tunisie) · 400 TND (guide « Étudier depuis la Tunisie ») | tunisie.campusfrance.org |
+| SMIC horaire 2026 | 11,88 € (4 pages) · 11,91 € (guide budget Sénégal) | service-public.gouv.fr |
+| TCF exigé par défaut au Sénégal et au Liban | `tcfRequired: false` dans le calendrier, alors qu'un guide TCF Sénégal existe | Campus France Sénégal / Liban |
+
+**Chiffres confirmés et désormais lus depuis la source unique** : ressources 877,50 €/mois (décret 2026-526), frais consulaires ≈ 99 €, repas au resto U 1 € (depuis le 4/05/2026), CVEC 105 €, 964 h/an (803 h/an pour les Algériens), frais de scolarité 2 895 € (licence) / 3 941 € (master) / 397 € (doctorat).
+
+**Nouvelle dérive repérée** : les loyers du simulateur (`lib/tools/budget.ts`, ex-`SimulateurBudget.tsx`) et les fourchettes affichées sur les pages villes (`lib/cities.ts`, `costStudio`…) sont deux jeux de données différents (Bordeaux studio : 490-750 € contre 400-600 €). À unifier en M1, de préférence en générant les textes des pages à partir des nombres du simulateur.
