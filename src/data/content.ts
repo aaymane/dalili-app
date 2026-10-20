@@ -62,6 +62,8 @@ export type JourneyStepDTO = {
   oneLiner: string;
   why: string;
   minutes: number;
+  /** Phrase du Brief du jour écrite par l'équipe ; `{minutes}` à remplacer. Absente des anciennes versions de l'API. */
+  brief?: string;
   howTo: { title: string; detail: string }[];
   needs?: string[];
   action: { label: string; url?: string };

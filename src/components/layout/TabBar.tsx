@@ -23,7 +23,7 @@ function TabItem({ name, focused, onPress, accent }: { name: keyof typeof ICONS;
       <Animated.View style={s}>
         <Icon size={22} color={focused ? accent : palette.navy} strokeWidth={focused ? 2.4 : 1.9} />
       </Animated.View>
-      <Text variant="caption" color={focused ? accent : palette.subtle} style={{ fontSize: 10.5 }}>
+      <Text variant="caption" color={focused ? accent : palette.subtle} style={{ fontSize: 10.5 }} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.85}>
         {LABELS[name]}
       </Text>
       <Animated.View style={[styles.dot, { backgroundColor: accent }, dot]} />

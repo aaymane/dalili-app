@@ -11,7 +11,7 @@ import { addDays, toISODate } from '@/lib/date';
  * ⚠️ Écran TEMPORAIRE, mode développement uniquement : charge un profil de test pour les captures.
  * /dev-profil?p=aymen → Casablanca → Paris, rien commencé.
  * /dev-profil?p=salma → Alger → Lyon, visa obtenu, logement trouvé, arrivée dans 12 jours.
- * À supprimer au début de M1 (avec /ame-lab).
+ * Gardé pour les captures de chaque jalon (désactivé hors mode dev). À supprimer après M5.
  */
 const PROFILES: Record<string, { profile: Partial<Profile>; done: string[] }> = {
   aymen: {

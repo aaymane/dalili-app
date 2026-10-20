@@ -13,7 +13,7 @@ export const queryClient = new QueryClient({
 export const persistOptions: Omit<PersistQueryClientOptions, 'queryClient'> = {
   persister: createAsyncStoragePersister({ storage: AsyncStorage, key: 'dalili.content-cache' }),
   maxAge: 30 * 86_400_000,
-  buster: 'content-v1',
+  buster: 'content-v2',
   dehydrateOptions: {
     shouldDehydrateQuery: (q) => q.queryKey[0] === 'content' && q.state.status === 'success',
   },
