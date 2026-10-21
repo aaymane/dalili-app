@@ -10,4 +10,4 @@ Ajoute cette fonctionnalité à DALILI : $ARGUMENTS
 3. Implémente dans cet ordre : types → migration SQL (`supabase/migrations/<date>_<nom>.sql`) → api/hooks → UI → animations & feedback.
 4. Les policies RLS doivent garantir qu'un utilisateur ne lit/écrit que ses propres données (ou celles des groupes dont il est membre).
 5. Vérifie : `npm run typecheck && npm run lint`. Si tu as touché au SQL, vérifie la syntaxe et la logique des policies.
-6. Mets à jour `docs/ROADMAP.md` (coche ce qui est fait) et commit.
+6. Mets à jour `docs/ROADMAP.md` (coche ce qui est fait) et donne les commandes de commit à copier.

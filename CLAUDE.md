@@ -7,13 +7,6 @@ Promesse : transformer un parcours anxiogène en expérience guidée. Trois pili
 
 Rôles : **Étudiant** (MVP, bleu `#014DF8`), **Mentor** (MVP, vert `#1FB17C`), **Hôte** (V2, orange `#EA580C`) — un seul compte, un sélecteur de rôle.
 
-## Stack
-
-- Expo SDK 57 (Expo Go App Store) · React Native 0.86 · React 19 (React Compiler activé) · TypeScript strict
-- Expo Router (routes typées) · Reanimated 4 · Skia (l'Âme de Dalili) · react-native-svg · expo-linear-gradient · expo-haptics
-- Supabase (Postgres + RLS, Auth email/OTP + Google/Apple, Edge Functions) · TanStack Query · Zustand (persisté)
-- Icônes : `lucide-react-native` · Polices : Montserrat (titres) + Open Sans (texte)
-
 ## Commandes
 
 ```bash
@@ -26,30 +19,8 @@ npx expo export -p web    # vérifier que tout compile
 
 ## Architecture
 
-```
-src/
-  app/                    # ROUTES UNIQUEMENT (Expo Router)
-    _layout.tsx           # polices, providers, gardes d'accès (Stack.Protected)
-    (auth)/               # accueil, connexion, inscription 2 étapes, OTP
-    (onboarding)/         # bienvenue + photo, situation, questions étudiant/mentor, chargement
-    (app)/(tabs)/         # Accueil · Explorer · Dalili IA · Communauté · Profil
-    (app)/…               # parcours, etape/[id] (fiche), mentor/[id], groupe/[id], evenement/[id], guide/[id], outils/…
-  components/
-    ui/                   # Text, Button, Card, Input, Tag/StatusPill/Chip, Avatar, ProgressRing, Segmented, Calendar, OptionCard…
-    layout/               # Screen, AppHeader, TabBar, StepHeader, NightBackground
-    feedback/             # BottomSheet, SuccessModal, Confetti (celebrate()), Toast (toast())
-    brand/                # LogoMark (SVG vectorisé), LogoOrb, Glow, logos Google/Apple
-  features/               # logique métier par domaine (store, contenu, composants spécifiques)
-    auth/ profile/ journey/ guides/ mentors/ community/ ai/ home/
-  data/                   # accès données : api.ts (Supabase OU démo), hooks.ts (React Query), local-db.ts, demo.ts
-  lib/                    # supabase, env, haptics, dates, storage
-  theme/                  # tokens.ts (SOURCE DE VÉRITÉ du design) + useRoleTheme()
-supabase/
-  migrations/             # schéma SQL + RLS (testé)
-  seed.sql                # mentors, groupes, événements de départ
-  tests/                  # schéma actuel du site + tests RLS (npm run test:migrations)
-  functions/dalili-ia/    # ANCIENNE Edge Function, plus appelée : à supprimer une fois /api/v1/assistant testé en ligne
-```
+- `src/app/` = routes uniquement (Expo Router). La logique et les sous-composants vont dans `src/features/<domaine>/`.
+- `supabase/functions/dalili-ia/` = ancienne Edge Function, plus appelée : à supprimer une fois `/api/v1/assistant` testé en ligne.
 
 ## Règles d'or (à respecter à chaque modification)
 
@@ -64,16 +35,9 @@ supabase/
 9. **Ton** : français, tutoiement, bienveillant, phrases courtes, zéro jargon non expliqué. Les sigles passent par le lexique : `[[CAF]]` dans un texte rendu par `RichText` devient cliquable.
 10. **Accessibilité** (WCAG AA) : `accessibilityLabel` sur les boutons icônes, cibles ≥ 44 px, contraste suffisant, `maxFontSizeMultiplier` déjà géré par `Text`.
 11. **Contenu administratif** (`features/journey/steps.ts`, `features/guides/*`) : montants toujours avec « ≈ », lien vers la source officielle, à faire valider par l'équipe.
-12. **Git** : commit après chaque fonctionnalité qui marche, push sur GitHub au moins une fois par session. On ne perd plus jamais de code.
+12. **Git** : Claude ne commite pas et ne pousse pas. **À la fin de chaque étape**, il donne les commandes git à copier (`git add` fichier par fichier, `git commit` en français, `git push`) pour chaque dépôt touché, puis attend le « poussé » avant l'étape suivante. Jamais `git add -A` sur le site, jamais `.claude/settings.json` ni de fichier contenant une clé ou un email personnel. On ne perd plus jamais de code.
 
-## Créer un écran à partir d'une maquette Figma
-
-1. Analyser la maquette : structure, composants existants réutilisables, couleurs ↔ tokens, états (vide, chargement, erreur, succès).
-2. Route dans `src/app/(app)/…` (ou le bon groupe). Logique et sous-composants dans `src/features/<domaine>/`.
-3. Construire avec le kit UI. S'il manque un composant réutilisable → l'ajouter dans `components/ui/` (documenté, typé).
-4. Ajouter les micro-interactions : entrée animée, `PressableScale`, haptique, états vides soignés, `toast()`/`SuccessModal` pour confirmer.
-5. Données : hook dans `data/hooks.ts` + fonction dans `data/api.ts` (démo + Supabase) + migration SQL si besoin.
-6. Vérifier : `npm run typecheck && npm run lint`, puis tester sur téléphone (Expo Go) et sur le web.
+Écran à partir d'une maquette Figma : commande `/ecran`.
 
 ## Définition de « terminé »
 
@@ -81,7 +45,7 @@ supabase/
 - [ ] L'écran marche en mode démo ET avec Supabase
 - [ ] Animations d'entrée + feedback tactile + états vides
 - [ ] Textes en français, tutoiement, sans jargon
-- [ ] Commit fait
+- [ ] Commandes de commit données (c'est l'utilisateur qui commite)
 
 ## Contexte produit
 
