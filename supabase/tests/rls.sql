@@ -22,10 +22,12 @@ begin
 end $$;
 grant execute on all functions in schema tests to anon, authenticated, service_role;
 
--- Deux comptes : A (Aymen) et B.
+-- Quatre comptes : A (Aymen) et B, plus C et D pour les fiches mentor.
 insert into auth.users (id, email, email_confirmed_at) values
   ('00000000-0000-0000-0000-00000000000a', 'a@test.local', now()),
-  ('00000000-0000-0000-0000-00000000000b', 'b@test.local', now());
+  ('00000000-0000-0000-0000-00000000000b', 'b@test.local', now()),
+  ('00000000-0000-0000-0000-00000000000c', 'c@test.local', now()),
+  ('00000000-0000-0000-0000-00000000000d', 'd@test.local', now());
 insert into public.groups (id, name, city) values ('00000000-0000-0000-0000-0000000000c1', 'Groupe test', 'Paris')
   on conflict do nothing;
 
@@ -44,7 +46,19 @@ select tests.must_fail('anon consomme un quota', $q$select public.assistant_cons
 select tests.must_fail('anon lit les profils', 'select * from public.profiles');
 select tests.must_fail('anon lit les mentors', 'select * from public.mentors');
 select tests.must_fail('anon lit les posts', 'select * from public.posts_with_author');
+select tests.must_fail('anon appelle display_name', $q$select public.display_name('00000000-0000-0000-0000-00000000000a')$q$);
+select tests.must_fail('anon appelle is_member', $q$select public.is_member('00000000-0000-0000-0000-0000000000c1')$q$);
+select tests.must_fail('anon appelle handle_new_user', 'select public.handle_new_user()');
+select tests.must_fail('anon appelle bump_count', 'select public.bump_count()');
 rollback;
+
+-- ───────────── fonctions privées : droits d'exécution ─────────────
+select tests.must_count('anon n''exécute aucune des 4 fonctions',
+  $q$select 1 from unnest(array['public.display_name(uuid)', 'public.is_member(uuid)', 'public.handle_new_user()', 'public.bump_count()']) f
+     where has_function_privilege('anon', f, 'execute')$q$, 0);
+select tests.must_count('connecté : handle_new_user et bump_count non exécutables',
+  $q$select 1 from unnest(array['public.handle_new_user()', 'public.bump_count()']) f
+     where has_function_privilege('authenticated', f, 'execute')$q$, 0);
 
 -- ───────────── compte A connecté ─────────────
 begin;
@@ -79,6 +93,39 @@ set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-00000000000a","r
 insert into public.mentors (user_id, first_name, last_name, city) values (auth.uid(), 'A', 'A', 'Paris');
 set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-00000000000b","role":"authenticated"}';
 select tests.must_count('B ne voit pas un mentor non validé', 'select * from public.mentors', 0);
+rollback;
+
+-- ───────────── display_name : « Prénom N. », seulement si groupe commun ou mentor validé ─────────────
+begin;
+update public.profiles set first_name = 'Aymen', last_name = 'Amri' where id = '00000000-0000-0000-0000-00000000000a';
+update public.profiles set first_name = 'Salma', last_name = 'Benali' where id = '00000000-0000-0000-0000-00000000000b';
+update public.profiles set first_name = 'Yassine', last_name = 'Kadiri' where id = '00000000-0000-0000-0000-00000000000c';
+update public.profiles set first_name = 'Nadia', last_name = 'Daoud' where id = '00000000-0000-0000-0000-00000000000d';
+insert into public.mentors (user_id, first_name, last_name, city, is_active) values
+  ('00000000-0000-0000-0000-00000000000c', 'Yassine', 'Kadiri', 'Lyon', true),
+  ('00000000-0000-0000-0000-00000000000d', 'Nadia', 'Daoud', 'Lille', false);
+set local role authenticated;
+set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-00000000000a","role":"authenticated"}';
+select tests.must_count('hors groupe : le nom de B est masqué (null)', $q$select 1 where public.display_name('00000000-0000-0000-0000-00000000000b') is null$q$, 1);
+select tests.must_count('mentor validé : « Yassine K. »', $q$select 1 where public.display_name('00000000-0000-0000-0000-00000000000c') = 'Yassine K.'$q$, 1);
+select tests.must_count('mentor en attente : null', $q$select 1 where public.display_name('00000000-0000-0000-0000-00000000000d') is null$q$, 1);
+reset role;
+insert into public.group_members (group_id, user_id) values
+  ('00000000-0000-0000-0000-0000000000c1', '00000000-0000-0000-0000-00000000000a'),
+  ('00000000-0000-0000-0000-0000000000c1', '00000000-0000-0000-0000-00000000000b');
+set local role authenticated;
+select tests.must_count('même groupe : « Salma B. », jamais le nom complet', $q$select 1 where public.display_name('00000000-0000-0000-0000-00000000000b') = 'Salma B.'$q$, 1);
+insert into public.posts (group_id, body) values ('00000000-0000-0000-0000-0000000000c1', 'Salut !');
+set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-00000000000b","role":"authenticated"}';
+insert into public.comments (post_id, body) select id, 'Bienvenue !' from public.posts;
+select tests.must_count('le fil affiche « Aymen A. » et le commentaire de « Salma B. »',
+  $q$select 1 from public.posts_with_author where author_name = 'Aymen A.' and comments -> 0 ->> 'author' = 'Salma B.'$q$, 1);
+reset role;
+delete from public.group_members where user_id = '00000000-0000-0000-0000-00000000000b';
+set local role authenticated;
+set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-00000000000a","role":"authenticated"}';
+select tests.must_count('B a quitté le groupe : son commentaire reste signé « Membre DALILI »',
+  $q$select 1 from public.posts_with_author where comments -> 0 ->> 'author' = 'Membre DALILI'$q$, 1);
 rollback;
 
 -- ───────────── serveur du site (clé service) ─────────────
