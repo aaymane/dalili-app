@@ -3,6 +3,7 @@ import { router } from 'expo-router';
 import { ArrowRight, Pencil } from 'lucide-react-native';
 import { StyleSheet, View } from 'react-native';
 
+import { StarField } from '@/components/brand/StarField';
 import { PressableScale } from '@/components/ui/PressableScale';
 import { ProgressRing } from '@/components/ui/ProgressRing';
 import { Text } from '@/components/ui/Text';
@@ -22,6 +23,7 @@ export function MobilityCard({ onEditArrival, compact }: { onEditArrival?: () =>
   return (
     <LinearGradient colors={gradients.hero} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.card}>
       <LinearGradient colors={gradients.heroGlow} start={{ x: 1, y: 0 }} end={{ x: 0.2, y: 0.8 }} style={styles.glow} />
+      <StarField variant="card" />
       <Text variant="overline" color="rgba(255,255,255,0.6)" style={{ fontSize: 9.5 }}>
         Ta mobilité · personnalisée pour toi
       </Text>

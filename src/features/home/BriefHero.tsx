@@ -7,6 +7,7 @@ import Animated, { Extrapolation, FadeIn, interpolate, useAnimatedStyle } from '
 
 import { useScrollY } from '@/components/motion/scroll';
 
+import { StarField } from '@/components/brand/StarField';
 import { PressableScale } from '@/components/ui/PressableScale';
 import { Text } from '@/components/ui/Text';
 import { Ame, type AmeState } from '@/features/ame/Ame';
@@ -83,6 +84,7 @@ export function BriefHero() {
 
   return (
     <LinearGradient colors={gradients.night} style={styles.card}>
+      <StarField variant="card" origin={{ x: 0.5, y: 0.25 }} />
       <Animated.View style={[styles.ame, ameDepth]}>
         <Ame size={ameSize} state={state} surface="dark" />
       </Animated.View>

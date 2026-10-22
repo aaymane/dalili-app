@@ -40,7 +40,7 @@ export function useLaunchIntro() {
   return play;
 }
 
-/** Fond plat de l'écran de lancement, qui s'efface pour révéler la nuit et ses orbes. */
+/** Fond plat de l'écran de lancement, qui s'efface pour révéler la nuit pendant que les étoiles s'allument. */
 export function SplashCover() {
   const reduced = useReducedMotion();
   const opacity = useSharedValue(1);

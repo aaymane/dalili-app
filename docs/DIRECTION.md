@@ -76,13 +76,25 @@ Le vocabulaire visuel vient du voyage : un trajet entre deux villes, un compte �
 
 `Screen` suit la position de défilement sur le thread UI (`useScrollY()`), sans aucun rendu React. On s'en sert pour la parallaxe (≤ `depth.parallax`, 12 px) et les apparitions. Exemple : l'Âme du brief recule de 12 px et s'efface au défilement, et grossit un peu quand on tire vers le bas.
 
+### Ciel étoilé
+
+`src/components/brand/StarField.tsx` : un seul shader Skia (carte graphique), transparent, posé sur un dégradé nuit.
+
+- **Trois plans d'étoiles** à des profondeurs différentes, chaque étoile scintille à son rythme ; les plus brillantes ont des aigrettes.
+- **Voie lactée** en diagonale (haut droite → bas gauche), plus dense en étoiles, et nébuleuse bleu-violet qui dérive très lentement.
+- **Étoile filante** toutes les 8 s environ (1 s de traversée).
+- **Inclinaison** (`TiltingStarField`, plein écran seulement) : le ciel suit le téléphone, les plans proches bougent plus que les lointains (22 pt max) et la position de repos se recentre seule.
+- **Allumage** (`ignite`) : au lancement, une onde part du logo et allume les étoiles, qui brillent plus fort au passage du front.
+- Variante `card` pour le brief et « Ta mobilité » : moins dense, sans nébuleuse, sans étoile filante ni inclinaison.
+- Le ciel ne tourne que si l'écran est au premier plan et l'app active. Réduction des animations : ciel figé, sans étoile filante ni onde.
+
 ### Lancement
 
 Au premier affichage de l'accueil (`features/auth/components/LaunchIntro.tsx`), une seule fois par lancement :
 
 1. **Image 1 = l'écran de lancement natif** (`app.json` → `expo-splash-screen` : fond `navyDeep`, monogramme blanc centré). `SplashFrame` le reproduit tant que l'app se prépare : aucune coupure.
 2. 0 → 520 ms : le halo s'allume derrière le logo.
-3. 360 → 1060 ms : le logo glisse à sa place (`EASE_IN_OUT`) et passe du blanc au bleu ; le fond plat s'efface pour révéler la nuit et ses orbes.
+3. 360 → 1060 ms : le logo glisse à sa place (`EASE_IN_OUT`) et passe du blanc au bleu ; le fond plat s'efface pendant qu'une onde partie du logo allume les étoiles (une étoile filante traverse souvent à ce moment-là).
 4. 940 ms : « DALILI » s'écrit lettre par lettre (50 ms d'écart), quand le logo se pose. 1060 ms : le texte et les boutons arrivent.
 
 Dans Expo Go, l'écran blanc avec l'icône et « Loading… » appartient à Expo Go : il n'existe pas dans l'app installée.
@@ -92,7 +104,7 @@ Dans Expo Go, l'écran blanc avec l'icône et « Loading… » appartient à Exp
 1. **Ordre de lecture = ordre d'apparition** : en-tête → élément héros → action principale → le reste.
 2. Cascade `enter(i)` (`src/theme/motion.ts`) : fondu + montée de 12 px, 360 ms, `EASE_OUT`, **sans ressort ni rebond**, avec **6 crans maximum** (0 → 300 ms). Au-delà, tout le reste arrive au cran 6. Personne n'attend une animation pour lire. Petits éléments (coche, badge) : `pop()`, jamais depuis 0. Sortie : `leave` (fondu de 120 ms). Liste qui bouge : `reflow`.
 3. **Seul le premier écran visible a la cascade.** Ce qui est sous la ligne de flottaison entre avec `Reveal` (`src/components/motion/Reveal.tsx`) **quand il arrive à l'écran au défilement** : une fois, 520 ms, `EASE_OUT`, 28 px + échelle 0,97 → 1. Ses enfants s'y calent avec `useReveal()` (un anneau se remplit, un avion décolle) au lieu de s'animer hors de vue.
-4. **Une seule boucle par écran** (un halo qui respire sur l'étape en cours, *ou* des orbes, jamais les deux).
+4. **Une seule boucle par écran** (un halo qui respire sur l'étape en cours, *ou* le ciel étoilé, jamais les deux). Le ciel étoilé remplace les anciens orbes.
 5. **Tout est lisible à l'image 1** : si l'animation ne se joue pas, l'écran est complet.
 6. Réduction des animations : chaque `entering` et chaque boucle reçoit `.reduceMotion(ReduceMotion.System)`. Les boucles s'arrêtent, les cascades deviennent un fondu.
 

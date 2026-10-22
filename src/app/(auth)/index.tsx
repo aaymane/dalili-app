@@ -38,7 +38,7 @@ export default function Welcome() {
 
   return (
     <View style={styles.fill}>
-      <NightBackground />
+      <NightBackground ignite={play} />
       {play && <SplashCover />}
       <View
         style={[
