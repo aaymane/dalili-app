@@ -22,7 +22,7 @@ const H = 64;
 const PAD = 10;
 const PLANE = 28;
 /** Silhouette d'avion vue de dessus, nez vers la droite (repère 24 × 24). */
-const PLANE_PATH =
+export const PLANE_PATH =
   'M22 12c0-.8-1-1-2-1h-6L10 3.5H8l2.5 7.5h-5L3.8 8H2.5l1 4-1 4h1.3l1.7-3h5L8 20.5h2l4-7.5h6c1 0 2-.2 2-1z';
 
 /** Point et angle sur l'arc (courbe de Bézier quadratique) au temps t. */

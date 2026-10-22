@@ -138,7 +138,7 @@ half4 main(float2 p) {
 `;
 
 // `null` si le shader ne compile pas : on n'affiche alors rien plutôt que de planter.
-const sky = Skia.RuntimeEffect.Make(SKY);
+export const skyEffect = Skia.RuntimeEffect.Make(SKY);
 
 type Props = {
   /** `sky` : plein écran, nébuleuse et étoile filante. `card` : plus discret, pour une carte nuit. */
@@ -151,17 +151,21 @@ type Props = {
   tilt?: SharedValue<{ x: number; y: number }>;
 };
 
-export function StarField({ variant = 'sky', ignite = false, origin = { x: 0.5, y: 0.5 }, tilt }: Props) {
+type SkyOptions = Pick<Props, 'variant' | 'ignite' | 'origin' | 'tilt'>;
+
+/**
+ * Horloge et paramètres du ciel, pour dessiner `skyEffect` dans n'importe quel Canvas de la taille `size`
+ * (le billet s'en sert à l'intérieur de sa découpe). Le temps ne tourne que si l'écran est visible et l'app active.
+ */
+export function useSkyUniforms(size: SharedValue<{ width: number; height: number }>, { variant = 'sky', ignite = false, origin = { x: 0.5, y: 0.5 }, tilt }: SkyOptions) {
   const reduce = useReducedMotion();
   const focused = useIsFocused();
-  const size = useSharedValue({ width: 0, height: 0 });
   const t = useSharedValue(0);
   const lit = useSharedValue(ignite && !reduce ? 0 : 1);
 
   const frame = useFrameCallback((f) => {
     t.set(f.timeSinceFirstFrame / 1000);
   }, false);
-  // Le ciel ne tourne que s'il est visible : écran au premier plan et app active.
   useEffect(() => {
     const update = (s: string) => frame.setActive(!reduce && focused && s === 'active');
     update(AppState.currentState);
@@ -174,7 +178,7 @@ export function StarField({ variant = 'sky', ignite = false, origin = { x: 0.5, 
   }, [ignite, reduce, lit]);
 
   const card = variant === 'card';
-  const uniforms = useDerivedValue(() => {
+  return useDerivedValue(() => {
     const { width, height } = size.get();
     const p = tilt?.get() ?? { x: 0, y: 0 };
     return {
@@ -188,13 +192,18 @@ export function StarField({ variant = 'sky', ignite = false, origin = { x: 0.5, 
       shoot: card || reduce ? 0 : 1,
     };
   });
+}
 
-  if (!sky) return null;
+export function StarField(props: Props) {
+  const size = useSharedValue({ width: 0, height: 0 });
+  const uniforms = useSkyUniforms(size, props);
+
+  if (!skyEffect) return null;
   return (
     <View pointerEvents="none" style={StyleSheet.absoluteFill} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
       <Canvas style={StyleSheet.absoluteFill} onSize={size}>
         <Fill>
-          <Shader source={sky} uniforms={uniforms} />
+          <Shader source={skyEffect} uniforms={uniforms} />
         </Fill>
       </Canvas>
     </View>

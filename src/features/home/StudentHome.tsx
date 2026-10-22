@@ -16,6 +16,7 @@ import { Text } from '@/components/ui/Text';
 import { useGroups, useMentors } from '@/data/hooks';
 import { useLocalDb } from '@/data/local-db';
 import { ArrivalSheet } from '@/features/journey/components/ArrivalSheet';
+import { JourneyPath } from '@/features/journey/components/JourneyPath';
 import { MobilityCard } from '@/features/journey/components/MobilityCard';
 import { useJourney } from '@/features/journey/store';
 import { MentorTile } from '@/features/mentors/components/MentorCard';
@@ -134,6 +135,17 @@ export function StudentHome() {
         <Reveal>
           <MobilityCard onEditArrival={() => setArrivalOpen(true)} />
         </Reveal>
+
+        {/* Pas de `Reveal` : le chemin a sa propre entrée, tracée au défilement. */}
+        <View>
+          <SectionHeader
+            title="Ton chemin"
+            subtitle={`De ${profile.originCity || 'chez toi'} à ${profile.destinationCity ?? 'la France'}, une étape à la fois`}
+            action="Détails"
+            onAction={() => router.push('/(app)/parcours')}
+          />
+          <JourneyPath />
+        </View>
 
         <Reveal>
           <SectionHeader

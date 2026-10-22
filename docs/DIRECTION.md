@@ -173,6 +173,16 @@ Les trois pistes (billet, chemin, une seule chose) ont été essayées puis reti
 
 Ce qui reste des pistes vit dans M2 : le **chemin** (tracé au défilement, avion) et le **billet** (débloqué au visa).
 
+### « Ton chemin » (M2.1)
+
+`features/journey/components/JourneyPath.tsx`, données et géométrie dans `features/journey/path.ts`.
+
+- Les étapes du site sont regroupées en **6 jalons** (projet d'études, Campus France, visa, logement, arrivée, nouvelle vie), après le départ de ta ville. Un jalon sans étape pour ton profil disparaît.
+- Sentier en S dessiné en Skia : **bleu plein jusqu'à « Tu es ici »**, pointillés ensuite. Il se trace **au défilement, lié au doigt** (dans les deux sens) : pas de chorégraphie d'entrée.
+- L'avion suit la tangente et s'arrête juste avant la pastille « Tu es ici » (retour haptique `select` à l'arrivée, une fois). Halo statique : la boucle de l'accueil reste l'Âme.
+- Chaque jalon se pose quand le tracé l'atteint et ouvre son étape.
+- Au bout, le **billet** (`Ticket.tsx`) : fond Skia avec de vraies encoches de perforation et le ciel étoilé. Verrouillé tant que le visa n'est pas validé : silhouette floue sous un voile nuit, cadenas, « Se débloque quand ton visa est validé ».
+
 ### La nuit pour les moments de marque, le matin pour le quotidien
 
 - **Nuit** : bienvenue, onboarding, chargement, carte du brief, carte « Ta mobilité ». C'est là que vivent la profondeur, les halos et, à venir, le ciel étoilé.
@@ -180,4 +190,4 @@ Ce qui reste des pistes vit dans M2 : le **chemin** (tracé au défilement, avio
 
 ### L'avion
 
-Un **avion vectoriel en perspective** (pas de moteur 3D, §5) : sur la carte « Ta mobilité », il vole le long d'un arc de ta ville à ta ville d'arrivée et s'arrête à ta progression (`features/journey/components/RouteArc.tsx`). Le même avion suivra le chemin de M2.
+Un **avion vectoriel en perspective** (pas de moteur 3D, §5) : sur la carte « Ta mobilité », il vole le long d'un arc de ta ville à ta ville d'arrivée et s'arrête à ta progression (`features/journey/components/RouteArc.tsx`). Le même avion suit « Ton chemin » sur l'accueil (M2.1).
