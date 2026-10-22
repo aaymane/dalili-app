@@ -148,7 +148,7 @@ export default function Profil() {
           />
           <Row icon={<Languages size={18} color="#fff" />} colors={['#94A3B8', '#475569']} label="Langue" sub="Français · العربية et English bientôt" onPress={() => toast('Arabe et anglais arrivent bientôt 🌍', 'info')} />
           <Row icon={<Siren size={18} color="#fff" />} colors={['#FB7185', '#E11D48']} label="Urgences & SOS" sub="Numéros utiles en France" onPress={go('/(app)/outils/sos')} />
-          <Row icon={<ShieldCheck size={18} color="#fff" />} colors={['#94A3B8', '#475569']} label="Confidentialité" sub="Tes données restent à toi" onPress={() => toast('Tes données ne sont jamais revendues. RGPD ✔︎', 'info')} />
+          <Row icon={<ShieldCheck size={18} color="#fff" />} colors={['#94A3B8', '#475569']} label="Confidentialité" sub="Tes données, supprimer ton compte" onPress={go('/(app)/confidentialite')} />
         </Animated.View>
 
         <Animated.View entering={FadeInDown.delay(180).springify()} style={styles.group}>

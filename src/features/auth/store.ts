@@ -8,7 +8,7 @@ import { isSupabaseConfigured } from '@/lib/env';
 import { persistStorage } from '@/lib/storage';
 import { supabase } from '@/lib/supabase';
 
-import { resetLocalData } from './account';
+import { deleteOnlineAccount, resetLocalData } from './account';
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -30,6 +30,8 @@ type AuthState = {
   resendOtp: (email: string) => Promise<Result>;
   signInWithProvider: (provider: 'google' | 'apple') => Promise<Result>;
   signOut: () => Promise<void>;
+  /** Supprime définitivement le compte (en ligne puis sur le téléphone). */
+  deleteAccount: () => Promise<Result>;
 };
 
 const frError = (message?: string) => {
@@ -132,6 +134,18 @@ export const useAuth = create<AuthState>()(
       signOut: async () => {
         if (supabase) await supabase.auth.signOut();
         set({ demoUser: null, user: null, status: 'signedOut' });
+      },
+
+      deleteAccount: async () => {
+        if (supabase) {
+          const error = await deleteOnlineAccount();
+          if (error) return { ok: false, error };
+          // Le compte n'existe plus : on ferme la session sur le téléphone, sans appeler le serveur.
+          await supabase.auth.signOut({ scope: 'local' });
+        }
+        resetLocalData();
+        set({ demoUser: null, user: null, ownerId: null, status: 'signedOut' });
+        return { ok: true };
       },
     }),
     {
