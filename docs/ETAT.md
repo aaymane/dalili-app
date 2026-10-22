@@ -20,15 +20,22 @@
 | e | Auth Supabase + `.env` de l'app + test iPhone | ❌ Code à 6 chiffres, redirection `dalili://auth/callback`, clé publique uniquement. `dalili-ia` supprimée seulement après ce test |
 | f | Corrections M1 | ❌ Ordre du Brief selon les vraies dates limites ; « Mentors bientôt » si aucun mentor validé ; 3114 seulement si l'étudiant est en France ; filtre par pays qui garde les guides communs ; SMIC 12,31 € brut/heure depuis le 1er juin 2026 ; script des chiffres vérifiés il y a plus de 90 jours ; origine des témoignages du site. ⏳ `dev-profil.tsx` redirige déjà hors `__DEV__`, mais la route reste dans le build |
 | g | Direction artistique avant M2 | ❌ Nuit étoilée et avion 3D pour les moments de marque, écrans du quotidien clairs, `docs/DIRECTION.md` à mettre à jour (il décrit encore les pistes supprimées), captures de l'accueil et de « Ton chemin ». Retour du 21/10 sur simulateur : animations et design jugés « un peu statiques » |
-| 8 | Emails du site | ⏳ En cours : logo cassé dans les emails, arrivée en spam (SPF, DKIM, DMARC, désabonnement) |
+| 8 | Emails du site | ⏸ Plus tard (site) : logo cassé dans les emails, arrivée en spam (SPF, DKIM, DMARC, désabonnement) |
 
 ## Prochaine action
 
-**Étape 8 — emails du site** :
-- A. logo en PNG hébergé, avec `width`, `height` et `alt` ;
-- B. délivrabilité : DNS du domaine d'envoi dans Resend, `List-Unsubscribe` en un clic, version texte, expéditeur fixe, lien de désabonnement visible ;
-- C. aperçu des 4 emails avant les commits ;
-- D. après déploiement, nouvel envoi et score mail-tester.com.
+**Étape e — brancher l'app sur Supabase** : réglages Auth de `dalili.web` (code à 6 chiffres, redirection `dalili://auth/callback`), `.env` de l'app avec la clé publique uniquement, test avec un vrai compte sur iPhone (dont Dalili IA via `/api/v1/assistant`), puis suppression de `supabase/functions/dalili-ia`.
+
+Ordre décidé le 21/10 : **l'app d'abord (e, f, g), le site ensuite.**
+
+## Plus tard : le site
+
+- **Étape 8 — emails du site** :
+  - A. logo en PNG hébergé, avec `width`, `height` et `alt` ;
+  - B. délivrabilité : DNS du domaine d'envoi dans Resend, `List-Unsubscribe` en un clic, version texte, expéditeur fixe, lien de désabonnement visible ;
+  - C. aperçu des 4 emails avant les commits ;
+  - D. après déploiement, nouvel envoi et score mail-tester.com.
+- **Étape d — guides manquants** : un guide sur la CVEC (priorité n° 1), puis les sujets refusés par l'assistant (`dalili.study/docs/GUIDES-A-ECRIRE.md`).
 
 ## À surveiller
 
