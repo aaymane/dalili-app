@@ -1,14 +1,22 @@
-import { useEffect, useState, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { Modal, Platform, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import Animated, { FadeIn, FadeOut, SlideInDown, SlideOutDown } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { palette } from '@/theme/tokens';
 
-type Props = { visible: boolean; onClose: () => void; children: ReactNode; scroll?: boolean; maxHeight?: number | `${number}%` };
+type Props = {
+  visible: boolean;
+  onClose: () => void;
+  /** Appelé une fois la feuille complètement disparue : c'est là qu'on ouvre un écran système (galerie, appareil photo). */
+  onClosed?: () => void;
+  children: ReactNode;
+  scroll?: boolean;
+  maxHeight?: number | `${number}%`;
+};
 
 /** Bottom sheet modale animée (ressort), fermeture au tap sur le fond. */
-export function BottomSheet({ visible, onClose, children, scroll, maxHeight = '88%' }: Props) {
+export function BottomSheet({ visible, onClose, onClosed, children, scroll, maxHeight = '88%' }: Props) {
   const insets = useSafeAreaInsets();
   const [mounted, setMounted] = useState(visible);
   // Monte immédiatement à l'ouverture ; démonte après l'animation de sortie.
@@ -18,6 +26,15 @@ export function BottomSheet({ visible, onClose, children, scroll, maxHeight = '8
     const t = setTimeout(() => setMounted(false), 260);
     return () => clearTimeout(t);
   }, [visible]);
+  // Sur iOS, un écran système ouvert pendant que la modale se ferme est emporté avec elle : on attend son démontage.
+  const shown = useRef(false);
+  useEffect(() => {
+    if (mounted) shown.current = true;
+    else if (shown.current) {
+      shown.current = false;
+      onClosed?.();
+    }
+  }, [mounted, onClosed]);
 
   if (!mounted) return null;
   const Body = scroll ? ScrollView : View;

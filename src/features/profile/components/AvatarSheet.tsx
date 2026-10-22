@@ -1,5 +1,6 @@
 import * as ImagePicker from 'expo-image-picker';
 import { Camera, ImageIcon } from 'lucide-react-native';
+import { useRef } from 'react';
 import { View } from 'react-native';
 
 import { BottomSheet } from '@/components/feedback/BottomSheet';
@@ -16,9 +17,21 @@ import { useProfile } from '../store';
 /** Choisir ou prendre sa photo de profil : recadrée en carré, nettoyée, gardée et envoyée. */
 export function AvatarSheet({ visible, onClose }: { visible: boolean; onClose: () => void }) {
   const update = useProfile((s) => s.update);
+  // Choix en attente : la galerie ou l'appareil photo ne s'ouvre qu'une fois la feuille fermée.
+  const pending = useRef<'camera' | 'library' | null>(null);
+
+  const choose = (source: 'camera' | 'library') => {
+    pending.current = source;
+    onClose();
+  };
+
+  const onClosed = () => {
+    const source = pending.current;
+    pending.current = null;
+    if (source) void pick(source === 'camera');
+  };
 
   const pick = async (camera: boolean) => {
-    onClose();
     let uri: string | undefined;
     try {
       // La galerie n'a pas besoin d'autorisation : le sélecteur système ne donne que la photo choisie.
@@ -47,14 +60,14 @@ export function AvatarSheet({ visible, onClose }: { visible: boolean; onClose: (
   };
 
   return (
-    <BottomSheet visible={visible} onClose={onClose}>
+    <BottomSheet visible={visible} onClose={onClose} onClosed={onClosed}>
       <View style={{ gap: 12 }}>
         <Text variant="h2">Ta photo de profil</Text>
         <Text variant="small" color={palette.muted}>
           Pour l’instant, toi seul·e la vois. Avant l’envoi, on retire le lieu et les infos cachées de la photo.
         </Text>
-        <Button label="Prendre une photo" variant="secondary" iconLeft={<Camera size={18} color={palette.navy} />} onPress={() => pick(true)} />
-        <Button label="Choisir dans la galerie" variant="secondary" iconLeft={<ImageIcon size={18} color={palette.navy} />} onPress={() => pick(false)} />
+        <Button label="Prendre une photo" variant="secondary" iconLeft={<Camera size={18} color={palette.navy} />} onPress={() => choose('camera')} />
+        <Button label="Choisir dans la galerie" variant="secondary" iconLeft={<ImageIcon size={18} color={palette.navy} />} onPress={() => choose('library')} />
         <Button label="Annuler" variant="secondary" onPress={onClose} />
       </View>
     </BottomSheet>
