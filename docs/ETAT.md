@@ -25,7 +25,7 @@
 
 ## Prochaine action
 
-1. **Sécurité de l’app** : ✅ session chiffrée (AES-256, clé dans le trousseau, `src/lib/secure-session.ts`) ; ✅ page Confidentialité + suppression du compte (`/api/v1/account` sur le site : photos, fiche mentor puis compte, le reste part en cascade), testée en prod le 22/10 (rien d’orphelin, photo effacée du stockage) ; ✅ profil, photo et parcours remis depuis le serveur à la connexion d’un autre compte ou sur un nouveau téléphone (`restoreFromServer`, 8 s max), et chaque changement du profil après l’onboarding renvoyé en ligne (`watchProfile`) : **à tester sur deux appareils**.
+1. **Sécurité de l’app** : ✅ session chiffrée (AES-256, clé dans le trousseau, `src/lib/secure-session.ts`) ; ✅ page Confidentialité + suppression du compte (`/api/v1/account` sur le site : photos, fiche mentor puis compte, le reste part en cascade), testée en prod le 22/10 (rien d’orphelin, photo effacée du stockage) ; ✅ profil, photo et parcours remis depuis le serveur à la connexion d’un autre compte ou sur un nouveau téléphone (`restoreFromServer`, 8 s max), et chaque changement du profil après l’onboarding renvoyé en ligne (`watchProfile`) : testé le 22/10 sur une copie locale de Supabase (2 comptes de test) : connexion sans onboarding, profil, inquiétudes, photo, étapes cochées et tâche perso retrouvés, ville changée dans Profil IA bien envoyée.
 2. **Étape g — direction artistique et motion.**
 
 Plus tard : régénérer `SUPABASE_SECRET_KEY`, `RESEND_API_KEY` et `ANTHROPIC_API_KEY` (elles ont été exposées sur des Preview Vercel), et supprimer les anciens déploiements Preview.
