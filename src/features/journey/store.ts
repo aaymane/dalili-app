@@ -85,7 +85,8 @@ export function useJourney() {
       const done = overrides[step.id] ?? (step.autoDone ? step.autoDone(profile) : false);
       return { kind: 'official' as const, step, date: addDays(arrival, step.offsetDays), done, current: false };
     });
-    const firstTodo = official.find((o) => !o.done);
+    // L'étape du jour = la plus proche échéance non faite, pas la première de la liste du site.
+    const firstTodo = [...official].sort((a, b) => a.step.offsetDays - b.step.offsetDays).find((o) => !o.done);
     if (firstTodo) firstTodo.current = true;
 
     const byPhase: Record<Phase, JourneyItem[]> = { before: [], arrival: [], first_months: [] };

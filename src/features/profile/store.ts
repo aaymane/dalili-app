@@ -66,6 +66,11 @@ export function effectiveArrival(profile: Profile): Date {
   return new Date(year, 8, 1);
 }
 
+/** L'étudiant est-il déjà en France ? (Les numéros français comme le 3114 ne marchent que là.) */
+export function isInFrance(profile: Profile) {
+  return profile.situation === 'in_france' || (!!profile.arrivalDate && new Date(profile.arrivalDate) <= new Date());
+}
+
 export function displayName(profile: Profile) {
   return profile.firstName.trim() || 'toi';
 }

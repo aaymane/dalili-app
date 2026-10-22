@@ -7,7 +7,9 @@ import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
 import { toast } from '@/components/feedback/Toast';
 import { PressableScale } from '@/components/ui/PressableScale';
 import { Text } from '@/components/ui/Text';
+import { useMentors } from '@/data/hooks';
 import { openLink, RichText } from '@/features/guides/components/RichText';
+import { isInFrance, useProfile } from '@/features/profile/store';
 import { palette, radius, shadow } from '@/theme/tokens';
 
 import { slugOf, type SourceRef } from '../api';
@@ -111,9 +113,24 @@ export function RefusalOptions({ m, onRequest }: { m: ChatMessage; onRequest: ()
 /** Filets de sécurité sous une réponse, selon les drapeaux du cerveau. */
 export function SafetyNotes({ m }: { m: ChatMessage }) {
   const flags = m.flags ?? [];
+  const inFrance = useProfile((s) => isInFrance(s.profile));
+  const { data: mentors = [] } = useMentors();
   return (
     <>
-      {flags.includes('distress') ? (
+      {flags.includes('distress') && !inFrance ? (
+        <View style={[styles.note, { backgroundColor: '#FFF1F2' }]}>
+          <HeartHandshake size={18} color="#E11D48" />
+          <View style={{ flex: 1 }}>
+            <Text variant="smallStrong" color="#9F1239">
+              Tu n’es pas seul·e.
+            </Text>
+            <Text variant="caption" color="#9F1239">
+              Si tu es en danger, appelle tout de suite les urgences de ton pays. Et parle dès maintenant à quelqu’un en qui tu as confiance.
+            </Text>
+          </View>
+        </View>
+      ) : null}
+      {flags.includes('distress') && inFrance ? (
         <PressableScale onPress={() => Linking.openURL('tel:3114')} style={[styles.note, { backgroundColor: '#FFF1F2' }]} accessibilityLabel="Appeler le 3114">
           <HeartHandshake size={18} color="#E11D48" />
           <View style={{ flex: 1 }}>
@@ -128,12 +145,12 @@ export function SafetyNotes({ m }: { m: ChatMessage }) {
         </PressableScale>
       ) : null}
       {flags.includes('stress') || flags.includes('complex') ? (
-        <PressableScale onPress={() => router.navigate('/(app)/(tabs)/explorer')} style={[styles.note, { backgroundColor: palette.mentorSoft }]}>
+        <PressableScale onPress={() => router.navigate(mentors.length ? '/(app)/(tabs)/explorer' : '/(app)/(tabs)/communaute')} style={[styles.note, { backgroundColor: palette.mentorSoft }]}>
           <UsersRound size={18} color={palette.mentor} />
           <Text variant="small" style={{ flex: 1 }}>
             {flags.includes('complex') ? 'Ta situation mérite l’avis d’une personne. ' : 'Tu n’es pas seul·e à vivre ça. '}
             <Text variant="smallStrong" color={palette.mentor}>
-              Un étudiant passé par là peut t’appeler gratuitement.
+              {mentors.length ? 'Un étudiant passé par là peut t’appeler gratuitement.' : 'Parles-en avec les étudiants de la communauté.'}
             </Text>
           </Text>
         </PressableScale>

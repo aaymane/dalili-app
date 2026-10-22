@@ -13,42 +13,45 @@ import { addDays, toISODate } from '@/lib/date';
  * /dev-profil?p=salma → Alger → Lyon, visa obtenu, logement trouvé, arrivée dans 12 jours.
  * Gardé pour les captures de chaque jalon (désactivé hors mode dev). À supprimer après M5.
  */
-const PROFILES: Record<string, { profile: Partial<Profile>; done: string[] }> = {
-  aymen: {
-    profile: {
-      firstName: 'Aymen',
-      lastName: 'B.',
-      email: 'aymen@demo.dalili.study',
-      country: 'MA',
-      originCity: 'Casablanca',
-      situation: 'abroad',
-      studyLevel: 'bac',
-      campusStatus: 'not_started',
-      destinationCity: 'Paris',
-      arrivalDate: null,
-      housing: 'none',
-      concerns: ['language', 'visa'],
-    },
-    done: [],
-  },
-  salma: {
-    profile: {
-      firstName: 'Salma',
-      lastName: 'K.',
-      email: 'salma@demo.dalili.study',
-      country: 'DZ',
-      originCity: 'Alger',
-      situation: 'abroad',
-      studyLevel: 'master',
-      campusStatus: 'accepted',
-      destinationCity: 'Lyon',
-      arrivalDate: toISODate(addDays(new Date(), 12)),
-      housing: 'found',
-      concerns: ['money', 'loneliness'],
-    },
-    done: ['ressources', 'visa'],
-  },
-};
+// `__DEV__` vaut false dans le build de production : le minifieur retire ces profils de test.
+const PROFILES: Record<string, { profile: Partial<Profile>; done: string[] }> = !__DEV__
+  ? {}
+  : {
+      aymen: {
+        profile: {
+          firstName: 'Aymen',
+          lastName: 'B.',
+          email: 'aymen@demo.dalili.study',
+          country: 'MA',
+          originCity: 'Casablanca',
+          situation: 'abroad',
+          studyLevel: 'bac',
+          campusStatus: 'not_started',
+          destinationCity: 'Paris',
+          arrivalDate: null,
+          housing: 'none',
+          concerns: ['language', 'visa'],
+        },
+        done: [],
+      },
+      salma: {
+        profile: {
+          firstName: 'Salma',
+          lastName: 'K.',
+          email: 'salma@demo.dalili.study',
+          country: 'DZ',
+          originCity: 'Alger',
+          situation: 'abroad',
+          studyLevel: 'master',
+          campusStatus: 'accepted',
+          destinationCity: 'Lyon',
+          arrivalDate: toISODate(addDays(new Date(), 12)),
+          housing: 'found',
+          concerns: ['money', 'loneliness'],
+        },
+        done: ['ressources', 'visa'],
+      },
+    };
 
 export default function DevProfil() {
   const { p } = useLocalSearchParams<{ p?: string }>();

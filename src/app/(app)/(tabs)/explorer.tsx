@@ -19,6 +19,7 @@ import { categories, categoryOf, type GuideCategory } from '@/features/guides/ca
 import { countryOf } from '@/features/journey/steps';
 import { ToolsGrid } from '@/features/home/ToolsGrid';
 import { MentorRow } from '@/features/mentors/components/MentorCard';
+import { MentorsSoon } from '@/features/mentors/components/MentorsSoon';
 import { useProfile } from '@/features/profile/store';
 import { gradients, palette, radius, shadow } from '@/theme/tokens';
 
@@ -65,9 +66,9 @@ export default function Explorer() {
   const country = countryOf(profile);
   const guideList = useMemo(() => {
     const t = q.trim().toLowerCase();
-    // Les guides de ton pays et les guides généraux ; ceux d'autres pays restent sur le site.
+    // Les guides de ton pays et les guides communs (tous les pays, ou aucun pays précisé) ; ceux d'autres pays restent sur le site.
     return manifest.guides
-      .filter((g) => !country || g.countries.includes(country))
+      .filter((g) => !country || !g.countries.length || g.countries.includes(country))
       .filter((g) => (!cat || categoryOf(g.category) === cat) && (!t || `${g.title} ${g.excerpt}`.toLowerCase().includes(t)))
       .sort((a, b) => Number(b.countries.length === 1) - Number(a.countries.length === 1) || b.updatedDate.localeCompare(a.updatedDate));
   }, [cat, q, manifest, country]);
@@ -116,11 +117,12 @@ export default function Explorer() {
                     <MentorRow m={m} />
                   </Animated.View>
                 ))}
-            {!isLoading && !mentorList.length ? (
+            {!isLoading && !mentors.length ? <MentorsSoon /> : null}
+            {!isLoading && mentors.length > 0 && !mentorList.length ? (
               <View style={styles.empty}>
                 <Text variant="h3">Pas encore de mentor ici</Text>
                 <Text variant="small" color={palette.muted} align="center">
-                  Essaie une autre ville — ou deviens le premier mentor de {city} 💙
+                  {city ? `Essaie une autre ville, ou deviens le premier mentor de ${city} 💙` : 'Essaie avec un autre mot.'}
                 </Text>
               </View>
             ) : null}

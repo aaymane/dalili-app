@@ -18,6 +18,7 @@ import { ArrivalSheet } from '@/features/journey/components/ArrivalSheet';
 import { MobilityCard } from '@/features/journey/components/MobilityCard';
 import { useJourney } from '@/features/journey/store';
 import { MentorTile } from '@/features/mentors/components/MentorCard';
+import { MentorsSoon } from '@/features/mentors/components/MentorsSoon';
 import { useProfile } from '@/features/profile/store';
 import { daysFromToday, formatLong, formatTime } from '@/lib/date';
 import { useRoleTheme } from '@/theme';
@@ -132,12 +133,21 @@ export function StudentHome() {
         <MobilityCard onEditArrival={() => setArrivalOpen(true)} />
 
         <View>
-          <SectionHeader title="Mentors pour toi" subtitle={city ? `D’abord ceux qui vivent à ${city}` : 'Des étudiants passés par là'} action="Tous" onAction={() => router.navigate('/(app)/(tabs)/explorer')} />
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginHorizontal: -20 }} contentContainerStyle={{ paddingHorizontal: 20, gap: 12 }}>
-            {suggested.map((m) => (
-              <MentorTile key={m.id} m={m} />
-            ))}
-          </ScrollView>
+          <SectionHeader
+            title="Mentors pour toi"
+            subtitle={city ? `D’abord ceux qui vivent à ${city}` : 'Des étudiants passés par là'}
+            action={suggested.length ? 'Tous' : undefined}
+            onAction={() => router.navigate('/(app)/(tabs)/explorer')}
+          />
+          {suggested.length ? (
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginHorizontal: -20 }} contentContainerStyle={{ paddingHorizontal: 20, gap: 12 }}>
+              {suggested.map((m) => (
+                <MentorTile key={m.id} m={m} />
+              ))}
+            </ScrollView>
+          ) : (
+            <MentorsSoon />
+          )}
         </View>
 
         <View>
