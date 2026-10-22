@@ -1,6 +1,6 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
-import { ChevronDown, MessageCircle, Video } from 'lucide-react-native';
+import { ChevronDown, ChevronRight, Map, MessageCircle, Video } from 'lucide-react-native';
 import { useState } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import Animated, { LinearTransition } from 'react-native-reanimated';
@@ -78,6 +78,24 @@ export function StudentHome() {
           </Animated.View>
         ) : null}
         <Animated.View entering={enter(3)}>
+          <PressableScale
+            onPress={() => router.push('/(app)/parcours')}
+            style={styles.journeyRow}
+            accessibilityRole="button"
+            accessibilityLabel={`Voir tout mon parcours-quête, ${j.doneCount} étapes faites sur ${j.total}`}>
+            <IconTile size={46} colors={['#7FA6FF', '#3D78FF']} radius={23}>
+              <Map size={20} color="#fff" />
+            </IconTile>
+            <View style={{ flex: 1 }}>
+              <Text variant="bodyStrong">Tout mon parcours-quête</Text>
+              <Text variant="caption" color={palette.muted}>
+                {j.doneCount}/{j.total} étapes faites · {Math.round(j.progress * 100)} %
+              </Text>
+            </View>
+            <ChevronRight size={18} color={palette.subtle} />
+          </PressableScale>
+        </Animated.View>
+        <Animated.View entering={enter(4)}>
           <AskField />
         </Animated.View>
       </View>
@@ -163,6 +181,7 @@ const styles = StyleSheet.create({
   slideCta: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, backgroundColor: '#fff', height: 44, borderRadius: 999, marginTop: 14 },
   live: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 8, paddingVertical: 4, borderRadius: 999, backgroundColor: 'rgba(229,72,77,0.15)' },
   liveDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: '#FF6B6B' },
+  journeyRow: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 12, minHeight: 44, borderRadius: radius.xl, backgroundColor: '#fff', ...shadow.sm },
   groupRow: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 12, borderRadius: radius.xl, backgroundColor: '#fff', ...shadow.sm },
   count: { paddingHorizontal: 9, paddingVertical: 3, borderRadius: 999, backgroundColor: '#F1F3F9' },
 });
