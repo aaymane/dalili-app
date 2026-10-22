@@ -95,6 +95,34 @@ set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-00000000000b","r
 select tests.must_count('B ne voit pas un mentor non validé', 'select * from public.mentors', 0);
 rollback;
 
+-- ───────────── photos de profil (bucket avatars) ─────────────
+select tests.must_count('le bucket avatars est privé', $q$select 1 from storage.buckets where id = 'avatars' and not public$q$, 1);
+begin;
+set local role authenticated;
+set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-00000000000a","role":"authenticated"}';
+insert into storage.objects (bucket_id, name) values ('avatars', '00000000-0000-0000-0000-00000000000a/m1abc2.jpg');
+select tests.must_fail('A dépose une photo dans le dossier de B',
+  $q$insert into storage.objects (bucket_id, name) values ('avatars', '00000000-0000-0000-0000-00000000000b/pirate.jpg')$q$);
+select tests.must_fail('A dépose une photo à la racine du bucket', $q$insert into storage.objects (bucket_id, name) values ('avatars', 'pirate.jpg')$q$);
+update public.profiles set avatar_url = '00000000-0000-0000-0000-00000000000a/m1abc2.jpg' where id = auth.uid();
+select tests.must_fail('A met un lien externe comme photo',
+  $q$update public.profiles set avatar_url = 'https://pirate.example/pixel.jpg' where id = auth.uid()$q$);
+select tests.must_fail('A pointe sa photo vers le dossier de B',
+  $q$update public.profiles set avatar_url = '00000000-0000-0000-0000-00000000000b/m1abc2.jpg' where id = auth.uid()$q$);
+select tests.must_count('A voit sa photo', $q$select * from storage.objects where bucket_id = 'avatars'$q$, 1);
+set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-00000000000b","role":"authenticated"}';
+select tests.must_count('B ne voit pas la photo de A', $q$select * from storage.objects where bucket_id = 'avatars'$q$, 0);
+delete from storage.objects where bucket_id = 'avatars';
+update storage.objects set name = '00000000-0000-0000-0000-00000000000b/vol.jpg' where bucket_id = 'avatars';
+set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-00000000000a","role":"authenticated"}';
+select tests.must_count('B n''a ni supprimé ni renommé la photo de A',
+  $q$select * from storage.objects where name = '00000000-0000-0000-0000-00000000000a/m1abc2.jpg'$q$, 1);
+set local role anon;
+set local request.jwt.claims = '{}';
+select tests.must_count('anon ne voit aucune photo', $q$select * from storage.objects where bucket_id = 'avatars'$q$, 0);
+select tests.must_fail('anon dépose une photo', $q$insert into storage.objects (bucket_id, name) values ('avatars', 'anon/x.jpg')$q$);
+rollback;
+
 -- ───────────── display_name : « Prénom N. », seulement si groupe commun ou mentor validé ─────────────
 begin;
 update public.profiles set first_name = 'Aymen', last_name = 'Amri' where id = '00000000-0000-0000-0000-00000000000a';

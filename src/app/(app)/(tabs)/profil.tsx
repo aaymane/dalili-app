@@ -4,6 +4,7 @@ import {
   Bookmark,
   BrainCircuit,
   CalendarCheck2,
+  Camera,
   ChevronRight,
   FolderCheck,
   Languages,
@@ -14,7 +15,7 @@ import {
   ShieldCheck,
   Siren,
 } from 'lucide-react-native';
-import type { ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
 import { Alert, Platform, StyleSheet, Switch, View } from 'react-native';
 import Animated, { FadeInDown, ZoomIn } from 'react-native-reanimated';
 
@@ -27,8 +28,10 @@ import { PressableScale } from '@/components/ui/PressableScale';
 import { ProgressRing } from '@/components/ui/ProgressRing';
 import { Text } from '@/components/ui/Text';
 import { useLocalDb } from '@/data/local-db';
+import { resetLocalData } from '@/features/auth/account';
 import { isDemoMode, useAuth } from '@/features/auth/store';
-import { useJourney, useJourneyStore } from '@/features/journey/store';
+import { useJourney } from '@/features/journey/store';
+import { AvatarSheet } from '@/features/profile/components/AvatarSheet';
 import { useProfile } from '@/features/profile/store';
 import { useRoleTheme } from '@/theme';
 import { palette, radius, roleColors, shadow } from '@/theme/tokens';
@@ -56,9 +59,7 @@ function Row({ icon, label, sub, onPress, right, colors }: { icon: ReactNode; la
 export default function Profil() {
   const profile = useProfile((s) => s.profile);
   const update = useProfile((s) => s.update);
-  const resetProfile = useProfile((s) => s.reset);
-  const resetJourney = useJourneyStore((s) => s.reset);
-  const resetDb = useLocalDb((s) => s.reset);
+  const [avatarOpen, setAvatarOpen] = useState(false);
   const signOut = useAuth((s) => s.signOut);
   const bookings = useLocalDb((s) => s.bookings).filter((b) => b.status === 'confirmed');
   const saved = useLocalDb((s) => s.savedGuides);
@@ -80,7 +81,12 @@ export default function Profil() {
       <View style={{ paddingHorizontal: 20, gap: 18 }}>
         <Animated.View entering={FadeInDown.springify()} style={styles.card}>
           <Animated.View entering={ZoomIn.springify().damping(12)}>
-            <Avatar name={`${profile.firstName} ${profile.lastName}`} uri={profile.avatarUri} size={84} ring={accent} />
+            <PressableScale onPress={() => setAvatarOpen(true)} accessibilityRole="button" accessibilityLabel={profile.avatarUri ? 'Changer ma photo de profil' : 'Ajouter une photo de profil'}>
+              <Avatar name={`${profile.firstName} ${profile.lastName}`} uri={profile.avatarUri} size={84} ring={accent} />
+              <View style={[styles.camera, { backgroundColor: accent }]}>
+                <Camera size={14} color="#fff" />
+              </View>
+            </PressableScale>
           </Animated.View>
           <View style={{ flex: 1, gap: 3 }}>
             <Text variant="h1">
@@ -154,9 +160,7 @@ export default function Profil() {
               sub="Recommencer l’onboarding"
               onPress={() =>
                 confirm('Réinitialiser ?', 'Toutes tes données locales seront effacées.', () => {
-                  resetJourney();
-                  resetDb();
-                  resetProfile();
+                  resetLocalData();
                   signOut();
                 })
               }
@@ -168,12 +172,14 @@ export default function Profil() {
           DALILI v0.1 · {isDemoMode ? 'Mode démo' : 'Connecté à Supabase'} · Fait avec 💙 par des étudiants, pour des étudiants
         </Text>
       </View>
+      <AvatarSheet visible={avatarOpen} onClose={() => setAvatarOpen(false)} />
     </Screen>
   );
 }
 
 const styles = StyleSheet.create({
   card: { flexDirection: 'row', alignItems: 'center', gap: 16, padding: 16, borderRadius: radius.xxl, backgroundColor: '#fff', ...shadow.md },
+  camera: { position: 'absolute', right: -2, bottom: -2, width: 30, height: 30, borderRadius: 15, borderWidth: 3, borderColor: '#fff', alignItems: 'center', justifyContent: 'center' },
   badge: { paddingHorizontal: 9, paddingVertical: 3, borderRadius: 999 },
   stats: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 16, borderRadius: radius.xl, backgroundColor: '#fff', ...shadow.sm },
   stat: { alignItems: 'center' },

@@ -4,6 +4,7 @@ import { persist } from 'zustand/middleware';
 import { persistStorage } from '@/lib/storage';
 import type { Role } from '@/theme/tokens';
 
+import { localAvatarUri } from './avatar';
 import { emptyProfile, type Profile } from './types';
 
 type ProfileState = {
@@ -44,7 +45,16 @@ export const useProfile = create<ProfileState>()(
       completeOnboarding: () => set({ onboardingDone: true }),
       reset: () => set({ profile: emptyProfile, onboardingDone: false }),
     }),
-    { name: 'dalili.profile', storage: persistStorage, version: 1 },
+    {
+      name: 'dalili.profile',
+      storage: persistStorage,
+      version: 1,
+      merge: (persisted, current) => {
+        const saved = persisted as Partial<ProfileState> | undefined;
+        const profile = { ...current.profile, ...saved?.profile };
+        return { ...current, ...saved, profile: { ...profile, avatarUri: localAvatarUri(profile.avatarUri) } };
+      },
+    },
   ),
 );
 

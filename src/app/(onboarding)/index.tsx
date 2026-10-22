@@ -1,46 +1,24 @@
-import * as ImagePicker from 'expo-image-picker';
 import { router } from 'expo-router';
-import { ArrowRight, Camera, ImageIcon, Plus } from 'lucide-react-native';
+import { ArrowRight, Plus } from 'lucide-react-native';
 import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import Animated, { FadeInDown, FadeInUp, ZoomIn } from 'react-native-reanimated';
 
 import { LogoMark } from '@/components/brand/Logo';
-import { BottomSheet } from '@/components/feedback/BottomSheet';
-import { toast } from '@/components/feedback/Toast';
 import { Screen } from '@/components/layout/Screen';
 import { Avatar } from '@/components/ui/Avatar';
 import { Button } from '@/components/ui/Button';
 import { PressableScale } from '@/components/ui/PressableScale';
 import { Text } from '@/components/ui/Text';
+import { AvatarSheet } from '@/features/profile/components/AvatarSheet';
 import { useProfile } from '@/features/profile/store';
 import { gradients, palette, shadow } from '@/theme/tokens';
 
 /** « Compte créé » — accueil personnalisé + photo de profil. */
 export default function Welcome() {
   const profile = useProfile((s) => s.profile);
-  const update = useProfile((s) => s.update);
   const [sheet, setSheet] = useState(false);
   const name = profile.firstName || 'toi';
-
-  const pick = async (camera: boolean) => {
-    setSheet(false);
-    try {
-      if (camera) {
-        const perm = await ImagePicker.requestCameraPermissionsAsync();
-        if (!perm.granted) return toast('Autorise l’appareil photo dans les réglages.', 'info');
-      }
-      const res = camera
-        ? await ImagePicker.launchCameraAsync({ allowsEditing: true, aspect: [1, 1], quality: 0.7 })
-        : await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], allowsEditing: true, aspect: [1, 1], quality: 0.7 });
-      if (!res.canceled && res.assets[0]) {
-        update({ avatarUri: res.assets[0].uri });
-        toast('Belle photo !');
-      }
-    } catch {
-      toast('Impossible d’ouvrir la photo.', 'info');
-    }
-  };
 
   return (
     <Screen top={gradients.sky} bg="#fff" footer={<Button label="Allons-y" icon={<ArrowRight size={18} color="#fff" />} onPress={() => router.push('/(onboarding)/situation')} />}>
@@ -75,13 +53,7 @@ export default function Welcome() {
         </Animated.View>
       </View>
 
-      <BottomSheet visible={sheet} onClose={() => setSheet(false)}>
-        <View style={{ gap: 12 }}>
-          <Button label="Prendre une photo" variant="secondary" iconLeft={<Camera size={18} color={palette.navy} />} onPress={() => pick(true)} />
-          <Button label="Choisir dans la galerie" variant="secondary" iconLeft={<ImageIcon size={18} color={palette.navy} />} onPress={() => pick(false)} />
-          <Button label="Annuler" variant="secondary" onPress={() => setSheet(false)} />
-        </View>
-      </BottomSheet>
+      <AvatarSheet visible={sheet} onClose={() => setSheet(false)} />
     </Screen>
   );
 }
