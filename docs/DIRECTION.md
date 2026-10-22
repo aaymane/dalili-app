@@ -75,6 +75,17 @@ Le vocabulaire visuel vient du voyage : un trajet entre deux villes, un compte �
 
 `Screen` suit la position de défilement sur le thread UI (`useScrollY()`), sans aucun rendu React. On s'en sert pour la parallaxe (≤ `depth.parallax`, 12 px) et les apparitions. Exemple : l'Âme du brief recule de 12 px et s'efface au défilement, et grossit un peu quand on tire vers le bas.
 
+### Lancement
+
+Au premier affichage de l'accueil (`features/auth/components/LaunchIntro.tsx`), une seule fois par lancement :
+
+1. **Image 1 = l'écran de lancement natif** (`app.json` → `expo-splash-screen` : fond `navyDeep`, monogramme blanc centré). `SplashFrame` le reproduit tant que l'app se prépare : aucune coupure.
+2. 0 → 520 ms : le halo s'allume derrière le logo.
+3. 360 → 1060 ms : le logo glisse à sa place (`EASE_IN_OUT`) et passe du blanc au bleu ; le fond plat s'efface pour révéler la nuit et ses orbes.
+4. 940 ms : « DALILI » s'écrit lettre par lettre (50 ms d'écart), quand le logo se pose. 1060 ms : le texte et les boutons arrivent.
+
+Dans Expo Go, l'écran blanc avec l'icône et « Loading… » appartient à Expo Go : il n'existe pas dans l'app installée.
+
 ### Chorégraphie d'entrée d'un écran
 
 1. **Ordre de lecture = ordre d'apparition** : en-tête → élément héros → action principale → le reste.

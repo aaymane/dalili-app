@@ -1,5 +1,5 @@
 import { router } from 'expo-router';
-import { ArrowRight, Plus } from 'lucide-react-native';
+import { ArrowRight, Pencil, Plus } from 'lucide-react-native';
 import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import Animated from 'react-native-reanimated';
@@ -25,10 +25,13 @@ export default function Welcome() {
     <Screen top={gradients.sky} bg="#fff" footer={<Button label="Allons-y" icon={<ArrowRight size={18} color="#fff" />} onPress={() => router.push('/(onboarding)/situation')} />}>
       <View style={styles.wrap}>
         <Animated.View entering={pop()}>
-          <PressableScale onPress={() => setSheet(true)} accessibilityLabel="Ajouter une photo de profil">
+          <PressableScale
+            onPress={() => setSheet(true)}
+            accessibilityRole="button"
+            accessibilityLabel={profile.avatarUri ? 'Changer ta photo de profil' : 'Ajouter une photo de profil'}>
             <Avatar name={`${profile.firstName} ${profile.lastName}`} uri={profile.avatarUri} size={132} color={palette.electricLight} />
             <View style={styles.plus}>
-              <Plus size={18} color="#fff" strokeWidth={3} />
+              {profile.avatarUri ? <Pencil size={16} color="#fff" strokeWidth={2.5} /> : <Plus size={18} color="#fff" strokeWidth={3} />}
             </View>
           </PressableScale>
         </Animated.View>

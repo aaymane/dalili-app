@@ -11,11 +11,11 @@ import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
-import { View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { ConfettiLayer } from '@/components/feedback/Confetti';
 import { ToastHost } from '@/components/feedback/Toast';
+import { SplashFrame } from '@/features/auth/components/LaunchIntro';
 import { useAuth } from '@/features/auth/store';
 import { GlossarySheetHost } from '@/features/guides/components/GlossarySheet';
 import { useProfile } from '@/features/profile/store';
@@ -49,7 +49,7 @@ export default function RootLayout() {
     if (ready) SplashScreen.hideAsync().catch(() => {});
   }, [ready]);
 
-  if (!ready) return <View style={{ flex: 1, backgroundColor: palette.navyDeep }} />;
+  if (!ready) return <SplashFrame />;
 
   const signedIn = status === 'signedIn';
 

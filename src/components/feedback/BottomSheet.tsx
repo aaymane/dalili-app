@@ -26,20 +26,28 @@ export function BottomSheet({ visible, onClose, onClosed, children, scroll, maxH
     const t = setTimeout(() => setMounted(false), 260);
     return () => clearTimeout(t);
   }, [visible]);
-  // Sur iOS, un écran système ouvert pendant que la modale se ferme est emporté avec elle : on attend son démontage.
+  // Un écran système (galerie, appareil photo) ouvert pendant que la modale se ferme est ignoré par iOS :
+  // on attend `onDismiss`, appelé par iOS une fois la modale vraiment partie. Ailleurs, la fin du démontage suffit.
   const shown = useRef(false);
+  const closed = () => {
+    if (!shown.current) return;
+    shown.current = false;
+    onClosed?.();
+  };
   useEffect(() => {
     if (mounted) shown.current = true;
-    else if (shown.current) {
-      shown.current = false;
-      onClosed?.();
-    }
-  }, [mounted, onClosed]);
+    else if (Platform.OS !== 'ios') closed();
+  });
 
-  if (!mounted) return null;
   const Body = scroll ? ScrollView : View;
   return (
-    <Modal transparent visible animationType="none" onRequestClose={onClose} statusBarTranslucent>
+    <Modal
+      transparent
+      visible={mounted}
+      animationType="none"
+      onRequestClose={onClose}
+      onDismiss={Platform.OS === 'ios' ? closed : undefined}
+      statusBarTranslucent>
       {visible && (
         <Animated.View entering={FadeIn.duration(200)} exiting={FadeOut.duration(200)} style={StyleSheet.absoluteFill}>
           <Pressable style={styles.backdrop} onPress={onClose} accessibilityLabel="Fermer" />
