@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
+import { toast } from '@/components/feedback/Toast';
 import { effectiveArrival, useProfile } from '@/features/profile/store';
 import { addDays, toISODate } from '@/lib/date';
 import { persistStorage } from '@/lib/storage';
@@ -10,6 +11,9 @@ import { syncCustomStep, syncStep } from './api';
 import { useSteps, type Phase, type Step } from './steps';
 
 export type CustomStep = { id: string; title: string; date: string; done: boolean };
+
+/** L'étape reste cochée sur le téléphone ; on prévient seulement que la base ne l'a pas reçue. */
+const notSaved = () => toast('Étape gardée sur ton téléphone, mais pas encore enregistrée en ligne. Vérifie ta connexion.', 'info');
 
 type JourneyState = {
   /** Statut forcé par l'utilisateur (prioritaire sur `autoDone`). */
@@ -33,25 +37,25 @@ export const useJourneyStore = create<JourneyState>()(
       celebrated: [],
       toggle: (id, done) => {
         set((s) => ({ overrides: { ...s.overrides, [id]: done } }));
-        syncStep(id, done).catch(() => {});
+        syncStep(id, done).catch(notSaved);
       },
       addCustom: (title, date) => {
         const item = { id: `custom-${Date.now()}`, title: title.trim(), date, done: false };
         set((s) => ({ custom: [...s.custom, item] }));
-        syncCustomStep(item).catch(() => {});
+        syncCustomStep(item).catch(notSaved);
         return item;
       },
       toggleCustom: (id) =>
         set((s) => {
           const custom = s.custom.map((c) => (c.id === id ? { ...c, done: !c.done } : c));
           const item = custom.find((c) => c.id === id);
-          if (item) syncCustomStep(item).catch(() => {});
+          if (item) syncCustomStep(item).catch(notSaved);
           return { custom };
         }),
       removeCustom: (id) =>
         set((s) => {
           const item = s.custom.find((c) => c.id === id);
-          if (item) syncCustomStep(item, true).catch(() => {});
+          if (item) syncCustomStep(item, true).catch(notSaved);
           return { custom: s.custom.filter((c) => c.id !== id) };
         }),
       markCelebrated: (phase) => set((s) => ({ celebrated: [...new Set([...s.celebrated, phase])] })),

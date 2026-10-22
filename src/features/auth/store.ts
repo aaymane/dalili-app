@@ -8,6 +8,8 @@ import { isSupabaseConfigured } from '@/lib/env';
 import { persistStorage } from '@/lib/storage';
 import { supabase } from '@/lib/supabase';
 
+import { resetLocalData } from './account';
+
 WebBrowser.maybeCompleteAuthSession();
 
 export type AuthUser = { id: string; email: string };
@@ -19,6 +21,8 @@ type AuthState = {
   user: AuthUser | null;
   /** Session de démo (aucune clé Supabase) — persistée localement. */
   demoUser: AuthUser | null;
+  /** Compte à qui appartiennent les données gardées sur le téléphone (profil, parcours). */
+  ownerId: string | null;
   init: () => () => void;
   signIn: (email: string, password: string) => Promise<Result>;
   signUp: (email: string, password: string) => Promise<Result>;
@@ -47,6 +51,7 @@ export const useAuth = create<AuthState>()(
       status: 'loading',
       user: null,
       demoUser: null,
+      ownerId: null,
 
       init: () => {
         if (!supabase) {
@@ -54,14 +59,17 @@ export const useAuth = create<AuthState>()(
           set({ status: demo ? 'signedIn' : 'signedOut', user: demo });
           return () => {};
         }
-        supabase.auth.getSession().then(({ data }) => {
-          const u = data.session?.user;
+        // Un autre compte que le propriétaire des données locales : on efface AVANT d'afficher
+        // quoi que ce soit, sinon il hériterait du profil et sauterait l'onboarding.
+        const apply = (u: { id: string; email?: string } | undefined) => {
+          if (u && u.id !== get().ownerId) {
+            resetLocalData();
+            set({ ownerId: u.id });
+          }
           set({ status: u ? 'signedIn' : 'signedOut', user: u ? { id: u.id, email: u.email ?? '' } : null });
-        });
-        const { data } = supabase.auth.onAuthStateChange((_event, session) => {
-          const u = session?.user;
-          set({ status: u ? 'signedIn' : 'signedOut', user: u ? { id: u.id, email: u.email ?? '' } : null });
-        });
+        };
+        supabase.auth.getSession().then(({ data }) => apply(data.session?.user));
+        const { data } = supabase.auth.onAuthStateChange((_event, session) => apply(session?.user));
         return () => data.subscription.unsubscribe();
       },
 
@@ -129,7 +137,7 @@ export const useAuth = create<AuthState>()(
     {
       name: 'dalili.auth',
       storage: persistStorage,
-      partialize: (s) => ({ demoUser: s.demoUser }),
+      partialize: (s) => ({ demoUser: s.demoUser, ownerId: s.ownerId }),
     },
   ),
 );
