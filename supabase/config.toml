@@ -9,6 +9,3 @@ additional_redirect_urls = ["dalili://auth/callback", "http://localhost:8081"]
 enable_signup = true
 enable_confirmations = true
 # Le template d'email doit contenir {{ .Token }} pour envoyer un code à 6 chiffres (écran « Vérifions que c'est bien toi »).
-
-[functions.dalili-ia]
-verify_jwt = true

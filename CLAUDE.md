@@ -20,7 +20,6 @@ npx expo export -p web    # vérifier que tout compile
 ## Architecture
 
 - `src/app/` = routes uniquement (Expo Router). La logique et les sous-composants vont dans `src/features/<domaine>/`.
-- `supabase/functions/dalili-ia/` = ancienne Edge Function, plus appelée : à supprimer une fois `/api/v1/assistant` testé en ligne.
 
 ## Règles d'or (à respecter à chaque modification)
 

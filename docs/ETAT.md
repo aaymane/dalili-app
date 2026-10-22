@@ -1,6 +1,6 @@
 # DALILI — Où on en est
 
-> Mis à jour le 21/10/2026. À relire en début de session, et à mettre à jour à la fin de chaque étape.
+> Mis à jour le 22/10/2026. À relire en début de session, et à mettre à jour à la fin de chaque étape.
 > Détails : `docs/SUPABASE.md` (base), `docs/VISION.md` (plan), `docs/AUDIT.md` (audit site ↔ app).
 
 ## Jalons
@@ -17,14 +17,14 @@
 | b | Variables Vercel | ✅ Toutes présentes. `NEXT_PUBLIC_SITE_URL` absente mais inutile : la valeur de secours `https://dalili.study` est la bonne (domaine principal sans www). ⚠️ Les déploiements Preview utilisent les clés de Production (voir « À surveiller ») |
 | c | Migration M1 en prod + sécurité + formulaires | ✅ 6 migrations appliquées (dont le correctif « fonctions privées »), 49 tests de sécurité verts, contrôles en prod OK. Formulaires testés avec l'adresse de test de l'équipe, lignes de test supprimées. **Mais** l'email de bienvenue arrive en spam et son logo est cassé → étape 8 |
 | d | Guide CVEC en brouillon | ❌ Priorité n° 1 du contenu : « C'est quoi la CVEC ? » est refusée (score 0,579 pour un seuil de 0,6). **Ne pas baisser le seuil** |
-| e | Auth Supabase + `.env` de l'app + test iPhone | ❌ Code à 6 chiffres, redirection `dalili://auth/callback`, clé publique uniquement. `dalili-ia` supprimée seulement après ce test |
+| e | Auth Supabase + `.env` de l'app + test iPhone | ✅ Testé le 22/10 sur iPhone avec un vrai compte : inscription, étape officielle (`step_progress`) et tâche perso (`custom_steps`) enregistrées, Dalili IA via `/api/v1/assistant` (`assistant_usage`). Clé publique uniquement. Accès direct au parcours ajouté sur l'accueil. `dalili-ia` supprimée (jamais déployée) |
 | f | Corrections M1 | ❌ Ordre du Brief selon les vraies dates limites ; « Mentors bientôt » si aucun mentor validé ; 3114 seulement si l'étudiant est en France ; filtre par pays qui garde les guides communs ; SMIC 12,31 € brut/heure depuis le 1er juin 2026 ; script des chiffres vérifiés il y a plus de 90 jours ; origine des témoignages du site. ⏳ `dev-profil.tsx` redirige déjà hors `__DEV__`, mais la route reste dans le build |
 | g | Direction artistique avant M2 | ❌ Nuit étoilée et avion 3D pour les moments de marque, écrans du quotidien clairs, `docs/DIRECTION.md` à mettre à jour (il décrit encore les pistes supprimées), captures de l'accueil et de « Ton chemin ». Retour du 21/10 sur simulateur : animations et design jugés « un peu statiques » |
 | 8 | Emails du site | ⏸ Plus tard (site) : logo cassé dans les emails, arrivée en spam (SPF, DKIM, DMARC, désabonnement) |
 
 ## Prochaine action
 
-**Étape e — brancher l'app sur Supabase** : réglages Auth de `dalili.web` (code à 6 chiffres, redirection `dalili://auth/callback`), `.env` de l'app avec la clé publique uniquement, test avec un vrai compte sur iPhone (dont Dalili IA via `/api/v1/assistant`), puis suppression de `supabase/functions/dalili-ia`.
+**Étape f — corrections M1**, dans cet ordre : ordre du Brief selon les vraies dates limites ; « Mentors bientôt » si aucun mentor validé ; 3114 seulement si l'étudiant est en France ; filtre par pays qui garde les guides communs ; route `dev-profil` retirée du build. Les chiffres (SMIC, script des 90 jours) et les témoignages se corrigent sur le site.
 
 Ordre décidé le 21/10 : **l'app d'abord (e, f, g), le site ensuite.**
 
