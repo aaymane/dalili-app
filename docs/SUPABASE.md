@@ -17,6 +17,7 @@ Supabase enregistre chaque migration sous l'heure de son application, pas sous l
 | `20261020000100_durcissement_app.sql` | `20261021121306 durcissement_app` | `search_path` vide sur les fonctions *security definer* ; fiches mentor **validées par l'équipe** (`is_active = false` par défaut, note, séances et avis non modifiables) ; compteurs protégés ; aucune table de l'app lisible sans compte |
 | `20261020000200_assistant_app.sql` | `20261021121323 assistant_app` | Journal enrichi (canal, langue, pays, étape, jetons, coût, `requested`) **sans identifiant de personne** ; `assistant_usage` (quota par compte et par jour) ; RPC réservées à la clé service ; `assistant_feedback` |
 | `20261021130000_fonctions_privees.sql` | `20261021192402 fonctions_privees` | Aucune fonction privilégiée appelable sans compte ; `display_name` renvoie « Prénom N. » seulement en cas de groupe commun ou pour un mentor validé, sinon `null` ; le fil affiche « Membre DALILI » quand le nom est masqué |
+| `20261022120000_photos_profil.sql` | `20261022132208 photos_profil` | Bucket **privé** `avatars` (JPEG, 1 Mo max), un dossier par compte, seul le propriétaire lit, dépose, remplace ou supprime sa photo ; `profiles.avatar_url` n'accepte qu'un chemin vers son propre dossier, jamais un lien externe. Appliquée le 22/10 après sauvegarde ciblée (`~/Desktop/dalili-backups/2026-10-22/`, avec le script d'annulation) et 10 nouveaux tests verts. Aucune nouvelle alerte de l'advisor |
 
 Les données n'ont pas bougé : 58 inscrits, journal de l'assistant intact, 2 140 extraits.
 
@@ -42,11 +43,12 @@ Formulaires du site testés en vrai avec l'adresse de test de l'équipe (waitlis
 |---|---|---|
 | `display_name` exécutable par un compte connecté | WARN | Voulu : la vue du fil (`posts_with_author`) en a besoin. Elle doit lire les profils des autres, que la RLS cache, d'où le mode *security definer*. Elle ne révèle que « Prénom N. », et seulement à quelqu'un qui partage un groupe avec la personne, ou pour un mentor validé. |
 | `is_member` exécutable par un compte connecté | WARN | Voulu : les règles d'accès des posts et des événements l'appellent. Elle répond seulement « suis-je membre de ce groupe ? » pour l'appelant. Piste pour faire disparaître l'alerte : la passer en *security invoker*, puisque tout compte connecté peut déjà lire les adhésions. À tester avant. |
+| Protection contre les mots de passe divulgués désactivée | WARN | **Pas acceptable à terme.** Elle refuse les mots de passe déjà fuités (base HaveIBeenPwned). Option du plan Pro de Supabase : à activer au passage en Pro (Dashboard → Authentication → Policies). En attendant, la connexion par code à 6 chiffres reste la voie conseillée dans l'app. |
 | RLS sans règle sur `assistant_feedback`, `assistant_queries`, `assistant_rate_limits`, `assistant_usage`, `content_chunks` | INFO | Voulu : sans règle, l'API publique ne peut rien faire sur ces tables. Seul le serveur du site y accède, avec la clé secrète. |
 
 ## 4. Tester une migration avant la prod
 
-`npm run test:migrations` lance un Postgres jetable (Docker). Le script rejoue le schéma du site tel qu'il était avant M1 (`supabase/tests/01_site_prod.sql`, relevé le 20/10), toutes les migrations, le seed, puis **49 tests de sécurité** (`supabase/tests/rls.sql`) : anon, quatre comptes, clé service. Dernier résultat (21/10) : tous verts.
+`npm run test:migrations` lance un Postgres jetable (Docker). Le script rejoue le schéma du site tel qu'il était avant M1 (`supabase/tests/01_site_prod.sql`, relevé le 20/10), toutes les migrations, le seed, puis **58 tests de sécurité** (`supabase/tests/rls.sql`) : anon, quatre comptes, clé service, photos de profil. Dernier résultat (22/10) : tous verts.
 
 Règles :
 1. Nouveau fichier daté dans `supabase/migrations/`, jamais de modification d'une migration déjà appliquée.
