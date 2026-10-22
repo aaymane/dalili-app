@@ -26,7 +26,7 @@
 ## Prochaine action
 
 1. **Tester la photo sur iPhone** : la changer depuis Profil, vérifier qu'elle arrive dans le bucket `avatars`.
-2. **Sécurité de l'app** : session chiffrée (clé dans le trousseau), suppression de compte dans l'app + vraie page Confidentialité, profil rechargé depuis le serveur à la connexion.
+2. **Sécurité de l'app** : ✅ session chiffrée (AES-256, clé dans le trousseau, uniquement sur ce téléphone, `src/lib/secure-session.ts`) ; reste la suppression de compte dans l'app + vraie page Confidentialité, puis le profil rechargé depuis le serveur à la connexion.
 3. **Étape g — direction artistique et motion.**
 
 Plus tard : régénérer `SUPABASE_SECRET_KEY`, `RESEND_API_KEY` et `ANTHROPIC_API_KEY` (elles ont été exposées sur des Preview Vercel), et supprimer les anciens déploiements Preview.

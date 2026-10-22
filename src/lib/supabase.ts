@@ -5,6 +5,7 @@ import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import { AppState, Platform } from 'react-native';
 
 import { env, isSupabaseConfigured } from './env';
+import { secureSessionStorage } from './secure-session';
 
 /**
  * Client Supabase unique. `null` en mode démo (aucune clé configurée).
@@ -13,7 +14,8 @@ import { env, isSupabaseConfigured } from './env';
 export const supabase: SupabaseClient | null = isSupabaseConfigured
   ? createClient(env.supabaseUrl, env.supabaseAnonKey, {
       auth: {
-        storage: AsyncStorage,
+        // Sur le téléphone, la session est chiffrée (clé dans le trousseau). Sur le web, stockage du navigateur.
+        storage: Platform.OS === 'web' ? AsyncStorage : secureSessionStorage,
         autoRefreshToken: true,
         persistSession: true,
         detectSessionInUrl: Platform.OS === 'web',
