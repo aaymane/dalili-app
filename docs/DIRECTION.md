@@ -93,9 +93,9 @@ Le vocabulaire visuel vient du voyage : un trajet entre deux villes, un compte �
 Au premier affichage de l'accueil (`features/auth/components/LaunchIntro.tsx`), une seule fois par lancement :
 
 1. **Image 1 = l'écran de lancement natif** (`app.json` → `expo-splash-screen` : fond `navyDeep`, monogramme blanc centré). `SplashFrame` le reproduit tant que l'app se prépare : aucune coupure.
-2. 0 → 520 ms : le halo s'allume derrière le logo.
-3. 360 → 1060 ms : le logo glisse à sa place (`EASE_IN_OUT`) et passe du blanc au bleu ; le fond plat s'efface pendant qu'une onde partie du logo allume les étoiles (une étoile filante traverse souvent à ce moment-là).
-4. 940 ms : « DALILI » s'écrit lettre par lettre (50 ms d'écart), quand le logo se pose. 1060 ms : le texte et les boutons arrivent.
+2. 0 → 900 ms : le halo s'allume derrière le logo, qui grossit à peine (×1,08) comme une inspiration. Une onde partie du logo allume les étoiles (300 → 2500 ms).
+3. 1000 → 2000 ms : le logo monte à sa place (`EASE_IN_OUT`) et passe du blanc au bleu ; le fond plat s'efface (400 → 1800 ms).
+4. 1800 ms : « DALILI » s'écrit lettre par lettre (80 ms d'écart), quand le logo se pose. 2050 ms : le texte et les boutons arrivent.
 
 Dans Expo Go, l'écran blanc avec l'icône et « Loading… » appartient à Expo Go : il n'existe pas dans l'app installée.
 

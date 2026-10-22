@@ -17,8 +17,8 @@ import { palette } from '@/theme/tokens';
 const SPLASH_MARK = (96 * 430) / 512; // largeur visible du monogramme dans splash-icon.png
 const WORD = 'DALILI';
 
-/** Repères de la chorégraphie (ms). Les lettres arrivent quand le logo se pose. Lisible à ≈ 1,5 s. */
-export const INTRO = { move: 360, moveFor: 700, word: 940, letter: 50, content: 1060 } as const;
+/** Repères de la chorégraphie (ms). Le logo respire au centre, puis monte ; les lettres arrivent quand il se pose. Lisible à ≈ 2,7 s. */
+export const INTRO = { bloom: 900, move: 1000, moveFor: 1000, word: 1800, letter: 80, content: 2050 } as const;
 
 /** L'écran de lancement natif, à l'identique : affiché tant que l'app se prépare (polices, session). */
 export function SplashFrame() {
@@ -45,7 +45,7 @@ export function SplashCover() {
   const reduced = useReducedMotion();
   const opacity = useSharedValue(1);
   useEffect(() => {
-    opacity.set(reduced ? 0 : withDelay(300, withTiming(0, { duration: 800, easing: EASE_OUT })));
+    opacity.set(reduced ? 0 : withDelay(400, withTiming(0, { duration: 1400, easing: EASE_OUT })));
   }, [opacity, reduced]);
   const style = useAnimatedStyle(() => ({ opacity: opacity.value }));
   return <Animated.View pointerEvents="none" style={[StyleSheet.absoluteFill, { backgroundColor: palette.navyDeep }, style]} />;
@@ -78,10 +78,16 @@ export function FlyingMark({ size, target }: { size: number; target: { x: number
     const travel = (to: number) => withDelay(INTRO.move, withTiming(to, { duration: INTRO.moveFor, easing: EASE_IN_OUT }));
     dx.set(travel(toX));
     dy.set(travel(toY));
-    scale.set(travel(1));
-    white.set(withDelay(INTRO.move, withTiming(0, { duration: 600, easing: EASE_OUT })));
-    // Le halo s'allume pendant que le logo est encore au centre, puis s'éteint en arrivant.
-    glow.set(withSequence(withTiming(1, { duration: 520, easing: EASE_OUT }), withTiming(0, { duration: 640, easing: EASE_OUT })));
+    // Au centre, le logo prend une inspiration (×1,08) pendant que le halo s'allume, puis rejoint sa place.
+    const start = SPLASH_MARK / size;
+    scale.set(
+      withSequence(
+        withTiming(start * 1.08, { duration: INTRO.bloom, easing: EASE_OUT }),
+        withDelay(INTRO.move - INTRO.bloom, withTiming(1, { duration: INTRO.moveFor, easing: EASE_IN_OUT })),
+      ),
+    );
+    white.set(withDelay(INTRO.move, withTiming(0, { duration: 800, easing: EASE_OUT })));
+    glow.set(withSequence(withTiming(1, { duration: INTRO.bloom, easing: EASE_OUT }), withDelay(200, withTiming(0, { duration: 800, easing: EASE_OUT }))));
   }, [target, size, width, height, reduced, dx, dy, scale, white, glow]);
 
   const move = useAnimatedStyle(() => ({

@@ -170,7 +170,7 @@ export function StarField({ variant = 'sky', ignite = false, origin = { x: 0.5, 
   }, [frame, reduce, focused]);
 
   useEffect(() => {
-    if (ignite && !reduce) lit.set(withDelay(250, withTiming(1, { duration: 1500, easing: EASE_OUT })));
+    if (ignite && !reduce) lit.set(withDelay(300, withTiming(1, { duration: 2200, easing: EASE_OUT })));
   }, [ignite, reduce, lit]);
 
   const card = variant === 'card';
