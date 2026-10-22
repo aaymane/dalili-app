@@ -29,9 +29,15 @@ const CLOSE = { duration: 260, easing: EASE_SHEET, reduceMotion: ReduceMotion.Sy
 export function BottomSheet({ visible, onClose, onClosed, children, scroll, maxHeight = '88%' }: Props) {
   const insets = useSafeAreaInsets();
   const { height: screenH } = useWindowDimensions();
+  // `mounted` : modale affichée (jusqu'à la fin de l'animation de sortie).
+  // `present` : modale dans l'arbre. Elle y reste après `mounted`, le temps qu'iOS la retire (`onDismiss`), puis
+  // disparaît : on ne garde pas de Modal native invisible dans l'arbre.
   const [mounted, setMounted] = useState(visible);
-  // Monte immédiatement à l'ouverture ; démonte à la fin de l'animation de sortie.
-  if (visible && !mounted) setMounted(true);
+  const [present, setPresent] = useState(visible);
+  if (visible && !mounted) {
+    setMounted(true);
+    setPresent(true);
+  }
 
   // Ouverture (0 = fermée, 1 = ouverte) et glissé du doigt (px), séparés : une fermeture repart d'où le doigt l'a laissée.
   const open = useSharedValue(0);
@@ -61,13 +67,20 @@ export function BottomSheet({ visible, onClose, onClosed, children, scroll, maxH
   // on attend `onDismiss`, appelé par iOS une fois la modale vraiment partie. Ailleurs, la fin du démontage suffit.
   const shown = useRef(false);
   const closed = () => {
+    setPresent(false);
     if (!shown.current) return;
     shown.current = false;
     onClosed?.();
   };
   useEffect(() => {
-    if (mounted) shown.current = true;
-    else if (Platform.OS !== 'ios') closed();
+    if (mounted) {
+      shown.current = true;
+      return;
+    }
+    if (!present) return;
+    // iOS prévient par `onDismiss` (ce délai n'est qu'un filet de sécurité) ; ailleurs, la modale est déjà partie.
+    const t = setTimeout(closed, Platform.OS === 'ios' ? 700 : 0);
+    return () => clearTimeout(t);
   });
 
   const pan = Gesture.Pan()
@@ -93,6 +106,7 @@ export function BottomSheet({ visible, onClose, onClosed, children, scroll, maxH
     opacity: open.value * interpolate(drag.value, [0, height.value], [1, 0], 'clamp'),
   }));
 
+  if (!present) return null;
   const Body = scroll ? ScrollView : View;
   const handle = (
     <View style={styles.handleZone}>

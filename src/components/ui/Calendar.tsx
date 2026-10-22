@@ -1,9 +1,12 @@
 import { ChevronLeft, ChevronRight } from 'lucide-react-native';
 import { useMemo, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
-import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
+import { Gesture, GestureDetector } from 'react-native-gesture-handler';
+import Animated, { useSharedValue } from 'react-native-reanimated';
+import { scheduleOnRN } from 'react-native-worklets';
 
 import { isSameDay, monthTitle, startOfDay } from '@/lib/date';
+import { pop, slideIn, slideOut } from '@/theme/motion';
 import { palette, radius } from '@/theme/tokens';
 
 import { PressableScale } from './PressableScale';
@@ -23,10 +26,11 @@ type Props = {
 
 const WEEK = ['L', 'M', 'M', 'J', 'V', 'S', 'D'];
 
-/** Calendrier mensuel (semaine commençant le lundi). */
+/** Calendrier mensuel (semaine commençant le lundi). Flèches ou balayage horizontal pour changer de mois. */
 export function Calendar({ selected, onSelect, marked = [], highlight, initialMonth, minDate, accent = palette.electric }: Props) {
   const base = initialMonth ?? selected ?? new Date();
-  const [cursor, setCursor] = useState({ y: base.getFullYear(), m: base.getMonth() });
+  // `dir` : sens du dernier changement de mois, pour que la grille glisse du bon côté.
+  const [cursor, setCursor] = useState({ y: base.getFullYear(), m: base.getMonth(), dir: 1 });
 
   const cells = useMemo(() => {
     const first = new Date(cursor.y, cursor.m, 1);
@@ -38,16 +42,29 @@ export function Calendar({ selected, onSelect, marked = [], highlight, initialMo
     return out;
   }, [cursor]);
 
-  const move = (delta: number) =>
+  const dir = useSharedValue(1);
+  const move = (delta: number) => {
+    dir.set(delta);
     setCursor((c) => {
       const d = new Date(c.y, c.m + delta, 1);
-      return { y: d.getFullYear(), m: d.getMonth() };
+      return { y: d.getFullYear(), m: d.getMonth(), dir: delta };
+    });
+  };
+
+  const swipe = Gesture.Pan()
+    .activeOffsetX([-20, 20])
+    .failOffsetY([-14, 14])
+    .onEnd((e) => {
+      if (e.translationX < -40 || e.velocityX < -500) scheduleOnRN(move, 1);
+      else if (e.translationX > 40 || e.velocityX > 500) scheduleOnRN(move, -1);
     });
 
   return (
     <View style={styles.card}>
       <View style={styles.header}>
-        <Text variant="h3">{monthTitle(cursor.y, cursor.m)}</Text>
+        <Animated.View key={`${cursor.y}-${cursor.m}`} entering={slideIn(cursor.dir)} exiting={slideOut(dir)}>
+          <Text variant="h3">{monthTitle(cursor.y, cursor.m)}</Text>
+        </Animated.View>
         <View style={{ flexDirection: 'row', gap: 6 }}>
           <PressableScale onPress={() => move(-1)} style={styles.nav} accessibilityLabel="Mois précédent">
             <ChevronLeft size={16} color={palette.subtle} />
@@ -66,41 +83,40 @@ export function Calendar({ selected, onSelect, marked = [], highlight, initialMo
           </View>
         ))}
       </View>
-      <Animated.View key={`${cursor.y}-${cursor.m}`} entering={FadeIn.duration(220)} exiting={FadeOut.duration(120)} style={styles.grid}>
-        {cells.map((d, i) => {
-          if (!d) return <View key={i} style={styles.cell} />;
-          const isSel = selected && isSameDay(d, selected);
-          const isHi = highlight && isSameDay(d, highlight);
-          const hasMark = marked.some((m) => isSameDay(m, d));
-          const disabled = minDate ? startOfDay(d) < startOfDay(minDate) : false;
-          const today = isSameDay(d, new Date());
-          return (
-            <View key={i} style={styles.cell}>
-              <PressableScale
-                haptic="select"
-                disabled={disabled || !onSelect}
-                onPress={() => onSelect?.(d)}
-                style={[
-                  styles.day,
-                  isHi && { backgroundColor: '#E7DDFF' },
-                  isSel && { backgroundColor: accent },
-                  today && !isSel && { borderWidth: 1.5, borderColor: accent },
-                ]}>
-                <Text variant="smallStrong" color={isSel ? '#fff' : disabled ? '#C5CAD9' : palette.navy}>
-                  {d.getDate()}
-                </Text>
-              </PressableScale>
-              {hasMark && <View style={[styles.dot, { backgroundColor: isSel ? accent : '#A78BFA' }]} />}
-            </View>
-          );
-        })}
-      </Animated.View>
+      <GestureDetector gesture={swipe}>
+        <Animated.View key={`${cursor.y}-${cursor.m}`} entering={slideIn(cursor.dir)} exiting={slideOut(dir)} style={styles.grid}>
+          {cells.map((d, i) => {
+            if (!d) return <View key={i} style={styles.cell} />;
+            const isSel = selected && isSameDay(d, selected);
+            const isHi = highlight && isSameDay(d, highlight);
+            const hasMark = marked.some((m) => isSameDay(m, d));
+            const disabled = minDate ? startOfDay(d) < startOfDay(minDate) : false;
+            const today = isSameDay(d, new Date());
+            return (
+              <View key={i} style={styles.cell}>
+                <PressableScale
+                  haptic="select"
+                  disabled={disabled || !onSelect}
+                  onPress={() => onSelect?.(d)}
+                  style={[styles.day, isHi && { backgroundColor: '#E7DDFF' }, today && !isSel && { borderWidth: 1.5, borderColor: accent }]}>
+                  {/* Le jour choisi se pose (au lieu de changer de couleur d'un coup). */}
+                  {isSel && <Animated.View entering={pop()} style={[StyleSheet.absoluteFill, { borderRadius: 11, backgroundColor: accent }]} />}
+                  <Text variant="smallStrong" color={isSel ? '#fff' : disabled ? '#C5CAD9' : palette.navy}>
+                    {d.getDate()}
+                  </Text>
+                </PressableScale>
+                {hasMark && <View style={[styles.dot, { backgroundColor: isSel ? accent : '#A78BFA' }]} />}
+              </View>
+            );
+          })}
+        </Animated.View>
+      </GestureDetector>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  card: { backgroundColor: '#fff', borderRadius: radius.xl, padding: 16, borderWidth: 1, borderColor: '#E6E9F5' },
+  card: { backgroundColor: '#fff', borderRadius: radius.xl, padding: 16, borderWidth: 1, borderColor: '#E6E9F5', overflow: 'hidden' },
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 },
   nav: { width: 30, height: 30, borderRadius: 15, backgroundColor: '#F2F4FA', alignItems: 'center', justifyContent: 'center' },
   row: { flexDirection: 'row' },

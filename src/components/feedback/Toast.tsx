@@ -7,9 +7,15 @@ import { create } from 'zustand';
 
 import { Text } from '@/components/ui/Text';
 import { palette, shadow } from '@/theme/tokens';
-import { leave, rise } from '@/theme/motion';
+import { drop, lift } from '@/theme/motion';
 
-type ToastState = { msg: string | null; kind: 'success' | 'info'; id: number; show: (msg: string, kind?: 'success' | 'info') => void; hide: () => void };
+type ToastState = {
+  msg: string | null;
+  kind: 'success' | 'info';
+  id: number;
+  show: (msg: string, kind?: 'success' | 'info') => void;
+  hide: () => void;
+};
 
 const useToastStore = create<ToastState>((set) => ({
   msg: null,
@@ -29,15 +35,17 @@ export function ToastHost() {
     const t = setTimeout(hide, 2600);
     return () => clearTimeout(t);
   }, [id, msg, hide]);
-  if (!msg) return null;
   return (
     <View pointerEvents="none" style={[StyleSheet.absoluteFill, { alignItems: 'center', paddingTop: insets.top + 8 }]}>
-      <Animated.View key={id} entering={rise()} exiting={leave} style={styles.toast}>
-        {kind === 'success' ? <CheckCircle2 size={18} color={palette.success} /> : <Info size={18} color={palette.electric} />}
-        <Text variant="smallStrong" style={{ flexShrink: 1 }}>
-          {msg}
-        </Text>
-      </Animated.View>
+      {/* Le conteneur reste monté : le toast peut ainsi jouer sa sortie. */}
+      {msg ? (
+        <Animated.View key={id} entering={drop()} exiting={lift} style={styles.toast}>
+          {kind === 'success' ? <CheckCircle2 size={18} color={palette.success} /> : <Info size={18} color={palette.electric} />}
+          <Text variant="smallStrong" style={{ flexShrink: 1 }}>
+            {msg}
+          </Text>
+        </Animated.View>
+      ) : null}
     </View>
   );
 }
