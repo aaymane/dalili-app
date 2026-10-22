@@ -3,7 +3,7 @@ import { router } from 'expo-router';
 import { ChevronRight, Globe2, Home } from 'lucide-react-native';
 import type { ReactNode } from 'react';
 import { StyleSheet, View } from 'react-native';
-import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
+import Animated from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { LogoOrb } from '@/components/brand/LogoOrb';
@@ -12,10 +12,11 @@ import { PressableScale } from '@/components/ui/PressableScale';
 import { Text } from '@/components/ui/Text';
 import { useProfile } from '@/features/profile/store';
 import { palette } from '@/theme/tokens';
+import { rise } from '@/theme/motion';
 
 function SituationCard({ title, text, badge, colors, icon, onPress, delay }: { title: string; text: string; badge: string; colors: [string, string]; icon: ReactNode; onPress: () => void; delay: number }) {
   return (
-    <Animated.View entering={FadeInDown.delay(delay).springify().damping(16)}>
+    <Animated.View entering={rise(delay)}>
       <PressableScale onPress={onPress} haptic="press" style={styles.card}>
         <LinearGradient colors={colors} style={styles.tile}>
           {icon}
@@ -48,10 +49,10 @@ export default function Situation() {
     <View style={{ flex: 1, paddingTop: insets.top, paddingBottom: insets.bottom + 20 }}>
       <NightBackground />
       <View style={styles.hero}>
-        <Animated.View entering={FadeInUp.springify()}>
+        <Animated.View entering={rise()}>
           <LogoOrb size={120} />
         </Animated.View>
-        <Animated.View entering={FadeInUp.delay(120)} style={{ alignItems: 'center', gap: 8 }}>
+        <Animated.View entering={rise(120)} style={{ alignItems: 'center', gap: 8 }}>
           <Text variant="overline" color="#7FA6FF">
             DALILI
           </Text>

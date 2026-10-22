@@ -17,7 +17,7 @@ import {
 } from 'lucide-react-native';
 import { useState, type ReactNode } from 'react';
 import { Alert, Platform, StyleSheet, Switch, View } from 'react-native';
-import Animated, { FadeInDown, ZoomIn } from 'react-native-reanimated';
+import Animated from 'react-native-reanimated';
 
 import { toast } from '@/components/feedback/Toast';
 import { AppHeader } from '@/components/layout/AppHeader';
@@ -35,6 +35,7 @@ import { AvatarSheet } from '@/features/profile/components/AvatarSheet';
 import { useProfile } from '@/features/profile/store';
 import { useRoleTheme } from '@/theme';
 import { palette, radius, roleColors, shadow } from '@/theme/tokens';
+import { pop, rise } from '@/theme/motion';
 
 function Row({ icon, label, sub, onPress, right, colors }: { icon: ReactNode; label: string; sub?: string; onPress?: () => void; right?: ReactNode; colors: [string, string] }) {
   return (
@@ -79,8 +80,8 @@ export default function Profil() {
   return (
     <Screen top={top} tabBar padded={false} header={<AppHeader />}>
       <View style={{ paddingHorizontal: 20, gap: 18 }}>
-        <Animated.View entering={FadeInDown.springify()} style={styles.card}>
-          <Animated.View entering={ZoomIn.springify().damping(12)}>
+        <Animated.View entering={rise()} style={styles.card}>
+          <Animated.View entering={pop()}>
             <PressableScale onPress={() => setAvatarOpen(true)} accessibilityRole="button" accessibilityLabel={profile.avatarUri ? 'Changer ma photo de profil' : 'Ajouter une photo de profil'}>
               <Avatar name={`${profile.firstName} ${profile.lastName}`} uri={profile.avatarUri} size={84} ring={accent} />
               <View style={[styles.camera, { backgroundColor: accent }]}>
@@ -107,7 +108,7 @@ export default function Profil() {
           </View>
         </Animated.View>
 
-        <Animated.View entering={FadeInDown.delay(60).springify()} style={styles.stats}>
+        <Animated.View entering={rise(60)} style={styles.stats}>
           <ProgressRing progress={j.progress} size={64} track="#E6EBF7" textColor={palette.navy} />
           <View style={styles.stat}>
             <Text variant="h1">{j.doneCount}</Text>
@@ -129,7 +130,7 @@ export default function Profil() {
           </View>
         </Animated.View>
 
-        <Animated.View entering={FadeInDown.delay(100).springify()} style={styles.group}>
+        <Animated.View entering={rise(100)} style={styles.group}>
           <Row icon={<BrainCircuit size={18} color="#fff" />} colors={['#7A8CFF', '#7A5AF8']} label="Profil IA" sub="Ce que Dalili sait de toi" onPress={go('/(app)/profil-ia')} />
           <Row icon={<Map size={18} color="#fff" />} colors={['#7FA6FF', '#3D78FF']} label="Mon Parcours-quête" sub={`${Math.round(j.progress * 100)}% · ${j.total - j.doneCount} étapes restantes`} onPress={go('/(app)/parcours')} />
           <Row icon={<CalendarCheck2 size={18} color="#fff" />} colors={['#34D399', palette.mentor]} label="Mes rendez-vous" sub={bookings.length ? `${bookings.length} à venir` : 'Aucun pour le moment'} onPress={go('/(app)/parcours?view=calendar')} />
@@ -137,7 +138,7 @@ export default function Profil() {
           <Row icon={<FolderCheck size={18} color="#fff" />} colors={['#C084FC', '#9333EA']} label="Mes documents" sub="La checklist de tes papiers" onPress={go('/(app)/outils/documents')} />
         </Animated.View>
 
-        <Animated.View entering={FadeInDown.delay(140).springify()} style={styles.group}>
+        <Animated.View entering={rise(140)} style={styles.group}>
           <Row icon={<Repeat size={18} color="#fff" />} colors={['#94A3B8', '#475569']} label="Changer de mode" sub={`Actuellement : ${roleColors[profile.activeRole].label}`} onPress={go('/(app)/role')} />
           <Row
             icon={<Bell size={18} color="#fff" />}
@@ -151,7 +152,7 @@ export default function Profil() {
           <Row icon={<ShieldCheck size={18} color="#fff" />} colors={['#94A3B8', '#475569']} label="Confidentialité" sub="Tes données, supprimer ton compte" onPress={go('/(app)/confidentialite')} />
         </Animated.View>
 
-        <Animated.View entering={FadeInDown.delay(180).springify()} style={styles.group}>
+        <Animated.View entering={rise(180)} style={styles.group}>
           {isDemoMode && (
             <Row
               icon={<RefreshCw size={18} color="#fff" />}

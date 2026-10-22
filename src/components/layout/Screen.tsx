@@ -1,7 +1,10 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import type { ReactNode } from 'react';
-import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, View, type ScrollViewProps } from 'react-native';
+import { KeyboardAvoidingView, Platform, StyleSheet, View, type ScrollViewProps } from 'react-native';
+import Animated, { useAnimatedRef, useScrollOffset } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
+import { ScrollContext } from '@/components/motion/scroll';
 
 import { palette } from '@/theme/tokens';
 
@@ -25,15 +28,19 @@ type Props = {
 /** Gabarit d'écran : dégradé haut, safe-area, scroll, footer collant. */
 export function Screen({ children, top, scroll = true, header, footer, padded = true, tabBar, bg = palette.bg, scrollProps, keyboard }: Props) {
   const insets = useSafeAreaInsets();
+  // Position de défilement suivie sur le thread UI : parallaxe et apparitions (`Reveal`) s'y calent.
+  const scrollRef = useAnimatedRef<Animated.ScrollView>();
+  const scrollY = useScrollOffset(scrollRef);
   const bottom = (tabBar ? TAB_BAR_SPACE : 24) + (footer ? 0 : insets.bottom);
   const content = scroll ? (
-    <ScrollView
+    <Animated.ScrollView
+      ref={scrollRef}
       showsVerticalScrollIndicator={false}
       keyboardShouldPersistTaps="handled"
       {...scrollProps}
       contentContainerStyle={[padded && styles.pad, { paddingBottom: bottom }, scrollProps?.contentContainerStyle]}>
-      {children}
-    </ScrollView>
+      <ScrollContext value={scrollY}>{children}</ScrollContext>
+    </Animated.ScrollView>
   ) : (
     <View style={[{ flex: 1 }, padded && styles.pad]}>{children}</View>
   );

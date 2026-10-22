@@ -2,7 +2,7 @@ import { router } from 'expo-router';
 import { BrainCircuit, Pencil, ShieldCheck, Sparkles } from 'lucide-react-native';
 import { useState, type ReactNode } from 'react';
 import { StyleSheet, View } from 'react-native';
-import Animated, { FadeInDown } from 'react-native-reanimated';
+import Animated from 'react-native-reanimated';
 
 import { LogoOrb } from '@/components/brand/LogoOrb';
 import { BottomSheet } from '@/components/feedback/BottomSheet';
@@ -29,12 +29,13 @@ import {
 } from '@/features/profile/types';
 import { formatLong, relativeDays } from '@/lib/date';
 import { palette, radius, shadow } from '@/theme/tokens';
+import { rise } from '@/theme/motion';
 
 type Field = 'city' | 'level' | 'campus' | 'housing' | 'concerns' | null;
 
 function Fact({ label, value, onEdit, delay }: { label: string; value: ReactNode; onEdit: () => void; delay: number }) {
   return (
-    <Animated.View entering={FadeInDown.delay(delay).springify()}>
+    <Animated.View entering={rise(delay)}>
       <PressableScale onPress={onEdit} scaleTo={0.985} style={styles.fact}>
         <View style={{ flex: 1, gap: 3 }}>
           <Text variant="overline" color={palette.muted} style={{ fontSize: 9.5 }}>
@@ -74,7 +75,7 @@ export default function ProfilIA() {
           </Text>
         </View>
 
-        <Animated.View entering={FadeInDown.springify()} style={styles.summary}>
+        <Animated.View entering={rise()} style={styles.summary}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
             <BrainCircuit size={18} color="#fff" />
             <Text variant="overline" color="rgba(255,255,255,0.75)">

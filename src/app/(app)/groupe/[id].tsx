@@ -3,7 +3,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { Check, ChevronLeft, Lock, MapPin, Pencil, Plus, Users } from 'lucide-react-native';
 import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
-import Animated, { FadeIn, FadeInDown, ZoomIn } from 'react-native-reanimated';
+import Animated, { FadeIn } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Screen } from '@/components/layout/Screen';
@@ -17,6 +17,7 @@ import { PostCard } from '@/features/community/components/PostCard';
 import { useProfile } from '@/features/profile/store';
 import { monthShort } from '@/lib/date';
 import { palette, radius, shadow } from '@/theme/tokens';
+import { pop, rise } from '@/theme/motion';
 
 type Tab = 'feed' | 'events' | 'members';
 
@@ -65,7 +66,7 @@ export default function GroupPage() {
 
         <View style={{ paddingHorizontal: 20, gap: 18, marginTop: 18 }}>
           {!g.isMember && (
-            <Animated.View entering={FadeInDown.springify()} style={{ gap: 10 }}>
+            <Animated.View entering={rise()} style={{ gap: 10 }}>
               <Text variant="h2">À propos</Text>
               <View style={styles.about}>
                 <Text variant="body">{g.description}</Text>
@@ -184,7 +185,7 @@ export default function GroupPage() {
         </View>
       </Screen>
       {g.isMember && (
-        <Animated.View entering={ZoomIn.springify()} style={[styles.fab, { bottom: insets.bottom + 24 }]}>
+        <Animated.View entering={pop()} style={[styles.fab, { bottom: insets.bottom + 24 }]}>
           <PressableScale onPress={() => router.push({ pathname: '/(app)/post/nouveau', params: { groupId: g.id } })} style={styles.fabBtn} accessibilityLabel="Écrire un post">
             <Pencil size={20} color={palette.navy} />
           </PressableScale>

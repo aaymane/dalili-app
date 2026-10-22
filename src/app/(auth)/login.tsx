@@ -2,7 +2,7 @@ import { router } from 'expo-router';
 import { ArrowRight, ChevronLeft, Lock, Mail } from 'lucide-react-native';
 import { useState } from 'react';
 import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, View } from 'react-native';
-import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
+import Animated from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { LogoMark } from '@/components/brand/Logo';
@@ -16,6 +16,7 @@ import { useAuth } from '@/features/auth/store';
 import { haptics } from '@/lib/haptics';
 import { supabase } from '@/lib/supabase';
 import { palette } from '@/theme/tokens';
+import { rise } from '@/theme/motion';
 
 export default function Login() {
   const insets = useSafeAreaInsets();
@@ -52,7 +53,7 @@ export default function Login() {
           <PressableScale onPress={() => router.back()} style={styles.back} accessibilityLabel="Retour">
             <ChevronLeft size={20} color="#fff" />
           </PressableScale>
-          <Animated.View entering={FadeInUp.springify()} style={styles.hero}>
+          <Animated.View entering={rise()} style={styles.hero}>
             <LogoMark size={64} color={palette.electricLight} />
             <Text variant="h1" color="#fff" style={{ fontFamily: 'Montserrat_900Black', letterSpacing: 2 }}>
               DALILI
@@ -67,7 +68,7 @@ export default function Login() {
               Content de te revoir. Connecte-toi pour reprendre ton parcours.
             </Text>
           </Animated.View>
-          <Animated.View entering={FadeInDown.delay(150).springify()} style={{ gap: 12 }}>
+          <Animated.View entering={rise(150)} style={{ gap: 12 }}>
             <Input
               dark
               label="Email"
@@ -100,7 +101,7 @@ export default function Login() {
             </PressableScale>
           </Animated.View>
           <View style={{ flex: 1, minHeight: 32 }} />
-          <Animated.View entering={FadeInDown.delay(260).springify()} style={{ gap: 6 }}>
+          <Animated.View entering={rise(260)} style={{ gap: 6 }}>
             <Button label="Se connecter" icon={<ArrowRight size={18} color="#fff" />} loading={loading} onPress={submit} />
             <PressableScale onPress={() => router.replace('/(auth)/register')} style={{ alignSelf: 'center', padding: 12 }}>
               <Text variant="small" color="rgba(255,255,255,0.65)">

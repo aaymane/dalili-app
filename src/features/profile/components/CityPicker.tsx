@@ -9,6 +9,7 @@ import { PressableScale } from '@/components/ui/PressableScale';
 import { Text } from '@/components/ui/Text';
 import { useContent } from '@/data/hooks';
 import { palette, radius, shadow } from '@/theme/tokens';
+import { reflow } from '@/theme/motion';
 
 /** Accents décoratifs des pastilles de ville (pas une couleur d'action). */
 const ACCENTS: Record<string, string> = {
@@ -72,7 +73,7 @@ export function CityPicker({ value, onChange, allowUnknown = true }: { value: st
         </PressableScale>
       )}
       <Input icon={<Search size={16} color={palette.electric} />} placeholder="Rechercher une ville…" value={q} onChangeText={setQ} />
-      <Animated.View layout={LinearTransition.springify()} style={styles.grid}>
+      <Animated.View layout={reflow} style={styles.grid}>
         {list.map((c) => (
           <Animated.View key={c.id} entering={FadeIn} layout={LinearTransition} style={{ width: '31.5%' }}>
             <CityCard

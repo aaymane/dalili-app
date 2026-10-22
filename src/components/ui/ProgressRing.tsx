@@ -1,7 +1,10 @@
 import { useEffect } from 'react';
 import { View } from 'react-native';
-import Animated, { Easing, useAnimatedProps, useSharedValue, withDelay, withTiming } from 'react-native-reanimated';
+import Animated, { useAnimatedProps, useAnimatedReaction, useReducedMotion, useSharedValue, withDelay, withTiming } from 'react-native-reanimated';
 import Svg, { Circle, Defs, LinearGradient, Stop } from 'react-native-svg';
+
+import { useReveal } from '@/components/motion/Reveal';
+import { EASE_OUT } from '@/theme/motion';
 
 import { Text } from './Text';
 
@@ -32,9 +35,20 @@ export function ProgressRing({
   const r = (size - stroke) / 2;
   const c = 2 * Math.PI * r;
   const p = useSharedValue(0);
+  const target = useSharedValue(Math.max(0, Math.min(1, progress)));
+  const reveal = useReveal();
+  const reduced = useReducedMotion();
   useEffect(() => {
-    p.set(withDelay(250, withTiming(Math.max(0, Math.min(1, progress)), { duration: 1100, easing: Easing.out(Easing.cubic) })));
-  }, [progress, p]);
+    target.set(Math.max(0, Math.min(1, progress)));
+  }, [progress, target]);
+  // Se remplit quand sa section apparaît (sinon dès l'affichage), puis suit la progression.
+  useAnimatedReaction(
+    () => (reveal && reveal.get() < 0.3 ? -1 : target.get()),
+    (v, prev) => {
+      if (v < 0 || v === prev) return;
+      p.set(reduced ? v : withDelay(prev === null || prev < 0 ? 150 : 0, withTiming(v, { duration: 1100, easing: EASE_OUT })));
+    },
+  );
   const animatedProps = useAnimatedProps(() => ({ strokeDashoffset: c * (1 - p.value) }));
   return (
     <View style={{ width: size, height: size, alignItems: 'center', justifyContent: 'center' }}>

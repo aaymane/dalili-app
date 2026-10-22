@@ -1,13 +1,14 @@
 import { router, type Href } from 'expo-router';
 import { BookOpen, Calculator, FolderCheck, Languages, Siren } from 'lucide-react-native';
 import { ScrollView, StyleSheet } from 'react-native';
-import Animated, { FadeInRight } from 'react-native-reanimated';
+import Animated from 'react-native-reanimated';
 
 import { IconTile } from '@/components/ui/IconTile';
 import { PressableScale } from '@/components/ui/PressableScale';
 import { Text } from '@/components/ui/Text';
 import { useContent } from '@/data/hooks';
 import { palette, radius, shadow } from '@/theme/tokens';
+import { rise } from '@/theme/motion';
 
 const TOOLS: { label: string; sub: string; href: Href; icon: React.ReactNode; colors: [string, string] }[] = [
   { label: 'Guides', sub: '', href: '/(app)/(tabs)/explorer?tab=guides', icon: <BookOpen size={18} color="#fff" />, colors: ['#7FA6FF', '#3D78FF'] },
@@ -23,7 +24,7 @@ export function ToolsGrid() {
   return (
     <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 10, paddingHorizontal: 20 }} style={{ marginHorizontal: -20 }}>
       {TOOLS.map((t, i) => (
-        <Animated.View key={t.label} entering={FadeInRight.delay(i * 60).springify()}>
+        <Animated.View key={t.label} entering={rise(i * 60)}>
           <PressableScale onPress={() => router.push(t.href)} style={styles.tool}>
             <IconTile size={38} colors={t.colors} radius={12}>
               {t.icon}

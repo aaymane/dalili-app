@@ -1,12 +1,13 @@
 import { CheckCircle2, Info } from 'lucide-react-native';
 import { useEffect } from 'react';
 import { StyleSheet, View } from 'react-native';
-import Animated, { FadeInUp, FadeOutUp } from 'react-native-reanimated';
+import Animated from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { create } from 'zustand';
 
 import { Text } from '@/components/ui/Text';
 import { palette, shadow } from '@/theme/tokens';
+import { leave, rise } from '@/theme/motion';
 
 type ToastState = { msg: string | null; kind: 'success' | 'info'; id: number; show: (msg: string, kind?: 'success' | 'info') => void; hide: () => void };
 
@@ -31,7 +32,7 @@ export function ToastHost() {
   if (!msg) return null;
   return (
     <View pointerEvents="none" style={[StyleSheet.absoluteFill, { alignItems: 'center', paddingTop: insets.top + 8 }]}>
-      <Animated.View key={id} entering={FadeInUp.springify().damping(16)} exiting={FadeOutUp.duration(180)} style={styles.toast}>
+      <Animated.View key={id} entering={rise()} exiting={leave} style={styles.toast}>
         {kind === 'success' ? <CheckCircle2 size={18} color={palette.success} /> : <Info size={18} color={palette.electric} />}
         <Text variant="smallStrong" style={{ flexShrink: 1 }}>
           {msg}

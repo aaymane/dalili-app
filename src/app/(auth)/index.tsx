@@ -2,7 +2,7 @@ import { router } from 'expo-router';
 import { ArrowRight } from 'lucide-react-native';
 import { useState } from 'react';
 import { Platform, StyleSheet, View } from 'react-native';
-import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
+import Animated from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { AppleIcon, GoogleIcon } from '@/components/brand/BrandIcons';
@@ -14,6 +14,7 @@ import { PressableScale } from '@/components/ui/PressableScale';
 import { Text } from '@/components/ui/Text';
 import { isDemoMode, useAuth } from '@/features/auth/store';
 import { palette } from '@/theme/tokens';
+import { rise } from '@/theme/motion';
 
 /** Écran d'accueil : Google, Apple ou email. */
 export default function Welcome() {
@@ -32,13 +33,13 @@ export default function Welcome() {
     <View style={[styles.root, { paddingTop: insets.top, paddingBottom: Math.max(insets.bottom, 20) }]}>
       <NightBackground />
       <View style={styles.hero}>
-        <Animated.View entering={FadeInUp.duration(700).springify().damping(14)} style={{ alignItems: 'center' }}>
+        <Animated.View entering={rise()} style={{ alignItems: 'center' }}>
           <LogoMark size={86} color={palette.electricLight} />
           <Text variant="h1" color="#fff" style={styles.wordmark}>
             DALILI
           </Text>
         </Animated.View>
-        <Animated.View entering={FadeInDown.delay(200).duration(600)}>
+        <Animated.View entering={rise(200)}>
           <Text variant="hero" color="#fff" align="center">
             Bienvenue dans{'\n'}
             <Text variant="hero" color="#5B8BFF">
@@ -52,7 +53,7 @@ export default function Welcome() {
       </View>
 
       <View style={styles.actions}>
-        <Animated.View entering={FadeInDown.delay(380).springify()}>
+        <Animated.View entering={rise(380)}>
           <Button
             label="Continuer avec Google"
             variant="glass"
@@ -62,21 +63,21 @@ export default function Welcome() {
           />
         </Animated.View>
         {Platform.OS !== 'android' && (
-          <Animated.View entering={FadeInDown.delay(460).springify()}>
+          <Animated.View entering={rise(460)}>
             <Button label="Continuer avec Apple" variant="white" iconLeft={<AppleIcon />} loading={loading === 'apple'} onPress={() => provider('apple')} />
           </Animated.View>
         )}
-        <Animated.View entering={FadeInDown.delay(540).springify()} style={styles.or}>
+        <Animated.View entering={rise(540)} style={styles.or}>
           <View style={styles.line} />
           <Text variant="caption" color="rgba(255,255,255,0.5)">
             OU
           </Text>
           <View style={styles.line} />
         </Animated.View>
-        <Animated.View entering={FadeInDown.delay(600).springify()}>
+        <Animated.View entering={rise(600)}>
           <Button label="Créer mon compte par email" icon={<ArrowRight size={18} color="#fff" />} onPress={() => router.push('/(auth)/register')} />
         </Animated.View>
-        <Animated.View entering={FadeInDown.delay(680)}>
+        <Animated.View entering={rise(680)}>
           <PressableScale onPress={() => router.push('/(auth)/login')} style={{ alignSelf: 'center', padding: 12 }}>
             <Text variant="small" color="rgba(255,255,255,0.65)">
               Déjà membre ?{' '}

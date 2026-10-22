@@ -1,10 +1,11 @@
 import { ChevronLeft } from 'lucide-react-native';
 import { StyleSheet, View } from 'react-native';
-import Animated, { FadeInDown, useAnimatedStyle, withSpring } from 'react-native-reanimated';
+import Animated, { useAnimatedStyle, withSpring } from 'react-native-reanimated';
 
 import { PressableScale } from '@/components/ui/PressableScale';
 import { Text } from '@/components/ui/Text';
 import { motion, palette, shadow } from '@/theme/tokens';
+import { rise } from '@/theme/motion';
 
 function Dot({ active, color }: { active: boolean; color: string }) {
   const s = useAnimatedStyle(() => ({
@@ -37,7 +38,7 @@ export function StepHeader({ overline, title, subtitle, step, total, onBack, acc
       ) : (
         <View style={{ height: 36 }} />
       )}
-      <Animated.View key={animKey} entering={FadeInDown.springify().damping(16)}>
+      <Animated.View key={animKey} entering={rise()}>
         <Text variant="overline" color={accent} style={{ marginTop: 18 }}>
           {overline}
         </Text>

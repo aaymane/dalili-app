@@ -2,7 +2,7 @@ import { router } from 'expo-router';
 import { ArrowRight, ChevronRight, GraduationCap, Home, LifeBuoy } from 'lucide-react-native';
 import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
-import Animated, { FadeInDown, FadeInRight, FadeOutLeft } from 'react-native-reanimated';
+import Animated from 'react-native-reanimated';
 
 import { Screen } from '@/components/layout/Screen';
 import { StepHeader } from '@/components/layout/StepHeader';
@@ -14,6 +14,7 @@ import { Text } from '@/components/ui/Text';
 import { CityPicker } from '@/features/profile/components/CityPicker';
 import { useProfile } from '@/features/profile/store';
 import { gradients, palette, radius, shadow } from '@/theme/tokens';
+import { leave, rise } from '@/theme/motion';
 
 /** Parcours « Je vis déjà en France » : ville → comment aider (Mentor / Hôte / j'ai besoin d'aide). */
 export default function MentorSetup() {
@@ -39,12 +40,12 @@ export default function MentorSetup() {
         />
       }
       footer={i === 0 ? <Button label="Continuer" accent={gradients.mentor} icon={<ArrowRight size={18} color="#fff" />} disabled={!profile.mentorCity} onPress={() => setI(1)} /> : undefined}>
-      <Animated.View key={i} entering={FadeInRight.springify().damping(18)} exiting={FadeOutLeft.duration(140)} style={{ paddingHorizontal: 20, gap: 14 }}>
+      <Animated.View key={i} entering={rise(80)} exiting={leave} style={{ paddingHorizontal: 20, gap: 14 }}>
         {i === 0 ? (
           <CityPicker allowUnknown={false} value={profile.mentorCity} onChange={(c) => update({ mentorCity: c, destinationCity: c })} />
         ) : (
           <>
-            <Animated.View entering={FadeInDown.delay(80).springify()}>
+            <Animated.View entering={rise(80)}>
               <PressableScale
                 haptic="press"
                 onPress={() => {
@@ -71,7 +72,7 @@ export default function MentorSetup() {
                 <ChevronRight size={18} color={palette.electric} />
               </PressableScale>
             </Animated.View>
-            <Animated.View entering={FadeInDown.delay(160).springify()}>
+            <Animated.View entering={rise(160)}>
               <View style={[styles.choice, { backgroundColor: '#E3F7EF', opacity: 0.85 }]}>
                 <IconTile size={56} colors={['#34D399', palette.mentor]} radius={18}>
                   <Home size={26} color="#fff" />
@@ -90,7 +91,7 @@ export default function MentorSetup() {
                 </View>
               </View>
             </Animated.View>
-            <Animated.View entering={FadeInDown.delay(240).springify()}>
+            <Animated.View entering={rise(240)}>
               <PressableScale
                 onPress={() => {
                   update({ roles: ['student'], activeRole: 'student', destinationCity: profile.mentorCity });

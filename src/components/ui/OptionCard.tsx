@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 import { StyleSheet, View } from 'react-native';
 import Animated, { useAnimatedStyle, withSpring, withTiming } from 'react-native-reanimated';
 
+import { EASE_OUT } from '@/theme/motion';
 import { motion, palette, radius, shadow } from '@/theme/tokens';
 
 import { PressableScale } from './PressableScale';
@@ -25,7 +26,11 @@ export function OptionCard({ title, subtitle, icon, selected, onPress, accent = 
     borderColor: withTiming(selected ? accent : '#EDF0F7', { duration: 160 }),
     transform: [{ scale: withSpring(selected ? 1.01 : 1, motion.spring) }],
   }));
-  const inner = useAnimatedStyle(() => ({ transform: [{ scale: withSpring(selected ? 1 : 0, motion.springBouncy) }] }));
+  // La coche se pose (fondu + 0,5 → 1), sans rebond : on choisit souvent, ça doit rester discret.
+  const inner = useAnimatedStyle(() => ({
+    opacity: withTiming(selected ? 1 : 0, { duration: 180, easing: EASE_OUT }),
+    transform: [{ scale: withTiming(selected ? 1 : 0.5, { duration: 180, easing: EASE_OUT }) }],
+  }));
   return (
     <PressableScale onPress={onPress} haptic="select" scaleTo={0.98}>
       <Animated.View style={[styles.card, box, selected && { backgroundColor: '#FBFCFF' }]}>

@@ -3,7 +3,7 @@ import * as DocumentPicker from 'expo-image-picker';
 import { CameraIcon, Clock, FileCheck2 } from 'lucide-react-native';
 import { useMemo, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
-import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
+import Animated, { FadeIn } from 'react-native-reanimated';
 
 import { SuccessModal } from '@/components/feedback/SuccessModal';
 import { toast } from '@/components/feedback/Toast';
@@ -21,6 +21,7 @@ import { useLocalDb } from '@/data/local-db';
 import { formatLong } from '@/lib/date';
 import { haptics } from '@/lib/haptics';
 import { gradients, palette, radius, shadow } from '@/theme/tokens';
+import { rise } from '@/theme/motion';
 
 const SLOTS = ['10:30', '14:30', '18:30', '20:30'];
 
@@ -72,7 +73,7 @@ export default function Reserve() {
       header={<AppHeader back />}
       footer={<Button label="Confirmer le rendez-vous" disabled={!day || !slot} loading={loading} onPress={confirm} />}>
       <View style={{ paddingHorizontal: 20, gap: 18 }}>
-        <Animated.View entering={FadeInDown.springify()} style={styles.who}>
+        <Animated.View entering={rise()} style={styles.who}>
           <Avatar name={`${m.firstName} ${m.lastName}`} color={m.avatarColor} size={52} />
           <View style={{ flex: 1 }}>
             <Text variant="overline" color={palette.electric}>

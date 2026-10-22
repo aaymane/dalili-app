@@ -11,6 +11,7 @@ import { addDays, toISODate } from '@/lib/date';
  * ⚠️ Écran TEMPORAIRE, mode développement uniquement : charge un profil de test pour les captures.
  * /dev-profil?p=aymen → Casablanca → Paris, rien commencé.
  * /dev-profil?p=salma → Alger → Lyon, visa obtenu, logement trouvé, arrivée dans 12 jours.
+ * /dev-profil?p=aymen&onboarding=1 → même profil, mais ouvre le questionnaire d'onboarding.
  * Gardé pour les captures de chaque jalon (désactivé hors mode dev). À supprimer après M5.
  */
 // `__DEV__` vaut false dans le build de production : le minifieur retire ces profils de test.
@@ -54,17 +55,17 @@ const PROFILES: Record<string, { profile: Partial<Profile>; done: string[] }> = 
     };
 
 export default function DevProfil() {
-  const { p } = useLocalSearchParams<{ p?: string }>();
+  const { p, onboarding } = useLocalSearchParams<{ p?: string; onboarding?: string }>();
   useEffect(() => {
     const preset = PROFILES[p ?? 'aymen'];
     if (!__DEV__ || !preset) return;
-    useProfile.setState({ profile: { ...emptyProfile, ...preset.profile }, onboardingDone: true });
+    useProfile.setState({ profile: { ...emptyProfile, ...preset.profile }, onboardingDone: !onboarding });
     useJourneyStore.getState().reset();
     preset.done.forEach((id) => useJourneyStore.getState().toggle(id, true));
     const user = { id: `demo-${p}`, email: preset.profile.email ?? '' };
     useAuth.setState({ demoUser: user, user, status: 'signedIn' });
-    setTimeout(() => router.replace('/(app)/(tabs)'), 50);
-  }, [p]);
+    setTimeout(() => router.replace(onboarding ? '/(onboarding)' : '/(app)/(tabs)'), 50);
+  }, [p, onboarding]);
   if (!__DEV__) return <Redirect href="/" />;
   return null;
 }

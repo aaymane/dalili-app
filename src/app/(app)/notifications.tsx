@@ -2,7 +2,7 @@ import { router } from 'expo-router';
 import { BellRing, CalendarClock, PartyPopper, Video } from 'lucide-react-native';
 import type { ReactNode } from 'react';
 import { StyleSheet, View } from 'react-native';
-import Animated, { FadeInDown } from 'react-native-reanimated';
+import Animated from 'react-native-reanimated';
 
 import { AppHeader } from '@/components/layout/AppHeader';
 import { Screen } from '@/components/layout/Screen';
@@ -14,6 +14,7 @@ import { useLocalDb } from '@/data/local-db';
 import { useJourney } from '@/features/journey/store';
 import { daysFromToday, formatLong, formatTime } from '@/lib/date';
 import { gradients, palette, radius, shadow } from '@/theme/tokens';
+import { rise } from '@/theme/motion';
 
 type N = { id: string; icon: ReactNode; colors: [string, string]; title: string; sub: string; onPress?: () => void; urgent?: boolean };
 
@@ -57,7 +58,7 @@ export default function Notifications() {
     <Screen top={gradients.roleTop.student} padded={false} header={<AppHeader back title="Notifications" hideActions />}>
       <View style={{ paddingHorizontal: 20, gap: 10 }}>
         {items.map((n, i) => (
-          <Animated.View key={n.id} entering={FadeInDown.delay(i * 50).springify()}>
+          <Animated.View key={n.id} entering={rise(i * 50)}>
             <PressableScale onPress={n.onPress ?? (() => {})} style={[styles.row, n.urgent && { borderColor: '#FBD5D5', borderWidth: 1.5 }]}>
               <IconTile size={42} colors={n.colors} radius={13}>
                 {n.icon}

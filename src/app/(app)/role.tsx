@@ -1,7 +1,7 @@
 import { router } from 'expo-router';
 import { ArrowRight, GraduationCap, House, Sparkles, Send } from 'lucide-react-native';
 import { StyleSheet, View } from 'react-native';
-import Animated, { FadeInDown } from 'react-native-reanimated';
+import Animated from 'react-native-reanimated';
 
 import { toast } from '@/components/feedback/Toast';
 import { IconTile } from '@/components/ui/IconTile';
@@ -11,6 +11,7 @@ import { useProfile } from '@/features/profile/store';
 import { haptics } from '@/lib/haptics';
 import { palette, radius } from '@/theme/tokens';
 import type { Role } from '@/theme/tokens';
+import { rise } from '@/theme/motion';
 
 /** « Comment veux-tu vivre l'app aujourd'hui ? » — sélecteur de rôle persistant. */
 export default function RoleSwitcher() {
@@ -44,7 +45,7 @@ export default function RoleSwitcher() {
       </Text>
       <View style={{ gap: 12 }}>
         {cards.map((c, i) => (
-          <Animated.View key={c.role} entering={FadeInDown.delay(i * 70).springify()}>
+          <Animated.View key={c.role} entering={rise(i * 70)}>
             <PressableScale onPress={() => choose(c.role)} style={[styles.card, { backgroundColor: c.bg, borderColor: active === c.role ? c.fg : 'transparent' }, c.role === 'host' && { opacity: 0.75 }]}>
               <IconTile size={46} colors={c.colors} radius={14}>
                 {c.icon}

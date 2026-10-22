@@ -3,7 +3,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { ArrowUp, Sparkles, UserRoundCog } from 'lucide-react-native';
 import { useEffect, useEffectEvent, useRef, useState, type ComponentRef } from 'react';
 import { FlatList, KeyboardAvoidingView, Platform, StyleSheet, TextInput, View } from 'react-native';
-import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
+import Animated, { FadeIn } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { TAB_BAR_SPACE } from '@/components/layout/Screen';
@@ -16,11 +16,12 @@ import { useSuggestions } from '@/features/ai/suggestions';
 import { useAssistant, type ChatMessage } from '@/features/ai/useAssistant';
 import { displayName, useProfile } from '@/features/profile/store';
 import { fonts, gradients, palette, radius, shadow } from '@/theme/tokens';
+import { rise } from '@/theme/motion';
 
 function Bubble({ m, onAsk, onRequest }: { m: ChatMessage; onAsk: (q: string) => void; onRequest: (id: string) => Promise<boolean> }) {
   if (m.role === 'user') {
     return (
-      <Animated.View entering={FadeInDown.springify().damping(16)} style={{ alignItems: 'flex-end' }}>
+      <Animated.View entering={rise()} style={{ alignItems: 'flex-end' }}>
         <LinearGradient colors={['#3D78FF', '#2A55E0']} style={styles.bubbleUser}>
           <Text variant="body" color="#fff">
             {m.content}
@@ -117,7 +118,7 @@ export default function DaliliIA() {
           keyboardShouldPersistTaps="handled"
           ListHeaderComponent={
             empty ? (
-              <Animated.View entering={FadeInDown.springify()} style={{ alignItems: 'center', gap: 12, marginBottom: 6 }}>
+              <Animated.View entering={rise()} style={{ alignItems: 'center', gap: 12, marginBottom: 6 }}>
                 <Ame size={132} state={state} signal={signal} surface="light" />
                 <Text variant="h2" align="center">
                   Salut {displayName(profile)}, je t’écoute.
@@ -136,7 +137,7 @@ export default function DaliliIA() {
                   Pour ton étape en cours
                 </Text>
                 {suggestions.map((s, i) => (
-                  <Animated.View key={s} entering={FadeInDown.delay(120 + i * 60).springify()}>
+                  <Animated.View key={s} entering={rise(120 + i * 60)}>
                     <PressableScale onPress={() => send(s)} style={styles.suggestion}>
                       <Sparkles size={14} color={palette.aiIndigo} />
                       <Text variant="smallStrong" style={{ flex: 1 }}>

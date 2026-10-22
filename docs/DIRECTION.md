@@ -62,14 +62,24 @@ Le vocabulaire visuel vient du voyage : un trajet entre deux villes, un compte �
 | `motion.fast` | 160 | Retour d'état : opacité, couleur, coche. |
 | `motion.base` | 260 | Transition d'un composant (onglet, accordéon). |
 | `motion.slow` | 420 | Révélation d'un élément héros. |
-| — | 900–1100 | Tracé d'un anneau ou d'un chemin de progression : une fois par affichage, `Easing.out(Easing.cubic)`. |
+| — | 900–1100 | Tracé d'un anneau ou d'un chemin de progression : une fois par affichage, `EASE_OUT`. |
+| — | 1600 | Vol de l'avion sur le trajet de la carte mobilité : `EASE_IN_OUT` (il se déplace à l'écran), puis roulis qui revient à plat en ressort. |
 | — | 6000 | Boucles d'ambiance (orbes) : `Easing.inOut(Easing.sin)`, amplitude ≤ 20 px. |
+
+### Courbes (`src/theme/motion.ts`)
+
+- `EASE_OUT` = `bezier(0.23, 1, 0.32, 1)` pour tout ce qui **entre** ; `EASE_IN_OUT` = `bezier(0.77, 0, 0.175, 1)` pour ce qui **se déplace** à l'écran. Jamais d'`ease-in` sur l'interface : il retarde le moment que l'œil regarde.
+- Un doigt est en jeu → ressort (il garde la vitesse si on interrompt). Sinon → durée + courbe.
+
+### Défilement
+
+`Screen` suit la position de défilement sur le thread UI (`useScrollY()`), sans aucun rendu React. On s'en sert pour la parallaxe (≤ `depth.parallax`, 12 px) et les apparitions. Exemple : l'Âme du brief recule de 12 px et s'efface au défilement, et grossit un peu quand on tire vers le bas.
 
 ### Chorégraphie d'entrée d'un écran
 
 1. **Ordre de lecture = ordre d'apparition** : en-tête → élément héros → action principale → le reste.
-2. Cascade `FadeInDown.delay(i * motion.stagger).springify()`, avec **6 crans maximum** (0 → 300 ms). Au-delà, tout le reste arrive au cran 6. Personne n'attend une animation pour lire.
-3. **Seul le premier écran visible est chorégraphié.** Ce qui est sous la ligne de flottaison apparaît sans animation (ou avec `LinearTransition` s'il bouge).
+2. Cascade `enter(i)` (`src/theme/motion.ts`) : fondu + montée de 12 px, 360 ms, `EASE_OUT`, **sans ressort ni rebond**, avec **6 crans maximum** (0 → 300 ms). Au-delà, tout le reste arrive au cran 6. Personne n'attend une animation pour lire. Petits éléments (coche, badge) : `pop()`, jamais depuis 0. Sortie : `leave` (fondu de 120 ms). Liste qui bouge : `reflow`.
+3. **Seul le premier écran visible a la cascade.** Ce qui est sous la ligne de flottaison entre avec `Reveal` (`src/components/motion/Reveal.tsx`) **quand il arrive à l'écran au défilement** : une fois, 520 ms, `EASE_OUT`, 28 px + échelle 0,97 → 1. Ses enfants s'y calent avec `useReveal()` (un anneau se remplit, un avion décolle) au lieu de s'animer hors de vue.
 4. **Une seule boucle par écran** (un halo qui respire sur l'étape en cours, *ou* des orbes, jamais les deux).
 5. **Tout est lisible à l'image 1** : si l'animation ne se joue pas, l'écran est complet.
 6. Réduction des animations : chaque `entering` et chaque boucle reçoit `.reduceMotion(ReduceMotion.System)`. Les boucles s'arrêtent, les cascades deviennent un fondu.
@@ -133,15 +143,17 @@ DALILI n'embarque pas de moteur 3D. La « 3D » est faite de **perspective et de
 - Typographie française : `’` typographique, espace insécable avant `: ; ! ?`, guillemets « ».
 - Pas de flèche « → » ajoutée au texte des boutons : l'icône `ArrowRight` fait ce travail quand c'est utile.
 
-## 7. Pistes pour l'écran d'accueil (en attente de choix)
+## 7. L'accueil retenu : le « Brief du jour »
 
-Écran temporaire : `src/app/(app)/pistes.tsx` (route `/pistes?p=billet|chemin|focus`). Les trois pistes utilisent les mêmes données réelles (profil, parcours, mentors) et le même kit.
+Les trois pistes (billet, chemin, une seule chose) ont été essayées puis retirées. L'accueil est le **Brief du jour** (`features/home/`, voir `docs/VISION.md` §4.A) : l'Âme et la phrase du jour dans une carte nuit, **ta seule action**, l'accès au parcours, le champ pour demander à Dalili, puis le reste qui apparaît au défilement.
 
-| | A · Le billet | B · Le chemin | C · Une seule chose |
-|---|---|---|---|
-| **Pilier mis en avant** | Personnaliser | Parcours-quête | Réduire la charge mentale |
-| **Élément héros** | Un billet d'embarquement : ta ville → ta ville d'arrivée, « J‑32 » en Montserrat Black, l'étape en cours dans le talon détachable | Un sentier vertical : étapes faites (tracé bleu plein), « Tu es ici » (halo qui respire), étapes à venir en pointillé, repères « Départ / Arrivée » | Le haut d'écran en mode nuit, une seule phrase géante (l'étape du jour) et un seul bouton ; dessous, les étapes suivantes empilées en pile 3D qu'on déploie d'un geste |
-| **Geste fort** | Les découpes du billet (SVG) et son entrée inclinée | Le tracé du chemin qui se dessine une fois | La pile qui se déploie |
-| **Risque** | Peut sembler gadget si on ajoute trop de détails « aéroport » | Plus long à lire, moins d'infos au-dessus de la ligne de flottaison | Cache les autres rubriques (mentors, communauté) plus bas |
+Ce qui reste des pistes vit dans M2 : le **chemin** (tracé au défilement, avion) et le **billet** (débloqué au visa).
 
-Après le choix, la piste retenue remplace `StudentHome`, puis l'écran temporaire et les deux autres pistes sont supprimés.
+### La nuit pour les moments de marque, le matin pour le quotidien
+
+- **Nuit** : bienvenue, onboarding, chargement, carte du brief, carte « Ta mobilité ». C'est là que vivent la profondeur, les halos et, à venir, le ciel étoilé.
+- **Matin** : tout le reste (listes, fiches, communauté). Clair et calme : on y anime l'arrivée des éléments et la réponse au toucher, pas le décor.
+
+### L'avion
+
+Un **avion vectoriel en perspective** (pas de moteur 3D, §5) : sur la carte « Ta mobilité », il vole le long d'un arc de ta ville à ta ville d'arrivée et s'arrête à ta progression (`features/journey/components/RouteArc.tsx`). Le même avion suivra le chemin de M2.

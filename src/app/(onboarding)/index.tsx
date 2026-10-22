@@ -2,7 +2,7 @@ import { router } from 'expo-router';
 import { ArrowRight, Plus } from 'lucide-react-native';
 import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
-import Animated, { FadeInDown, FadeInUp, ZoomIn } from 'react-native-reanimated';
+import Animated from 'react-native-reanimated';
 
 import { LogoMark } from '@/components/brand/Logo';
 import { Screen } from '@/components/layout/Screen';
@@ -13,6 +13,7 @@ import { Text } from '@/components/ui/Text';
 import { AvatarSheet } from '@/features/profile/components/AvatarSheet';
 import { useProfile } from '@/features/profile/store';
 import { gradients, palette, shadow } from '@/theme/tokens';
+import { pop, rise } from '@/theme/motion';
 
 /** « Compte créé » — accueil personnalisé + photo de profil. */
 export default function Welcome() {
@@ -23,7 +24,7 @@ export default function Welcome() {
   return (
     <Screen top={gradients.sky} bg="#fff" footer={<Button label="Allons-y" icon={<ArrowRight size={18} color="#fff" />} onPress={() => router.push('/(onboarding)/situation')} />}>
       <View style={styles.wrap}>
-        <Animated.View entering={ZoomIn.springify().damping(12)}>
+        <Animated.View entering={pop()}>
           <PressableScale onPress={() => setSheet(true)} accessibilityLabel="Ajouter une photo de profil">
             <Avatar name={`${profile.firstName} ${profile.lastName}`} uri={profile.avatarUri} size={132} color={palette.electricLight} />
             <View style={styles.plus}>
@@ -31,7 +32,7 @@ export default function Welcome() {
             </View>
           </PressableScale>
         </Animated.View>
-        <Animated.View entering={FadeInUp.delay(150)} style={{ alignItems: 'center', gap: 6 }}>
+        <Animated.View entering={rise(150)} style={{ alignItems: 'center', gap: 6 }}>
           <View style={styles.created}>
             <Text variant="smallStrong" color={palette.mentor}>
               Compte créé
@@ -48,7 +49,7 @@ export default function Welcome() {
             Encore quelques questions et on configure <Text variant="bodyStrong" color={palette.electric}>DALILI</Text> rien que pour toi.
           </Text>
         </Animated.View>
-        <Animated.View entering={FadeInDown.delay(320).springify()} style={{ marginTop: 30 }}>
+        <Animated.View entering={rise(320)} style={{ marginTop: 30 }}>
           <LogoMark size={120} />
         </Animated.View>
       </View>

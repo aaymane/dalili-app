@@ -2,7 +2,7 @@ import { router } from 'expo-router';
 import { ArrowRight, Calendar as CalIcon, Check, ChevronDown, Globe, IdCard, Lock, Mail, User } from 'lucide-react-native';
 import { useMemo, useState } from 'react';
 import { ScrollView, View } from 'react-native';
-import Animated, { FadeInRight, FadeOutLeft, useAnimatedStyle, withTiming } from 'react-native-reanimated';
+import Animated, { useAnimatedStyle, withTiming } from 'react-native-reanimated';
 
 import { BottomSheet } from '@/components/feedback/BottomSheet';
 import { Screen } from '@/components/layout/Screen';
@@ -18,6 +18,7 @@ import { useProfile } from '@/features/profile/store';
 import { countries, type Country, type Gender } from '@/features/profile/types';
 import { haptics } from '@/lib/haptics';
 import { gradients, palette } from '@/theme/tokens';
+import { leave, rise } from '@/theme/motion';
 
 function strength(pw: string) {
   let s = 0;
@@ -138,14 +139,14 @@ export default function Register() {
       }>
       <View style={{ paddingHorizontal: 22 }}>
         {step === 0 ? (
-          <Animated.View key="s0" entering={FadeInRight.springify().damping(18)} exiting={FadeOutLeft.duration(150)} style={{ gap: 12 }}>
+          <Animated.View key="s0" entering={rise()} exiting={leave} style={{ gap: 12 }}>
             <Input label="Email" icon={<Mail size={16} color={palette.electric} />} value={email} onChangeText={setEmail} keyboardType="email-address" autoCapitalize="none" autoComplete="email" placeholder="toi@email.com" error={errors.email} />
             <Input label="Mot de passe" icon={<Lock size={16} color={palette.electric} />} value={pw} onChangeText={setPw} secureTextEntry placeholder="8 caractères minimum" autoComplete="new-password" error={errors.pw} />
             <Input label="Confirmer le mot de passe" icon={<Lock size={16} color={palette.electric} />} value={pw2} onChangeText={setPw2} secureTextEntry placeholder="••••••••" error={errors.pw2} />
             <StrengthBar value={pwStrength} />
           </Animated.View>
         ) : (
-          <Animated.View key="s1" entering={FadeInRight.springify().damping(18)} exiting={FadeOutLeft.duration(150)} style={{ gap: 12 }}>
+          <Animated.View key="s1" entering={rise()} exiting={leave} style={{ gap: 12 }}>
             <Text variant="overline" color={palette.muted}>
               Genre
             </Text>

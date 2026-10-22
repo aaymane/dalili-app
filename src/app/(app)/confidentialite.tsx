@@ -2,7 +2,7 @@ import * as WebBrowser from 'expo-web-browser';
 import { BadgeCheck, ChevronRight, ExternalLink, Image as ImageIcon, KeyRound, Lock, Map, MessageCircle, Sparkles, Trash2 } from 'lucide-react-native';
 import { useState, type ReactNode } from 'react';
 import { StyleSheet, View } from 'react-native';
-import Animated, { FadeInDown } from 'react-native-reanimated';
+import Animated from 'react-native-reanimated';
 
 import { AppHeader } from '@/components/layout/AppHeader';
 import { Screen } from '@/components/layout/Screen';
@@ -12,6 +12,7 @@ import { DeleteAccountSheet } from '@/features/auth/components/DeleteAccountShee
 import { isDemoMode } from '@/features/auth/store';
 import { env } from '@/lib/env';
 import { palette, radius, shadow } from '@/theme/tokens';
+import { rise } from '@/theme/motion';
 
 const KEPT = [
   { icon: Map, title: 'Ton profil et ton parcours', text: 'Pour reprendre là où tu en étais, même sur un autre téléphone.' },
@@ -53,7 +54,7 @@ export default function Confidentialite() {
         </Text>
 
         {!isDemoMode && (
-          <Animated.View entering={FadeInDown.springify()} style={styles.card}>
+          <Animated.View entering={rise()} style={styles.card}>
             <Text variant="overline" color={palette.muted}>
               Ce qu’on garde
             </Text>
@@ -63,7 +64,7 @@ export default function Confidentialite() {
           </Animated.View>
         )}
 
-        <Animated.View entering={FadeInDown.delay(60).springify()} style={styles.card}>
+        <Animated.View entering={rise(60)} style={styles.card}>
           <Text variant="overline" color={palette.muted}>
             Nos engagements
           </Text>
@@ -72,7 +73,7 @@ export default function Confidentialite() {
           ))}
         </Animated.View>
 
-        <Animated.View entering={FadeInDown.delay(120).springify()} style={styles.group}>
+        <Animated.View entering={rise(120)} style={styles.group}>
           <PressableScale onPress={() => WebBrowser.openBrowserAsync(`${env.siteUrl}/confidentialite`)} style={styles.row} accessibilityRole="link">
             <ExternalLink size={18} color={palette.navy} />
             <Text variant="bodyStrong" style={{ flex: 1 }}>

@@ -2,7 +2,7 @@ import { useLocalSearchParams } from 'expo-router';
 import { Check } from 'lucide-react-native';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
-import Animated, { FadeInDown, FadeInUp, ZoomIn } from 'react-native-reanimated';
+import Animated from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { LogoOrb } from '@/components/brand/LogoOrb';
@@ -13,6 +13,7 @@ import { syncProfile } from '@/features/profile/api';
 import { useProfile } from '@/features/profile/store';
 import { haptics } from '@/lib/haptics';
 import { palette } from '@/theme/tokens';
+import { pop, rise } from '@/theme/motion';
 
 /** « Je prépare ton arrivée à Paris… » — construction animée de l'espace perso. */
 export default function Loading() {
@@ -53,10 +54,10 @@ export default function Loading() {
     <View style={{ flex: 1, paddingTop: insets.top, paddingBottom: insets.bottom + 40 }}>
       <NightBackground />
       <View style={styles.hero}>
-        <Animated.View entering={FadeInUp.springify()}>
+        <Animated.View entering={rise()}>
           <LogoOrb size={120} />
         </Animated.View>
-        <Animated.View entering={FadeInUp.delay(150)} style={{ alignItems: 'center', gap: 8 }}>
+        <Animated.View entering={rise(150)} style={{ alignItems: 'center', gap: 8 }}>
           <Text variant="overline" color="#7FA6FF">
             DALILI
           </Text>
@@ -69,10 +70,10 @@ export default function Loading() {
         {items.map((label, k) => {
           const state = k <= done ? 'done' : k === done + 1 ? 'active' : 'idle';
           return (
-            <Animated.View key={label} entering={FadeInDown.delay(250 + k * 90).springify()} style={[styles.row, state === 'active' && styles.rowActive]}>
+            <Animated.View key={label} entering={rise(250 + k * 90)} style={[styles.row, state === 'active' && styles.rowActive]}>
               <View style={[styles.bullet, state === 'done' && { backgroundColor: palette.success, borderColor: palette.success }]}>
                 {state === 'done' ? (
-                  <Animated.View entering={ZoomIn.springify().damping(9)}>
+                  <Animated.View entering={pop()}>
                     <Check size={12} color="#fff" strokeWidth={3.5} />
                   </Animated.View>
                 ) : state === 'active' ? (

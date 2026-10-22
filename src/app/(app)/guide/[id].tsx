@@ -2,7 +2,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { ArrowRight, Bookmark, ChevronLeft, Clock, ThumbsDown, ThumbsUp, WifiOff } from 'lucide-react-native';
 import { useEffect, useState } from 'react';
 import { StyleSheet, View, type NativeScrollEvent, type NativeSyntheticEvent } from 'react-native';
-import Animated, { FadeInDown, useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
+import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { toast } from '@/components/feedback/Toast';
@@ -18,6 +18,7 @@ import { FaqList, GuideBlockView, KeyFactsCard, SourcesCard } from '@/features/g
 import { useSteps } from '@/features/journey/steps';
 import { formatFullDate } from '@/lib/date';
 import { palette, radius, shadow } from '@/theme/tokens';
+import { rise } from '@/theme/motion';
 
 /** Lecteur de guide : le guide du site, rendu en natif, avec sa source et sa date de mise à jour. */
 export default function GuideReader() {
@@ -90,7 +91,7 @@ export default function GuideReader() {
         </View>
       }>
       <View style={[styles.body, { paddingBottom: insets.bottom + 24 }]}>
-        <Animated.View entering={FadeInDown.springify()} style={{ gap: 8 }}>
+        <Animated.View entering={rise()} style={{ gap: 8 }}>
           <Text variant="overline" color={c.color}>
             {c.label}
           </Text>
@@ -110,10 +111,10 @@ export default function GuideReader() {
             </Text>
           </View>
         ) : null}
-        <Animated.View entering={FadeInDown.delay(60).springify()} style={styles.summary}>
+        <Animated.View entering={rise(60)} style={styles.summary}>
           <Text variant="body">{g.summary}</Text>
         </Animated.View>
-        <Animated.View entering={FadeInDown.delay(120).springify()}>
+        <Animated.View entering={rise(120)}>
           <KeyFactsCard guide={g} />
         </Animated.View>
         {g.blocks.map((b, i) => (

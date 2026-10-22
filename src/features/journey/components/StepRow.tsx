@@ -1,7 +1,7 @@
 import { router } from 'expo-router';
 import { Check, GripVertical } from 'lucide-react-native';
 import { StyleSheet, View } from 'react-native';
-import Animated, { useAnimatedStyle, withSpring, withTiming, ZoomIn } from 'react-native-reanimated';
+import Animated, { useAnimatedStyle, withSpring, withTiming } from 'react-native-reanimated';
 
 import { celebrate } from '@/components/feedback/Confetti';
 import { PressableScale } from '@/components/ui/PressableScale';
@@ -10,6 +10,7 @@ import { Text } from '@/components/ui/Text';
 import { daysFromToday, formatDayMonth } from '@/lib/date';
 import { haptics } from '@/lib/haptics';
 import { motion, palette, radius, shadow } from '@/theme/tokens';
+import { pop } from '@/theme/motion';
 
 import { useJourneyStore, type JourneyItem } from '../store';
 
@@ -52,7 +53,7 @@ export function StepRow({ item }: { item: JourneyItem }) {
         <PressableScale onPress={onCheck} haptic={false} hitSlop={8} accessibilityRole="checkbox" accessibilityState={{ checked: done }} accessibilityLabel={`Marquer « ${title} » comme fait`}>
           <Animated.View style={[styles.check, check]}>
             {done ? (
-              <Animated.View entering={ZoomIn.springify().damping(9)}>
+              <Animated.View entering={pop()}>
                 <Check size={15} color="#fff" strokeWidth={3.4} />
               </Animated.View>
             ) : isCurrent ? (

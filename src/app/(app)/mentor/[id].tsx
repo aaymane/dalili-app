@@ -2,7 +2,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { router, useLocalSearchParams } from 'expo-router';
 import { ChevronLeft, Clock, Phone, Quote, Star } from 'lucide-react-native';
 import { ScrollView, StyleSheet, View } from 'react-native';
-import Animated, { FadeInDown, FadeInUp, ZoomIn } from 'react-native-reanimated';
+import Animated from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Avatar } from '@/components/ui/Avatar';
@@ -11,6 +11,7 @@ import { PressableScale } from '@/components/ui/PressableScale';
 import { Text } from '@/components/ui/Text';
 import { useMentor } from '@/data/hooks';
 import { palette, radius, shadow } from '@/theme/tokens';
+import { pop, rise } from '@/theme/motion';
 
 const LANG: Record<string, { code: string; label: string }> = {
   ar: { code: 'AR', label: 'Arabe' },
@@ -33,10 +34,10 @@ export default function MentorProfile() {
           <PressableScale onPress={() => router.back()} style={[styles.back, { top: insets.top + 10 }]} accessibilityLabel="Retour">
             <ChevronLeft size={20} color="#fff" />
           </PressableScale>
-          <Animated.View entering={ZoomIn.springify().damping(13)}>
+          <Animated.View entering={pop()}>
             <Avatar name={`${m.firstName} ${m.lastName}`} color={m.avatarColor} size={104} ring="rgba(255,255,255,0.9)" />
           </Animated.View>
-          <Animated.View entering={FadeInUp.delay(100)} style={{ alignItems: 'center', gap: 4 }}>
+          <Animated.View entering={rise(100)} style={{ alignItems: 'center', gap: 4 }}>
             <View style={styles.certified}>
               <Text variant="caption" color="#fff" style={{ letterSpacing: 0.8, fontSize: 9 }}>
                 MENTOR CERTIFIÉ DALILI
@@ -55,7 +56,7 @@ export default function MentorProfile() {
         </LinearGradient>
 
         <View style={{ paddingHorizontal: 20, gap: 22, marginTop: -30 }}>
-          <Animated.View entering={FadeInDown.delay(120).springify()} style={styles.stats}>
+          <Animated.View entering={rise(120)} style={styles.stats}>
             {[
               { v: m.rating.toFixed(1), l: 'NOTE', icon: <Star size={14} color="#F59E0B" fill="#F59E0B" /> },
               { v: String(m.sessions), l: 'SESSIONS', icon: <Phone size={14} color={palette.mentor} /> },
@@ -71,14 +72,14 @@ export default function MentorProfile() {
             ))}
           </Animated.View>
 
-          <Animated.View entering={FadeInDown.delay(160).springify()} style={styles.quote}>
+          <Animated.View entering={rise(160)} style={styles.quote}>
             <Quote size={26} color={palette.electric} fill={palette.electric} />
             <Text variant="body" style={{ fontStyle: 'italic' }}>
               {m.quote}
             </Text>
           </Animated.View>
 
-          <Animated.View entering={FadeInDown.delay(200).springify()} style={{ gap: 14 }}>
+          <Animated.View entering={rise(200)} style={{ gap: 14 }}>
             <Text variant="overline" color={palette.muted}>
               Son parcours
             </Text>

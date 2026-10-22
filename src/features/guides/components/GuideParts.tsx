@@ -1,13 +1,14 @@
 import { AlertTriangle, BadgeCheck, ChevronDown, ExternalLink, FileCheck2, Info, ShieldCheck } from 'lucide-react-native';
 import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
-import Animated, { FadeIn, LinearTransition } from 'react-native-reanimated';
+import Animated, { FadeIn } from 'react-native-reanimated';
 
 import { PressableScale } from '@/components/ui/PressableScale';
 import { Text } from '@/components/ui/Text';
 import type { FigureDisplay, Guide, GuideBlock } from '@/data/content';
 import { formatFullDate } from '@/lib/date';
 import { palette, radius, shadow } from '@/theme/tokens';
+import { reflow } from '@/theme/motion';
 
 import { RichText, openLink } from './RichText';
 
@@ -153,7 +154,7 @@ export function DocumentsCard({ documents }: { documents: string[] }) {
 function FaqItem({ q, a }: { q: string; a: string }) {
   const [open, setOpen] = useState(false);
   return (
-    <Animated.View layout={LinearTransition.springify()} style={styles.faq}>
+    <Animated.View layout={reflow} style={styles.faq}>
       <PressableScale haptic="select" onPress={() => setOpen((o) => !o)} accessibilityRole="button" accessibilityState={{ expanded: open }} style={styles.faqHead}>
         <Text variant="smallStrong" style={{ flex: 1 }}>
           {q}

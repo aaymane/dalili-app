@@ -1,12 +1,13 @@
 import { HeartHandshake, Phone } from 'lucide-react-native';
 import { Linking, StyleSheet, View } from 'react-native';
-import Animated, { FadeInDown } from 'react-native-reanimated';
+import Animated from 'react-native-reanimated';
 
 import { AppHeader } from '@/components/layout/AppHeader';
 import { Screen } from '@/components/layout/Screen';
 import { PressableScale } from '@/components/ui/PressableScale';
 import { Text } from '@/components/ui/Text';
 import { palette, radius, shadow } from '@/theme/tokens';
+import { rise } from '@/theme/motion';
 
 const URGENT = [
   { n: '15', l: 'SAMU', d: 'Urgence médicale', c: '#E11D48' },
@@ -35,7 +36,7 @@ export default function Sos() {
         </Text>
         <View style={styles.grid}>
           {URGENT.map((u, i) => (
-            <Animated.View key={u.n} entering={FadeInDown.delay(i * 60).springify()} style={{ width: '48%' }}>
+            <Animated.View key={u.n} entering={rise(i * 60)} style={{ width: '48%' }}>
               <PressableScale haptic="press" onPress={() => call(u.n)} style={[styles.urgent, { backgroundColor: u.c }]} accessibilityLabel={`Appeler le ${u.n}, ${u.l}`}>
                 <Text variant="hero" color="#fff" style={{ fontSize: 40, lineHeight: 46 }}>
                   {u.n}

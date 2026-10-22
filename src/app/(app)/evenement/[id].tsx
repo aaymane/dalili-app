@@ -3,7 +3,7 @@ import * as WebBrowser from 'expo-web-browser';
 import { ArrowRight, ArrowUpRight, CalendarDays, ChevronLeft, Link2, MapPin, Tag as TagIcon } from 'lucide-react-native';
 import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
-import Animated, { FadeInDown } from 'react-native-reanimated';
+import Animated from 'react-native-reanimated';
 
 import { SuccessModal } from '@/components/feedback/SuccessModal';
 import { toast } from '@/components/feedback/Toast';
@@ -19,6 +19,7 @@ import { Cover } from '@/features/community/components/Cover';
 import { useJourneyStore } from '@/features/journey/store';
 import { formatLong, formatTime, toISODate } from '@/lib/date';
 import { palette, radius, shadow } from '@/theme/tokens';
+import { rise } from '@/theme/motion';
 
 /** Détail d'un événement + inscription (ajoutée au calendrier du Parcours). */
 export default function EventPage() {
@@ -51,7 +52,7 @@ export default function EventPage() {
         </Cover>
       </View>
       <View style={{ paddingHorizontal: 20, gap: 16, marginTop: 16 }}>
-        <Animated.View entering={FadeInDown.springify()} style={{ gap: 6 }}>
+        <Animated.View entering={rise()} style={{ gap: 6 }}>
           <Text variant="hero">{e.title}</Text>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
             <CalendarDays size={15} color={palette.electric} />

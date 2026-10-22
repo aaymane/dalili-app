@@ -2,7 +2,7 @@ import { router } from 'expo-router';
 import { BookOpen, BookPlus, Check, HeartHandshake, Phone, RotateCcw, Scale, UsersRound } from 'lucide-react-native';
 import { useState } from 'react';
 import { Linking, StyleSheet, View } from 'react-native';
-import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
+import Animated, { FadeIn } from 'react-native-reanimated';
 
 import { toast } from '@/components/feedback/Toast';
 import { PressableScale } from '@/components/ui/PressableScale';
@@ -11,6 +11,7 @@ import { useMentors } from '@/data/hooks';
 import { openLink, RichText } from '@/features/guides/components/RichText';
 import { isInFrance, useProfile } from '@/features/profile/store';
 import { palette, radius, shadow } from '@/theme/tokens';
+import { rise } from '@/theme/motion';
 
 import { slugOf, type SourceRef } from '../api';
 import type { ChatMessage } from '../useAssistant';
@@ -60,7 +61,7 @@ export function SourcePills({ sources: all }: { sources: SourceRef[] }) {
         D’après nos guides
       </Text>
       {sources.map((s, i) => (
-        <Animated.View key={s.url} entering={FadeInDown.delay(i * 60).springify()}>
+        <Animated.View key={s.url} entering={rise(i * 60)}>
           <PressableScale onPress={() => openSource(s)} style={styles.source} accessibilityRole="link" accessibilityLabel={`Lire le guide ${s.title}`}>
             <BookOpen size={15} color={palette.aiIndigo} />
             <Text variant="smallStrong" style={{ flex: 1 }} numberOfLines={2}>

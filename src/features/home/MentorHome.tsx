@@ -3,7 +3,7 @@ import { router } from 'expo-router';
 import { Check, Clock, Eye, Star, Users, X } from 'lucide-react-native';
 import { useState } from 'react';
 import { StyleSheet, Switch, View } from 'react-native';
-import Animated, { FadeInDown, FadeOut, LinearTransition } from 'react-native-reanimated';
+import Animated, { FadeOut } from 'react-native-reanimated';
 
 import { toast } from '@/components/feedback/Toast';
 import { AppHeader } from '@/components/layout/AppHeader';
@@ -19,6 +19,7 @@ import { displayName, useProfile } from '@/features/profile/store';
 import { formatLong, formatTime } from '@/lib/date';
 import { haptics } from '@/lib/haptics';
 import { gradients, palette, radius, shadow } from '@/theme/tokens';
+import { reflow, rise } from '@/theme/motion';
 
 import { ModePill } from './StudentHome';
 
@@ -42,14 +43,14 @@ export function MentorHome() {
   return (
     <Screen top={gradients.roleTop.mentor} tabBar padded={false} header={<AppHeader />}>
       <View style={{ paddingHorizontal: 20, gap: 22 }}>
-        <Animated.View entering={FadeInDown.springify()}>
+        <Animated.View entering={rise()}>
           <ModePill />
           <Text variant="hero" style={{ marginTop: 14 }}>
             Bonjour <Text variant="hero" color={palette.mentor}>{displayName(profile).toUpperCase()}.</Text>
           </Text>
         </Animated.View>
 
-        <Animated.View entering={FadeInDown.delay(80).springify()}>
+        <Animated.View entering={rise(80)}>
           <LinearGradient colors={['#0F3B2E', '#0B2A22']} style={styles.hero}>
             <Text variant="overline" color="rgba(255,255,255,0.6)" style={{ fontSize: 9.5 }}>
               Ton impact · ce mois-ci
@@ -96,11 +97,11 @@ export function MentorHome() {
           </LinearGradient>
         </Animated.View>
 
-        <Animated.View entering={FadeInDown.delay(140).springify()}>
+        <Animated.View entering={rise(140)}>
           <SectionHeader title="Demandes d’appel" subtitle={`${pending.length} en attente`} accent={palette.mentor} />
-          <Animated.View layout={LinearTransition.springify()} style={{ gap: 10 }}>
+          <Animated.View layout={reflow} style={{ gap: 10 }}>
             {requests.map((r) => (
-              <Animated.View key={r.id} layout={LinearTransition.springify()} exiting={FadeOut} style={styles.req}>
+              <Animated.View key={r.id} layout={reflow} exiting={FadeOut} style={styles.req}>
                 <Avatar name={r.student} size={46} color="#3D78FF" />
                 <View style={{ flex: 1, gap: 3 }}>
                   <Text variant="bodyStrong">{r.student}</Text>
@@ -130,7 +131,7 @@ export function MentorHome() {
           </Animated.View>
         </Animated.View>
 
-        <Animated.View entering={FadeInDown.delay(200).springify()}>
+        <Animated.View entering={rise(200)}>
           <SectionHeader title="Mes créneaux" subtitle="Touche pour activer / désactiver" accent={palette.mentor} />
           <View style={styles.slots}>
             {SLOTS.map((s) => {

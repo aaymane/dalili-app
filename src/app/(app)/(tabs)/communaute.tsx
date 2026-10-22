@@ -2,7 +2,7 @@ import { router } from 'expo-router';
 import { Plus, Search, SlidersHorizontal } from 'lucide-react-native';
 import { useMemo, useState } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
-import Animated, { FadeIn, FadeInDown, ZoomIn } from 'react-native-reanimated';
+import Animated, { FadeIn } from 'react-native-reanimated';
 
 import { BottomSheet } from '@/components/feedback/BottomSheet';
 import { AppHeader } from '@/components/layout/AppHeader';
@@ -18,6 +18,7 @@ import { useEvents, useGroups } from '@/data/hooks';
 import { EventCard, GroupCard } from '@/features/community/components/GroupCard';
 import { useRoleTheme } from '@/theme';
 import { palette, shadow } from '@/theme/tokens';
+import { pop, rise } from '@/theme/motion';
 
 /** Communautés : groupes par ville + événements proches. */
 export default function Communaute() {
@@ -78,7 +79,7 @@ export default function Communaute() {
 
         <View style={{ paddingHorizontal: 20, gap: 26, marginTop: 8 }}>
           {mode !== 'events' && (
-            <Animated.View entering={FadeInDown.springify()}>
+            <Animated.View entering={rise()}>
               <SectionHeader title="Groupes populaires" action="Voir tout" onAction={() => setMode('groups')} />
               <View style={{ gap: 14 }}>
                 {(mode === 'groups' ? gs : gs.slice(0, 3)).map((g) => (
@@ -88,7 +89,7 @@ export default function Communaute() {
             </Animated.View>
           )}
           {mode !== 'groups' && (
-            <Animated.View entering={FadeInDown.delay(80).springify()}>
+            <Animated.View entering={rise(80)}>
               <SectionHeader title="Événement proche" action="Voir tout" onAction={() => setMode('events')} />
               <View style={{ gap: 14 }}>
                 {(mode === 'events' ? es : es.slice(0, 3)).map((e) => (
@@ -99,7 +100,7 @@ export default function Communaute() {
           )}
         </View>
       </Screen>
-      <Animated.View entering={ZoomIn.delay(300).springify()} style={[styles.fab, { bottom: TAB_BAR_SPACE - 4 }]}>
+      <Animated.View entering={pop(300)} style={[styles.fab, { bottom: TAB_BAR_SPACE - 4 }]}>
         <PressableScale onPress={() => setFab(true)} haptic="press" style={styles.fabBtn} accessibilityLabel="Créer">
           <Plus size={24} color={palette.navy} />
         </PressableScale>

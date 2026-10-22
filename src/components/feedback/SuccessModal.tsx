@@ -1,13 +1,14 @@
 import { Check } from 'lucide-react-native';
 import { useEffect } from 'react';
 import { Modal, Pressable, StyleSheet, View } from 'react-native';
-import Animated, { FadeIn, ZoomIn } from 'react-native-reanimated';
+import Animated, { FadeIn } from 'react-native-reanimated';
 
 import { Button } from '@/components/ui/Button';
 import { PressableScale } from '@/components/ui/PressableScale';
 import { Text } from '@/components/ui/Text';
 import { haptics } from '@/lib/haptics';
 import { palette, shadow } from '@/theme/tokens';
+import { pop } from '@/theme/motion';
 
 import { celebrate } from './Confetti';
 
@@ -34,8 +35,8 @@ export function SuccessModal({ visible, title, message, cta, onCta, onClose, clo
     <Modal transparent visible animationType="none" onRequestClose={onClose ?? onCta} statusBarTranslucent>
       <Animated.View entering={FadeIn.duration(220)} style={styles.backdrop}>
         <Pressable style={StyleSheet.absoluteFill} onPress={onClose} />
-        <Animated.View entering={ZoomIn.springify().damping(14)} style={styles.card}>
-          <Animated.View entering={ZoomIn.delay(180).springify().damping(9)} style={styles.check}>
+        <Animated.View entering={pop()} style={styles.card}>
+          <Animated.View entering={pop(180)} style={styles.check}>
             <Check size={22} color="#fff" strokeWidth={3.2} />
           </Animated.View>
           <Text variant="h1" align="center">

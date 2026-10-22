@@ -3,13 +3,15 @@ import { router } from 'expo-router';
 import { BookOpen } from 'lucide-react-native';
 import { useEffect, useRef, useState } from 'react';
 import { StyleSheet, useWindowDimensions, View } from 'react-native';
-import Animated, { FadeIn } from 'react-native-reanimated';
+import Animated, { Extrapolation, FadeIn, interpolate, useAnimatedStyle } from 'react-native-reanimated';
+
+import { useScrollY } from '@/components/motion/scroll';
 
 import { PressableScale } from '@/components/ui/PressableScale';
 import { Text } from '@/components/ui/Text';
 import { Ame, type AmeState } from '@/features/ame/Ame';
 import { useJourney } from '@/features/journey/store';
-import { gradients, radius, shadow } from '@/theme/tokens';
+import { depth, gradients, radius, shadow } from '@/theme/tokens';
 
 import { useBrief } from './brief';
 
@@ -50,6 +52,19 @@ export function BriefHero() {
   // Petits écrans (iPhone SE) : l'Âme rétrécit pour que l'action du jour reste visible sans défiler.
   const { height } = useWindowDimensions();
   const ameSize = height < 740 ? 104 : 150;
+  // Parallaxe : au défilement, l'Âme recule un peu moins vite que sa carte (12 px max) et s'efface ;
+  // en tirant vers le bas, elle grossit légèrement, comme si on s'en approchait.
+  const scrollY = useScrollY();
+  const ameDepth = useAnimatedStyle(() => {
+    const y = scrollY?.get() ?? 0;
+    return {
+      opacity: interpolate(y, [0, 220], [1, 0.35], Extrapolation.CLAMP),
+      transform: [
+        { translateY: interpolate(y, [0, 220], [0, depth.parallax], Extrapolation.CLAMP) },
+        { scale: interpolate(y, [-120, 0, 220], [1.12, 1, 0.92], Extrapolation.CLAMP) },
+      ],
+    };
+  });
 
   useEffect(() => {
     revealedOnce = true;
@@ -68,9 +83,9 @@ export function BriefHero() {
 
   return (
     <LinearGradient colors={gradients.night} style={styles.card}>
-      <View style={styles.ame}>
+      <Animated.View style={[styles.ame, ameDepth]}>
         <Ame size={ameSize} state={state} surface="dark" />
-      </View>
+      </Animated.View>
       <View style={{ gap: 8 }}>
         <Text variant="overline" color="rgba(255,255,255,0.6)">
           {brief.hello} {brief.lead}

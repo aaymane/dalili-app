@@ -16,7 +16,7 @@ import {
 } from 'lucide-react-native';
 import { useState, type ReactNode } from 'react';
 import { Platform, StyleSheet, View } from 'react-native';
-import Animated, { FadeInRight, FadeOutLeft } from 'react-native-reanimated';
+import Animated from 'react-native-reanimated';
 
 import { Screen } from '@/components/layout/Screen';
 import { StepHeader } from '@/components/layout/StepHeader';
@@ -32,6 +32,7 @@ import { concernLabels, type CampusStatus, type Concern, type HousingStatus, typ
 import { haptics } from '@/lib/haptics';
 import { toISODate } from '@/lib/date';
 import { gradients, palette, radius, shadow } from '@/theme/tokens';
+import { leave, rise } from '@/theme/motion';
 
 const tile = (c: [string, string], icon: ReactNode) => (
   <IconTile size={42} colors={c} radius={13}>
@@ -119,7 +120,7 @@ export default function StudentQuestions() {
           </View>
         )
       }>
-      <Animated.View key={i} entering={FadeInRight.springify().damping(18)} exiting={FadeOutLeft.duration(140)} style={{ paddingHorizontal: 20, gap: 12 }}>
+      <Animated.View key={i} entering={rise(80)} exiting={leave} style={{ paddingHorizontal: 20, gap: 12 }}>
         {i === 0 &&
           (
             [

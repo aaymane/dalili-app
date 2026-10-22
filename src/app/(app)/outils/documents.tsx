@@ -1,7 +1,7 @@
 import { Check, Cloud } from 'lucide-react-native';
 import { useEffect, useRef } from 'react';
 import { StyleSheet, View } from 'react-native';
-import Animated, { FadeInDown, useAnimatedStyle, withSpring, ZoomIn } from 'react-native-reanimated';
+import Animated, { useAnimatedStyle, withSpring } from 'react-native-reanimated';
 
 import { celebrate } from '@/components/feedback/Confetti';
 import { AppHeader } from '@/components/layout/AppHeader';
@@ -12,6 +12,7 @@ import { useContent } from '@/data/hooks';
 import { useLocalDb } from '@/data/local-db';
 import { haptics } from '@/lib/haptics';
 import { gradients, motion, palette, radius, shadow } from '@/theme/tokens';
+import { pop, rise } from '@/theme/motion';
 
 const GROUPS: { title: string; emoji: string; items: { id: string; label: string; hint?: string }[] }[] = [
   {
@@ -70,7 +71,7 @@ function DocRow({ id, label, hint: staticHint }: { id: string; label: string; hi
       style={styles.row}>
       <Animated.View style={[styles.box, box]}>
         {on && (
-          <Animated.View entering={ZoomIn.springify().damping(9)}>
+          <Animated.View entering={pop()}>
             <Check size={14} color="#fff" strokeWidth={3.4} />
           </Animated.View>
         )}
@@ -120,7 +121,7 @@ export default function Documents() {
           </View>
         </View>
         {GROUPS.map((g, gi) => (
-          <Animated.View key={g.title} entering={FadeInDown.delay(gi * 70).springify()} style={{ gap: 8 }}>
+          <Animated.View key={g.title} entering={rise(gi * 70)} style={{ gap: 8 }}>
             <Text variant="h2">
               {g.emoji} {g.title}
             </Text>

@@ -2,7 +2,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { Check } from 'lucide-react-native';
 import { useEffect, useRef, useState, type ComponentRef } from 'react';
 import { Pressable, StyleSheet, TextInput, View } from 'react-native';
-import Animated, { FadeInDown, FadeInUp, useAnimatedStyle, useSharedValue, withSequence, withTiming, ZoomIn } from 'react-native-reanimated';
+import Animated, { useAnimatedStyle, useSharedValue, withSequence, withTiming } from 'react-native-reanimated';
 
 import { LogoMark } from '@/components/brand/Logo';
 import { toast } from '@/components/feedback/Toast';
@@ -13,6 +13,7 @@ import { Text } from '@/components/ui/Text';
 import { isDemoMode, useAuth } from '@/features/auth/store';
 import { haptics } from '@/lib/haptics';
 import { gradients, palette, radius } from '@/theme/tokens';
+import { pop, rise } from '@/theme/motion';
 
 const LEN = 6;
 
@@ -64,10 +65,10 @@ export default function Verify() {
       keyboard
       footer={<Button label="Vérifier" icon={<Check size={18} color="#fff" strokeWidth={3} />} loading={loading} disabled={code.length !== LEN} onPress={() => submit()} />}>
       <View style={styles.wrap}>
-        <Animated.View entering={ZoomIn.springify().damping(12)}>
+        <Animated.View entering={pop()}>
           <LogoMark size={110} />
         </Animated.View>
-        <Animated.View entering={FadeInUp.delay(120)} style={{ alignItems: 'center', gap: 8 }}>
+        <Animated.View entering={rise(120)} style={{ alignItems: 'center', gap: 8 }}>
           <Text variant="hero" align="center">
             Vérifions que c’est{'\n'}bien toi.
           </Text>
@@ -76,7 +77,7 @@ export default function Verify() {
           </Text>
         </Animated.View>
 
-        <Animated.View entering={FadeInDown.delay(220)} style={[styles.boxes, shakeStyle]}>
+        <Animated.View entering={rise(220)} style={[styles.boxes, shakeStyle]}>
           <Pressable style={StyleSheet.absoluteFill} onPress={() => input.current?.focus()} />
           {Array.from({ length: LEN }, (_, i) => {
             const ch = code[i];
@@ -84,7 +85,7 @@ export default function Verify() {
             return (
               <View key={i} pointerEvents="none" style={[styles.box, active && styles.boxActive, ch && styles.boxFilled, error && { borderColor: palette.danger }]}>
                 {ch ? (
-                  <Animated.View entering={ZoomIn.springify().damping(10)}>
+                  <Animated.View entering={pop()}>
                     <Text variant="h1">{ch}</Text>
                   </Animated.View>
                 ) : active ? (

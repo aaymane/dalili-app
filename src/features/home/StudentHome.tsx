@@ -3,9 +3,10 @@ import { router } from 'expo-router';
 import { ChevronDown, ChevronRight, Map, MessageCircle, Video } from 'lucide-react-native';
 import { useState } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
-import Animated, { LinearTransition } from 'react-native-reanimated';
+import Animated from 'react-native-reanimated';
 
 import { AppHeader } from '@/components/layout/AppHeader';
+import { Reveal } from '@/components/motion/Reveal';
 import { Screen } from '@/components/layout/Screen';
 import { Avatar } from '@/components/ui/Avatar';
 import { IconTile } from '@/components/ui/IconTile';
@@ -22,7 +23,7 @@ import { MentorsSoon } from '@/features/mentors/components/MentorsSoon';
 import { useProfile } from '@/features/profile/store';
 import { daysFromToday, formatLong, formatTime } from '@/lib/date';
 import { useRoleTheme } from '@/theme';
-import { enter } from '@/theme/motion';
+import { enter, reflow } from '@/theme/motion';
 import { gradients, palette, radius, shadow } from '@/theme/tokens';
 
 import { ActionCard } from './ActionCard';
@@ -74,7 +75,7 @@ export function StudentHome() {
           <BriefHero />
         </Animated.View>
         {j.current ? (
-          <Animated.View entering={enter(2)} layout={LinearTransition.springify()}>
+          <Animated.View entering={enter(2)} layout={reflow}>
             <ActionCard key={j.current.step.id} step={j.current.step} />
           </Animated.View>
         ) : null}
@@ -130,9 +131,11 @@ export function StudentHome() {
           </LinearGradient>
         ) : null}
 
-        <MobilityCard onEditArrival={() => setArrivalOpen(true)} />
+        <Reveal>
+          <MobilityCard onEditArrival={() => setArrivalOpen(true)} />
+        </Reveal>
 
-        <View>
+        <Reveal>
           <SectionHeader
             title="Mentors pour toi"
             subtitle={city ? `D’abord ceux qui vivent à ${city}` : 'Des étudiants passés par là'}
@@ -148,14 +151,14 @@ export function StudentHome() {
           ) : (
             <MentorsSoon />
           )}
-        </View>
+        </Reveal>
 
-        <View>
+        <Reveal>
           <SectionHeader title="Ta boîte à outils" subtitle="Tout ce qu’il faut, sans chercher" />
           <ToolsGrid />
-        </View>
+        </Reveal>
 
-        <View>
+        <Reveal>
           <SectionHeader title={`Communautés${city ? ` à ${city}` : ''}`} subtitle="Trouve tes gens." action="Voir" onAction={() => router.navigate('/(app)/(tabs)/communaute')} />
           <View style={{ gap: 10 }}>
             {cityGroups.map((g) => (
@@ -177,7 +180,7 @@ export function StudentHome() {
               </PressableScale>
             ))}
           </View>
-        </View>
+        </Reveal>
       </View>
       <ArrivalSheet visible={arrivalOpen} onClose={() => setArrivalOpen(false)} />
     </Screen>

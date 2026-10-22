@@ -2,7 +2,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
 import { ArrowUpRight, BookOpen, Check, ChevronRight, CircleDot, ShieldAlert, Sparkles, UsersRound } from 'lucide-react-native';
 import { ScrollView, StyleSheet, View } from 'react-native';
-import Animated, { FadeInDown } from 'react-native-reanimated';
+import Animated from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { celebrate } from '@/components/feedback/Confetti';
@@ -21,6 +21,7 @@ import { useJourney, useJourneyStore } from '@/features/journey/store';
 import { formatLong } from '@/lib/date';
 import { haptics } from '@/lib/haptics';
 import { palette, radius, shadow } from '@/theme/tokens';
+import { rise } from '@/theme/motion';
 
 /** Fiche de clarification : le quoi, le pourquoi, le combien, le quand — et UNE action. */
 export default function StepSheet() {
@@ -56,7 +57,7 @@ export default function StepSheet() {
 
   return (
     <ScrollView style={{ backgroundColor: '#fff' }} contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 30 }]} showsVerticalScrollIndicator={false}>
-      <Animated.View entering={FadeInDown.springify()} style={styles.head}>
+      <Animated.View entering={rise()} style={styles.head}>
         <IconTile size={52} bg={palette.electricSoft} radius={16}>
           <StepIcon name={step.icon} color={palette.electric} size={24} />
         </IconTile>
@@ -69,7 +70,7 @@ export default function StepSheet() {
         </View>
       </Animated.View>
 
-      <Animated.View entering={FadeInDown.delay(60).springify()} style={styles.reassure}>
+      <Animated.View entering={rise(60)} style={styles.reassure}>
         <Text variant="body">
           <Text variant="bodyStrong" color={palette.electric}>
             Pas de panique.{' '}
@@ -78,20 +79,20 @@ export default function StepSheet() {
         </Text>
       </Animated.View>
 
-      <Animated.View entering={FadeInDown.delay(100).springify()} style={{ gap: 6 }}>
+      <Animated.View entering={rise(100)} style={{ gap: 6 }}>
         <Text variant="overline" color={palette.muted}>
           C’est quoi, en 1 phrase ?
         </Text>
         <Text variant="body">{step.oneLiner}</Text>
       </Animated.View>
-      <Animated.View entering={FadeInDown.delay(130).springify()} style={{ gap: 6 }}>
+      <Animated.View entering={rise(130)} style={{ gap: 6 }}>
         <Text variant="overline" color={palette.muted}>
           Pourquoi c’est important
         </Text>
         <Text variant="body">{step.why}</Text>
       </Animated.View>
 
-      <Animated.View entering={FadeInDown.delay(160).springify()} style={{ gap: 10 }}>
+      <Animated.View entering={rise(160)} style={{ gap: 10 }}>
         <View style={styles.stat}>
           <Text variant="overline" color={palette.muted} style={{ fontSize: 9 }}>
             Quand
@@ -106,7 +107,7 @@ export default function StepSheet() {
         <FigureList figures={step.figures} />
       </Animated.View>
 
-      <Animated.View entering={FadeInDown.delay(190).springify()} style={{ gap: 10 }}>
+      <Animated.View entering={rise(190)} style={{ gap: 10 }}>
         <Text variant="overline" color={palette.muted}>
           Comment faire, en 3 étapes
         </Text>
@@ -130,7 +131,7 @@ export default function StepSheet() {
       {guide?.documents.length ? (
         <DocumentsCard documents={guide.documents} />
       ) : step.needs?.length ? (
-        <Animated.View entering={FadeInDown.delay(210).springify()} style={{ gap: 8 }}>
+        <Animated.View entering={rise(210)} style={{ gap: 8 }}>
           <Text variant="overline" color={palette.muted}>
             Ce qu’il te faut
           </Text>
@@ -144,7 +145,7 @@ export default function StepSheet() {
       ) : null}
 
       {step.terms?.length ? (
-        <Animated.View entering={FadeInDown.delay(230).springify()} style={{ gap: 8 }}>
+        <Animated.View entering={rise(230)} style={{ gap: 8 }}>
           <Text variant="overline" color={palette.muted}>
             Les mots à connaître
           </Text>
@@ -160,7 +161,7 @@ export default function StepSheet() {
         </Animated.View>
       ) : null}
 
-      <Animated.View entering={FadeInDown.delay(250).springify()} style={styles.action}>
+      <Animated.View entering={rise(250)} style={styles.action}>
         <Text variant="overline" color="rgba(255,255,255,0.55)" style={{ fontSize: 9.5 }}>
           Ta seule action maintenant
         </Text>

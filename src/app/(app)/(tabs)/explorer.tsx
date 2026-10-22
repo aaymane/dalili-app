@@ -3,7 +3,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { ArrowRight, Bookmark, BookOpen, CheckCircle2, Clock, House, Languages, Search, Sparkles } from 'lucide-react-native';
 import { useMemo, useState } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
-import Animated, { FadeIn, FadeInDown, LinearTransition } from 'react-native-reanimated';
+import Animated, { FadeIn } from 'react-native-reanimated';
 
 import { AppHeader } from '@/components/layout/AppHeader';
 import { Screen } from '@/components/layout/Screen';
@@ -22,6 +22,7 @@ import { MentorRow } from '@/features/mentors/components/MentorCard';
 import { MentorsSoon } from '@/features/mentors/components/MentorsSoon';
 import { useProfile } from '@/features/profile/store';
 import { gradients, palette, radius, shadow } from '@/theme/tokens';
+import { reflow, rise } from '@/theme/motion';
 
 type Tab = 'mentors' | 'guides' | 'hosts';
 
@@ -109,11 +110,11 @@ export default function Explorer() {
                 </PressableScale>
               ))}
           </ScrollView>
-          <Animated.View layout={LinearTransition.springify()} style={{ gap: 10, paddingHorizontal: 20 }}>
+          <Animated.View layout={reflow} style={{ gap: 10, paddingHorizontal: 20 }}>
             {isLoading
               ? [0, 1, 2].map((i) => <View key={i} style={styles.skeleton} />)
               : mentorList.map((m, i) => (
-                  <Animated.View key={m.id} entering={FadeInDown.delay(i * 50).springify()} layout={LinearTransition.springify()}>
+                  <Animated.View key={m.id} entering={rise(i * 50)} layout={reflow}>
                     <MentorRow m={m} />
                   </Animated.View>
                 ))}
@@ -159,11 +160,11 @@ export default function Explorer() {
               </PressableScale>
             ))}
           </ScrollView>
-          <Animated.View layout={LinearTransition.springify()} style={{ gap: 10 }}>
+          <Animated.View layout={reflow} style={{ gap: 10 }}>
             {guideList.map((g, i) => {
               const c = categories[categoryOf(g.category)];
               return (
-                <Animated.View key={g.slug} entering={FadeInDown.delay(Math.min(i, 6) * 40).springify()} layout={LinearTransition.springify()}>
+                <Animated.View key={g.slug} entering={rise(Math.min(i, 6) * 40)} layout={reflow}>
                   <PressableScale onPress={() => router.push({ pathname: '/(app)/guide/[id]', params: { id: g.slug } })} style={styles.guide}>
                     <View style={[styles.emoji, { backgroundColor: c.soft }]}>
                       <Text style={{ fontSize: 24 }}>{c.emoji}</Text>
@@ -202,7 +203,7 @@ export default function Explorer() {
       )}
 
       {tab === 'hosts' && (
-        <Animated.View entering={FadeInDown.springify()} style={{ paddingHorizontal: 20, marginTop: 16 }}>
+        <Animated.View entering={rise()} style={{ paddingHorizontal: 20, marginTop: 16 }}>
           <LinearGradient colors={['#FB923C', '#EA580C']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.hostCard}>
             <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
               <IconTile size={44} bg="rgba(255,255,255,0.2)" radius={14}>

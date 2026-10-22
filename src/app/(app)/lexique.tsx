@@ -1,7 +1,7 @@
 import { Search } from 'lucide-react-native';
 import { useMemo, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
-import Animated, { FadeInDown, LinearTransition } from 'react-native-reanimated';
+import Animated from 'react-native-reanimated';
 
 import { AppHeader } from '@/components/layout/AppHeader';
 import { Screen } from '@/components/layout/Screen';
@@ -11,6 +11,7 @@ import { Text } from '@/components/ui/Text';
 import { openTerm } from '@/features/guides/components/GlossarySheet';
 import { useGlossary } from '@/features/guides/glossary';
 import { palette, radius, shadow } from '@/theme/tokens';
+import { reflow, rise } from '@/theme/motion';
 
 /** Lexique A→Z des démarches françaises, en mots simples. */
 export default function Lexique() {
@@ -31,7 +32,7 @@ export default function Lexique() {
           {glossary.length} mots de l’administration française, expliqués comme par un ami.
         </Text>
         <Input icon={<Search size={16} color={palette.electric} />} placeholder="CAF, VLS-TS, caution…" value={q} onChangeText={setQ} autoCapitalize="none" />
-        <Animated.View layout={LinearTransition.springify()} style={{ gap: 18 }}>
+        <Animated.View layout={reflow} style={{ gap: 18 }}>
           {letters.map((l) => (
             <View key={l} style={{ gap: 8 }}>
               <Text variant="h2" color={palette.aiIndigo}>
@@ -40,7 +41,7 @@ export default function Lexique() {
               {list
                 .filter((g) => g.term[0].toUpperCase() === l)
                 .map((g, i) => (
-                  <Animated.View key={g.term} entering={FadeInDown.delay(i * 30).springify()}>
+                  <Animated.View key={g.term} entering={rise(i * 30)}>
                     <PressableScale onPress={() => openTerm(g.term)} style={styles.row}>
                       <View style={{ flex: 1, gap: 2 }}>
                         <Text variant="bodyStrong">

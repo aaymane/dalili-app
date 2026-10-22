@@ -2,7 +2,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { CalendarDays, Pencil, Trophy, X } from 'lucide-react-native';
 import { useMemo, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
-import Animated, { FadeIn, FadeInDown, FadeOut } from 'react-native-reanimated';
+import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
 
 import { AppHeader } from '@/components/layout/AppHeader';
 import { Screen } from '@/components/layout/Screen';
@@ -22,6 +22,7 @@ import { useJourney, type JourneyItem } from '@/features/journey/store';
 import { useProfile } from '@/features/profile/store';
 import { daysFromToday, formatDayMonth, isSameDay, monthShort, relativeDays } from '@/lib/date';
 import { gradients, palette, radius, shadow } from '@/theme/tokens';
+import { rise } from '@/theme/motion';
 
 function DeadlineRow({ item }: { item: JourneyItem }) {
   const d = daysFromToday(item.date);
@@ -84,7 +85,7 @@ export default function Parcours() {
               const prog = j.phaseProgress(p);
               const complete = prog.total > 0 && prog.done === prog.total;
               return (
-                <Animated.View key={p} entering={FadeInDown.delay(pi * 80).springify()}>
+                <Animated.View key={p} entering={rise(pi * 80)}>
                   <View style={{ flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: 12 }}>
                     <View>
                       <Text variant="h2">{phaseMeta[p].title}</Text>
