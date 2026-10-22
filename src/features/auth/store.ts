@@ -8,7 +8,7 @@ import { isSupabaseConfigured } from '@/lib/env';
 import { persistStorage } from '@/lib/storage';
 import { supabase } from '@/lib/supabase';
 
-import { deleteOnlineAccount, resetLocalData } from './account';
+import { deleteOnlineAccount, resetLocalData, restoreFromServer, watchProfile } from './account';
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -62,17 +62,31 @@ export const useAuth = create<AuthState>()(
           return () => {};
         }
         // Un autre compte que le propriétaire des données locales : on efface AVANT d'afficher
-        // quoi que ce soit, sinon il hériterait du profil et sauterait l'onboarding.
-        const apply = (u: { id: string; email?: string } | undefined) => {
+        // quoi que ce soit, sinon il hériterait du profil et sauterait l'onboarding. Puis on remet
+        // ce qu'il a enregistré en ligne (écran de chargement pendant ce temps).
+        let restoring: Promise<void> | null = null;
+        let latest = 0;
+        const apply = async (u: { id: string; email?: string } | undefined) => {
+          const call = ++latest;
           if (u && u.id !== get().ownerId) {
             resetLocalData();
-            set({ ownerId: u.id });
+            set({ ownerId: u.id, status: 'loading' });
+            restoring = restoreFromServer();
           }
+          if (u && restoring) await restoring;
+          if (call !== latest) return; // un événement plus récent (déconnexion…) a déjà tranché
           set({ status: u ? 'signedIn' : 'signedOut', user: u ? { id: u.id, email: u.email ?? '' } : null });
         };
         supabase.auth.getSession().then(({ data }) => apply(data.session?.user));
-        const { data } = supabase.auth.onAuthStateChange((_event, session) => apply(session?.user));
-        return () => data.subscription.unsubscribe();
+        // Reporté au tour suivant : appeler supabase.auth dans ce rappel peut bloquer la session.
+        const { data } = supabase.auth.onAuthStateChange((_event, session) => {
+          setTimeout(() => apply(session?.user), 0);
+        });
+        const stopWatching = watchProfile();
+        return () => {
+          data.subscription.unsubscribe();
+          stopWatching();
+        };
       },
 
       signIn: async (email, password) => {

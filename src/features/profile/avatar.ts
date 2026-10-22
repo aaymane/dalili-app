@@ -27,6 +27,17 @@ export async function prepareAvatar(pickedUri: string) {
   return { uri: dest.uri, name };
 }
 
+/** Range sur le téléphone une photo déjà envoyée (reconnexion sur un nouveau téléphone). */
+export async function saveRemoteAvatar(url: string, name: string) {
+  const dir = folder();
+  dir.create({ idempotent: true, intermediates: true });
+  const dest = new File(dir, name);
+  if (dest.exists) return dest.uri;
+  const file = await File.downloadFileAsync(url, dest);
+  dir.list().forEach((f) => f.uri !== file.uri && f.delete());
+  return file.uri;
+}
+
 /** Retrouve la photo après une mise à jour de l'app : sur iOS, le chemin du dossier de l'app change. */
 export function localAvatarUri(uri: string | null) {
   if (!native || !uri?.includes('/avatars/')) return uri;

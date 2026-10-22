@@ -1,7 +1,9 @@
 import { useLocalDb } from '@/data/local-db';
 import { env } from '@/lib/env';
 import { supabase } from '@/lib/supabase';
+import { fetchJourney } from '@/features/journey/api';
 import { useJourneyStore } from '@/features/journey/store';
+import { fetchProfile, restoreAvatar, syncProfile } from '@/features/profile/api';
 import { clearLocalAvatars } from '@/features/profile/avatar';
 import { useProfile } from '@/features/profile/store';
 
@@ -14,6 +16,39 @@ export function resetLocalData() {
   useLocalDb.getState().reset();
   useProfile.getState().reset();
   clearLocalAvatars();
+}
+
+/**
+ * Nouveau téléphone ou reconnexion : remet le profil, le parcours et la photo enregistrés en ligne,
+ * pour ne pas refaire l'onboarding. Sans réseau, on n'attend pas plus de 8 s : l'onboarding s'affiche.
+ */
+export async function restoreFromServer() {
+  const pull = Promise.all([fetchProfile(), fetchJourney()]).then(([saved, journey]) => {
+    if (journey) useJourneyStore.setState(journey);
+    if (!saved) return;
+    useProfile.setState((s) => ({ profile: { ...s.profile, ...saved.profile }, onboardingDone: true }));
+    // La photo arrive après coup : l'accueil s'affiche sans l'attendre.
+    if (saved.avatarPath)
+      restoreAvatar(saved.avatarPath)
+        .then((uri) => uri && useProfile.getState().update({ avatarUri: uri }))
+        .catch(() => {});
+  });
+  await Promise.race([pull.catch(() => {}), new Promise((r) => setTimeout(r, 8000))]);
+}
+
+/** Envoie chaque changement du profil après l'onboarding (ville, rôle, Profil IA…), groupés par 1,5 s. */
+export function watchProfile() {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const unsubscribe = useProfile.subscribe((s, prev) => {
+    // Fin d'onboarding (loading.tsx l'envoie) ou profil remis depuis le serveur : rien à renvoyer.
+    if (!s.onboardingDone || !prev.onboardingDone || s.profile === prev.profile) return;
+    clearTimeout(timer);
+    timer = setTimeout(() => syncProfile(useProfile.getState().profile).catch(() => {}), 1500);
+  });
+  return () => {
+    clearTimeout(timer);
+    unsubscribe();
+  };
 }
 
 /**

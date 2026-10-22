@@ -19,3 +19,18 @@ export async function syncCustomStep(step: { id: string; title: string; date: st
     : await supabase.from('custom_steps').upsert({ user_id: data.user.id, title: step.title, due_date: step.date, done: step.done }, { onConflict: 'user_id,title,due_date' });
   if (error) throw error;
 }
+
+/** Relit le parcours enregistré en ligne : étapes cochées et tâches perso. */
+export async function fetchJourney() {
+  if (!supabase) return null;
+  const [steps, custom] = await Promise.all([
+    supabase.from('step_progress').select('step_id, done'),
+    supabase.from('custom_steps').select('id, title, due_date, done').order('due_date'),
+  ]);
+  if (steps.error) throw steps.error;
+  if (custom.error) throw custom.error;
+  return {
+    overrides: Object.fromEntries(steps.data.map((r) => [r.step_id, r.done])) as Record<string, boolean>,
+    custom: custom.data.map((r) => ({ id: `custom-${r.id}`, title: r.title, date: r.due_date, done: r.done })),
+  };
+}

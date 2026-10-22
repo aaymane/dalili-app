@@ -3,6 +3,7 @@ import { Platform } from 'react-native';
 
 import { supabase } from '@/lib/supabase';
 
+import { saveRemoteAvatar } from './avatar';
 import type { Profile } from './types';
 
 /**
@@ -52,4 +53,46 @@ export async function syncProfile(p: Profile) {
     updated_at: new Date().toISOString(),
   });
   if (error) throw error;
+}
+
+/**
+ * Relit le profil enregistré en ligne (nouveau téléphone, reconnexion).
+ * `null` si l'onboarding n'a jamais été terminé : l'inscription crée un profil vide, sans prénom.
+ */
+export async function fetchProfile(): Promise<{ profile: Partial<Profile>; avatarPath: string | null } | null> {
+  if (!supabase) return null;
+  const { data: auth } = await supabase.auth.getUser();
+  if (!auth.user) return null;
+  const { data: row, error } = await supabase.from('profiles').select('*').eq('id', auth.user.id).maybeSingle();
+  if (error) throw error;
+  if (!row?.first_name) return null;
+  return {
+    avatarPath: row.avatar_url,
+    profile: {
+      firstName: row.first_name,
+      lastName: row.last_name,
+      gender: row.gender,
+      country: row.country,
+      originCity: row.origin_city ?? '',
+      birthDate: row.birth_date,
+      situation: row.situation,
+      studyLevel: row.study_level,
+      campusStatus: row.campus_status,
+      destinationCity: row.destination_city,
+      arrivalDate: row.arrival_date,
+      housing: row.housing,
+      concerns: row.concerns ?? [],
+      roles: row.roles?.length ? row.roles : ['student'],
+      activeRole: row.active_role,
+      mentorCity: row.mentor_city,
+    },
+  };
+}
+
+/** Télécharge la photo du bucket privé (lien valable 1 minute) et la range sur le téléphone. */
+export async function restoreAvatar(path: string): Promise<string | null> {
+  if (!supabase || Platform.OS === 'web') return null;
+  const { data, error } = await supabase.storage.from('avatars').createSignedUrl(path, 60);
+  if (error) throw error;
+  return saveRemoteAvatar(data.signedUrl, path.split('/').pop() ?? 'photo.jpg');
 }
