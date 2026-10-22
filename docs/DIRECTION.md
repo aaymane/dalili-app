@@ -70,6 +70,7 @@ Le vocabulaire visuel vient du voyage : un trajet entre deux villes, un compte �
 
 - `EASE_OUT` = `bezier(0.23, 1, 0.32, 1)` pour tout ce qui **entre** ; `EASE_IN_OUT` = `bezier(0.77, 0, 0.175, 1)` pour ce qui **se déplace** à l'écran. Jamais d'`ease-in` sur l'interface : il retarde le moment que l'œil regarde.
 - Un doigt est en jeu → ressort (il garde la vitesse si on interrompt). Sinon → durée + courbe.
+- **Feuilles du bas** (`BottomSheet`) : montée 440 ms et descente 260 ms en `EASE_SHEET` = `bezier(0.32, 0.72, 0, 1)` (la courbe des feuilles iOS), sans rebond ; le fond s'assombrit au même rythme. Elles se ferment en les glissant vers le bas : la feuille suit le doigt, puis se ferme (plus d'un tiers ou geste rapide) ou revient en place avec `motion.springFirm`.
 
 ### Défilement
 

@@ -136,6 +136,8 @@ export const motion = {
   spring: { damping: 18, stiffness: 220, mass: 0.9 },
   springSoft: { damping: 20, stiffness: 140 },
   springBouncy: { damping: 11, stiffness: 180 },
+  /** Retour en place après un glissé du doigt (feuille relâchée) : ferme, sans dépassement visible. */
+  springFirm: { damping: 32, stiffness: 320, mass: 1 },
   fast: 160,
   base: 260,
   slow: 420,

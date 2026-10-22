@@ -5,6 +5,8 @@ import { motion } from './tokens';
 /** Courbes (docs/DIRECTION.md §3) : sortie franche pour ce qui entre, aller-retour pour ce qui se déplace à l'écran. */
 export const EASE_OUT = Easing.bezier(0.23, 1, 0.32, 1);
 export const EASE_IN_OUT = Easing.bezier(0.77, 0, 0.175, 1);
+/** Feuilles et panneaux qui glissent depuis un bord (courbe des feuilles iOS) : départ franc, arrivée très douce. */
+export const EASE_SHEET = Easing.bezier(0.32, 0.72, 0, 1);
 
 /**
  * Entrée maison : fondu + petite montée et/ou léger agrandissement, en durée + courbe (pas de ressort,
