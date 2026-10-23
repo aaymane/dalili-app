@@ -8,7 +8,7 @@ import { BottomSheet } from '@/components/feedback/BottomSheet';
 import { toast } from '@/components/feedback/Toast';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
-import { OptionCard } from '@/components/ui/OptionCard';
+import { Chip } from '@/components/ui/Tag';
 import { IconTile } from '@/components/ui/IconTile';
 import { PressableScale } from '@/components/ui/PressableScale';
 import { Text } from '@/components/ui/Text';
@@ -193,6 +193,7 @@ export function FeedbackSheet({
     <BottomSheet
       visible={visible}
       onClose={onClose}
+      scroll
       onClosed={() => {
         setReason(null);
         setComment('');
@@ -204,9 +205,17 @@ export function FeedbackSheet({
             L’équipe relit chaque signalement et corrige le guide si besoin. Ton nom n’est jamais envoyé.
           </Text>
         </View>
-        <View style={{ gap: 8 }}>
+        <View style={styles.reasons} accessibilityRole="radiogroup">
           {REASONS.map((r) => (
-            <OptionCard key={r.id} title={r.label} selected={reason === r.id} onPress={() => setReason(r.id)} />
+            <PressableScale
+              key={r.id}
+              haptic="select"
+              onPress={() => setReason(r.id)}
+              hitSlop={4}
+              accessibilityRole="radio"
+              accessibilityState={{ selected: reason === r.id }}>
+              <Chip label={r.label} active={reason === r.id} />
+            </PressableScale>
           ))}
         </View>
         <Input multiline placeholder="Dis-nous ce qui cloche (facultatif)" value={comment} onChangeText={setComment} maxLength={500} />
@@ -323,6 +332,7 @@ export function RetryButton({ onPress }: { onPress: () => void }) {
 
 const styles = StyleSheet.create({
   tools: { flexDirection: 'row', gap: 8 },
+  reasons: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   tool: { flexDirection: 'row', alignItems: 'center', gap: 6, height: 36, paddingHorizontal: 12, borderRadius: radius.pill, backgroundColor: palette.surface },
   action: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 10, borderRadius: radius.lg, backgroundColor: palette.surface, ...shadow.sm },
   source: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: 12, paddingVertical: 10, borderRadius: radius.lg, backgroundColor: '#fff', borderWidth: 1, borderColor: '#E3E1FF' },

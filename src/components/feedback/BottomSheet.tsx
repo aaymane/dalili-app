@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
-import { Modal, Platform, Pressable, ScrollView, StyleSheet, useWindowDimensions, View, type LayoutChangeEvent } from 'react-native';
+import { Keyboard, Modal, Platform, Pressable, ScrollView, StyleSheet, useWindowDimensions, View, type LayoutChangeEvent } from 'react-native';
 import { Gesture, GestureDetector, GestureHandlerRootView } from 'react-native-gesture-handler';
 import Animated, { interpolate, ReduceMotion, useAnimatedStyle, useSharedValue, withSpring, withTiming } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -44,6 +44,21 @@ export function BottomSheet({ visible, onClose, onClosed, children, scroll, maxH
   const drag = useSharedValue(0);
   const start = useSharedValue(0);
   const height = useSharedValue(screenH);
+  // Hauteur du clavier : la feuille monte avec lui pour qu'un champ et son bouton restent visibles.
+  const keyboard = useSharedValue(0);
+  const bottomPad = Math.max(insets.bottom, 16) + 8;
+
+  useEffect(() => {
+    // Android redimensionne déjà la fenêtre au-dessus du clavier : seul iOS a besoin de ce décalage.
+    if (!mounted || Platform.OS !== 'ios') return;
+    const follow = (to: number, duration?: number) => keyboard.set(withTiming(to, { duration: duration || 250, easing: EASE_SHEET }));
+    const show = Keyboard.addListener('keyboardWillShow', (e) => follow(e.endCoordinates.height, e.duration));
+    const hide = Keyboard.addListener('keyboardWillHide', (e) => follow(0, e.duration));
+    return () => {
+      show.remove();
+      hide.remove();
+    };
+  }, [mounted, keyboard]);
 
   useEffect(() => {
     if (!mounted) return;
@@ -101,7 +116,14 @@ export function BottomSheet({ visible, onClose, onClosed, children, scroll, maxH
     });
 
   // +40 : l'ombre et l'arrondi sortent aussi de l'écran.
-  const sheetStyle = useAnimatedStyle(() => ({ transform: [{ translateY: (1 - open.value) * (height.value + 40) + drag.value }] }));
+  // Le clavier recouvre déjà la marge du bas (barre d'accueil) : on ne monte que du reste.
+  const sheetStyle = useAnimatedStyle(() => {
+    const lift = Math.max(0, keyboard.value - bottomPad + 12);
+    return {
+      transform: [{ translateY: (1 - open.value) * (height.value + 40) + drag.value - lift }],
+      ...(lift > 0 ? { maxHeight: screenH - insets.top - 12 - lift } : null),
+    };
+  });
   const backdropStyle = useAnimatedStyle(() => ({
     opacity: open.value * interpolate(drag.value, [0, height.value], [1, 0], 'clamp'),
   }));
@@ -115,9 +137,14 @@ export function BottomSheet({ visible, onClose, onClosed, children, scroll, maxH
   );
   // Avec une liste qui défile, seule la poignée se glisse (sinon le geste volerait le défilement) ; sinon, toute la feuille.
   const sheet = (
-    <Animated.View onLayout={onLayout} style={[styles.sheet, { paddingBottom: Math.max(insets.bottom, 16) + 8, maxHeight }, sheetStyle]}>
+    <Animated.View onLayout={onLayout} style={[styles.sheet, { paddingBottom: bottomPad, maxHeight }, sheetStyle]}>
       {scroll ? <GestureDetector gesture={pan}>{handle}</GestureDetector> : handle}
-      <Body {...(scroll ? { showsVerticalScrollIndicator: false, contentContainerStyle: { paddingBottom: 8 } } : {})}>{children}</Body>
+      <Body
+        {...(scroll
+          ? { showsVerticalScrollIndicator: false, contentContainerStyle: { paddingBottom: 8 }, keyboardShouldPersistTaps: 'handled' as const }
+          : {})}>
+        {children}
+      </Body>
     </Animated.View>
   );
   return (
