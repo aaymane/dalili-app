@@ -21,16 +21,16 @@ import { useScrollY } from '@/components/motion/scroll';
 import { PressableScale } from '@/components/ui/PressableScale';
 import { Text } from '@/components/ui/Text';
 import { useProfile } from '@/features/profile/store';
-import { formatDayMonth, daysFromToday } from '@/lib/date';
 import { haptics } from '@/lib/haptics';
 import { EASE_OUT } from '@/theme/motion';
 import { palette } from '@/theme/tokens';
 
-import { buildMilestones, pathGeometry, visaDone, type Milestone, type PathGeometry } from '../path';
+import { buildMilestones, pathGeometry, type Milestone, type PathGeometry } from '../path';
+import { useTicket } from '../ticket';
 import { useJourney } from '../store';
 import { PLANE_PATH } from './RouteArc';
 import { StepIcon } from './StepIcon';
-import { LockedTicket, Ticket, type TicketData } from './Ticket';
+import { LockedTicket, Ticket } from './Ticket';
 
 const NODE = 44;
 const PLANE = 30;
@@ -92,14 +92,7 @@ export function JourneyPath() {
     },
   );
 
-  const visa = visaDone(j.all);
-  const ticket: TicketData = {
-    from: profile.originCity || 'Chez toi',
-    to: profile.destinationCity ?? 'France',
-    days: daysFromToday(j.arrival),
-    passenger: [profile.firstName, profile.lastName?.charAt(0) ? `${profile.lastName.charAt(0)}.` : ''].filter(Boolean).join(' ') || 'Toi',
-    date: formatDayMonth(j.arrival),
-  };
+  const ticket = useTicket();
 
   return (
     <Animated.View
@@ -126,7 +119,7 @@ export function JourneyPath() {
           <FlyingPlane geo={geo} traveled={flight} />
         </View>
       ) : null}
-      <View style={{ marginTop: 6 }}>{visa ? <Ticket data={ticket} /> : <LockedTicket />}</View>
+      <View style={{ marginTop: 6 }}>{ticket.unlocked ? <Ticket data={ticket.data} /> : <LockedTicket />}</View>
     </Animated.View>
   );
 }

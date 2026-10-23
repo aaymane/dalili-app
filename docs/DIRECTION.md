@@ -191,6 +191,14 @@ Ce qui reste des pistes vit dans M2 : le **chemin** (tracé au défilement, avio
 - Chaque jalon se pose quand le tracé l'atteint et ouvre son étape.
 - Au bout, le **billet** (`Ticket.tsx`) : fond Skia avec de vraies encoches de perforation et le ciel étoilé. Verrouillé tant que le visa n'est pas validé : silhouette floue sous un voile nuit, cadenas, « Se débloque quand ton visa est validé ».
 
+### Le billet en haut de l'accueil (M2.2)
+
+`features/journey/ticket.ts` (`useTicket`) décide de l'état du billet, pour l'accueil comme pour « Ton chemin ».
+
+- **Visa validé** : le billet remplace la carte nuit du brief en haut de l'accueil (J-12, Alger → Lyon). La phrase du jour passe dessous en texte simple (`BriefLine`), puis l'action du jour : un seul héros et une seule boucle (le ciel du billet), et l'action reste visible sans défiler.
+- Sans date d'arrivée donnée : « J-? · fixe ta date ». Toucher le billet ouvre le réglage de la date (`ArrivalSheet`).
+- **Jour J et 7 jours après** : « Bienvenue à Lyon », et le talon reçoit le tampon « Arrivé·e » (vert mentor, penché de 12°). Ensuite, le billet quitte l'accueil et reste au bout de « Ton chemin ».
+
 ### La nuit pour les moments de marque, le matin pour le quotidien
 
 - **Nuit** : bienvenue, onboarding, chargement, carte du brief, carte « Ta mobilité ». C'est là que vivent la profondeur, les halos et, à venir, le ciel étoilé.

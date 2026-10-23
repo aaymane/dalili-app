@@ -18,7 +18,9 @@ import { useLocalDb } from '@/data/local-db';
 import { ArrivalSheet } from '@/features/journey/components/ArrivalSheet';
 import { JourneyPath } from '@/features/journey/components/JourneyPath';
 import { MobilityCard } from '@/features/journey/components/MobilityCard';
+import { Ticket } from '@/features/journey/components/Ticket';
 import { useJourney } from '@/features/journey/store';
+import { useTicket } from '@/features/journey/ticket';
 import { MentorTile } from '@/features/mentors/components/MentorCard';
 import { MentorsSoon } from '@/features/mentors/components/MentorsSoon';
 import { useProfile } from '@/features/profile/store';
@@ -28,7 +30,7 @@ import { gradients, palette, radius, shadow } from '@/theme/tokens';
 
 import { ActionCard } from './ActionCard';
 import { AskField } from './AskField';
-import { BriefHero } from './BriefHero';
+import { BriefHero, BriefLine } from './BriefHero';
 import { ToolsGrid } from './ToolsGrid';
 
 /**
@@ -43,6 +45,7 @@ export function StudentHome() {
   const [since] = useState(() => Date.now() - 3_600_000);
   const bookings = useLocalDb((s) => s.bookings).filter((b) => b.status === 'confirmed' && new Date(b.startsAt).getTime() > since);
   const [arrivalOpen, setArrivalOpen] = useState(false);
+  const ticket = useTicket();
 
   const city = profile.destinationCity;
   const suggested = [...mentors].sort((a, b) => Number(b.city === city) - Number(a.city === city) || b.rating - a.rating).slice(0, 6);
@@ -53,15 +56,26 @@ export function StudentHome() {
   return (
     <Screen top={gradients.roleTop.student} tabBar padded={false} header={<AppHeader roleSwitch />}>
       <View style={{ paddingHorizontal: 20, gap: 16 }}>
-        <Animated.View entering={enter(0)}>
-          <BriefHero />
-        </Animated.View>
+        {ticket.onHome ? (
+          <>
+            <Animated.View entering={enter(0)}>
+              <Ticket data={ticket.data} onPress={() => setArrivalOpen(true)} />
+            </Animated.View>
+            <Animated.View entering={enter(1)}>
+              <BriefLine />
+            </Animated.View>
+          </>
+        ) : (
+          <Animated.View entering={enter(0)}>
+            <BriefHero />
+          </Animated.View>
+        )}
         {j.current ? (
-          <Animated.View entering={enter(1)} layout={reflow}>
+          <Animated.View entering={enter(2)} layout={reflow}>
             <ActionCard key={j.current.step.id} step={j.current.step} />
           </Animated.View>
         ) : null}
-        <Animated.View entering={enter(2)}>
+        <Animated.View entering={enter(3)}>
           <PressableScale
             onPress={() => router.push('/(app)/parcours')}
             style={styles.journeyRow}
@@ -77,7 +91,7 @@ export function StudentHome() {
             <ChevronRight size={18} color={palette.subtle} />
           </PressableScale>
         </Animated.View>
-        <Animated.View entering={enter(3)}>
+        <Animated.View entering={enter(4)}>
           <AskField />
         </Animated.View>
       </View>

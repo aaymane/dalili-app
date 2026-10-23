@@ -4,6 +4,7 @@ import { StyleSheet, View } from 'react-native';
 import { useDerivedValue, useSharedValue, type SharedValue } from 'react-native-reanimated';
 
 import { skyEffect, useSkyUniforms } from '@/components/brand/StarField';
+import { PressableScale } from '@/components/ui/PressableScale';
 import { Text } from '@/components/ui/Text';
 import { gradients, palette, radius, shadow } from '@/theme/tokens';
 
@@ -12,6 +13,8 @@ export type TicketData = {
   to: string;
   /** Jours avant l'arrivée (négatif : déjà arrivé). */
   days: number;
+  /** Faux tant que l'étudiant n'a pas donné sa date : le compte à rebours n'a pas de sens. */
+  dateKnown: boolean;
   passenger: string;
   date: string;
 };
@@ -93,17 +96,36 @@ function Ghost({ size, spec }: { size: SharedValue<{ width: number; height: numb
   );
 }
 
-/** Carte d'embarquement DALILI : ta ville → ta ville d'arrivée, le compte à rebours dans le talon. */
-export function Ticket({ data }: { data: TicketData }) {
-  const label = data.days > 0 ? `J-${data.days}` : 'J-0';
-  return (
-    <View style={styles.wrap}>
-      <View style={styles.card}>
-        <TicketBackground />
-        <View style={styles.main}>
-          <Text variant="overline" color="rgba(255,255,255,0.55)" style={{ fontSize: 9 }}>
-            Carte d’embarquement · DALILI
-          </Text>
+/** Phrase lue par le lecteur d'écran, qui ne voit qu'un seul élément. */
+function ticketLabel(d: TicketData) {
+  if (d.days <= 0) return `Ton billet : bienvenue à ${d.to}, arrivé·e le ${d.date}.`;
+  if (!d.dateKnown) return `Ton billet : ${d.from} vers ${d.to}, date d’arrivée à fixer.`;
+  return `Ton billet : ${d.from} vers ${d.to}, J moins ${d.days}, arrivée le ${d.date}.`;
+}
+
+/**
+ * Carte d'embarquement DALILI : ta ville → ta ville d'arrivée, le compte à rebours dans le talon.
+ * Le jour J, elle devient « Bienvenue à … » et le talon reçoit le tampon « Arrivé·e ».
+ */
+export function Ticket({ data, onPress }: { data: TicketData; onPress?: () => void }) {
+  const arrived = data.days <= 0;
+  const content = (
+    <View style={styles.card}>
+      <TicketBackground />
+      <View style={styles.main}>
+        <Text variant="overline" color="rgba(255,255,255,0.55)" style={{ fontSize: 9 }}>
+          Carte d’embarquement · DALILI
+        </Text>
+        {arrived ? (
+          <View>
+            <Text variant="small" color="rgba(255,255,255,0.7)">
+              Bienvenue à
+            </Text>
+            <Text variant="h1" color="#fff" style={styles.city} numberOfLines={1} adjustsFontSizeToFit>
+              {data.to}
+            </Text>
+          </View>
+        ) : (
           <View style={styles.route}>
             <Text variant="h1" color="#fff" style={styles.city} numberOfLines={1}>
               {data.from}
@@ -113,48 +135,80 @@ export function Ticket({ data }: { data: TicketData }) {
               {data.to}
             </Text>
           </View>
-          <View style={styles.fields}>
-            <View>
-              <Text variant="caption" color="rgba(255,255,255,0.5)">
-                Passager·e
-              </Text>
-              <Text variant="smallStrong" color="#fff" numberOfLines={1}>
-                {data.passenger}
-              </Text>
-            </View>
-            <View>
-              <Text variant="caption" color="rgba(255,255,255,0.5)">
-                Arrivée
-              </Text>
-              <Text variant="smallStrong" color="#fff">
-                {data.date}
-              </Text>
-            </View>
-            <View>
-              <Text variant="caption" color="rgba(255,255,255,0.5)">
-                Classe
-              </Text>
-              <Text variant="smallStrong" color="#fff">
-                Étudiant
-              </Text>
-            </View>
+        )}
+        <View style={styles.fields}>
+          <View style={{ flexShrink: 1 }}>
+            <Text variant="caption" color="rgba(255,255,255,0.5)">
+              Passager·e
+            </Text>
+            <Text variant="smallStrong" color="#fff" numberOfLines={1}>
+              {data.passenger}
+            </Text>
           </View>
-        </View>
-        <View style={styles.perforation} />
-        <View style={styles.stub}>
-          <Text variant="hero" color="#fff" style={styles.countdown} adjustsFontSizeToFit numberOfLines={1}>
-            {label}
-          </Text>
-          <Text variant="caption" color="rgba(255,255,255,0.6)" align="center">
-            {data.days > 0 ? 'avant le départ' : 'bienvenue !'}
-          </Text>
-          <View style={styles.barcode}>
-            {bars(data.passenger + data.to).map((w, i) => (
-              <View key={i} style={{ width: w, height: 22, backgroundColor: 'rgba(255,255,255,0.7)' }} />
-            ))}
+          <View>
+            <Text variant="caption" color="rgba(255,255,255,0.5)">
+              {arrived ? 'Arrivé·e le' : 'Arrivée'}
+            </Text>
+            <Text variant="smallStrong" color="#fff">
+              {data.dateKnown || arrived ? data.date : 'À fixer'}
+            </Text>
+          </View>
+          <View>
+            <Text variant="caption" color="rgba(255,255,255,0.5)">
+              Classe
+            </Text>
+            <Text variant="smallStrong" color="#fff">
+              Étudiant
+            </Text>
           </View>
         </View>
       </View>
+      <View style={styles.perforation} />
+      <View style={styles.stub}>
+        {arrived ? (
+          <Stamp />
+        ) : (
+          <>
+            <Text variant="hero" color="#fff" style={styles.countdown} adjustsFontSizeToFit numberOfLines={1}>
+              {data.dateKnown ? `J-${data.days}` : 'J-?'}
+            </Text>
+            <Text variant="caption" color="rgba(255,255,255,0.6)" align="center">
+              {data.dateKnown ? 'avant le départ' : 'fixe ta date'}
+            </Text>
+          </>
+        )}
+        <View style={styles.barcode}>
+          {bars(data.passenger + data.to).map((w, i) => (
+            <View key={i} style={{ width: w, height: 22, backgroundColor: 'rgba(255,255,255,0.7)' }} />
+          ))}
+        </View>
+      </View>
+    </View>
+  );
+  if (!onPress) {
+    return (
+      <View style={styles.wrap} accessible accessibilityLabel={ticketLabel(data)}>
+        {content}
+      </View>
+    );
+  }
+  return (
+    <PressableScale onPress={onPress} scaleTo={0.98} style={styles.wrap} accessibilityLabel={ticketLabel(data)} accessibilityHint="Modifier ta date d’arrivée">
+      {content}
+    </PressableScale>
+  );
+}
+
+/** Tampon d'arrivée, posé de travers comme à la douane. */
+function Stamp() {
+  return (
+    <View style={styles.stamp}>
+      <Text variant="overline" color={palette.mentorGlow} style={{ fontSize: 9, letterSpacing: 1.4 }}>
+        Arrivé·e
+      </Text>
+      <Text variant="caption" color={palette.mentorGlow}>
+        France
+      </Text>
     </View>
   );
 }
@@ -187,6 +241,7 @@ const styles = StyleSheet.create({
   stub: { width: STUB, alignItems: 'center', justifyContent: 'center', paddingVertical: 14, paddingHorizontal: 8, gap: 2 },
   countdown: { fontFamily: 'Montserrat_900Black', fontSize: 28, lineHeight: 34 },
   barcode: { flexDirection: 'row', gap: 1.5, marginTop: 8 },
+  stamp: { width: 70, height: 70, borderRadius: 35, borderWidth: 2, borderColor: palette.mentorGlow, alignItems: 'center', justifyContent: 'center', transform: [{ rotate: '-12deg' }] },
   lockWrap: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, alignItems: 'center', justifyContent: 'center', gap: 8, padding: 20 },
   lock: { width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(255,255,255,0.16)', alignItems: 'center', justifyContent: 'center' },
 });
