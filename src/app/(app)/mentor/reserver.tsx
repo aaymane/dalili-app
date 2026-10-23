@@ -58,8 +58,10 @@ export default function Reserve() {
       if (saved) void qc.invalidateQueries({ queryKey: ['bookings', 'mine'] });
       else addBooking({ id: `b-${Date.now()}`, mentorId: m.id, startsAt, topic: topicText, status: 'pending' });
       setDone(true);
-    } catch {
-      toast('Demande pas envoyée. Vérifie ta connexion et réessaie.', 'info');
+    } catch (e) {
+      // 42501 = la base refuse (mentor passé en pause entre-temps, ou ta propre fiche) ; sinon, le réseau.
+      const refused = (e as { code?: string }).code === '42501';
+      toast(refused ? `${m.firstName} ne peut pas recevoir de demande pour le moment. Essaie un autre mentor.` : 'Demande pas envoyée. Vérifie ta connexion et réessaie.', 'info');
     } finally {
       setLoading(false);
     }

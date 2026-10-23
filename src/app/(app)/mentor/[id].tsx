@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/Button';
 import { PressableScale } from '@/components/ui/PressableScale';
 import { Text } from '@/components/ui/Text';
 import { useMentor } from '@/data/hooks';
+import { useMyMentor } from '@/features/mentors/hooks';
 import { palette, radius, shadow } from '@/theme/tokens';
 import { pop, rise } from '@/theme/motion';
 
@@ -24,7 +25,11 @@ const LANG: Record<string, { code: string; label: string }> = {
 export default function MentorProfile() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const insets = useSafeAreaInsets();
-  const { data: m } = useMentor(id);
+  const { data: listed } = useMentor(id);
+  // Ta propre fiche n'est pas dans la liste des mentors : tu la vois quand même, en aperçu.
+  const { data: mine } = useMyMentor();
+  const own = !!mine && mine.id === id;
+  const m = listed ?? (own ? mine : undefined);
   if (!m) return <View style={{ flex: 1, backgroundColor: palette.bg }} />;
 
   return (
@@ -163,7 +168,13 @@ export default function MentorProfile() {
         </View>
       </ScrollView>
       <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, 16) }]}>
-        <Button label="Réserver · gratuit" onPress={() => router.push({ pathname: '/(app)/mentor/reserver', params: { id: m.id } })} />
+        {own ? (
+          <Text variant="small" color={palette.subtle} align="center">
+            C’est ton profil, tel que les étudiants le voient.
+          </Text>
+        ) : (
+          <Button label="Réserver · gratuit" onPress={() => router.push({ pathname: '/(app)/mentor/reserver', params: { id: m.id } })} />
+        )}
       </View>
     </View>
   );

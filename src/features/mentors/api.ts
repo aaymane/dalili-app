@@ -32,7 +32,8 @@ async function sessionUser() {
 
 export async function fetchMyMentor(): Promise<MyMentor | null> {
   const user = await sessionUser();
-  if (!supabase || !user) return { ...demoMentors[0], isActive: true };
+  // Démo : un identifiant à part, pour ne pas confondre « ma fiche » avec un mentor de la liste d'exemple.
+  if (!supabase || !user) return { ...demoMentors[0], id: 'm-moi', isActive: true };
   const { data, error } = await supabase.from('mentors').select('*').eq('user_id', user.id).maybeSingle();
   if (error) throw error;
   return data ? { ...toMentor(data), isActive: !!data.is_active } : null;

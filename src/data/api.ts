@@ -79,7 +79,13 @@ export async function fetchMentors(): Promise<Mentor[]> {
   // Profils de test sans session (captures) : la base refuserait, on montre les mentors d'exemple.
   const { data: s } = await supabase.auth.getSession();
   if (!s.session) return demoMentors;
-  const { data, error } = await supabase.from('mentors').select('*').eq('is_active', true).order('rating', { ascending: false });
+  // Ta propre fiche n'apparaît pas parmi les mentors qu'on te propose (on ne se réserve pas soi-même).
+  const { data, error } = await supabase
+    .from('mentors')
+    .select('*')
+    .eq('is_active', true)
+    .or(`user_id.is.null,user_id.neq.${s.session.user.id}`)
+    .order('rating', { ascending: false });
   if (error) throw error;
   return (data ?? []).map(toMentor);
 }
