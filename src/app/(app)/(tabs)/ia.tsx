@@ -127,7 +127,7 @@ export default function DaliliIA() {
                   Je réponds uniquement avec les guides DALILI, et je te montre d’où vient chaque info. Si je ne sais pas, je te le dis.
                 </Text>
               </Animated.View>
-            ) : null
+            ) : undefined
           }
           renderItem={({ item }) => <Bubble m={item} onAsk={send} onRequest={request} />}
           ListFooterComponent={
@@ -147,7 +147,7 @@ export default function DaliliIA() {
                   </Animated.View>
                 ))}
               </View>
-            ) : null
+            ) : undefined
           }
         />
 

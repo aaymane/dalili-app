@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { StyleSheet, useWindowDimensions, View } from 'react-native';
+import { StyleSheet, useWindowDimensions, View, type ViewInstance } from 'react-native';
 import Animated, { useAnimatedStyle, useReducedMotion, useSharedValue, withDelay, withSequence, withTiming } from 'react-native-reanimated';
 
 import { Glow } from '@/components/brand/Glow';
@@ -134,7 +134,7 @@ export function FlyingMark({ size, target }: { size: number; target: { x: number
 
 /** Emplacement du logo dans la mise en page : invisible, il donne sa position au logo flottant. */
 export function MarkSlot({ size, onMeasure }: { size: number; onMeasure: (p: { x: number; y: number }) => void }) {
-  const ref = useRef<View>(null);
+  const ref = useRef<ViewInstance>(null);
   return <View ref={ref} style={{ width: size, height: size * 0.99 }} onLayout={() => ref.current?.measureInWindow((x, y) => onMeasure({ x, y }))} />;
 }
 

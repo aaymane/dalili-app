@@ -39,11 +39,8 @@ function TicketBackground({ locked = false }: { locked?: boolean }) {
   const uniforms = useSkyUniforms(size, { variant: 'card' });
   const clip = useDerivedValue(() => {
     const { width: w, height: h } = size.get();
-    const shape = Skia.Path.Make();
-    shape.addRRect(Skia.RRectXY(Skia.XYWHRect(0, 0, w, h), R, R));
-    const holes = Skia.Path.Make();
-    holes.addCircle(w - STUB, 0, NOTCH);
-    holes.addCircle(w - STUB, h, NOTCH);
+    const shape = Skia.Path.RRect(Skia.RRectXY(Skia.XYWHRect(0, 0, w, h), R, R));
+    const holes = Skia.PathBuilder.Make().addCircle(w - STUB, 0, NOTCH).addCircle(w - STUB, h, NOTCH).detach();
     return Skia.Path.MakeFromOp(shape, holes, PathOp.Difference) ?? shape;
   });
   const end = useDerivedValue(() => vec(size.get().width, size.get().height));

@@ -167,7 +167,7 @@ export function useSkyUniforms(size: SharedValue<{ width: number; height: number
     t.set(f.timeSinceFirstFrame / 1000);
   }, false);
   useEffect(() => {
-    const update = (s: string) => frame.setActive(!reduce && focused && s === 'active');
+    const update = (s: string | null | undefined) => frame.setActive(!reduce && focused && s === 'active');
     update(AppState.currentState);
     const sub = AppState.addEventListener('change', update);
     return () => sub.remove();

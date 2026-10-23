@@ -51,7 +51,7 @@ function AiButton({ focused, onPress }: { focused: boolean; onPress: () => void 
 }
 
 /** Tab bar sur-mesure : 4 onglets + bouton IA central lumineux. */
-export function TabBar({ state, navigation }: BottomTabBarProps) {
+export function TabBar({ state, emitter, navigateToTab }: BottomTabBarProps) {
   const insets = useSafeAreaInsets();
   const { accent } = useRoleTheme();
   return (
@@ -59,8 +59,8 @@ export function TabBar({ state, navigation }: BottomTabBarProps) {
       {state.routes.map((route, index) => {
         const focused = state.index === index;
         const onPress = () => {
-          const event = navigation.emit({ type: 'tabPress', target: route.key, canPreventDefault: true });
-          if (!focused && !event.defaultPrevented) navigation.navigate(route.name, route.params);
+          const event = emitter.emit({ type: 'tabPress', target: route.key, canPreventDefault: true });
+          if (!focused && !event.defaultPrevented) navigateToTab(route.key);
         };
         if (route.name === 'ia') return <AiButton key={route.key} focused={focused} onPress={onPress} />;
         if (!(route.name in ICONS)) return null;
