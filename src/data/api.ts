@@ -12,7 +12,7 @@ import type { Booking, CommunityEvent, Group, Mentor, Post } from './types';
 
 type Row = Record<string, any>;
 
-const toMentor = (r: Row): Mentor => ({
+export const toMentor = (r: Row): Mentor => ({
   id: r.id,
   firstName: r.first_name,
   lastName: r.last_name,

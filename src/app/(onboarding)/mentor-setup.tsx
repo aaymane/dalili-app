@@ -11,6 +11,7 @@ import { IconTile } from '@/components/ui/IconTile';
 import { PressableScale } from '@/components/ui/PressableScale';
 import { Tag } from '@/components/ui/Tag';
 import { Text } from '@/components/ui/Text';
+import { useCreateMyMentor } from '@/features/mentors/hooks';
 import { CityPicker } from '@/features/profile/components/CityPicker';
 import { useProfile } from '@/features/profile/store';
 import { gradients, palette, radius, shadow } from '@/theme/tokens';
@@ -20,6 +21,7 @@ import { leave, rise } from '@/theme/motion';
 export default function MentorSetup() {
   const profile = useProfile((s) => s.profile);
   const update = useProfile((s) => s.update);
+  const createMentor = useCreateMyMentor();
   const [i, setI] = useState(0);
 
   return (
@@ -50,6 +52,8 @@ export default function MentorSetup() {
                 haptic="press"
                 onPress={() => {
                   update({ roles: ['mentor', 'student'], activeRole: 'mentor' });
+                  // La fiche part en validation. Si l'envoi échoue, l'espace Mentor propose de la renvoyer.
+                  createMentor.mutate({ firstName: profile.firstName, lastName: profile.lastName, city: profile.mentorCity ?? '', origin: profile.originCity });
                   router.replace({ pathname: '/(onboarding)/loading', params: { role: 'mentor' } });
                 }}
                 style={[styles.choice, { backgroundColor: '#E8EEFF' }]}>
