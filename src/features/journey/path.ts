@@ -29,6 +29,8 @@ export type Milestone = {
   /** « 2/3 faites », la ville de départ… */
   detail: string;
   status: MilestoneStatus;
+  /** Part des étapes du jalon déjà faites (0 → 1) : l'avion avance d'autant vers lui. */
+  progress: number;
   /** Étape à ouvrir depuis le jalon (l'étape du jour si elle en fait partie). */
   stepId?: string;
 };
@@ -45,6 +47,7 @@ export function buildMilestones(profile: Profile, items: JourneyItem[]): Milesto
     title: profile.originCity ? `Départ de ${profile.originCity}` : 'Ton départ',
     detail: 'C’est ici que tout commence',
     status: 'done',
+    progress: 1,
   };
 
   const out: Milestone[] = [start];
@@ -60,6 +63,7 @@ export function buildMilestones(profile: Profile, items: JourneyItem[]): Milesto
       title: def.title(profile),
       detail: status === 'done' ? 'Fait' : done ? `${done}/${steps.length} étapes faites` : `${steps.length} étape${steps.length > 1 ? 's' : ''}`,
       status,
+      progress: done / steps.length,
       stepId: (current ?? steps.find((s) => !s.done) ?? steps[0]).step.id,
     });
   }

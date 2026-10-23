@@ -1,7 +1,7 @@
 import { Canvas, DashPathEffect, LinearGradient, Path, Skia, vec } from '@shopify/react-native-skia';
 import { router } from 'expo-router';
 import { Check, MapPin } from 'lucide-react-native';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { StyleSheet, useWindowDimensions, View } from 'react-native';
 import Animated, {
   measure,
@@ -22,7 +22,7 @@ import { PressableScale } from '@/components/ui/PressableScale';
 import { Text } from '@/components/ui/Text';
 import { useProfile } from '@/features/profile/store';
 import { haptics } from '@/lib/haptics';
-import { EASE_OUT } from '@/theme/motion';
+import { EASE_IN_OUT, EASE_OUT } from '@/theme/motion';
 import { palette } from '@/theme/tokens';
 
 import { buildMilestones, pathGeometry, type Milestone, type PathGeometry } from '../path';
@@ -41,7 +41,7 @@ const TICKET_H = 156;
 
 /**
  * « Ton chemin » (docs/VISION.md §4.B) : un sentier de ta ville à ta nouvelle vie, qui se trace au fil du défilement
- * (lié au doigt, dans les deux sens). L'avion suit la tangente jusqu'à « Tu es ici » ; la suite est en pointillés.
+ * (lié au doigt, dans les deux sens). L'avion suit la tangente et avance à chaque étape faite vers « Tu es ici » ; la suite est en pointillés.
  * Au bout, le billet, verrouillé tant que le visa n'est pas validé.
  */
 export function JourneyPath() {
@@ -54,6 +54,16 @@ export function JourneyPath() {
 
   const here = milestones.findIndex((m) => m.status === 'current');
   const target = geo ? (here >= 0 ? geo.at[here] : 1) : 0;
+  // L'avion avance à chaque étape faite : entre le jalon précédent et « Tu es ici », au prorata des étapes du jalon,
+  // en gardant un écart pour ne cacher aucune des deux pastilles.
+  const goal = useMemo(() => {
+    if (!geo) return 0;
+    if (here <= 0) return 1;
+    const gap = (NODE * 0.9) / geo.length;
+    const from = geo.at[here - 1] + gap;
+    const to = target - gap;
+    return from + Math.max(0, to - from) * milestones[here].progress;
+  }, [geo, here, target, milestones]);
 
   // Progression du tracé (0 → 1) : la section qui monte dans l'écran dessine le sentier.
   const ref = useAnimatedRef<Animated.View>();
@@ -62,6 +72,12 @@ export function JourneyPath() {
   const { height: screenH } = useWindowDimensions();
   const reveal = useSharedValue(reduced || !scrollY ? 1 : 0);
   const arrived = useSharedValue(false);
+  // Une étape vient d'être faite : l'avion glisse jusqu'à sa nouvelle place au lieu de sauter.
+  const flown = useSharedValue(goal);
+  useEffect(() => {
+    if (reduced || flown.get() === 0) flown.set(goal);
+    else flown.set(withTiming(goal, { duration: 1600, easing: EASE_IN_OUT }));
+  }, [goal, reduced, flown]);
 
   const check = () => {
     'worklet';
@@ -77,13 +93,11 @@ export function JourneyPath() {
     () => check(),
   );
 
-  // L'avion se pose sur « Tu es ici » : un petit retour haptique, une fois.
-  const traveled = useDerivedValue(() => Math.min(reveal.get(), target));
-  // L'avion s'arrête juste avant la pastille « Tu es ici », pour ne pas la cacher.
-  const stop = geo && here >= 0 ? Math.max(0, target - (NODE * 0.9) / geo.length) : target;
-  const flight = useDerivedValue(() => Math.min(reveal.get(), stop));
+  // Le trait plein s'arrête sous l'avion : c'est lui qui le dessine.
+  const traveled = useDerivedValue(() => Math.min(reveal.get(), flown.get()));
+  // L'avion se pose sur sa place : un petit retour haptique, une fois.
   useAnimatedReaction(
-    () => target > 0 && reveal.get() >= target,
+    () => goal > 0 && reveal.get() >= goal,
     (now, prev) => {
       if (now && !prev && !arrived.get() && !reduced) {
         arrived.set(true);
@@ -116,7 +130,7 @@ export function JourneyPath() {
           {milestones.map((m, i) => (
             <Node key={m.id} m={m} pos={geo.nodes[i]} at={geo.at[i]} reveal={reveal} left={i % 2 === 0} width={width} />
           ))}
-          <FlyingPlane geo={geo} traveled={flight} />
+          <FlyingPlane geo={geo} traveled={traveled} />
         </View>
       ) : null}
       <View style={{ marginTop: 6 }}>{ticket.unlocked ? <Ticket data={ticket.data} /> : <LockedTicket />}</View>

@@ -14,6 +14,7 @@ import { addDays, toISODate } from '@/lib/date';
  * /dev-profil?p=aymen&onboarding=1 → même profil, mais ouvre le questionnaire d'onboarding.
  * /dev-profil?p=salma&role=mentor → même profil, en mode Mentor.
  * /dev-profil?p=salma&jours=0 → même profil, arrivée dans 0 jour (billet « Bienvenue à … »).
+ * /dev-profil?p=aymen&faites=bourses,tcf → même profil, avec ces étapes en plus déjà faites.
  * /dev-profil?p=salma&deblocage=1 → même profil, et l'écran de déblocage du billet s'ouvre comme si le visa venait d'être coché.
  * Gardé pour les captures de chaque jalon (désactivé hors mode dev). À supprimer après M5.
  */
@@ -58,7 +59,14 @@ const PROFILES: Record<string, { profile: Partial<Profile>; done: string[] }> = 
     };
 
 export default function DevProfil() {
-  const { p, onboarding, role, jours, deblocage } = useLocalSearchParams<{ p?: string; onboarding?: string; role?: string; jours?: string; deblocage?: string }>();
+  const { p, onboarding, role, jours, deblocage, faites } = useLocalSearchParams<{
+    p?: string;
+    onboarding?: string;
+    role?: string;
+    jours?: string;
+    deblocage?: string;
+    faites?: string;
+  }>();
   useEffect(() => {
     const preset = PROFILES[p ?? 'aymen'];
     if (!__DEV__ || !preset) return;
@@ -66,13 +74,13 @@ export default function DevProfil() {
     const arrival: Partial<Profile> = jours != null ? { arrivalDate: toISODate(addDays(new Date(), Number(jours))) } : {};
     useProfile.setState({ profile: { ...emptyProfile, ...preset.profile, ...mentor, ...arrival }, onboardingDone: !onboarding });
     useJourneyStore.getState().reset();
-    preset.done.forEach((id) => useJourneyStore.getState().toggle(id, true));
+    [...preset.done, ...(faites ? faites.split(',') : [])].forEach((id) => useJourneyStore.getState().toggle(id, true));
     // Le profil arrive avec son visa déjà validé : pas de déblocage, sauf si on veut le tester.
     if (!deblocage) useJourneyStore.getState().markTicketSeen();
     const user = { id: `demo-${p}`, email: preset.profile.email ?? '' };
     useAuth.setState({ demoUser: user, user, status: 'signedIn' });
     setTimeout(() => router.replace(onboarding ? '/(onboarding)' : '/(app)/(tabs)'), 50);
-  }, [p, onboarding, role, jours, deblocage]);
+  }, [p, onboarding, role, jours, deblocage, faites]);
   if (!__DEV__) return <Redirect href="/" />;
   return null;
 }

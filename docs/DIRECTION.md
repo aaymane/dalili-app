@@ -187,7 +187,7 @@ Ce qui reste des pistes vit dans M2 : le **chemin** (tracé au défilement, avio
 
 - Les étapes du site sont regroupées en **6 jalons** (projet d'études, Campus France, visa, logement, arrivée, nouvelle vie), après le départ de ta ville. Un jalon sans étape pour ton profil disparaît.
 - Sentier en S dessiné en Skia : **bleu plein jusqu'à « Tu es ici »**, pointillés ensuite. Il se trace **au défilement, lié au doigt** (dans les deux sens) : pas de chorégraphie d'entrée.
-- L'avion suit la tangente et s'arrête juste avant la pastille « Tu es ici » (retour haptique `select` à l'arrivée, une fois). Halo statique : la boucle de l'accueil reste l'Âme.
+- L'avion suit la tangente et **avance à chaque étape faite** : entre le jalon précédent et « Tu es ici », au prorata des étapes du jalon (1 sur 3 = un tiers du segment), sans jamais cacher une pastille. Le trait plein s'arrête sous lui. Quand une étape est cochée, il glisse jusqu'à sa nouvelle place (1600 ms, `EASE_IN_OUT`). Retour haptique `select` quand le tracé l'atteint, une fois. Halo statique : la boucle de l'accueil reste l'Âme.
 - Chaque jalon se pose quand le tracé l'atteint et ouvre son étape.
 - Au bout, le **billet** (`Ticket.tsx`) : fond Skia avec de vraies encoches de perforation et le ciel étoilé. Verrouillé tant que le visa n'est pas validé : silhouette floue sous un voile nuit, cadenas, « Se débloque quand ton visa est validé ».
 
