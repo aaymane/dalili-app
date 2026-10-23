@@ -57,7 +57,8 @@ export async function syncProfile(p: Profile) {
 
 /**
  * Relit le profil enregistré en ligne (nouveau téléphone, reconnexion).
- * `null` si l'onboarding n'a jamais été terminé : l'inscription crée un profil vide, sans prénom.
+ * `null` si l'onboarding n'a jamais été terminé : l'inscription crée un profil vide, et le profil n'est
+ * envoyé qu'à la fin de l'onboarding (loading.tsx). La situation, première réponse, en est la preuve.
  */
 export async function fetchProfile(): Promise<{ profile: Partial<Profile>; avatarPath: string | null } | null> {
   if (!supabase) return null;
@@ -65,7 +66,7 @@ export async function fetchProfile(): Promise<{ profile: Partial<Profile>; avata
   if (!auth.user) return null;
   const { data: row, error } = await supabase.from('profiles').select('*').eq('id', auth.user.id).maybeSingle();
   if (error) throw error;
-  if (!row?.first_name) return null;
+  if (!row?.situation) return null;
   return {
     avatarPath: row.avatar_url,
     profile: {

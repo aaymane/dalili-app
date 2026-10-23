@@ -254,7 +254,7 @@ function BecomeMentor() {
         label="Envoyer ma fiche à l’équipe"
         accent={gradients.mentor}
         loading={create.isPending}
-        disabled={!city}
+        disabled={!city || !profile.firstName.trim()}
         onPress={() =>
           create.mutate(
             { firstName: profile.firstName, lastName: profile.lastName, city: city ?? '', origin: profile.originCity },
@@ -268,9 +268,9 @@ function BecomeMentor() {
           )
         }
       />
-      {!city ? (
+      {!city || !profile.firstName.trim() ? (
         <Text variant="caption" color={palette.muted}>
-          Choisis d’abord ta ville dans ton profil.
+          {!profile.firstName.trim() ? 'Ajoute d’abord ton prénom dans ton profil : les étudiants le verront.' : 'Choisis d’abord ta ville dans ton profil.'}
         </Text>
       ) : null}
     </View>

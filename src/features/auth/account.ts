@@ -26,7 +26,9 @@ export async function restoreFromServer() {
   const pull = Promise.all([fetchProfile(), fetchJourney()]).then(([saved, journey]) => {
     if (journey) useJourneyStore.setState(journey);
     if (!saved) return;
-    useProfile.setState((s) => ({ profile: { ...s.profile, ...saved.profile }, onboardingDone: true }));
+    // Une valeur vide en ligne n'efface jamais celle du téléphone (prénom saisi à l'inscription, par exemple).
+    const filled = Object.fromEntries(Object.entries(saved.profile).filter(([, v]) => v !== '' && v != null));
+    useProfile.setState((s) => ({ profile: { ...s.profile, ...filled }, onboardingDone: true }));
     // La photo arrive après coup : l'accueil s'affiche sans l'attendre.
     if (saved.avatarPath)
       restoreAvatar(saved.avatarPath)

@@ -8,6 +8,7 @@ import { isSupabaseConfigured } from '@/lib/env';
 import { persistStorage } from '@/lib/storage';
 import { supabase } from '@/lib/supabase';
 import { unregisterPush } from '@/features/notifications/push';
+import { useProfile } from '@/features/profile/store';
 
 import { deleteOnlineAccount, resetLocalData, restoreFromServer, watchProfile } from './account';
 
@@ -70,7 +71,23 @@ export const useAuth = create<AuthState>()(
         const apply = async (u: { id: string; email?: string } | undefined) => {
           const call = ++latest;
           if (u && u.id !== get().ownerId) {
+            // L'inscription vient de remplir prénom, pays… pour CE compte (même email) : on les garde,
+            // sinon le profil en ligne n'aurait jamais de prénom. Rien d'un autre compte n'est conservé.
+            const typed = useProfile.getState().profile;
+            const sameAccount = !!u.email && typed.email.trim().toLowerCase() === u.email.trim().toLowerCase();
+            const identity = sameAccount
+              ? {
+                  email: typed.email,
+                  firstName: typed.firstName,
+                  lastName: typed.lastName,
+                  gender: typed.gender,
+                  country: typed.country,
+                  originCity: typed.originCity,
+                  birthDate: typed.birthDate,
+                }
+              : null;
             resetLocalData();
+            if (identity) useProfile.getState().update(identity);
             set({ ownerId: u.id, status: 'loading' });
             restoring = restoreFromServer();
           }

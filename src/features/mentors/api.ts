@@ -91,3 +91,11 @@ export async function answerRequest(id: string, status: 'confirmed' | 'cancelled
   const { error } = await supabase.from('bookings').update({ status }).eq('id', id);
   if (error) throw error;
 }
+
+/** Le nom affiché aux étudiants suit celui du profil (prénom ajouté ou corrigé après coup). */
+export async function setMyMentorName(firstName: string, lastName: string) {
+  const user = await sessionUser();
+  if (!supabase || !user) return;
+  const { error } = await supabase.from('mentors').update({ first_name: firstName, last_name: lastName }).eq('user_id', user.id);
+  if (error) throw error;
+}

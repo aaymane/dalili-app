@@ -35,6 +35,7 @@ import { isDemoMode, useAuth } from '@/features/auth/store';
 import { useJourney } from '@/features/journey/store';
 import { askNotifications, unregisterPush } from '@/features/notifications/push';
 import { AvatarSheet } from '@/features/profile/components/AvatarSheet';
+import { NameCard } from '@/features/profile/components/NameCard';
 import { useProfile } from '@/features/profile/store';
 import { useRoleTheme } from '@/theme';
 import { palette, radius, roleColors, shadow, type Tone } from '@/theme/tokens';
@@ -109,6 +110,8 @@ export default function Profil() {
             </View>
           </View>
         </Animated.View>
+
+        {!profile.firstName.trim() ? <NameCard /> : null}
 
         <Animated.View entering={rise(60)} style={styles.stats}>
           <ProgressRing progress={j.progress} size={64} track="#E6EBF7" textColor={palette.navy} />
