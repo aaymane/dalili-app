@@ -34,8 +34,9 @@
       [
         "expo-image-picker",
         {
-          "photosPermission": "DALILI utilise tes photos pour ta photo de profil et les documents que tu partages avec ton mentor.",
-          "cameraPermission": "DALILI utilise l’appareil photo pour ta photo de profil."
+          "photosPermission": "DALILI utilise tes photos pour ta photo de profil.",
+          "cameraPermission": "DALILI utilise l’appareil photo pour ta photo de profil.",
+          "microphonePermission": false
         }
       ],
       [
@@ -60,6 +61,12 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
-    }
+    },
+    "extra": {
+      "eas": {
+        "projectId": "3414c7f6-c3f4-4ac7-8929-81c769c8526c"
+      }
+    },
+    "owner": "amriayman1"
   }
 }

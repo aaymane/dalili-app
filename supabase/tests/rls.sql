@@ -234,6 +234,72 @@ select tests.must_fail('le serveur n''envoie pas deux fois la même alerte',
   $q$insert into public.notification_events (subject_id, event) values ('00000000-0000-0000-0000-0000000000f9', 'booking_created')$q$);
 rollback;
 
+-- ───────────── webhook : la base prévient le site, « annulée par qui » ─────────────
+-- Faux coffre et faux pg_net : les appels sont enregistrés au lieu d'être envoyés.
+create schema if not exists vault;
+create table vault.decrypted_secrets (name text primary key, decrypted_secret text);
+create schema if not exists net;
+create table tests.webhook_calls (url text, body jsonb, headers jsonb);
+create function net.http_post(url text, body jsonb, headers jsonb, timeout_milliseconds int) returns bigint
+  language sql as $$ insert into tests.webhook_calls values (url, body, headers) returning 1 $$;
+grant select on tests.webhook_calls to authenticated;
+
+begin;
+insert into vault.decrypted_secrets values ('notify_webhook_url', 'https://site.test/api/hooks/notify'), ('notify_webhook_secret', 'secret-test');
+insert into public.mentors (id, user_id, first_name, last_name, city, is_active) values
+  ('00000000-0000-0000-0000-0000000000e1', '00000000-0000-0000-0000-00000000000c', 'Yassine', 'Kadiri', 'Lyon', true),
+  ('00000000-0000-0000-0000-0000000000e2', '00000000-0000-0000-0000-00000000000d', 'Nadia', 'Daoud', 'Lille', false);
+set local role authenticated;
+set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-00000000000a","role":"authenticated"}';
+insert into public.bookings (id, student_id, mentor_id, starts_at, topic) values
+  ('00000000-0000-0000-0000-0000000000f1', auth.uid(), '00000000-0000-0000-0000-0000000000e1', now() + interval '2 days', 'Visa'),
+  ('00000000-0000-0000-0000-0000000000f2', auth.uid(), '00000000-0000-0000-0000-0000000000e1', now() + interval '3 days', 'CAF');
+select tests.must_count('nouvelle demande : la base prévient le site, avec le secret',
+  $q$select * from tests.webhook_calls where body ->> 'event' = 'booking_created' and headers ->> 'x-webhook-secret' = 'secret-test' and url = 'https://site.test/api/hooks/notify'$q$, 2);
+select tests.must_count('le webhook n''envoie ni nom, ni sujet, ni date : seulement l''événement et l''identifiant',
+  $q$select * from tests.webhook_calls where (select count(*) from jsonb_object_keys(body)) <> 2$q$, 0);
+select tests.must_fail('A écrit « annulée par le mentor » à la main', $q$update public.bookings set cancelled_by = 'mentor' where id = '00000000-0000-0000-0000-0000000000f1'$q$);
+select tests.must_fail('A appelle le webhook à la main', 'select public.notify_webhook()');
+update public.bookings set status = 'cancelled' where id = '00000000-0000-0000-0000-0000000000f2';
+select tests.must_count('A annule : « annulée par l''étudiant »', $q$select * from public.bookings where id = '00000000-0000-0000-0000-0000000000f2' and cancelled_by = 'student'$q$, 1);
+select tests.must_count('… et le site est prévenu d''une annulation', $q$select * from tests.webhook_calls where body ->> 'event' = 'booking_cancelled'$q$, 1);
+
+set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-00000000000c","role":"authenticated"}';
+update public.bookings set status = 'cancelled' where id = '00000000-0000-0000-0000-0000000000f1';
+select tests.must_count('le mentor décline : « annulée par le mentor » et réponse envoyée',
+  $q$select * from tests.webhook_calls where body ->> 'event' = 'booking_answered' and body ->> 'id' = '00000000-0000-0000-0000-0000000000f1'$q$, 1);
+update public.bookings set topic = topic where id = '00000000-0000-0000-0000-0000000000f1';
+select tests.must_count('une mise à jour sans changement de statut ne prévient personne', $q$select * from tests.webhook_calls$q$, 4);
+
+reset role;
+update public.mentors set is_active = true where id = '00000000-0000-0000-0000-0000000000e2';
+select tests.must_count('fiche validée : le site est prévenu', $q$select * from tests.webhook_calls where body ->> 'event' = 'mentor_validated'$q$, 1);
+update public.mentors set city = 'Lille' where id = '00000000-0000-0000-0000-0000000000e2';
+select tests.must_count('une fiche déjà validée qu''on modifie ne prévient plus', $q$select * from tests.webhook_calls where body ->> 'event' = 'mentor_validated'$q$, 1);
+
+-- Sans secret (copie locale, base de test) : rien ne part, et la réservation passe quand même.
+delete from vault.decrypted_secrets;
+delete from tests.webhook_calls;
+set local role authenticated;
+set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-00000000000a","role":"authenticated"}';
+insert into public.bookings (student_id, mentor_id, starts_at) values (auth.uid(), '00000000-0000-0000-0000-0000000000e1', now() + interval '5 days');
+select tests.must_count('sans secret, la demande est enregistrée et rien ne part', $q$select * from tests.webhook_calls$q$, 0);
+reset role;
+rollback;
+
+-- Le webhook en panne (pg_net absent) ne bloque jamais une réservation.
+begin;
+drop function net.http_post(text, jsonb, jsonb, int);
+insert into vault.decrypted_secrets values ('notify_webhook_url', 'https://site.test/api/hooks/notify'), ('notify_webhook_secret', 'secret-test');
+insert into public.mentors (id, user_id, first_name, last_name, city, is_active) values
+  ('00000000-0000-0000-0000-0000000000e1', '00000000-0000-0000-0000-00000000000c', 'Yassine', 'Kadiri', 'Lyon', true);
+set local role authenticated;
+set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-00000000000a","role":"authenticated"}';
+insert into public.bookings (student_id, mentor_id, starts_at) values (auth.uid(), '00000000-0000-0000-0000-0000000000e1', now() + interval '2 days');
+select tests.must_count('webhook en panne : la demande est quand même enregistrée', 'select * from public.bookings', 1);
+reset role;
+rollback;
+
 -- ───────────── serveur du site (clé service) ─────────────
 begin;
 set local role service_role;
