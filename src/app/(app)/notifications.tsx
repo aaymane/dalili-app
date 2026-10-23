@@ -1,5 +1,6 @@
 import { router } from 'expo-router';
-import { BellRing, CalendarClock, PartyPopper, Video, type LucideIcon } from 'lucide-react-native';
+import { BellRing, CalendarClock, Hourglass, PartyPopper, Video, type LucideIcon } from 'lucide-react-native';
+import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import Animated from 'react-native-reanimated';
 
@@ -8,8 +9,7 @@ import { Screen } from '@/components/layout/Screen';
 import { IconTile } from '@/components/ui/IconTile';
 import { PressableScale } from '@/components/ui/PressableScale';
 import { Text } from '@/components/ui/Text';
-import { useMentors } from '@/data/hooks';
-import { useLocalDb } from '@/data/local-db';
+import { useMentors, useMyBookings } from '@/data/hooks';
 import { useJourney } from '@/features/journey/store';
 import { daysFromToday, formatLong, formatTime } from '@/lib/date';
 import { gradients, palette, radius, shadow, type Tone } from '@/theme/tokens';
@@ -20,7 +20,8 @@ type N = { id: string; icon: LucideIcon; tone: Tone; title: string; sub: string;
 /** Centre de notifications : échéances proches, rendez-vous, bienvenue. */
 export default function Notifications() {
   const j = useJourney();
-  const bookings = useLocalDb((s) => s.bookings).filter((b) => b.status === 'confirmed');
+  const [since] = useState(() => Date.now());
+  const bookings = useMyBookings().data.filter((b) => (b.status === 'pending' || b.status === 'confirmed') && new Date(b.startsAt).getTime() > since);
   const { data: mentors = [] } = useMentors();
 
   const items: N[] = [
@@ -28,11 +29,11 @@ export default function Notifications() {
       const m = mentors.find((x) => x.id === b.mentorId);
       return {
         id: b.id,
-        icon: Video,
-        tone: 'green' as const,
-        title: `Appel avec ${m?.firstName ?? 'ton mentor'}`,
-        sub: `${formatLong(b.startsAt)} · ${formatTime(b.startsAt)} · ${b.topic}`,
-        onPress: () => router.push({ pathname: '/(app)/appel/[id]', params: { id: b.id } }),
+        icon: b.status === 'pending' ? Hourglass : Video,
+        tone: b.status === 'pending' ? ('amber' as const) : ('green' as const),
+        title: b.status === 'pending' ? `Demande envoyée à ${m?.firstName ?? 'ton mentor'}` : `Appel avec ${m?.firstName ?? 'ton mentor'}`,
+        sub: `${formatLong(b.startsAt)} · ${formatTime(b.startsAt)} · ${b.status === 'pending' ? 'en attente de sa réponse' : b.topic}`,
+        onPress: b.status === 'pending' ? () => router.navigate('/(app)/(tabs)') : () => router.push({ pathname: '/(app)/appel/[id]', params: { id: b.id } }),
       };
     }),
     ...j.upcoming

@@ -1,9 +1,39 @@
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useMemo } from 'react';
 
-import { fetchEvents, fetchGroups, fetchMentors, fetchPosts } from './api';
+import { fetchEvents, fetchGroups, fetchMentors, fetchMyBookings, fetchPosts, remoteCancelBooking } from './api';
 import { fetchCore, fetchGuide, snapshot, snapshotGuide, type Core, type CoreKey } from './content';
 import { useLocalDb } from './local-db';
+import type { Booking } from './types';
+
+const MY_BOOKINGS = ['bookings', 'mine'] as const;
+
+/**
+ * Tes demandes et rendez-vous. Avec un compte : la base (la réponse du mentor est relue à chaque retour sur l'app, voir lib/query.ts).
+ * En mode démo : ceux enregistrés sur le téléphone.
+ */
+export function useMyBookings() {
+  const q = useQuery({ queryKey: MY_BOOKINGS, queryFn: fetchMyBookings });
+  const local = useLocalDb((s) => s.bookings);
+  return { ...q, data: q.data ?? local };
+}
+
+/** Annuler une demande ou un rendez-vous : disparaît tout de suite, revient si l'annulation échoue. */
+export function useCancelBooking() {
+  const qc = useQueryClient();
+  const cancelLocal = useLocalDb((s) => s.cancelBooking);
+  return useMutation({
+    mutationFn: remoteCancelBooking,
+    onMutate: (id: string) => {
+      cancelLocal(id);
+      const before = qc.getQueryData<Booking[] | null>(MY_BOOKINGS);
+      if (before) qc.setQueryData<Booking[]>(MY_BOOKINGS, before.map((b) => (b.id === id ? { ...b, status: 'cancelled' } : b)));
+      return { before };
+    },
+    onError: (_e, _id, ctx) => qc.setQueryData(MY_BOOKINGS, ctx?.before),
+    onSettled: () => qc.invalidateQueries({ queryKey: MY_BOOKINGS }),
+  });
+}
 
 export function useMentors() {
   return useQuery({ queryKey: ['mentors'], queryFn: fetchMentors });

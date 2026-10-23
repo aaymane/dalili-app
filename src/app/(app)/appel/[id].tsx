@@ -9,8 +9,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Avatar } from '@/components/ui/Avatar';
 import { PressableScale } from '@/components/ui/PressableScale';
 import { Text } from '@/components/ui/Text';
-import { useMentors } from '@/data/hooks';
-import { useLocalDb } from '@/data/local-db';
+import { useMentors, useMyBookings } from '@/data/hooks';
 import { useProfile } from '@/features/profile/store';
 import { haptics } from '@/lib/haptics';
 import { palette } from '@/theme/tokens';
@@ -22,7 +21,7 @@ import { palette } from '@/theme/tokens';
 export default function Call() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const insets = useSafeAreaInsets();
-  const booking = useLocalDb((s) => s.bookings.find((b) => b.id === id));
+  const booking = useMyBookings().data.find((b) => b.id === id);
   const { data: mentors = [] } = useMentors();
   const m = mentors.find((x) => x.id === booking?.mentorId) ?? mentors[0];
   const profile = useProfile((s) => s.profile);

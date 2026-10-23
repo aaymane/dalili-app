@@ -28,6 +28,7 @@ import { IconTile } from '@/components/ui/IconTile';
 import { PressableScale } from '@/components/ui/PressableScale';
 import { ProgressRing } from '@/components/ui/ProgressRing';
 import { Text } from '@/components/ui/Text';
+import { useMyBookings } from '@/data/hooks';
 import { useLocalDb } from '@/data/local-db';
 import { resetLocalData } from '@/features/auth/account';
 import { isDemoMode, useAuth } from '@/features/auth/store';
@@ -61,7 +62,8 @@ export default function Profil() {
   const update = useProfile((s) => s.update);
   const [avatarOpen, setAvatarOpen] = useState(false);
   const signOut = useAuth((s) => s.signOut);
-  const bookings = useLocalDb((s) => s.bookings).filter((b) => b.status === 'confirmed');
+  const [since] = useState(() => Date.now());
+  const bookings = useMyBookings().data.filter((b) => (b.status === 'pending' || b.status === 'confirmed') && new Date(b.startsAt).getTime() > since);
   const saved = useLocalDb((s) => s.savedGuides);
   const groups = useLocalDb((s) => s.joinedGroups);
   const j = useJourney();

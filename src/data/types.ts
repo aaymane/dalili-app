@@ -23,7 +23,8 @@ export type Booking = {
   mentorId: string;
   startsAt: string;
   topic: string;
-  status: 'confirmed' | 'cancelled' | 'done';
+  /** pending = demande envoyée, le mentor n'a pas encore répondu. cancelled = déclinée ou annulée. */
+  status: 'pending' | 'confirmed' | 'cancelled' | 'done';
 };
 
 export type Group = {

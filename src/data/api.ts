@@ -76,6 +76,9 @@ const toPost = (r: Row): Post => ({
 
 export async function fetchMentors(): Promise<Mentor[]> {
   if (!supabase) return demoMentors;
+  // Profils de test sans session (captures) : la base refuserait, on montre les mentors d'exemple.
+  const { data: s } = await supabase.auth.getSession();
+  if (!s.session) return demoMentors;
   const { data, error } = await supabase.from('mentors').select('*').eq('is_active', true).order('rating', { ascending: false });
   if (error) throw error;
   return (data ?? []).map(toMentor);
@@ -185,11 +188,46 @@ export async function remoteCreateEvent(e: Omit<CommunityEvent, 'id' | 'attendee
   return toEvent(data);
 }
 
-export async function remoteCreateBooking(b: Omit<Booking, 'id' | 'status'>) {
+const toBooking = (r: Row): Booking => ({ id: r.id, mentorId: r.mentor_id, startsAt: r.starts_at, topic: r.topic, status: r.status });
+
+/**
+ * Demande d'appel. Pas de statut envoyé : la base décide (« en attente » depuis la migration mentorat_reel,
+ * le mentor accepte ou décline). Renvoie la réservation enregistrée, ou `null` en mode démo.
+ */
+export async function remoteCreateBooking(b: Omit<Booking, 'id' | 'status'>): Promise<Booking | null> {
+  if (!supabase) return null;
+  const { data: s } = await supabase.auth.getSession();
+  const user = s.session?.user;
+  if (!user) return null;
+  const { data, error } = await supabase
+    .from('bookings')
+    .insert({ student_id: user.id, mentor_id: b.mentorId, starts_at: b.startsAt, topic: b.topic })
+    .select('id, mentor_id, starts_at, topic, status')
+    .single();
+  if (error) throw error;
+  return toBooking(data);
+}
+
+/** Tes demandes et rendez-vous, avec la réponse du mentor. `null` = mode démo (on lit le téléphone). */
+export async function fetchMyBookings(): Promise<Booking[] | null> {
+  if (!supabase) return null;
+  const { data: s } = await supabase.auth.getSession();
+  const user = s.session?.user;
+  if (!user) return null;
+  const { data, error } = await supabase
+    .from('bookings')
+    .select('id, mentor_id, starts_at, topic, status')
+    .eq('student_id', user.id)
+    .order('starts_at', { ascending: true });
+  if (error) throw error;
+  return (data ?? []).map(toBooking);
+}
+
+/** Annuler sa demande ou son rendez-vous (la base n'autorise rien d'autre à l'étudiant). */
+export async function remoteCancelBooking(id: string) {
   if (!supabase) return;
-  const { data: u } = await supabase.auth.getUser();
-  if (!u.user) return;
-  // Pas de statut envoyé : la base décide (« en attente » depuis la migration mentorat_reel, le mentor accepte ou décline).
-  const { error } = await supabase.from('bookings').insert({ student_id: u.user.id, mentor_id: b.mentorId, starts_at: b.startsAt, topic: b.topic });
+  const { data: s } = await supabase.auth.getSession();
+  if (!s.session) return;
+  const { error } = await supabase.from('bookings').update({ status: 'cancelled' }).eq('id', id);
   if (error) throw error;
 }
