@@ -1,6 +1,5 @@
-import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
-import { ChevronRight, Map, MessageCircle, Video } from 'lucide-react-native';
+import { ChevronRight, Map, MessageCircle } from 'lucide-react-native';
 import { useState } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import Animated from 'react-native-reanimated';
@@ -8,23 +7,21 @@ import Animated from 'react-native-reanimated';
 import { AppHeader } from '@/components/layout/AppHeader';
 import { Reveal } from '@/components/motion/Reveal';
 import { Screen } from '@/components/layout/Screen';
-import { Avatar } from '@/components/ui/Avatar';
 import { IconTile } from '@/components/ui/IconTile';
 import { PressableScale } from '@/components/ui/PressableScale';
 import { SectionHeader } from '@/components/ui/SectionHeader';
 import { Text } from '@/components/ui/Text';
-import { useGroups, useMentors } from '@/data/hooks';
-import { useLocalDb } from '@/data/local-db';
+import { useGroups, useMentors, useMyBookings } from '@/data/hooks';
 import { ArrivalSheet } from '@/features/journey/components/ArrivalSheet';
 import { JourneyPath } from '@/features/journey/components/JourneyPath';
 import { MobilityCard } from '@/features/journey/components/MobilityCard';
 import { Ticket } from '@/features/journey/components/Ticket';
 import { useJourney } from '@/features/journey/store';
 import { useTicket } from '@/features/journey/ticket';
+import { BookingCard } from '@/features/mentors/components/BookingCard';
 import { MentorTile } from '@/features/mentors/components/MentorCard';
 import { MentorsSoon } from '@/features/mentors/components/MentorsSoon';
 import { useProfile } from '@/features/profile/store';
-import { daysFromToday, formatLong, formatTime } from '@/lib/date';
 import { enter, reflow } from '@/theme/motion';
 import { gradients, palette, radius, shadow } from '@/theme/tokens';
 
@@ -43,7 +40,9 @@ export function StudentHome() {
   const { data: mentors = [] } = useMentors();
   const { data: groups } = useGroups();
   const [since] = useState(() => Date.now() - 3_600_000);
-  const bookings = useLocalDb((s) => s.bookings).filter((b) => b.status === 'confirmed' && new Date(b.startsAt).getTime() > since);
+  const { data: allBookings } = useMyBookings();
+  // Prochaine demande en attente ou prochain appel confirmé (le plus proche d'abord).
+  const bookings = allBookings.filter((b) => (b.status === 'pending' || b.status === 'confirmed') && new Date(b.startsAt).getTime() > since);
   const [arrivalOpen, setArrivalOpen] = useState(false);
   const ticket = useTicket();
 
@@ -97,33 +96,7 @@ export function StudentHome() {
       </View>
 
       <View style={{ paddingHorizontal: 20, gap: 26, marginTop: 26 }}>
-        {booking && bookingMentor ? (
-          <LinearGradient colors={gradients.hero} style={styles.slide}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-              <Avatar name={`${bookingMentor.firstName} ${bookingMentor.lastName}`} color={bookingMentor.avatarColor} size={46} />
-              <View style={{ flex: 1 }}>
-                <Text variant="h3" color="#fff">
-                  Appel avec {bookingMentor.firstName}
-                </Text>
-                <Text variant="small" color="rgba(255,255,255,0.65)">
-                  {formatLong(booking.startsAt)} · {formatTime(booking.startsAt)}
-                </Text>
-              </View>
-              <View style={styles.live}>
-                <View style={styles.liveDot} />
-                <Text variant="caption" color="#FF8A8A">
-                  {daysFromToday(booking.startsAt) === 0 ? 'AUJOURD’HUI' : 'À VENIR'}
-                </Text>
-              </View>
-            </View>
-            <PressableScale onPress={() => router.push({ pathname: '/(app)/appel/[id]', params: { id: booking.id } })} style={[styles.slideCta, { backgroundColor: palette.electric }]}>
-              <Video size={15} color="#fff" />
-              <Text variant="smallStrong" color="#fff">
-                Rejoindre l’appel
-              </Text>
-            </PressableScale>
-          </LinearGradient>
-        ) : null}
+        {booking && bookingMentor ? <BookingCard booking={booking} mentor={bookingMentor} /> : null}
 
         <Reveal>
           <MobilityCard onEditArrival={() => setArrivalOpen(true)} />
@@ -191,10 +164,6 @@ export function StudentHome() {
 }
 
 const styles = StyleSheet.create({
-  slide: { borderRadius: radius.xxl, padding: 18, ...shadow.md },
-  slideCta: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, backgroundColor: '#fff', height: 44, borderRadius: 999, marginTop: 14 },
-  live: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 8, paddingVertical: 4, borderRadius: 999, backgroundColor: 'rgba(229,72,77,0.15)' },
-  liveDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: '#FF6B6B' },
   journeyRow: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 12, minHeight: 44, borderRadius: radius.xl, backgroundColor: '#fff', ...shadow.sm },
   groupRow: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 12, borderRadius: radius.xl, backgroundColor: '#fff', ...shadow.sm },
   count: { paddingHorizontal: 9, paddingVertical: 3, borderRadius: 999, backgroundColor: '#F1F3F9' },
