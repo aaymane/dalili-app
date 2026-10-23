@@ -13,6 +13,7 @@ import {
   Sprout,
   UserRound,
   ChevronRight,
+  type LucideIcon,
 } from 'lucide-react-native';
 import { useState, type ReactNode } from 'react';
 import { Platform, StyleSheet, View } from 'react-native';
@@ -31,14 +32,10 @@ import { useProfile } from '@/features/profile/store';
 import { concernLabels, type CampusStatus, type Concern, type HousingStatus, type StudyLevel } from '@/features/profile/types';
 import { haptics } from '@/lib/haptics';
 import { toISODate } from '@/lib/date';
-import { gradients, palette, radius, shadow } from '@/theme/tokens';
+import { gradients, palette, radius, shadow, type Tone } from '@/theme/tokens';
 import { leave, rise } from '@/theme/motion';
 
-const tile = (c: [string, string], icon: ReactNode) => (
-  <IconTile size={42} colors={c} radius={13}>
-    {icon}
-  </IconTile>
-);
+const tile = (tone: Tone, icon: LucideIcon) => <IconTile icon={icon} tone={tone} size={42} radius={13} />;
 
 const QUESTIONS = 6;
 const tops = [gradients.peach, gradients.sky, gradients.mint, gradients.lilac, gradients.peach, gradients.sky, gradients.lilac];
@@ -124,10 +121,10 @@ export default function StudentQuestions() {
         {i === 0 &&
           (
             [
-              ['bac', 'Je viens d’avoir le BAC', 'Première année en France', tile(['#FDBA74', '#F97316'], <Sprout size={20} color="#fff" />)],
-              ['licence', 'Licence (L1 · L2 · L3)', 'Étudiant·e actuel·le', tile(['#7FA6FF', '#3D78FF'], <BookOpenCheck size={20} color="#fff" />)],
-              ['master', 'Master (M1 · M2)', 'Diplôme + spécialisation', tile(['#C084FC', '#9333EA'], <Briefcase size={20} color="#fff" />)],
-              ['doctorat', 'Doctorat / Recherche', 'PhD, post-doc', tile(['#4ADE80', '#16A34A'], <Microscope size={20} color="#fff" />)],
+              ['bac', 'Je viens d’avoir le BAC', 'Première année en France', tile('amber', Sprout)],
+              ['licence', 'Licence (L1 · L2 · L3)', 'Étudiant·e actuel·le', tile('blue', BookOpenCheck)],
+              ['master', 'Master (M1 · M2)', 'Diplôme + spécialisation', tile('violet', Briefcase)],
+              ['doctorat', 'Doctorat / Recherche', 'PhD, post-doc', tile('green', Microscope)],
             ] as [StudyLevel, string, string, ReactNode][]
           ).map(([v, t, s, icon]) => (
             <OptionCard key={v} title={t} subtitle={s} icon={icon} selected={profile.studyLevel === v} onPress={() => update({ studyLevel: v })} />
@@ -136,10 +133,10 @@ export default function StudentQuestions() {
         {i === 1 &&
           (
             [
-              ['not_started', 'J’ai même pas commencé', 'On t’accompagne de A à Z', tile(['#7FA6FF', '#3D78FF'], <UserRound size={20} color="#fff" />)],
-              ['in_progress', 'Dossier en cours', 'On t’aide à finaliser ton dossier', tile(['#C084FC', '#9333EA'], <FileClock size={20} color="#fff" />)],
-              ['accepted', 'Dossier accepté', 'Bravo ! On prépare ton visa', tile(['#4ADE80', '#16A34A'], <Sparkles size={20} color="#fff" />)],
-              ['enrolled', 'Inscrit·e à l’université', 'On t’installe confortablement', tile(['#FDBA74', '#F97316'], <GraduationCap size={20} color="#fff" />)],
+              ['not_started', 'J’ai même pas commencé', 'On t’accompagne de A à Z', tile('blue', UserRound)],
+              ['in_progress', 'Dossier en cours', 'On t’aide à finaliser ton dossier', tile('violet', FileClock)],
+              ['accepted', 'Dossier accepté', 'Bravo ! On prépare ton visa', tile('green', Sparkles)],
+              ['enrolled', 'Inscrit·e à l’université', 'On t’installe confortablement', tile('amber', GraduationCap)],
             ] as [CampusStatus, string, string, ReactNode][]
           ).map(([v, t, s, icon]) => (
             <OptionCard key={v} title={t} subtitle={s} icon={icon} selected={profile.campusStatus === v} onPress={() => update({ campusStatus: v })} />
@@ -184,9 +181,9 @@ export default function StudentQuestions() {
         {i === 4 &&
           (
             [
-              ['none', 'Pas encore cherché', 'On commence ensemble, étape par étape', tile(['#FDBA74', '#F97316'], <Sprout size={20} color="#fff" />)],
-              ['searching', 'Je cherche', 'CROUS, coloc, résidence… on t’aide à trier', tile(['#7FA6FF', '#3D78FF'], <FileClock size={20} color="#fff" />)],
-              ['found', 'C’est réglé !', 'Bravo, on passe à la suite', tile(['#4ADE80', '#16A34A'], <CircleCheckBig size={20} color="#fff" />)],
+              ['none', 'Pas encore cherché', 'On commence ensemble, étape par étape', tile('amber', Sprout)],
+              ['searching', 'Je cherche', 'CROUS, coloc, résidence… on t’aide à trier', tile('blue', FileClock)],
+              ['found', 'C’est réglé !', 'Bravo, on passe à la suite', tile('green', CircleCheckBig)],
             ] as [HousingStatus, string, string, ReactNode][]
           ).map(([v, t, s, icon]) => (
             <OptionCard key={v} title={t} subtitle={s} icon={icon} selected={profile.housing === v} onPress={() => update({ housing: v })} />
@@ -216,9 +213,7 @@ export default function StudentQuestions() {
               { d: 'Dans 18 j', t: 'Ton aide au loyer', s: 'CAF · APL' },
             ].map((n, k) => (
               <View key={k} style={styles.notif}>
-                <IconTile size={36} bg={palette.electricSoft} radius={11}>
-                  <BellRing size={16} color={palette.electric} />
-                </IconTile>
+                <IconTile icon={BellRing} tone="blue" size={36} radius={11} />
                 <View style={{ flex: 1 }}>
                   <Text variant="smallStrong">{n.t}</Text>
                   <Text variant="caption" color={palette.muted}>

@@ -31,9 +31,7 @@ export function GlossarySheetHost() {
       {t ? (
         <View style={{ gap: 14 }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-            <IconTile bg={palette.electricSoft}>
-              <BookOpen size={20} color={palette.electric} />
-            </IconTile>
+            <IconTile icon={BookOpen} tone="blue" />
             <View style={{ flex: 1 }}>
               <Text variant="h1">{t.term}</Text>
               {t.full ? (

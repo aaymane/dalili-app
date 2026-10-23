@@ -135,9 +135,7 @@ export default function Explorer() {
         <Animated.View entering={FadeIn.duration(200)} style={{ gap: 16, marginTop: 14, paddingHorizontal: 20 }}>
           <PressableScale onPress={() => router.push('/(app)/lexique')}>
             <LinearGradient colors={['#2B1F7A', '#1F2850']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.lexique}>
-              <IconTile size={46} colors={['#C084FC', '#7A5AF8']} radius={14}>
-                <Languages size={22} color="#fff" />
-              </IconTile>
+              <IconTile icon={Languages} tone="violet" size={46} radius={14} />
               <View style={{ flex: 1 }}>
                 <Text variant="h3" color="#fff">
                   Le lexique anti-jargon

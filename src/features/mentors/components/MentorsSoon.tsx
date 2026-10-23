@@ -11,9 +11,7 @@ import { palette, radius, shadow } from '@/theme/tokens';
 export function MentorsSoon() {
   return (
     <View style={styles.card}>
-      <IconTile size={46} bg={palette.mentorSoft} radius={23}>
-        <UsersRound size={20} color={palette.mentor} />
-      </IconTile>
+      <IconTile icon={UsersRound} tone="green" size={46} radius={23} />
       <View style={{ flex: 1, gap: 4 }}>
         <Text variant="bodyStrong">Les premiers mentors arrivent bientôt</Text>
         <Text variant="small" color={palette.muted}>

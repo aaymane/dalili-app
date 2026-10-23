@@ -11,33 +11,12 @@ import { useContent } from '@/data/hooks';
 import { palette, radius, shadow } from '@/theme/tokens';
 import { reflow } from '@/theme/motion';
 
-/** Accents décoratifs des pastilles de ville (pas une couleur d'action). */
-const ACCENTS: Record<string, string> = {
-  paris: '#3D78FF',
-  lyon: '#A855F7',
-  toulouse: '#F43F5E',
-  bordeaux: '#22C55E',
-  marseille: '#F97316',
-  lille: '#6366F1',
-  nantes: '#14B8A6',
-  montpellier: '#EAB308',
-  strasbourg: '#EC4899',
-  rennes: '#0EA5E9',
-  grenoble: '#84CC16',
-  nice: '#06B6D4',
-  'clermont-ferrand': '#8B5CF6',
-  dijon: '#D946EF',
-  caen: '#64748B',
-};
-
-function CityCard({ name, budget, color, selected, onPress }: { name: string; budget: string; color: string; selected: boolean; onPress: () => void }) {
+function CityCard({ name, budget, selected, onPress }: { name: string; budget: string; selected: boolean; onPress: () => void }) {
   const s = useAnimatedStyle(() => ({ borderColor: withTiming(selected ? palette.electric : '#EEF0F6', { duration: 160 }) }));
   return (
     <PressableScale onPress={onPress} haptic="select">
       <Animated.View style={[styles.city, s, selected && { backgroundColor: '#F6F8FF' }]}>
-        <IconTile size={30} colors={[color, color]} radius={10}>
-          <MapPin size={15} color="#fff" />
-        </IconTile>
+        <IconTile icon={MapPin} tone={selected ? 'blue' : 'slate'} size={30} radius={10} />
         <Text variant="smallStrong" numberOfLines={1}>
           {name}
         </Text>
@@ -79,7 +58,6 @@ export function CityPicker({ value, onChange, allowUnknown = true }: { value: st
             <CityCard
               name={c.name}
               budget={`≈ ${c.monthlyBudget.min}–${c.monthlyBudget.max} €/mois`}
-              color={ACCENTS[c.id] ?? palette.electricLight}
               selected={value === c.name}
               onPress={() => onChange(c.name)}
             />

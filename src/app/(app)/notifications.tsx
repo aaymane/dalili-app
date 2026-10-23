@@ -1,6 +1,5 @@
 import { router } from 'expo-router';
-import { BellRing, CalendarClock, PartyPopper, Video } from 'lucide-react-native';
-import type { ReactNode } from 'react';
+import { BellRing, CalendarClock, PartyPopper, Video, type LucideIcon } from 'lucide-react-native';
 import { StyleSheet, View } from 'react-native';
 import Animated from 'react-native-reanimated';
 
@@ -13,10 +12,10 @@ import { useMentors } from '@/data/hooks';
 import { useLocalDb } from '@/data/local-db';
 import { useJourney } from '@/features/journey/store';
 import { daysFromToday, formatLong, formatTime } from '@/lib/date';
-import { gradients, palette, radius, shadow } from '@/theme/tokens';
+import { gradients, palette, radius, shadow, type Tone } from '@/theme/tokens';
 import { rise } from '@/theme/motion';
 
-type N = { id: string; icon: ReactNode; colors: [string, string]; title: string; sub: string; onPress?: () => void; urgent?: boolean };
+type N = { id: string; icon: LucideIcon; tone: Tone; title: string; sub: string; onPress?: () => void; urgent?: boolean };
 
 /** Centre de notifications : échéances proches, rendez-vous, bienvenue. */
 export default function Notifications() {
@@ -29,8 +28,8 @@ export default function Notifications() {
       const m = mentors.find((x) => x.id === b.mentorId);
       return {
         id: b.id,
-        icon: <Video size={18} color="#fff" />,
-        colors: ['#34D399', palette.mentor] as [string, string],
+        icon: Video,
+        tone: 'green' as const,
         title: `Appel avec ${m?.firstName ?? 'ton mentor'}`,
         sub: `${formatLong(b.startsAt)} · ${formatTime(b.startsAt)} · ${b.topic}`,
         onPress: () => router.push({ pathname: '/(app)/appel/[id]', params: { id: b.id } }),
@@ -43,15 +42,15 @@ export default function Notifications() {
         const d = daysFromToday(u.date);
         return {
           id: u.kind === 'official' ? u.step.id : u.custom.id,
-          icon: <CalendarClock size={18} color="#fff" />,
-          colors: (d <= 7 ? ['#FB7185', '#E11D48'] : ['#7FA6FF', '#3D78FF']) as [string, string],
+          icon: CalendarClock,
+          tone: d <= 7 ? ('red' as const) : ('blue' as const),
           title: u.kind === 'official' ? u.step.title : u.custom.title,
           sub: d < 0 ? `En retard de ${-d} j` : d === 0 ? "C'est aujourd'hui" : `Échéance dans ${d} jours`,
           urgent: d <= 7,
           onPress: u.kind === 'official' ? () => router.push({ pathname: '/(app)/etape/[id]', params: { id: u.step.id } }) : undefined,
         };
       }),
-    { id: 'welcome', icon: <PartyPopper size={18} color="#fff" />, colors: ['#C084FC', '#7A5AF8'], title: 'Bienvenue sur DALILI 💙', sub: 'Ton parcours est prêt. On avance ensemble, une étape à la fois.' },
+    { id: 'welcome', icon: PartyPopper, tone: 'violet', title: 'Bienvenue sur DALILI 💙', sub: 'Ton parcours est prêt. On avance ensemble, une étape à la fois.' },
   ];
 
   return (
@@ -60,9 +59,7 @@ export default function Notifications() {
         {items.map((n, i) => (
           <Animated.View key={n.id} entering={rise(i * 50)}>
             <PressableScale onPress={n.onPress ?? (() => {})} style={[styles.row, n.urgent && { borderColor: '#FBD5D5', borderWidth: 1.5 }]}>
-              <IconTile size={42} colors={n.colors} radius={13}>
-                {n.icon}
-              </IconTile>
+              <IconTile icon={n.icon} tone={n.tone} size={42} radius={13} />
               <View style={{ flex: 1 }}>
                 <Text variant="bodyStrong">{n.title}</Text>
                 <Text variant="caption" color={n.urgent ? palette.danger : palette.muted}>

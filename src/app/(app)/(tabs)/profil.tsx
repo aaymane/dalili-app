@@ -1,5 +1,6 @@
 import { router, type Href } from 'expo-router';
 import {
+  type LucideIcon,
   Bell,
   Bookmark,
   BrainCircuit,
@@ -34,15 +35,13 @@ import { useJourney } from '@/features/journey/store';
 import { AvatarSheet } from '@/features/profile/components/AvatarSheet';
 import { useProfile } from '@/features/profile/store';
 import { useRoleTheme } from '@/theme';
-import { palette, radius, roleColors, shadow } from '@/theme/tokens';
+import { palette, radius, roleColors, shadow, type Tone } from '@/theme/tokens';
 import { pop, rise } from '@/theme/motion';
 
-function Row({ icon, label, sub, onPress, right, colors }: { icon: ReactNode; label: string; sub?: string; onPress?: () => void; right?: ReactNode; colors: [string, string] }) {
+function Row({ icon, label, sub, onPress, right, tone }: { icon: LucideIcon; label: string; sub?: string; onPress?: () => void; right?: ReactNode; tone: Tone }) {
   return (
     <PressableScale onPress={onPress} disabled={!onPress && !right} scaleTo={0.985} style={styles.row}>
-      <IconTile size={38} colors={colors} radius={12}>
-        {icon}
-      </IconTile>
+      <IconTile icon={icon} tone={tone} size={38} radius={12} />
       <View style={{ flex: 1 }}>
         <Text variant="bodyStrong">{label}</Text>
         {sub ? (
@@ -131,32 +130,32 @@ export default function Profil() {
         </Animated.View>
 
         <Animated.View entering={rise(100)} style={styles.group}>
-          <Row icon={<BrainCircuit size={18} color="#fff" />} colors={['#7A8CFF', '#7A5AF8']} label="Profil IA" sub="Ce que Dalili sait de toi" onPress={go('/(app)/profil-ia')} />
-          <Row icon={<Map size={18} color="#fff" />} colors={['#7FA6FF', '#3D78FF']} label="Mon Parcours-quête" sub={`${Math.round(j.progress * 100)}% · ${j.total - j.doneCount} étapes restantes`} onPress={go('/(app)/parcours')} />
-          <Row icon={<CalendarCheck2 size={18} color="#fff" />} colors={['#34D399', palette.mentor]} label="Mes rendez-vous" sub={bookings.length ? `${bookings.length} à venir` : 'Aucun pour le moment'} onPress={go('/(app)/parcours?view=calendar')} />
-          <Row icon={<Bookmark size={18} color="#fff" />} colors={['#FDBA74', '#F97316']} label="Guides enregistrés" sub={`${saved.length} guide${saved.length > 1 ? 's' : ''}`} onPress={go('/(app)/(tabs)/explorer?tab=guides')} />
-          <Row icon={<FolderCheck size={18} color="#fff" />} colors={['#C084FC', '#9333EA']} label="Mes documents" sub="La checklist de tes papiers" onPress={go('/(app)/outils/documents')} />
+          <Row icon={BrainCircuit} tone="violet" label="Profil IA" sub="Ce que Dalili sait de toi" onPress={go('/(app)/profil-ia')} />
+          <Row icon={Map} tone="blue" label="Mon Parcours-quête" sub={`${Math.round(j.progress * 100)}% · ${j.total - j.doneCount} étapes restantes`} onPress={go('/(app)/parcours')} />
+          <Row icon={CalendarCheck2} tone="green" label="Mes rendez-vous" sub={bookings.length ? `${bookings.length} à venir` : 'Aucun pour le moment'} onPress={go('/(app)/parcours?view=calendar')} />
+          <Row icon={Bookmark} tone="orange" label="Guides enregistrés" sub={`${saved.length} guide${saved.length > 1 ? 's' : ''}`} onPress={go('/(app)/(tabs)/explorer?tab=guides')} />
+          <Row icon={FolderCheck} tone="amber" label="Mes documents" sub="La checklist de tes papiers" onPress={go('/(app)/outils/documents')} />
         </Animated.View>
 
         <Animated.View entering={rise(140)} style={styles.group}>
-          <Row icon={<Repeat size={18} color="#fff" />} colors={['#94A3B8', '#475569']} label="Changer de mode" sub={`Actuellement : ${roleColors[profile.activeRole].label}`} onPress={go('/(app)/role')} />
+          <Row icon={Repeat} tone="slate" label="Changer de mode" sub={`Actuellement : ${roleColors[profile.activeRole].label}`} onPress={go('/(app)/role')} />
           <Row
-            icon={<Bell size={18} color="#fff" />}
-            colors={['#94A3B8', '#475569']}
+            icon={Bell}
+            tone="slate"
             label="Rappels d’échéances"
             sub="Visa, CAF, CVEC…"
             right={<Switch value={profile.notificationsEnabled} onValueChange={(v) => update({ notificationsEnabled: v })} trackColor={{ true: accent, false: '#D5DAE7' }} thumbColor="#fff" />}
           />
-          <Row icon={<Languages size={18} color="#fff" />} colors={['#94A3B8', '#475569']} label="Langue" sub="Français · العربية et English bientôt" onPress={() => toast('Arabe et anglais arrivent bientôt 🌍', 'info')} />
-          <Row icon={<Siren size={18} color="#fff" />} colors={['#FB7185', '#E11D48']} label="Urgences & SOS" sub="Numéros utiles en France" onPress={go('/(app)/outils/sos')} />
-          <Row icon={<ShieldCheck size={18} color="#fff" />} colors={['#94A3B8', '#475569']} label="Confidentialité" sub="Tes données, supprimer ton compte" onPress={go('/(app)/confidentialite')} />
+          <Row icon={Languages} tone="slate" label="Langue" sub="Français · العربية et English bientôt" onPress={() => toast('Arabe et anglais arrivent bientôt 🌍', 'info')} />
+          <Row icon={Siren} tone="red" label="Urgences & SOS" sub="Numéros utiles en France" onPress={go('/(app)/outils/sos')} />
+          <Row icon={ShieldCheck} tone="slate" label="Confidentialité" sub="Tes données, supprimer ton compte" onPress={go('/(app)/confidentialite')} />
         </Animated.View>
 
         <Animated.View entering={rise(180)} style={styles.group}>
           {isDemoMode && (
             <Row
-              icon={<RefreshCw size={18} color="#fff" />}
-              colors={['#FDBA74', '#F97316']}
+              icon={RefreshCw}
+              tone="amber"
               label="Réinitialiser la démo"
               sub="Recommencer l’onboarding"
               onPress={() =>
@@ -167,7 +166,7 @@ export default function Profil() {
               }
             />
           )}
-          <Row icon={<LogOut size={18} color="#fff" />} colors={['#F87171', '#E5484D']} label="Se déconnecter" onPress={() => confirm('Se déconnecter ?', 'Tu pourras te reconnecter à tout moment.', () => signOut())} />
+          <Row icon={LogOut} tone="red" label="Se déconnecter" onPress={() => confirm('Se déconnecter ?', 'Tu pourras te reconnecter à tout moment.', () => signOut())} />
         </Animated.View>
         <Text variant="caption" color={palette.muted} align="center">
           DALILI v0.1 · {isDemoMode ? 'Mode démo' : 'Connecté à Supabase'} · Fait avec 💙 par des étudiants, pour des étudiants

@@ -6,13 +6,22 @@ import { LogoMark } from '@/components/brand/Logo';
 import { Avatar } from '@/components/ui/Avatar';
 import { PressableScale } from '@/components/ui/PressableScale';
 import { Text } from '@/components/ui/Text';
+import { RoleSwitch } from '@/features/profile/components/RoleSwitch';
 import { useProfile } from '@/features/profile/store';
 import { palette, shadow } from '@/theme/tokens';
 
-type Props = { back?: boolean; title?: string; pill?: string; onBack?: () => void; hideActions?: boolean };
+type Props = {
+  back?: boolean;
+  title?: string;
+  pill?: string;
+  onBack?: () => void;
+  hideActions?: boolean;
+  /** Bascule Étudiant / Mentor (accueils), visible seulement pour qui a les deux rôles. */
+  roleSwitch?: boolean;
+};
 
 /** En-tête commun : logo (ou retour) à gauche, notifications + avatar à droite. */
-export function AppHeader({ back, title, pill, onBack, hideActions }: Props) {
+export function AppHeader({ back, title, pill, onBack, hideActions, roleSwitch }: Props) {
   const profile = useProfile((s) => s.profile);
   return (
     <View style={styles.row}>
@@ -36,6 +45,8 @@ export function AppHeader({ back, title, pill, onBack, hideActions }: Props) {
           <Text variant="h3" numberOfLines={1}>
             {title}
           </Text>
+        ) : roleSwitch ? (
+          <RoleSwitch />
         ) : null}
       </View>
       {!hideActions && (

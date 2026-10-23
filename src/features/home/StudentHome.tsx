@@ -1,6 +1,6 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
-import { ChevronDown, ChevronRight, Map, MessageCircle, Video } from 'lucide-react-native';
+import { ChevronRight, Map, MessageCircle, Video } from 'lucide-react-native';
 import { useState } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import Animated from 'react-native-reanimated';
@@ -23,7 +23,6 @@ import { MentorTile } from '@/features/mentors/components/MentorCard';
 import { MentorsSoon } from '@/features/mentors/components/MentorsSoon';
 import { useProfile } from '@/features/profile/store';
 import { daysFromToday, formatLong, formatTime } from '@/lib/date';
-import { useRoleTheme } from '@/theme';
 import { enter, reflow } from '@/theme/motion';
 import { gradients, palette, radius, shadow } from '@/theme/tokens';
 
@@ -31,21 +30,6 @@ import { ActionCard } from './ActionCard';
 import { AskField } from './AskField';
 import { BriefHero } from './BriefHero';
 import { ToolsGrid } from './ToolsGrid';
-
-export function ModePill() {
-  const { label, accent } = useRoleTheme();
-  return (
-    <PressableScale onPress={() => router.push('/(app)/role')} style={styles.mode} accessibilityLabel="Changer de mode">
-      <View style={[styles.modeDot, { backgroundColor: accent }]}>
-        <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: '#fff' }} />
-      </View>
-      <Text variant="caption" color={palette.navy} style={{ letterSpacing: 0.6 }}>
-        MODE {label.toUpperCase()}
-      </Text>
-      <ChevronDown size={14} color={palette.subtle} />
-    </PressableScale>
-  );
-}
 
 /**
  * Accueil Étudiant · « Brief du jour » (docs/VISION.md §4.A), dans l'ordre de lecture :
@@ -67,28 +51,23 @@ export function StudentHome() {
   const bookingMentor = booking ? mentors.find((m) => m.id === booking.mentorId) : null;
 
   return (
-    <Screen top={gradients.roleTop.student} tabBar padded={false} header={<AppHeader />}>
+    <Screen top={gradients.roleTop.student} tabBar padded={false} header={<AppHeader roleSwitch />}>
       <View style={{ paddingHorizontal: 20, gap: 16 }}>
         <Animated.View entering={enter(0)}>
-          <ModePill />
-        </Animated.View>
-        <Animated.View entering={enter(1)}>
           <BriefHero />
         </Animated.View>
         {j.current ? (
-          <Animated.View entering={enter(2)} layout={reflow}>
+          <Animated.View entering={enter(1)} layout={reflow}>
             <ActionCard key={j.current.step.id} step={j.current.step} />
           </Animated.View>
         ) : null}
-        <Animated.View entering={enter(3)}>
+        <Animated.View entering={enter(2)}>
           <PressableScale
             onPress={() => router.push('/(app)/parcours')}
             style={styles.journeyRow}
             accessibilityRole="button"
             accessibilityLabel={`Voir tout mon parcours-quête, ${j.doneCount} étapes faites sur ${j.total}`}>
-            <IconTile size={46} colors={['#7FA6FF', '#3D78FF']} radius={23}>
-              <Map size={20} color="#fff" />
-            </IconTile>
+            <IconTile icon={Map} tone="blue" size={46} radius={23} />
             <View style={{ flex: 1 }}>
               <Text variant="bodyStrong">Tout mon parcours-quête</Text>
               <Text variant="caption" color={palette.muted}>
@@ -98,7 +77,7 @@ export function StudentHome() {
             <ChevronRight size={18} color={palette.subtle} />
           </PressableScale>
         </Animated.View>
-        <Animated.View entering={enter(4)}>
+        <Animated.View entering={enter(3)}>
           <AskField />
         </Animated.View>
       </View>
@@ -175,9 +154,7 @@ export function StudentHome() {
           <View style={{ gap: 10 }}>
             {cityGroups.map((g) => (
               <PressableScale key={g.id} onPress={() => router.push({ pathname: '/(app)/groupe/[id]', params: { id: g.id } })} style={styles.groupRow}>
-                <IconTile size={46} colors={['#7FA6FF', '#3D78FF']} radius={23}>
-                  <MessageCircle size={20} color="#fff" />
-                </IconTile>
+                <IconTile icon={MessageCircle} tone="blue" size={46} radius={23} />
                 <View style={{ flex: 1 }}>
                   <Text variant="bodyStrong">{g.name}</Text>
                   <Text variant="caption" color={palette.muted} numberOfLines={1}>
@@ -200,8 +177,6 @@ export function StudentHome() {
 }
 
 const styles = StyleSheet.create({
-  mode: { flexDirection: 'row', alignItems: 'center', gap: 8, alignSelf: 'flex-start', backgroundColor: '#fff', paddingLeft: 6, paddingRight: 12, height: 34, borderRadius: 999, ...shadow.sm },
-  modeDot: { width: 22, height: 22, borderRadius: 11, alignItems: 'center', justifyContent: 'center' },
   slide: { borderRadius: radius.xxl, padding: 18, ...shadow.md },
   slideCta: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, backgroundColor: '#fff', height: 44, borderRadius: 999, marginTop: 14 },
   live: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 8, paddingVertical: 4, borderRadius: 999, backgroundColor: 'rgba(229,72,77,0.15)' },

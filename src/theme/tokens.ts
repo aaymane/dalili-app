@@ -16,6 +16,8 @@ export const palette = {
   // Rôles
   mentor: '#1FB17C',
   mentorSoft: '#E3F7EF',
+  /** Vert du mentor sur fond nuit (étoile, icônes de la carte d'impact). */
+  mentorGlow: '#7DE3B9',
   host: '#EA580C',
   hostSoft: '#FDEDE3',
 
@@ -45,6 +47,23 @@ export const palette = {
   aiIndigo: '#5B5CF0',
   aiSoft: '#EEEDFF',
 } as const;
+
+/**
+ * Tons des icônes (docs/DIRECTION.md §4) : tuile douce, trait foncé, remplissage translucide du même ton
+ * (icône bicolore : les formes qui se superposent foncent, les détails restent visibles).
+ * Le ton dit la famille (démarches, entraide, argent, urgence…), jamais l'action : celle-ci reste bleue.
+ */
+export const tones = {
+  blue: { top: '#F1F5FF', bg: '#E2EAFF', ink: '#0B47D9', fill: '#0B47D933' },
+  green: { top: '#EFFAF5', bg: '#DDF4E9', ink: '#11815A', fill: '#11815A33' },
+  violet: { top: '#F4F3FF', bg: '#E7E5FF', ink: '#4F46E5', fill: '#4F46E533' },
+  amber: { top: '#FFF8EB', bg: '#FDEFD2', ink: '#9A5B07', fill: '#C77A0C40' },
+  orange: { top: '#FFF4EE', bg: '#FDE6D8', ink: '#C2410C', fill: '#C2410C33' },
+  red: { top: '#FFF1F2', bg: '#FDE2E4', ink: '#C81E3A', fill: '#C81E3A33' },
+  slate: { top: '#F5F7FB', bg: '#E9EDF5', ink: '#3A4466', fill: '#3A446629' },
+} as const;
+
+export type Tone = keyof typeof tones;
 
 export type Role = 'student' | 'mentor' | 'host';
 

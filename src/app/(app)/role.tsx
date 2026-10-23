@@ -1,5 +1,5 @@
 import { router } from 'expo-router';
-import { ArrowRight, GraduationCap, House, Sparkles, Send } from 'lucide-react-native';
+import { Backpack, HeartHandshake, House, type LucideIcon } from 'lucide-react-native';
 import { StyleSheet, View } from 'react-native';
 import Animated from 'react-native-reanimated';
 
@@ -9,11 +9,10 @@ import { PressableScale } from '@/components/ui/PressableScale';
 import { Text } from '@/components/ui/Text';
 import { useProfile } from '@/features/profile/store';
 import { haptics } from '@/lib/haptics';
-import { palette, radius } from '@/theme/tokens';
-import type { Role } from '@/theme/tokens';
-import { rise } from '@/theme/motion';
+import { palette, radius, roleColors, type Role, type Tone } from '@/theme/tokens';
+import { pop, rise } from '@/theme/motion';
 
-/** « Comment veux-tu vivre l'app aujourd'hui ? » — sélecteur de rôle persistant. */
+/** « Comment veux-tu vivre l'app aujourd'hui ? » : sélecteur de rôle persistant. */
 export default function RoleSwitcher() {
   const active = useProfile((s) => s.profile.activeRole);
   const isMentor = useProfile((s) => s.profile.roles.includes('mentor'));
@@ -29,64 +28,71 @@ export default function RoleSwitcher() {
     router.back();
   };
 
-  const cards: { role: Role; title: string; text: string; bullets?: string; colors: [string, string]; bg: string; fg: string; icon: React.ReactNode }[] = [
-    { role: 'student', title: 'Étudiant', text: 'Tu arrives bientôt en France', bullets: 'Visa · Logement · CAF · Communauté', colors: ['#7FA6FF', '#3D78FF'], bg: '#E8EEFF', fg: palette.electric, icon: <Send size={20} color="#fff" /> },
-    { role: 'mentor', title: 'Mentor', text: isMentor ? 'Tu aides 3 étudiants ce mois' : 'Aide les nouveaux arrivants', bullets: isMentor ? '1 demande en attente' : 'Partage ton expérience, gratuitement', colors: ['#34D399', palette.mentor], bg: '#E3F7EF', fg: palette.mentor, icon: <GraduationCap size={20} color="#fff" /> },
-    { role: 'host', title: 'Hôte', text: 'Cette fonctionnalité arrive bientôt', colors: ['#FDBA74', palette.host], bg: '#FDEDE3', fg: palette.host, icon: <House size={20} color="#fff" /> },
+  const rows: { role: Role; text: string; icon: LucideIcon; tone: Tone }[] = [
+    { role: 'student', text: 'Tes démarches, ton parcours, ta ville', icon: Backpack, tone: 'blue' },
+    { role: 'mentor', text: isMentor ? 'Tes demandes d’appel et tes créneaux' : 'Aide les nouveaux arrivants, gratuitement', icon: HeartHandshake, tone: 'green' },
+    { role: 'host', text: 'Accueillir un étudiant à son arrivée', icon: House, tone: 'orange' },
   ];
 
   return (
     <View style={styles.root}>
-      <Text variant="overline" color={palette.muted}>
-        DALILI · Une seule appli
+      <Text variant="h1">Comment veux-tu vivre{'\n'}l’app aujourd’hui ?</Text>
+      <Text variant="body" color={palette.subtle} style={{ marginTop: 6, marginBottom: 18 }}>
+        Un seul compte : tes données et tes conversations te suivent.
       </Text>
-      <Text variant="h1" style={{ marginTop: 6, marginBottom: 18 }}>
-        Comment veux-tu vivre{'\n'}l’app aujourd’hui ?
-      </Text>
-      <View style={{ gap: 12 }}>
-        {cards.map((c, i) => (
-          <Animated.View key={c.role} entering={rise(i * 70)}>
-            <PressableScale onPress={() => choose(c.role)} style={[styles.card, { backgroundColor: c.bg, borderColor: active === c.role ? c.fg : 'transparent' }, c.role === 'host' && { opacity: 0.75 }]}>
-              <IconTile size={46} colors={c.colors} radius={14}>
-                {c.icon}
-              </IconTile>
-              <View style={{ flex: 1, gap: 2 }}>
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                  <Text variant="h3" color={c.fg}>
-                    {c.title}
-                  </Text>
-                  {active === c.role && (
-                    <Text variant="caption" color={c.fg}>
-                      ACTIF
-                    </Text>
-                  )}
+      <View style={styles.list}>
+        {rows.map((c, i) => {
+          const on = active === c.role;
+          const soon = c.role === 'host';
+          return (
+            <Animated.View key={c.role} entering={rise(i * 60)}>
+              <PressableScale
+                onPress={() => choose(c.role)}
+                scaleTo={0.985}
+                style={[styles.row, i > 0 && styles.sep]}
+                accessibilityRole="radio"
+                accessibilityState={{ selected: on, disabled: soon }}
+                accessibilityLabel={`${roleColors[c.role].label}${soon ? ', bientôt' : ''}`}>
+                <View style={soon && { opacity: 0.55 }}>
+                  <IconTile icon={c.icon} tone={c.tone} size={46} radius={15} />
                 </View>
-                <Text variant="small" color={palette.subtle}>
-                  {c.text}
-                </Text>
-                {c.bullets ? (
-                  <Text variant="caption" color={palette.subtle}>
-                    • {c.bullets}
+                <View style={{ flex: 1, gap: 2 }}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                    <Text variant="h3" color={soon ? palette.muted : palette.navy}>
+                      {roleColors[c.role].label}
+                    </Text>
+                    {soon ? (
+                      <View style={styles.soon}>
+                        <Text variant="caption" color={palette.subtle}>
+                          Bientôt
+                        </Text>
+                      </View>
+                    ) : null}
+                  </View>
+                  <Text variant="small" color={palette.subtle}>
+                    {c.text}
                   </Text>
-                ) : null}
-              </View>
-              <ArrowRight size={18} color={c.fg} />
-            </PressableScale>
-          </Animated.View>
-        ))}
-      </View>
-      <View style={styles.note}>
-        <Sparkles size={16} color="#fff" />
-        <Text variant="small" color="#fff" style={{ flex: 1 }}>
-          Une seule appli, trois façons de la vivre. Tes données et conversations restent reliées.
-        </Text>
+                </View>
+                {soon ? null : (
+                  <View style={[styles.radio, on && { borderColor: roleColors[c.role].main }]}>
+                    {on ? <Animated.View entering={pop()} style={[styles.radioDot, { backgroundColor: roleColors[c.role].main }]} /> : null}
+                  </View>
+                )}
+              </PressableScale>
+            </Animated.View>
+          );
+        })}
       </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  root: { padding: 22, paddingTop: 26, paddingBottom: 34, backgroundColor: '#fff' },
-  card: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 14, borderRadius: radius.xl, borderWidth: 2 },
-  note: { flexDirection: 'row', alignItems: 'center', gap: 10, marginTop: 16, padding: 14, borderRadius: radius.lg, backgroundColor: palette.navyInk },
+  root: { padding: 22, paddingTop: 26, paddingBottom: 34, backgroundColor: palette.surface },
+  list: { borderRadius: radius.xl, backgroundColor: palette.surface, overflow: 'hidden', borderWidth: 1, borderColor: palette.line },
+  row: { flexDirection: 'row', alignItems: 'center', gap: 14, padding: 14, minHeight: 74 },
+  sep: { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: palette.line },
+  soon: { paddingHorizontal: 8, paddingVertical: 2, borderRadius: radius.pill, backgroundColor: palette.bg },
+  radio: { width: 24, height: 24, borderRadius: 12, borderWidth: 2, borderColor: palette.line, alignItems: 'center', justifyContent: 'center' },
+  radioDot: { width: 12, height: 12, borderRadius: 6 },
 });

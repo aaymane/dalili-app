@@ -53,9 +53,7 @@ export default function MentorSetup() {
                   router.replace({ pathname: '/(onboarding)/loading', params: { role: 'mentor' } });
                 }}
                 style={[styles.choice, { backgroundColor: '#E8EEFF' }]}>
-                <IconTile size={56} colors={['#5B8BFF', '#1F56F5']} radius={18}>
-                  <GraduationCap size={26} color="#fff" />
-                </IconTile>
+                <IconTile icon={GraduationCap} tone="blue" size={56} radius={18} />
                 <View style={{ flex: 1, gap: 4 }}>
                   <Text variant="h3" color={palette.electric}>
                     Devenir Mentor
@@ -73,12 +71,10 @@ export default function MentorSetup() {
               </PressableScale>
             </Animated.View>
             <Animated.View entering={rise(160)}>
-              <View style={[styles.choice, { backgroundColor: '#E3F7EF', opacity: 0.85 }]}>
-                <IconTile size={56} colors={['#34D399', palette.mentor]} radius={18}>
-                  <Home size={26} color="#fff" />
-                </IconTile>
+              <View style={[styles.choice, { backgroundColor: palette.hostSoft, opacity: 0.85 }]}>
+                <IconTile icon={Home} tone="orange" size={56} radius={18} />
                 <View style={{ flex: 1, gap: 4 }}>
-                  <Text variant="h3" color={palette.mentor}>
+                  <Text variant="h3" color={palette.host}>
                     Devenir Hôte
                   </Text>
                   <Text variant="small" color={palette.subtle}>

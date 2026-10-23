@@ -134,6 +134,14 @@ Règles :
 - **Le flou** sert seulement à ce qui flotte au-dessus du contenu qui défile. Jamais sur une carte posée (coûteux sur Android, et illisible).
 - **Les halos** (`Glow`, `heroGlow`) vivent dans les couches nuit uniquement, à 60 % d'opacité maximum.
 
+## 4 bis. Icônes
+
+`IconTile` avec `icon` + `tone` (`tones` dans `src/theme/tokens.ts`) : une **tuile douce** (dégradé très léger, liseré clair), l'icône lucide en **deux tons**, trait foncé et remplissage translucide du même ton (les formes qui se superposent foncent, les détails restent lisibles).
+
+- **Le ton dit la famille**, toujours la même : `blue` démarches et guides, `violet` lexique et écoute, `green` entraide, mentors et santé, `amber` papiers et budget, `orange` hôte et enregistrements, `red` urgences et échéances proches, `slate` réglages.
+- **Plus de dégradés saturés avec une icône blanche** (effet « appli générique »). `colors` reste réservé aux cartes nuit et à Dalili IA (`gradients.ai`).
+- Taille : icône = 56 % de la tuile ; tuile 38–46 dans une liste, 56 pour un choix d'onboarding.
+
 ## 5. Règles « 3D »
 
 DALILI n'embarque pas de moteur 3D. La « 3D » est faite de **perspective et de couches**, avec parcimonie.
@@ -143,7 +151,7 @@ DALILI n'embarque pas de moteur 3D. La « 3D » est faite de **perspective et de
 3. **Inclinaison maximale `depth.tilt` (6°)** au repos ou au toucher, 12° le temps d'une entrée (qui revient à 0 en `springSoft`).
 4. **Parallaxe ≤ 12 px** entre deux couches (par exemple halo et carte au défilement). Au-delà, ça donne le mal de mer.
 5. **Pile = profondeur** : les objets « plus tard » s'empilent derrière l'objet « maintenant » (échelle −5 % et décalage de 10 px par niveau, 3 niveaux visibles au maximum).
-6. **Pas d'illustrations 3D génériques** (personnages en pâte à modeler, emojis 3D). Icônes `lucide` au trait, logo vectoriel, photos réelles des mentors.
+6. **Pas d'illustrations 3D génériques** (personnages en pâte à modeler, emojis 3D). Icônes `lucide` bicolores (§4 bis), logo vectoriel, photos réelles des mentors.
 7. Désactivé avec la réduction des animations : on garde l'état final, à plat.
 
 ## 6. Ton des textes
@@ -191,3 +199,12 @@ Ce qui reste des pistes vit dans M2 : le **chemin** (tracé au défilement, avio
 ### L'avion
 
 Un **avion vectoriel en perspective** (pas de moteur 3D, §5) : sur la carte « Ta mobilité », il vole le long d'un arc de ta ville à ta ville d'arrivée et s'arrête à ta progression (`features/journey/components/RouteArc.tsx`). Le même avion suit « Ton chemin » sur l'accueil (M2.1).
+
+### L'espace Mentor
+
+`features/home/MentorHome.tsx` reprend la grammaire du Brief : une **carte nuit** (ciel étoilé) avec la **constellation** du mentor (`features/mentors/components/Constellation.tsx`) : il est l'étoile du centre, reliée par un trait plein aux étudiants qu'il aide et en pointillés à ceux qui attendent sa réponse ; les traits se tracent une fois à l'affichage. Dessous, une phrase (« 2 étudiants attendent ta réponse. ») et trois chiffres sobres. Puis les demandes sur **une seule surface** (« Accepter » plein, « Décliner » en texte) et les créneaux par jour.
+
+### Changer de rôle
+
+Pas d'étiquette « MODE ÉTUDIANT » : la bascule **Étudiant | Mentor** vit dans l'en-tête des accueils (`RoleSwitch`), seulement pour qui a les deux rôles. Le curseur glisse et prend la couleur du rôle, puis l'accueil change. La feuille `role.tsx` (depuis Profil) reste pour découvrir les rôles, avec un bouton radio et l'Hôte « Bientôt ».
+

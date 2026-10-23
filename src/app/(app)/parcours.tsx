@@ -122,9 +122,7 @@ export default function Parcours() {
           <Animated.View key="cal" entering={FadeIn.duration(220)} exiting={FadeOut.duration(120)} style={{ gap: 16 }}>
             <Calendar selected={day} onSelect={(d) => setDay(day && isSameDay(d, day) ? null : d)} marked={marked} highlight={j.arrival} initialMonth={j.upcoming[0]?.date ?? new Date()} />
             <PressableScale onPress={() => setArrivalOpen(true)} style={styles.arrival}>
-              <IconTile size={42} colors={['#3D78FF', '#014DF8']} radius={13}>
-                <CalendarDays size={20} color="#fff" />
-              </IconTile>
+              <IconTile icon={CalendarDays} tone="blue" size={42} radius={13} />
               <View style={{ flex: 1 }}>
                 <Text variant="overline" color={palette.muted} style={{ fontSize: 9 }}>
                   Arrivée prévue
