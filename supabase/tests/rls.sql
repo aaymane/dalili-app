@@ -156,6 +156,52 @@ select tests.must_count('B a quitté le groupe : son commentaire reste signé «
   $q$select 1 from public.posts_with_author where comments -> 0 ->> 'author' = 'Membre DALILI'$q$, 1);
 rollback;
 
+-- ───────────── mentorat : une réservation est une demande que le mentor accepte ou décline ─────────────
+begin;
+update public.profiles set first_name = 'Aymen', last_name = 'Amri', origin_city = 'Casablanca', country = 'MA' where id = '00000000-0000-0000-0000-00000000000a';
+insert into public.mentors (id, user_id, first_name, last_name, city, is_active) values
+  ('00000000-0000-0000-0000-0000000000e1', '00000000-0000-0000-0000-00000000000c', 'Yassine', 'Kadiri', 'Lyon', true),
+  ('00000000-0000-0000-0000-0000000000e2', '00000000-0000-0000-0000-00000000000d', 'Nadia', 'Daoud', 'Lille', false);
+set local role authenticated;
+set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-00000000000a","role":"authenticated"}';
+insert into public.bookings (id, student_id, mentor_id, starts_at, topic)
+  values ('00000000-0000-0000-0000-0000000000f1', auth.uid(), '00000000-0000-0000-0000-0000000000e1', now() + interval '2 days', 'Visa');
+select tests.must_count('une demande naît « en attente »', $q$select * from public.bookings where status = 'pending'$q$, 1);
+select tests.must_fail('A se confirme lui-même un rendez-vous',
+  $q$insert into public.bookings (student_id, mentor_id, starts_at, status) values (auth.uid(), '00000000-0000-0000-0000-0000000000e1', now() + interval '3 days', 'confirmed')$q$);
+select tests.must_fail('A demande un moment déjà passé',
+  $q$insert into public.bookings (student_id, mentor_id, starts_at) values (auth.uid(), '00000000-0000-0000-0000-0000000000e1', now() - interval '1 hour')$q$);
+select tests.must_fail('A demande à un mentor non validé',
+  $q$insert into public.bookings (student_id, mentor_id, starts_at) values (auth.uid(), '00000000-0000-0000-0000-0000000000e2', now() + interval '2 days')$q$);
+select tests.must_fail('A accepte sa propre demande', $q$update public.bookings set status = 'confirmed' where id = '00000000-0000-0000-0000-0000000000f1'$q$);
+select tests.must_fail('A change la date de sa demande', $q$update public.bookings set starts_at = now() + interval '5 days' where id = '00000000-0000-0000-0000-0000000000f1'$q$);
+select tests.must_fail('A appelle le garde à la main', 'select public.bookings_guard()');
+
+set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-00000000000b","role":"authenticated"}';
+select tests.must_count('B ne voit aucune demande', 'select * from public.mentor_requests()', 0);
+update public.bookings set status = 'cancelled' where id = '00000000-0000-0000-0000-0000000000f1';
+
+set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-00000000000c","role":"authenticated"}';
+select tests.must_count('B n''a rien pu annuler', $q$select * from public.mentor_requests() where status = 'pending'$q$, 1);
+select tests.must_count('le mentor voit « Aymen A. », de Casablanca, et rien d''autre',
+  $q$select * from public.mentor_requests() where student_name = 'Aymen A.' and student_city = 'Casablanca' and student_country = 'MA'$q$, 1);
+select tests.must_fail('le mentor change le sujet', $q$update public.bookings set topic = 'Autre' where id = '00000000-0000-0000-0000-0000000000f1'$q$);
+select tests.must_fail('le mentor marque fait un appel pas encore accepté', $q$update public.bookings set status = 'done' where id = '00000000-0000-0000-0000-0000000000f1'$q$);
+update public.bookings set status = 'confirmed' where id = '00000000-0000-0000-0000-0000000000f1';
+select tests.must_count('le mentor accepte', $q$select * from public.mentor_requests() where status = 'confirmed'$q$, 1);
+update public.mentors set available_this_week = false where user_id = auth.uid();
+
+set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-00000000000a","role":"authenticated"}';
+select tests.must_fail('A demande à un mentor en pause',
+  $q$insert into public.bookings (student_id, mentor_id, starts_at) values (auth.uid(), '00000000-0000-0000-0000-0000000000e1', now() + interval '4 days')$q$);
+update public.bookings set status = 'cancelled' where id = '00000000-0000-0000-0000-0000000000f1';
+select tests.must_count('A annule son rendez-vous', $q$select * from public.bookings where status = 'cancelled'$q$, 1);
+select tests.must_fail('A rouvre un rendez-vous annulé', $q$update public.bookings set status = 'pending' where id = '00000000-0000-0000-0000-0000000000f1'$q$);
+reset role;
+set local role anon;
+select tests.must_fail('anon lit les demandes', 'select * from public.mentor_requests()');
+rollback;
+
 -- ───────────── serveur du site (clé service) ─────────────
 begin;
 set local role service_role;

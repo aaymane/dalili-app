@@ -189,8 +189,7 @@ export async function remoteCreateBooking(b: Omit<Booking, 'id' | 'status'>) {
   if (!supabase) return;
   const { data: u } = await supabase.auth.getUser();
   if (!u.user) return;
-  const { error } = await supabase
-    .from('bookings')
-    .insert({ student_id: u.user.id, mentor_id: b.mentorId, starts_at: b.startsAt, topic: b.topic, status: 'confirmed' });
+  // Pas de statut envoyé : la base décide (« en attente » depuis la migration mentorat_reel, le mentor accepte ou décline).
+  const { error } = await supabase.from('bookings').insert({ student_id: u.user.id, mentor_id: b.mentorId, starts_at: b.startsAt, topic: b.topic });
   if (error) throw error;
 }

@@ -30,7 +30,7 @@
 3. ✅ M2.2 — le billet en haut de l'accueil (23/10).
 4. ✅ M2.3 — le déblocage (23/10).
 5. **Validation M2 sur iPhone** : cocher le visa, incliner le téléphone sur le billet, fluidité de « Ton chemin ». Puis jalon suivant de `docs/VISION.md`.
-6. 🟡 **M3 — Chat premium** : streaming, sources, lexique, drapeaux, 3114 et refus déjà faits en M1. M3.1 (23/10) : cartes « Ouvrir l'étape » sous la réponse, déduites des guides cités par le site (`lib/assistant/actions.ts`, événement `actions`). M3.2 (23/10) : 🔊 « Écouter » (expo-speech, langue de la réponse, darija lue en arabe standard et annoncée) et 👎 « Signaler » (feuille : motif + mot facultatif → `/api/v1/assistant/feedback`, rien n'est envoyé en mode démo). Reste à tester sur iPhone avec un vrai compte : refus, 429, signalement visible dans `assistant_feedback`.
+6. 🟡 **M3 — Chat premium** : streaming, sources, lexique, drapeaux, 3114 et refus déjà faits en M1. M3.1 (23/10) : cartes « Ouvrir l'étape » sous la réponse, déduites des guides cités par le site (`lib/assistant/actions.ts`, événement `actions`). M3.2 (23/10) : 🔊 « Écouter » (expo-speech, langue de la réponse, darija lue en arabe standard et annoncée) et 👎 « Signaler » (feuille : motif + mot facultatif → `/api/v1/assistant/feedback`, rien n'est envoyé en mode démo). Corrigé le 23/10 : la feuille monte avec le clavier, la voix saute les emojis et prend la plus belle voix installée. ✅ Code de M3 terminé. Reste à tester sur iPhone avec un vrai compte : refus, quota (429), signalement visible dans `assistant_feedback`, voix Premium.
 
 Plus tard : régénérer `SUPABASE_SECRET_KEY`, `RESEND_API_KEY` et `ANTHROPIC_API_KEY` (elles ont été exposées sur des Preview Vercel), et supprimer les anciens déploiements Preview.
 
