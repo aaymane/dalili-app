@@ -7,7 +7,7 @@
 
 - ✅ **M0 — Contenu unifié** : l'app lit les guides, le parcours et les chiffres de dalili.study.
 - ✅ **M1 — Cerveau IA commun, Âme, Brief du jour** : code poussé, **base de prod migrée le 21/10**.
-- 🟡 **M2 — Chemin + billet** : M2.1 « Ton chemin » fait le 22/10 (sentier Skia au défilement, avion, 6 jalons, billet verrouillé au bout). M2.2 fait le 23/10 (billet en haut de l'accueil après le visa, « Bienvenue à … » et tampon le jour J). Reste M2.3 (déblocage plein écran, reflet holographique).
+- ✅ **M2 — Chemin + billet** : M2.1 « Ton chemin » (22/10), M2.2 billet en haut de l'accueil et « Bienvenue à … » le jour J (23/10), M2.3 déblocage plein écran au visa coché, bascule 3D et reflet holographique (23/10). Reste à valider sur iPhone (inclinaison, 60 fps sur un petit iPhone).
 
 ## Mise en production de M1 : suivi
 
@@ -28,7 +28,8 @@
 1. **Sécurité de l’app** : ✅ session chiffrée (AES-256, clé dans le trousseau, `src/lib/secure-session.ts`) ; ✅ page Confidentialité + suppression du compte (`/api/v1/account` sur le site : photos, fiche mentor puis compte, le reste part en cascade), testée en prod le 22/10 (rien d’orphelin, photo effacée du stockage) ; ✅ profil, photo et parcours remis depuis le serveur à la connexion d’un autre compte ou sur un nouveau téléphone (`restoreFromServer`, 8 s max), et chaque changement du profil après l’onboarding renvoyé en ligne (`watchProfile`) : testé le 22/10 sur une copie locale de Supabase (2 comptes de test) : connexion sans onboarding, profil, inquiétudes, photo, étapes cochées et tâche perso retrouvés, ville changée dans Profil IA bien envoyée.
 2. ✅ Le 23/10 : passage au SDK 58 ; espace Mentor refait (carte nuit et constellation, demandes, créneaux), bascule Étudiant | Mentor dans l'en-tête, icônes bicolores par famille dans toute l'app (`tones`), écran SOS refait.
 3. ✅ M2.2 — le billet en haut de l'accueil (23/10).
-4. **M2.3 — le déblocage** : plein écran au visa validé, bascule 3D, reflet holographique, `celebrate()`.
+4. ✅ M2.3 — le déblocage (23/10).
+5. **Validation M2 sur iPhone** : cocher le visa, incliner le téléphone sur le billet, fluidité de « Ton chemin ». Puis jalon suivant de `docs/VISION.md`.
 
 Plus tard : régénérer `SUPABASE_SECRET_KEY`, `RESEND_API_KEY` et `ANTHROPIC_API_KEY` (elles ont été exposées sur des Preview Vercel), et supprimer les anciens déploiements Preview.
 

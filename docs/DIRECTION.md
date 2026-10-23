@@ -199,6 +199,15 @@ Ce qui reste des pistes vit dans M2 : le **chemin** (tracé au défilement, avio
 - Sans date d'arrivée donnée : « J-? · fixe ta date ». Toucher le billet ouvre le réglage de la date (`ArrivalSheet`).
 - **Jour J et 7 jours après** : « Bienvenue à Lyon », et le talon reçoit le tampon « Arrivé·e » (vert mentor, penché de 12°). Ensuite, le billet quitte l'accueil et reste au bout de « Ton chemin ».
 
+### Le déblocage du billet (M2.3)
+
+`features/journey/components/TicketUnlock.tsx`, route `(app)/billet`. Il s'ouvre **une seule fois**, une seconde après que l'étudiant a coché « Visa » lui-même (`toggle` → `ticketPending`, surveillé dans `(app)/_layout.tsx`). Une reprise depuis le serveur ou un profil de test ne le déclenche pas ; décocher puis recocher non plus (`ticketSeen`).
+
+- Fond nuit, ciel qui suit l'inclinaison et s'allume depuis le billet. « Ton visa est validé » (vert), « Ton billet est débloqué », la route.
+- Le billet bascule de 12° à plat et grandit de 0,9 à 1 (`springSoft`, `perspective`), puis `success` + `celebrate()` et le **reflet holographique** s'allume : un shader Skia découpé dans la forme du billet, une bande irisée discrète qui glisse avec le capteur de rotation, et le billet s'incline de 6° au plus.
+- C'est un écran de la pile, pas une modale native : les confettis de la racine passent par-dessus. Un seul bouton : « Garder mon billet ».
+- Réduction des animations : billet à plat, sans reflet ni bascule.
+
 ### La nuit pour les moments de marque, le matin pour le quotidien
 
 - **Nuit** : bienvenue, onboarding, chargement, carte du brief, carte « Ta mobilité ». C'est là que vivent la profondeur, les halos et, à venir, le ciel étoilé.

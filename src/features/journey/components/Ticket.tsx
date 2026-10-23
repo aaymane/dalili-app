@@ -20,6 +20,29 @@ export type TicketData = {
 };
 
 const STUB = 96;
+
+/**
+ * Reflet holographique (déblocage, M2.3) : une bande de lumière irisée et de fines lignes qui glissent
+ * avec l'inclinaison du téléphone. `tilt` va de -1 à 1, `on` fait apparaître le reflet.
+ */
+const HOLO = `
+uniform float2 res;
+uniform float2 tilt;
+uniform float on;
+
+half4 main(float2 p) {
+  float2 uv = p / res;
+  float d = uv.x * 0.75 + uv.y * 0.45 - 0.6 - tilt.x * 0.55 - tilt.y * 0.35;
+  float sheen = exp(-d * d * 40.0);
+  float h = uv.x * 1.2 - uv.y * 0.6 + tilt.x * 1.4 + tilt.y * 0.9;
+  float3 iris = 0.5 + 0.5 * cos(6.2831 * (h + float3(0.0, 0.33, 0.67)));
+  float lines = 0.5 + 0.5 * sin((uv.x + uv.y * 0.6) * 140.0 + tilt.x * 20.0);
+  float a = (sheen * 0.3 + 0.025 * lines * sheen) * on;
+  return half4(mix(iris, float3(1.0), 0.5) * a, a);
+}`;
+const holoEffect = Skia.RuntimeEffect.Make(HOLO);
+
+export type Holo = { tilt: SharedValue<{ x: number; y: number }>; on: SharedValue<number> };
 const NOTCH = 11;
 const R = radius.xxl;
 
@@ -37,7 +60,7 @@ function bars(seed: string) {
  * Fond du billet en Skia : dégradé nuit et ciel étoilé, découpés en vrai (coins arrondis + deux encoches de
  * perforation). Les encoches laissent voir ce qu'il y a derrière, quel que soit le fond de l'écran.
  */
-function TicketBackground({ locked = false }: { locked?: boolean }) {
+function TicketBackground({ locked = false, holo }: { locked?: boolean; holo?: Holo }) {
   const size = useSharedValue({ width: 0, height: 0 });
   const uniforms = useSkyUniforms(size, { variant: 'card' });
   const clip = useDerivedValue(() => {
@@ -47,6 +70,10 @@ function TicketBackground({ locked = false }: { locked?: boolean }) {
     return Skia.Path.MakeFromOp(shape, holes, PathOp.Difference) ?? shape;
   });
   const end = useDerivedValue(() => vec(size.get().width, size.get().height));
+  const holoUniforms = useDerivedValue(() => {
+    const t = holo?.tilt.get() ?? { x: 0, y: 0 };
+    return { res: [size.get().width, size.get().height], tilt: [t.x, t.y], on: holo?.on.get() ?? 0 };
+  });
   return (
     <Canvas style={StyleSheet.absoluteFill} onSize={size}>
       <Group clip={clip}>
@@ -56,6 +83,11 @@ function TicketBackground({ locked = false }: { locked?: boolean }) {
         {skyEffect ? (
           <Fill>
             <Shader source={skyEffect} uniforms={uniforms} />
+          </Fill>
+        ) : null}
+        {holo && holoEffect ? (
+          <Fill>
+            <Shader source={holoEffect} uniforms={holoUniforms} />
           </Fill>
         ) : null}
         {locked ? (
@@ -107,11 +139,11 @@ function ticketLabel(d: TicketData) {
  * Carte d'embarquement DALILI : ta ville → ta ville d'arrivée, le compte à rebours dans le talon.
  * Le jour J, elle devient « Bienvenue à … » et le talon reçoit le tampon « Arrivé·e ».
  */
-export function Ticket({ data, onPress }: { data: TicketData; onPress?: () => void }) {
+export function Ticket({ data, onPress, holo }: { data: TicketData; onPress?: () => void; holo?: Holo }) {
   const arrived = data.days <= 0;
   const content = (
     <View style={styles.card}>
-      <TicketBackground />
+      <TicketBackground holo={holo} />
       <View style={styles.main}>
         <Text variant="overline" color="rgba(255,255,255,0.55)" style={{ fontSize: 9 }}>
           Carte d’embarquement · DALILI

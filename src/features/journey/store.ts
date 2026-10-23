@@ -21,11 +21,16 @@ type JourneyState = {
   custom: CustomStep[];
   /** Phases déjà célébrées (badge débloqué). */
   celebrated: Phase[];
+  /** Le visa vient d'être coché : l'écran de déblocage du billet doit s'ouvrir (gardé si l'app se ferme avant). */
+  ticketPending: boolean;
+  /** Le déblocage a déjà été vu : il ne revient pas si on décoche puis recoche le visa. */
+  ticketSeen: boolean;
   toggle: (id: string, done: boolean) => void;
   addCustom: (title: string, date: string) => CustomStep;
   toggleCustom: (id: string) => void;
   removeCustom: (id: string) => void;
   markCelebrated: (phase: Phase) => void;
+  markTicketSeen: () => void;
   reset: () => void;
 };
 
@@ -35,8 +40,11 @@ export const useJourneyStore = create<JourneyState>()(
       overrides: {},
       custom: [],
       celebrated: [],
+      ticketPending: false,
+      ticketSeen: false,
       toggle: (id, done) => {
-        set((s) => ({ overrides: { ...s.overrides, [id]: done } }));
+        // Seul le geste de l'étudiant ouvre le billet : une reprise depuis le serveur ne passe pas par ici.
+        set((s) => ({ overrides: { ...s.overrides, [id]: done }, ticketPending: s.ticketPending || (id === 'visa' && done && !s.ticketSeen) }));
         syncStep(id, done).catch(notSaved);
       },
       addCustom: (title, date) => {
@@ -59,7 +67,8 @@ export const useJourneyStore = create<JourneyState>()(
           return { custom: s.custom.filter((c) => c.id !== id) };
         }),
       markCelebrated: (phase) => set((s) => ({ celebrated: [...new Set([...s.celebrated, phase])] })),
-      reset: () => set({ overrides: {}, custom: [], celebrated: [] }),
+      markTicketSeen: () => set({ ticketPending: false, ticketSeen: true }),
+      reset: () => set({ overrides: {}, custom: [], celebrated: [], ticketPending: false, ticketSeen: false }),
     }),
     { name: 'dalili.journey', storage: persistStorage, version: 1 },
   ),
