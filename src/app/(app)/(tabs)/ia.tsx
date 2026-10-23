@@ -1,7 +1,7 @@
 import { LinearGradient } from 'expo-linear-gradient';
-import { router, useLocalSearchParams } from 'expo-router';
+import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { ArrowUp, Sparkles, UserRoundCog } from 'lucide-react-native';
-import { useEffect, useEffectEvent, useRef, useState, type ComponentRef } from 'react';
+import { useCallback, useEffect, useEffectEvent, useRef, useState, type ComponentRef } from 'react';
 import { FlatList, KeyboardAvoidingView, Platform, StyleSheet, TextInput, View } from 'react-native';
 import Animated, { FadeIn } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -11,14 +11,25 @@ import { PressableScale } from '@/components/ui/PressableScale';
 import { Text } from '@/components/ui/Text';
 import { useContent } from '@/data/hooks';
 import { Ame, type AmeState } from '@/features/ame/Ame';
-import { AnswerText, RefusalOptions, RetryButton, SafetyNotes, SourcePills, StepActions } from '@/features/ai/components/ChatParts';
+import { AnswerText, AnswerTools, FeedbackSheet, RefusalOptions, RetryButton, SafetyNotes, SourcePills, StepActions } from '@/features/ai/components/ChatParts';
 import { useSuggestions } from '@/features/ai/suggestions';
+import { stopSpeaking } from '@/features/ai/speech';
 import { useAssistant, type ChatMessage } from '@/features/ai/useAssistant';
 import { displayName, useProfile } from '@/features/profile/store';
 import { fonts, gradients, palette, radius, shadow } from '@/theme/tokens';
 import { rise } from '@/theme/motion';
 
-function Bubble({ m, onAsk, onRequest }: { m: ChatMessage; onAsk: (q: string) => void; onRequest: (id: string) => Promise<boolean> }) {
+function Bubble({
+  m,
+  onAsk,
+  onRequest,
+  onReport,
+}: {
+  m: ChatMessage;
+  onAsk: (q: string) => void;
+  onRequest: (id: string) => Promise<boolean>;
+  onReport: (id: string) => void;
+}) {
   if (m.role === 'user') {
     return (
       <Animated.View entering={rise()} style={{ alignItems: 'flex-end' }}>
@@ -46,6 +57,7 @@ function Bubble({ m, onAsk, onRequest }: { m: ChatMessage; onAsk: (q: string) =>
       {m.status === 'done' && m.fallback ? <RefusalOptions m={m} onRequest={() => onRequest(m.id)} /> : null}
       {m.status === 'done' && !m.fallback ? <SourcePills sources={m.sources ?? []} /> : null}
       {m.status === 'done' && !m.fallback && m.actions?.length ? <StepActions actions={m.actions} /> : null}
+      {m.status === 'done' && !m.fallback && m.content ? <AnswerTools m={m} onReport={() => onReport(m.id)} /> : null}
       {m.status !== 'streaming' ? <SafetyNotes m={m} /> : null}
       {m.status === 'error' && m.retry ? <RetryButton onPress={() => onAsk(m.retry!)} /> : null}
     </Animated.View>
@@ -58,7 +70,10 @@ export default function DaliliIA() {
   const insets = useSafeAreaInsets();
   const profile = useProfile((s) => s.profile);
   const { data: manifest } = useContent('manifest');
-  const { messages, ask, request, thinking, streaming, busy } = useAssistant();
+  const { messages, ask, request, report, thinking, streaming, busy } = useAssistant();
+  const [reporting, setReporting] = useState<string | null>(null);
+  // On quitte le chat : la lecture à voix haute s'arrête.
+  useFocusEffect(useCallback(() => stopSpeaking, []));
   const suggestions = useSuggestions();
   const [text, setText] = useState('');
   const [keys, setKeys] = useState(0);
@@ -130,7 +145,7 @@ export default function DaliliIA() {
               </Animated.View>
             ) : undefined
           }
-          renderItem={({ item }) => <Bubble m={item} onAsk={send} onRequest={request} />}
+          renderItem={({ item }) => <Bubble m={item} onAsk={send} onRequest={request} onReport={setReporting} />}
           ListFooterComponent={
             empty ? (
               <View style={{ gap: 8, marginTop: 8 }}>
@@ -176,6 +191,7 @@ export default function DaliliIA() {
           </PressableScale>
         </View>
       </KeyboardAvoidingView>
+      <FeedbackSheet visible={reporting !== null} onClose={() => setReporting(null)} onSend={(reason, comment) => report(reporting ?? '', reason, comment)} />
     </View>
   );
 }

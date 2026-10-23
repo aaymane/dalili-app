@@ -30,7 +30,7 @@
 3. ✅ M2.2 — le billet en haut de l'accueil (23/10).
 4. ✅ M2.3 — le déblocage (23/10).
 5. **Validation M2 sur iPhone** : cocher le visa, incliner le téléphone sur le billet, fluidité de « Ton chemin ». Puis jalon suivant de `docs/VISION.md`.
-6. 🟡 **M3 — Chat premium** : streaming, sources, lexique, drapeaux, 3114 et refus déjà faits en M1. M3.1 (23/10) : cartes « Ouvrir l'étape » sous la réponse, déduites des guides cités par le site (`lib/assistant/actions.ts`, événement `actions`). Reste M3.2 : 🔊 lecture à voix haute et 👎 « Cette réponse est fausse ».
+6. 🟡 **M3 — Chat premium** : streaming, sources, lexique, drapeaux, 3114 et refus déjà faits en M1. M3.1 (23/10) : cartes « Ouvrir l'étape » sous la réponse, déduites des guides cités par le site (`lib/assistant/actions.ts`, événement `actions`). M3.2 (23/10) : 🔊 « Écouter » (expo-speech, langue de la réponse, darija lue en arabe standard et annoncée) et 👎 « Signaler » (feuille : motif + mot facultatif → `/api/v1/assistant/feedback`, rien n'est envoyé en mode démo). Reste à tester sur iPhone avec un vrai compte : refus, 429, signalement visible dans `assistant_feedback`.
 
 Plus tard : régénérer `SUPABASE_SECRET_KEY`, `RESEND_API_KEY` et `ANTHROPIC_API_KEY` (elles ont été exposées sur des Preview Vercel), et supprimer les anciens déploiements Preview.
 
@@ -47,6 +47,7 @@ Ordre décidé le 21/10 : **l'app d'abord (e, f, g), le site ensuite.**
 
 ## À surveiller
 
+- **À revérifier (23/10)** : « C'est quoi compte bloqué » était refusé (sous le seuil de 0,6) alors que le guide existe. Correctif poussé sur le site : la définition simple du lexique enrichit la recherche. Reposer la question dans l'app et regarder `top_similarity` dans `assistant_queries`. Si c'est encore refusé : ajouter un nom complet ou des synonymes au terme, **sans baisser le seuil**.
 - **Preview Vercel** : ✅ le 22/10, les 5 secrets (`SUPABASE_SECRET_KEY`, `RESEND_API_KEY`, `ANTHROPIC_API_KEY`, `VOYAGE_API_KEY`, `ADMIN_TOKEN`) sont en Production seulement. Reste : 4 branches mortes sur GitHub (`vercel/install-vercel-web-analytics-…` ×2, `worktree-agent-…` ×2) ont sans doute des Preview en ligne, avec du vieux code et les vraies clés.
 - **`/api/test-email`** existe en production : vérifier qu'elle est protégée par `ADMIN_TOKEN`.
 - **`.claude/settings.json`** : ne jamais y commiter `apply_migration` (autorisation d'écriture en prod).

@@ -111,6 +111,27 @@ export async function askAssistant(
   }
 }
 
+export type FeedbackReason = 'faux' | 'incomplet' | 'pas_clair' | 'autre';
+
+/**
+ * 👎 « Cette réponse est fausse » : lié à la question journalisée, jamais à la personne.
+ * Mode démo (pas de compte) : rien n'est envoyé, on le dit.
+ */
+export async function sendFeedback(queryId: string, reason: FeedbackReason, comment: string): Promise<'sent' | 'demo' | 'failed'> {
+  const token = await accessToken();
+  if (!token) return 'demo';
+  try {
+    const res = await fetch(`${env.siteUrl}/api/v1/assistant/feedback`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ queryId, reason, comment: comment.trim() || undefined }),
+    });
+    return res.ok ? 'sent' : 'failed';
+  } catch {
+    return 'failed';
+  }
+}
+
 /** « On l'ajoute à nos guides » : signale la question refusée (déjà anonymisée) à l'équipe. */
 export async function requestGuide(queryId: string): Promise<boolean> {
   try {

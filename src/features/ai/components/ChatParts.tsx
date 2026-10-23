@@ -1,10 +1,14 @@
 import { router } from 'expo-router';
-import { BookOpen, BookPlus, Check, ChevronRight, HeartHandshake, Phone, RotateCcw, Scale, UsersRound } from 'lucide-react-native';
+import { BookOpen, BookPlus, Check, ChevronRight, HeartHandshake, Phone, RotateCcw, Scale, Square, ThumbsDown, UsersRound, Volume2 } from 'lucide-react-native';
 import { useState } from 'react';
 import { Linking, StyleSheet, View } from 'react-native';
 import Animated, { FadeIn } from 'react-native-reanimated';
 
+import { BottomSheet } from '@/components/feedback/BottomSheet';
 import { toast } from '@/components/feedback/Toast';
+import { Button } from '@/components/ui/Button';
+import { Input } from '@/components/ui/Input';
+import { OptionCard } from '@/components/ui/OptionCard';
 import { IconTile } from '@/components/ui/IconTile';
 import { PressableScale } from '@/components/ui/PressableScale';
 import { Text } from '@/components/ui/Text';
@@ -14,10 +18,12 @@ import { StepIcon } from '@/features/journey/components/StepIcon';
 import { useJourney } from '@/features/journey/store';
 import { isInFrance, useProfile } from '@/features/profile/store';
 import { relativeDays } from '@/lib/date';
+import { haptics } from '@/lib/haptics';
 import { palette, radius, shadow, tones } from '@/theme/tokens';
 import { rise } from '@/theme/motion';
 
-import { slugOf, type AssistantAction, type SourceRef } from '../api';
+import { slugOf, type AssistantAction, type FeedbackReason, type SourceRef } from '../api';
+import { speakAnswer, useSpeech } from '../speech';
 import type { ChatMessage } from '../useAssistant';
 
 /** Markdown léger des réponses : titres, listes, gras et liens (via RichText). */
@@ -113,6 +119,100 @@ export function StepActions({ actions }: { actions: AssistantAction[] }) {
         </Animated.View>
       ))}
     </View>
+  );
+}
+
+/** Sous une réponse : 🔊 l'écouter, 👎 la signaler. */
+export function AnswerTools({ m, onReport }: { m: ChatMessage; onReport: () => void }) {
+  const speaking = useSpeech((s) => s.speakingId === m.id);
+  return (
+    <View style={styles.tools}>
+      <PressableScale
+        haptic="select"
+        onPress={() => speakAnswer(m.id, m.content, m.lang)}
+        hitSlop={4}
+        style={[styles.tool, speaking && { backgroundColor: palette.aiSoft }]}
+        accessibilityLabel={speaking ? 'Arrêter la lecture' : 'Écouter la réponse'}>
+        {speaking ? <Square size={13} color={palette.aiIndigo} fill={palette.aiIndigo} /> : <Volume2 size={16} color={palette.subtle} />}
+        <Text variant="caption" color={speaking ? palette.aiIndigo : palette.subtle}>
+          {speaking ? 'Arrêter' : 'Écouter'}
+        </Text>
+      </PressableScale>
+      {m.queryId && m.reported ? (
+        <Animated.View entering={FadeIn} style={styles.tool}>
+          <Check size={15} color={palette.success} />
+          <Text variant="caption" color={palette.success}>
+            Merci, on vérifie
+          </Text>
+        </Animated.View>
+      ) : m.queryId ? (
+        <PressableScale onPress={onReport} hitSlop={4} style={styles.tool} accessibilityLabel="Signaler : cette réponse est fausse">
+          <ThumbsDown size={15} color={palette.subtle} />
+          <Text variant="caption" color={palette.subtle}>
+            Signaler
+          </Text>
+        </PressableScale>
+      ) : null}
+    </View>
+  );
+}
+
+const REASONS: { id: FeedbackReason; label: string }[] = [
+  { id: 'faux', label: 'C’est faux' },
+  { id: 'incomplet', label: 'Il manque quelque chose' },
+  { id: 'pas_clair', label: 'Ce n’est pas clair' },
+  { id: 'autre', label: 'Autre chose' },
+];
+
+/** 👎 « Cette réponse est fausse » : un motif, un mot facultatif. Lié à la question, jamais à toi. */
+export function FeedbackSheet({
+  visible,
+  onClose,
+  onSend,
+}: {
+  visible: boolean;
+  onClose: () => void;
+  onSend: (reason: FeedbackReason, comment: string) => Promise<'sent' | 'demo' | 'failed'>;
+}) {
+  const [reason, setReason] = useState<FeedbackReason | null>(null);
+  const [comment, setComment] = useState('');
+  const [sending, setSending] = useState(false);
+
+  const submit = async () => {
+    if (!reason || sending) return;
+    setSending(true);
+    const result = await onSend(reason, comment);
+    setSending(false);
+    if (result === 'failed') return toast('Pas envoyé. Vérifie ta connexion et réessaie.', 'info');
+    haptics.success();
+    toast(result === 'demo' ? 'Merci ! En mode démo, rien n’est envoyé.' : 'Merci ! L’équipe va relire cette réponse.');
+    onClose();
+  };
+
+  return (
+    <BottomSheet
+      visible={visible}
+      onClose={onClose}
+      onClosed={() => {
+        setReason(null);
+        setComment('');
+      }}>
+      <View style={{ gap: 14 }}>
+        <View style={{ gap: 4 }}>
+          <Text variant="h2">Qu’est-ce qui ne va pas ?</Text>
+          <Text variant="small" color={palette.subtle}>
+            L’équipe relit chaque signalement et corrige le guide si besoin. Ton nom n’est jamais envoyé.
+          </Text>
+        </View>
+        <View style={{ gap: 8 }}>
+          {REASONS.map((r) => (
+            <OptionCard key={r.id} title={r.label} selected={reason === r.id} onPress={() => setReason(r.id)} />
+          ))}
+        </View>
+        <Input multiline placeholder="Dis-nous ce qui cloche (facultatif)" value={comment} onChangeText={setComment} maxLength={500} />
+        <Button label="Envoyer" onPress={submit} loading={sending} disabled={!reason} />
+      </View>
+    </BottomSheet>
   );
 }
 
@@ -222,6 +322,8 @@ export function RetryButton({ onPress }: { onPress: () => void }) {
 }
 
 const styles = StyleSheet.create({
+  tools: { flexDirection: 'row', gap: 8 },
+  tool: { flexDirection: 'row', alignItems: 'center', gap: 6, height: 36, paddingHorizontal: 12, borderRadius: radius.pill, backgroundColor: palette.surface },
   action: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 10, borderRadius: radius.lg, backgroundColor: palette.surface, ...shadow.sm },
   source: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: 12, paddingVertical: 10, borderRadius: radius.lg, backgroundColor: '#fff', borderWidth: 1, borderColor: '#E3E1FF' },
   option: { flexDirection: 'row', alignItems: 'center', gap: 10, minHeight: 48, paddingHorizontal: 14, paddingVertical: 10, borderRadius: radius.lg, backgroundColor: '#fff', borderWidth: 1.5, borderColor: '#E3E1FF', ...shadow.sm },

@@ -6,7 +6,17 @@ import { useJourney } from '@/features/journey/store';
 import { useProfile } from '@/features/profile/store';
 import { haptics } from '@/lib/haptics';
 
-import { askAssistant, AssistantError, requestGuide, type AssistantAction, type AssistantFlag, type HistoryMessage, type SourceRef } from './api';
+import {
+  askAssistant,
+  AssistantError,
+  requestGuide,
+  sendFeedback,
+  type AssistantAction,
+  type AssistantFlag,
+  type FeedbackReason,
+  type HistoryMessage,
+  type SourceRef,
+} from './api';
 
 export type ChatMessage = {
   id: string;
@@ -21,7 +31,11 @@ export type ChatMessage = {
   fallback?: boolean;
   flags?: AssistantFlag[];
   queryId?: string;
+  /** Langue de la réponse (`fr`, `en`, `ar`, `darija`), pour la lecture à voix haute. */
+  lang?: string;
   requested?: boolean;
+  /** 👎 envoyé : le bouton devient « Merci ». */
+  reported?: boolean;
   errorKind?: AssistantError['kind'];
   /** Question à renvoyer (erreur réseau). */
   retry?: string;
@@ -71,7 +85,7 @@ export function useAssistant() {
       await askAssistant({ question, history, context: { country: countryOf(profile), stepId: j.current?.step.id ?? null } }, (e) => {
         switch (e.type) {
           case 'meta':
-            patchLast((m) => ({ ...m, queryId: e.queryId }));
+            patchLast((m) => ({ ...m, queryId: e.queryId, lang: e.lang }));
             break;
           case 'text':
             patchLast((m) => ({ ...m, status: 'streaming', content: m.content + e.delta }));
@@ -117,8 +131,17 @@ export function useAssistant() {
     return ok;
   };
 
+  /** 👎 « Cette réponse est fausse ». */
+  const report = async (id: string, reason: FeedbackReason, comment: string) => {
+    const m = messages.find((x) => x.id === id);
+    if (!m?.queryId) return 'failed' as const;
+    const result = await sendFeedback(m.queryId, reason, comment);
+    if (result !== 'failed') setMessages((list) => list.map((x) => (x.id === id ? { ...x, reported: true } : x)));
+    return result;
+  };
+
   const last = messages[messages.length - 1];
   const thinking = last?.status === 'pending';
   const streaming = last?.status === 'streaming';
-  return { messages, ask, request, thinking, streaming, busy: thinking || streaming };
+  return { messages, ask, request, report, thinking, streaming, busy: thinking || streaming };
 }
