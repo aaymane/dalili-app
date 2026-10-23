@@ -6,7 +6,7 @@ import { useJourney } from '@/features/journey/store';
 import { useProfile } from '@/features/profile/store';
 import { haptics } from '@/lib/haptics';
 
-import { askAssistant, AssistantError, requestGuide, type AssistantFlag, type HistoryMessage, type SourceRef } from './api';
+import { askAssistant, AssistantError, requestGuide, type AssistantAction, type AssistantFlag, type HistoryMessage, type SourceRef } from './api';
 
 export type ChatMessage = {
   id: string;
@@ -15,6 +15,8 @@ export type ChatMessage = {
   /** pending = la question part (l'Âme réfléchit) · streaming = les mots arrivent. */
   status: 'pending' | 'streaming' | 'done' | 'error';
   sources?: SourceRef[];
+  /** « Ouvrir l'étape … » sous la réponse, déduites des guides cités. */
+  actions?: AssistantAction[];
   /** Refus : « Je n'ai pas cette information dans nos guides ». */
   fallback?: boolean;
   flags?: AssistantFlag[];
@@ -76,6 +78,9 @@ export function useAssistant() {
             break;
           case 'sources':
             patchLast((m) => ({ ...m, sources: e.sources }));
+            break;
+          case 'actions':
+            patchLast((m) => ({ ...m, actions: e.actions }));
             break;
           case 'flags':
             patchLast((m) => ({ ...m, flags: e.flags }));

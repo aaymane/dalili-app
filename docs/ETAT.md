@@ -30,6 +30,7 @@
 3. ✅ M2.2 — le billet en haut de l'accueil (23/10).
 4. ✅ M2.3 — le déblocage (23/10).
 5. **Validation M2 sur iPhone** : cocher le visa, incliner le téléphone sur le billet, fluidité de « Ton chemin ». Puis jalon suivant de `docs/VISION.md`.
+6. 🟡 **M3 — Chat premium** : streaming, sources, lexique, drapeaux, 3114 et refus déjà faits en M1. M3.1 (23/10) : cartes « Ouvrir l'étape » sous la réponse, déduites des guides cités par le site (`lib/assistant/actions.ts`, événement `actions`). Reste M3.2 : 🔊 lecture à voix haute et 👎 « Cette réponse est fausse ».
 
 Plus tard : régénérer `SUPABASE_SECRET_KEY`, `RESEND_API_KEY` et `ANTHROPIC_API_KEY` (elles ont été exposées sur des Preview Vercel), et supprimer les anciens déploiements Preview.
 

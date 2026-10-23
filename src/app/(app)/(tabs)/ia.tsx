@@ -11,7 +11,7 @@ import { PressableScale } from '@/components/ui/PressableScale';
 import { Text } from '@/components/ui/Text';
 import { useContent } from '@/data/hooks';
 import { Ame, type AmeState } from '@/features/ame/Ame';
-import { AnswerText, RefusalOptions, RetryButton, SafetyNotes, SourcePills } from '@/features/ai/components/ChatParts';
+import { AnswerText, RefusalOptions, RetryButton, SafetyNotes, SourcePills, StepActions } from '@/features/ai/components/ChatParts';
 import { useSuggestions } from '@/features/ai/suggestions';
 import { useAssistant, type ChatMessage } from '@/features/ai/useAssistant';
 import { displayName, useProfile } from '@/features/profile/store';
@@ -45,6 +45,7 @@ function Bubble({ m, onAsk, onRequest }: { m: ChatMessage; onAsk: (q: string) =>
       </View>
       {m.status === 'done' && m.fallback ? <RefusalOptions m={m} onRequest={() => onRequest(m.id)} /> : null}
       {m.status === 'done' && !m.fallback ? <SourcePills sources={m.sources ?? []} /> : null}
+      {m.status === 'done' && !m.fallback && m.actions?.length ? <StepActions actions={m.actions} /> : null}
       {m.status !== 'streaming' ? <SafetyNotes m={m} /> : null}
       {m.status === 'error' && m.retry ? <RetryButton onPress={() => onAsk(m.retry!)} /> : null}
     </Animated.View>

@@ -15,11 +15,14 @@ import { supabase } from '@/lib/supabase';
 
 export type SourceRef = { title: string; url: string; category: string | null; slug?: string };
 export type AssistantFlag = 'legal' | 'stress' | 'complex' | 'distress';
+/** Action déterministe : le serveur la déduit des guides cités, le modèle n'en invente aucune. */
+export type AssistantAction = { type: 'step'; stepId: string; title: string };
 
 export type AssistantEvent =
   | { type: 'meta'; queryId: string; lang: string }
   | { type: 'text'; delta: string }
   | { type: 'sources'; sources: SourceRef[] }
+  | { type: 'actions'; actions: AssistantAction[] }
   | { type: 'flags'; flags: AssistantFlag[] }
   | { type: 'fallback'; message: string; suggestions: SourceRef[]; queryId?: string }
   | { type: 'error'; message: string };

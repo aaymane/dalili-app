@@ -1,19 +1,23 @@
 import { router } from 'expo-router';
-import { BookOpen, BookPlus, Check, HeartHandshake, Phone, RotateCcw, Scale, UsersRound } from 'lucide-react-native';
+import { BookOpen, BookPlus, Check, ChevronRight, HeartHandshake, Phone, RotateCcw, Scale, UsersRound } from 'lucide-react-native';
 import { useState } from 'react';
 import { Linking, StyleSheet, View } from 'react-native';
 import Animated, { FadeIn } from 'react-native-reanimated';
 
 import { toast } from '@/components/feedback/Toast';
+import { IconTile } from '@/components/ui/IconTile';
 import { PressableScale } from '@/components/ui/PressableScale';
 import { Text } from '@/components/ui/Text';
 import { useMentors } from '@/data/hooks';
 import { openLink, RichText } from '@/features/guides/components/RichText';
+import { StepIcon } from '@/features/journey/components/StepIcon';
+import { useJourney } from '@/features/journey/store';
 import { isInFrance, useProfile } from '@/features/profile/store';
-import { palette, radius, shadow } from '@/theme/tokens';
+import { relativeDays } from '@/lib/date';
+import { palette, radius, shadow, tones } from '@/theme/tokens';
 import { rise } from '@/theme/motion';
 
-import { slugOf, type SourceRef } from '../api';
+import { slugOf, type AssistantAction, type SourceRef } from '../api';
 import type { ChatMessage } from '../useAssistant';
 
 /** Markdown léger des réponses : titres, listes, gras et liens (via RichText). */
@@ -67,6 +71,44 @@ export function SourcePills({ sources: all }: { sources: SourceRef[] }) {
             <Text variant="smallStrong" style={{ flex: 1 }} numberOfLines={2}>
               {s.title}
             </Text>
+          </PressableScale>
+        </Animated.View>
+      ))}
+    </View>
+  );
+}
+
+/**
+ * « Ouvrir l'étape … » : les étapes du parcours liées aux guides cités (déduites par le serveur).
+ * Une étape qui ne concerne pas ton profil n'apparaît pas.
+ */
+export function StepActions({ actions }: { actions: AssistantAction[] }) {
+  const j = useJourney();
+  const items = actions
+    .map((a) => j.all.find((i) => i.kind === 'official' && i.step.id === a.stepId))
+    .filter((i) => i?.kind === 'official');
+  if (!items.length) return null;
+  return (
+    <View style={{ gap: 8 }}>
+      {items.map((item, i) => (
+        <Animated.View key={item.step.id} entering={rise(120 + i * 60)}>
+          <PressableScale
+            onPress={() => router.push({ pathname: '/(app)/etape/[id]', params: { id: item.step.id } })}
+            style={styles.action}
+            accessibilityRole="button"
+            accessibilityLabel={`Ouvrir l’étape ${item.step.title}${item.done ? ', déjà faite' : ''}`}>
+            <IconTile tone={item.done ? 'green' : 'blue'} size={40} radius={13}>
+              {item.done ? <Check size={20} color={tones.green.ink} strokeWidth={2.6} /> : <StepIcon name={item.step.icon} size={20} color={tones.blue.ink} />}
+            </IconTile>
+            <View style={{ flex: 1 }}>
+              <Text variant="caption" color={palette.muted}>
+                {item.done ? 'Étape déjà faite' : `Ton étape · ${relativeDays(item.date)}`}
+              </Text>
+              <Text variant="smallStrong" numberOfLines={2}>
+                {item.step.title}
+              </Text>
+            </View>
+            <ChevronRight size={18} color={palette.subtle} />
           </PressableScale>
         </Animated.View>
       ))}
@@ -180,6 +222,7 @@ export function RetryButton({ onPress }: { onPress: () => void }) {
 }
 
 const styles = StyleSheet.create({
+  action: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 10, borderRadius: radius.lg, backgroundColor: palette.surface, ...shadow.sm },
   source: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: 12, paddingVertical: 10, borderRadius: radius.lg, backgroundColor: '#fff', borderWidth: 1, borderColor: '#E3E1FF' },
   option: { flexDirection: 'row', alignItems: 'center', gap: 10, minHeight: 48, paddingHorizontal: 14, paddingVertical: 10, borderRadius: radius.lg, backgroundColor: '#fff', borderWidth: 1.5, borderColor: '#E3E1FF', ...shadow.sm },
   note: { flexDirection: 'row', alignItems: 'center', gap: 10, padding: 12, borderRadius: radius.lg },
