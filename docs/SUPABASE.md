@@ -20,6 +20,7 @@ Supabase enregistre chaque migration sous l'heure de son application, pas sous l
 | `20261022120000_photos_profil.sql` | `20261022132208 photos_profil` | Bucket **privé** `avatars` (JPEG, 1 Mo max), un dossier par compte, seul le propriétaire lit, dépose, remplace ou supprime sa photo ; `profiles.avatar_url` n'accepte qu'un chemin vers son propre dossier, jamais un lien externe. Appliquée le 22/10 après sauvegarde ciblée (`~/Desktop/dalili-backups/2026-10-22/`, avec le script d'annulation) et 10 nouveaux tests verts. Aucune nouvelle alerte de l'advisor |
 | `20261023130000_mentorat_reel.sql` | `20261023154336 mentorat_reel` | Une réservation est une **demande** : elle naît « en attente », seulement vers un mentor validé qui prend des demandes, pour plus tard, jamais vers soi-même. Garde `bookings_guard` : le mentor accepte, décline, annule ou marque fait, sans toucher à la date ni au sujet ; l'étudiant ne fait qu'annuler. `mentor_requests()` : le mentor connecté voit ses demandes avec « Prénom N. », ville et pays d'origine, rien d'autre. 17 nouveaux tests verts (75 au total). Appliquée le 23/10 après feu vert, sauvegarde (`~/Desktop/dalili-backups/2026-10-23/`, tables vides, script d'annulation) : défaut `pending`, 5 règles, garde actif, `mentor_requests` non exécutable sans compte, comptages inchangés (0 réservation, 0 mentor, 3 profils) |
 
+| `20261024100000_notifications.sql` | ⏳ **pas encore appliquée** | `push_tokens` : le jeton Expo de chaque téléphone, lisible et supprimable seulement par son compte, enregistré par `register_push_token()` (le jeton passe au dernier compte connecté sur le téléphone ; seuls les jetons Expo sont acceptés). `notification_events` : journal réservé au serveur, une alerte par demande et par événement. 13 nouveaux tests verts (88 au total, 24/10) |
 Les données n'ont pas bougé : 58 inscrits, journal de l'assistant intact, 2 140 extraits.
 
 ## 2. Vérifications faites en prod (21/10)
@@ -50,7 +51,7 @@ Formulaires du site testés en vrai avec l'adresse de test de l'équipe (waitlis
 
 ## 4. Tester une migration avant la prod
 
-`npm run test:migrations` lance un Postgres jetable (Docker). Le script rejoue le schéma du site tel qu'il était avant M1 (`supabase/tests/01_site_prod.sql`, relevé le 20/10), toutes les migrations, le seed, puis **58 tests de sécurité** (`supabase/tests/rls.sql`) : anon, quatre comptes, clé service, photos de profil. Dernier résultat (23/10) : 75 vérifications, toutes vertes.
+`npm run test:migrations` lance un Postgres jetable (Docker). Le script rejoue le schéma du site tel qu'il était avant M1 (`supabase/tests/01_site_prod.sql`, relevé le 20/10), toutes les migrations, le seed, puis **58 tests de sécurité** (`supabase/tests/rls.sql`) : anon, quatre comptes, clé service, photos de profil. Dernier résultat (24/10) : 88 vérifications, toutes vertes.
 
 Règles :
 1. Nouveau fichier daté dans `supabase/migrations/`, jamais de modification d'une migration déjà appliquée.

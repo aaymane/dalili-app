@@ -33,6 +33,7 @@ import { useLocalDb } from '@/data/local-db';
 import { resetLocalData } from '@/features/auth/account';
 import { isDemoMode, useAuth } from '@/features/auth/store';
 import { useJourney } from '@/features/journey/store';
+import { askNotifications, unregisterPush } from '@/features/notifications/push';
 import { AvatarSheet } from '@/features/profile/components/AvatarSheet';
 import { useProfile } from '@/features/profile/store';
 import { useRoleTheme } from '@/theme';
@@ -146,7 +147,21 @@ export default function Profil() {
             tone="slate"
             label="Rappels d’échéances"
             sub="Visa, CAF, CVEC…"
-            right={<Switch value={profile.notificationsEnabled} onValueChange={(v) => update({ notificationsEnabled: v })} trackColor={{ true: accent, false: '#D5DAE7' }} thumbColor="#fff" />}
+            right={
+              <Switch
+                value={profile.notificationsEnabled}
+                onValueChange={(v) => {
+                  // Oui : on demande l'autorisation au système et on inscrit le téléphone. Non : il ne reçoit plus rien.
+                  if (v) void askNotifications();
+                  else {
+                    update({ notificationsEnabled: false });
+                    void unregisterPush();
+                  }
+                }}
+                trackColor={{ true: accent, false: '#D5DAE7' }}
+                thumbColor="#fff"
+              />
+            }
           />
           <Row icon={Languages} tone="slate" label="Langue" sub="Français · العربية et English bientôt" onPress={() => toast('Arabe et anglais arrivent bientôt 🌍', 'info')} />
           <Row icon={Siren} tone="red" label="Urgences & SOS" sub="Numéros utiles en France" onPress={go('/(app)/outils/sos')} />

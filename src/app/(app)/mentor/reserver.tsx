@@ -17,6 +17,7 @@ import { PressableScale } from '@/components/ui/PressableScale';
 import { Text } from '@/components/ui/Text';
 import { remoteCreateBooking } from '@/data/api';
 import { useMentor } from '@/data/hooks';
+import { askNotifications, notifyServer } from '@/features/notifications/push';
 import { useLocalDb } from '@/data/local-db';
 import { formatLong } from '@/lib/date';
 import { gradients, palette, radius, shadow } from '@/theme/tokens';
@@ -55,7 +56,12 @@ export default function Reserve() {
     setLoading(true);
     try {
       const saved = await remoteCreateBooking({ mentorId: m.id, startsAt, topic: topicText });
-      if (saved) void qc.invalidateQueries({ queryKey: ['bookings', 'mine'] });
+      if (saved) {
+        void qc.invalidateQueries({ queryKey: ['bookings', 'mine'] });
+        // Le mentor est prévenu ; et toi, tu le seras de sa réponse si tu dis oui aux notifications.
+        void notifyServer('booking_created', saved.id);
+        void askNotifications();
+      }
       else addBooking({ id: `b-${Date.now()}`, mentorId: m.id, startsAt, topic: topicText, status: 'pending' });
       setDone(true);
     } catch (e) {

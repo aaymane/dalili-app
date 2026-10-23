@@ -1,7 +1,10 @@
+import * as Notifications from 'expo-notifications';
 import { router, Stack } from 'expo-router';
 import { useEffect } from 'react';
 
 import { useJourneyStore } from '@/features/journey/store';
+import { openFromNotification, registerPush } from '@/features/notifications/push';
+import { useProfile } from '@/features/profile/store';
 import { palette } from '@/theme/tokens';
 
 /** Le visa vient d'être coché : on ouvre le déblocage du billet une fois la fiche de l'étape refermée. */
@@ -14,8 +17,25 @@ function useTicketUnlock() {
   }, [pending]);
 }
 
+/**
+ * Notifications : le téléphone est inscrit dès que le compte est connecté et a dit oui,
+ * et toucher une alerte (app ouverte ou lancée par elle) ouvre le bon écran.
+ */
+function usePushNotifications() {
+  const enabled = useProfile((s) => s.profile.notificationsEnabled);
+  useEffect(() => {
+    if (enabled) void registerPush();
+  }, [enabled]);
+  useEffect(() => {
+    openFromNotification(Notifications.getLastNotificationResponse());
+    const sub = Notifications.addNotificationResponseReceivedListener(openFromNotification);
+    return () => sub.remove();
+  }, []);
+}
+
 export default function AppLayout() {
   useTicketUnlock();
+  usePushNotifications();
   return (
     <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: palette.bg } }}>
       <Stack.Screen name="(tabs)" />

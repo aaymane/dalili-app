@@ -202,6 +202,38 @@ set local role anon;
 select tests.must_fail('anon lit les demandes', 'select * from public.mentor_requests()');
 rollback;
 
+-- ───────────── notifications : les téléphones et le journal des alertes ─────────────
+begin;
+set local role authenticated;
+set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-00000000000a","role":"authenticated"}';
+select public.register_push_token('ExponentPushToken[telephone-1]', 'ios');
+select tests.must_count('A voit le jeton de son téléphone', 'select * from public.push_tokens', 1);
+select tests.must_fail('A écrit un jeton à la main pour B',
+  $q$insert into public.push_tokens (token, user_id, platform) values ('ExponentPushToken[x]', '00000000-0000-0000-0000-00000000000b', 'ios')$q$);
+select tests.must_fail('A enregistre un jeton qui n''est pas un jeton Expo', $q$select public.register_push_token('https://pirate.example', 'ios')$q$);
+select tests.must_fail('A lit le journal des alertes', 'select * from public.notification_events');
+select tests.must_fail('A écrit dans le journal des alertes',
+  $q$insert into public.notification_events (subject_id, event) values (gen_random_uuid(), 'booking_created')$q$);
+
+set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-00000000000b","role":"authenticated"}';
+select tests.must_count('B ne voit pas le jeton de A', 'select * from public.push_tokens', 0);
+delete from public.push_tokens where token = 'ExponentPushToken[telephone-1]';
+select public.register_push_token('ExponentPushToken[telephone-1]', 'ios');
+select tests.must_count('B se connecte sur le même téléphone : le jeton passe à B', 'select * from public.push_tokens', 1);
+
+set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-00000000000a","role":"authenticated"}';
+select tests.must_count('A ne reçoit plus rien sur ce téléphone', 'select * from public.push_tokens', 0);
+reset role;
+set local role anon;
+select tests.must_fail('anon enregistre un jeton', $q$select public.register_push_token('ExponentPushToken[y]', 'ios')$q$);
+select tests.must_fail('anon lit les jetons', 'select * from public.push_tokens');
+reset role;
+set local role service_role;
+insert into public.notification_events (subject_id, event) values ('00000000-0000-0000-0000-0000000000f9', 'booking_created');
+select tests.must_fail('le serveur n''envoie pas deux fois la même alerte',
+  $q$insert into public.notification_events (subject_id, event) values ('00000000-0000-0000-0000-0000000000f9', 'booking_created')$q$);
+rollback;
+
 -- ───────────── serveur du site (clé service) ─────────────
 begin;
 set local role service_role;

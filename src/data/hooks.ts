@@ -3,6 +3,8 @@ import { useMemo } from 'react';
 
 import { fetchEvents, fetchGroups, fetchMentors, fetchMyBookings, fetchPosts, remoteCancelBooking } from './api';
 import { fetchCore, fetchGuide, snapshot, snapshotGuide, type Core, type CoreKey } from './content';
+import { notifyServer } from '@/features/notifications/push';
+
 import { useLocalDb } from './local-db';
 import type { Booking } from './types';
 
@@ -23,7 +25,10 @@ export function useCancelBooking() {
   const qc = useQueryClient();
   const cancelLocal = useLocalDb((s) => s.cancelBooking);
   return useMutation({
-    mutationFn: remoteCancelBooking,
+    mutationFn: async (id: string) => {
+      await remoteCancelBooking(id);
+      void notifyServer('booking_cancelled', id);
+    },
     onMutate: (id: string) => {
       cancelLocal(id);
       const before = qc.getQueryData<Booking[] | null>(MY_BOOKINGS);
