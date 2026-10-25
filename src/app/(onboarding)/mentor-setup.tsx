@@ -11,7 +11,6 @@ import { IconTile } from '@/components/ui/IconTile';
 import { PressableScale } from '@/components/ui/PressableScale';
 import { Tag } from '@/components/ui/Tag';
 import { Text } from '@/components/ui/Text';
-import { useCreateMyMentor } from '@/features/mentors/hooks';
 import { CityPicker } from '@/features/profile/components/CityPicker';
 import { useProfile } from '@/features/profile/store';
 import { gradients, palette, radius, shadow } from '@/theme/tokens';
@@ -21,7 +20,6 @@ import { leave, rise } from '@/theme/motion';
 export default function MentorSetup() {
   const profile = useProfile((s) => s.profile);
   const update = useProfile((s) => s.update);
-  const createMentor = useCreateMyMentor();
   const [i, setI] = useState(0);
 
   return (
@@ -32,11 +30,11 @@ export default function MentorSetup() {
       header={
         <StepHeader
           animKey={i}
-          overline={`Étape ${i + 1} / 2 · DALILI`}
+          overline={`Étape ${i + 1} / 3 · DALILI`}
           title={i === 0 ? 'Dans quelle ville\nvis-tu ?' : 'Comment veux-tu\naider ?'}
           subtitle={i === 0 ? 'On te connecte aux étudiants qui arrivent près de chez toi.' : 'Tu pourras faire les deux plus tard, depuis ton profil.'}
           step={i}
-          total={2}
+          total={3}
           accent={palette.mentor}
           onBack={() => (i ? setI(0) : router.back())}
         />
@@ -52,9 +50,8 @@ export default function MentorSetup() {
                 haptic="press"
                 onPress={() => {
                   update({ roles: ['mentor', 'student'], activeRole: 'mentor' });
-                  // La fiche part en validation. Si l'envoi échoue, l'espace Mentor propose de la renvoyer.
-                  createMentor.mutate({ firstName: profile.firstName, lastName: profile.lastName, city: profile.mentorCity ?? '', origin: profile.originCity });
-                  router.replace({ pathname: '/(onboarding)/loading', params: { role: 'mentor' } });
+                  // La charte d'abord : c'est elle qui envoie la fiche à l'équipe.
+                  router.push('/(onboarding)/charte');
                 }}
                 style={[styles.choice, { backgroundColor: '#E8EEFF' }]}>
                 <IconTile icon={GraduationCap} tone="blue" size={56} radius={18} />

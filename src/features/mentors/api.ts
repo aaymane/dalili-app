@@ -8,6 +8,8 @@ import { demoMentorRequests, demoMentors } from '@/data/demo';
 import type { Mentor } from '@/data/types';
 import { supabase } from '@/lib/supabase';
 
+import { CHARTER_VERSION } from './charter';
+
 export type RequestStatus = 'pending' | 'confirmed' | 'cancelled' | 'done';
 
 export type MentorRequest = {
@@ -21,8 +23,11 @@ export type MentorRequest = {
   country: string | null;
 };
 
-/** Ta fiche mentor : `null` si tu n'en as pas encore. `isActive` = validée par l'équipe. */
-export type MyMentor = Mentor & { isActive: boolean };
+/**
+ * Ta fiche mentor : `null` si tu n'en as pas encore. `isActive` = validée par l'équipe.
+ * `charterOk` = la charte en vigueur est acceptée (une fiche d'avant la charte, ou une charte qui a changé, la redemande).
+ */
+export type MyMentor = Mentor & { isActive: boolean; charterOk: boolean };
 
 async function sessionUser() {
   if (!supabase) return null;
@@ -33,16 +38,27 @@ async function sessionUser() {
 export async function fetchMyMentor(): Promise<MyMentor | null> {
   const user = await sessionUser();
   // Démo : un identifiant à part, pour ne pas confondre « ma fiche » avec un mentor de la liste d'exemple.
-  if (!supabase || !user) return { ...demoMentors[0], id: 'm-moi', isActive: true };
-  const { data, error } = await supabase.from('mentors').select('*').eq('user_id', user.id).maybeSingle();
-  if (error) throw error;
-  return data ? { ...toMentor(data), isActive: !!data.is_active } : null;
+  if (!supabase || !user) return { ...demoMentors[0], id: 'm-moi', isActive: true, charterOk: true };
+  const [mentor, trust] = await Promise.all([
+    supabase.from('mentors').select('*').eq('user_id', user.id).maybeSingle(),
+    supabase.from('mentor_trust').select('charter_version').eq('user_id', user.id).maybeSingle(),
+  ]);
+  if (mentor.error) throw mentor.error;
+  const data = mentor.data;
+  // La charte n'est qu'un rappel ici (la base tient la règle) : une lecture ratée ne bloque pas l'espace Mentor.
+  const charterOk = trust.error ? true : trust.data?.charter_version === CHARTER_VERSION;
+  return data ? { ...toMentor(data), isActive: !!data.is_active, charterOk } : null;
 }
 
-/** « Devenir mentor » : la fiche part en validation (invisible des étudiants tant que l'équipe ne l'a pas validée). */
-export async function createMyMentor(input: { firstName: string; lastName: string; city: string; origin: string }) {
+/**
+ * « Devenir mentor » : la charte d'abord (la base refuse une fiche sans elle, et un mentor de moins de 18 ans),
+ * puis la fiche part en validation (invisible des étudiants tant que l'équipe ne l'a pas vérifiée et validée).
+ */
+export async function createMyMentor(input: { firstName: string; lastName: string; city: string; origin: string; birthYear: number }) {
   const user = await sessionUser();
   if (!supabase || !user) return;
+  const charter = await supabase.rpc('accept_mentor_charter', { p_birth_year: input.birthYear, p_version: CHARTER_VERSION });
+  if (charter.error) throw charter.error;
   const { error } = await supabase.from('mentors').insert({
     user_id: user.id,
     first_name: input.firstName.trim() || 'Mentor',
@@ -50,7 +66,7 @@ export async function createMyMentor(input: { firstName: string; lastName: strin
     city: input.city,
     origin: input.origin || null,
   });
-  // Déjà créée (deuxième tap, autre téléphone) : rien à faire.
+  // Déjà créée (deuxième tap, autre téléphone, fiche d'avant la charte) : la charte acceptée suffit.
   if (error && error.code !== '23505') throw error;
 }
 

@@ -1,6 +1,6 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
-import { Check, Eye, Hourglass, PhoneCall, Star, Users, WifiOff } from 'lucide-react-native';
+import { Check, ChevronRight, Eye, Hourglass, PhoneCall, ShieldCheck, Star, Users, WifiOff } from 'lucide-react-native';
 import { StyleSheet, Switch, View } from 'react-native';
 import Animated from 'react-native-reanimated';
 
@@ -17,7 +17,7 @@ import { SectionHeader } from '@/components/ui/SectionHeader';
 import { Text } from '@/components/ui/Text';
 import type { MentorRequest, MyMentor } from '@/features/mentors/api';
 import { Constellation } from '@/features/mentors/components/Constellation';
-import { useAnswerRequest, useCreateMyMentor, useMentorRequests, useMyMentor, useSetAvailability } from '@/features/mentors/hooks';
+import { useAnswerRequest, useMentorRequests, useMyMentor, useSetAvailability } from '@/features/mentors/hooks';
 import { displayName, useProfile } from '@/features/profile/store';
 import { daysFromToday, formatDayMonth, formatTime, relativeDays } from '@/lib/date';
 import { haptics } from '@/lib/haptics';
@@ -70,11 +70,23 @@ export function MentorHome() {
             <BecomeMentor />
           </Animated.View>
         ) : !mentor.isActive ? (
-          <Animated.View entering={enter(0)}>
-            <PendingCard city={mentor.city} />
-          </Animated.View>
+          <>
+            {!mentor.charterOk ? (
+              <Animated.View entering={enter(0)}>
+                <CharterCard />
+              </Animated.View>
+            ) : null}
+            <Animated.View entering={enter(1)}>
+              <PendingCard city={mentor.city} />
+            </Animated.View>
+          </>
         ) : (
           <>
+            {!mentor.charterOk ? (
+              <Animated.View entering={enter(0)}>
+                <CharterCard />
+              </Animated.View>
+            ) : null}
             <Animated.View entering={enter(0)}>
               <ImpactCard name={displayName(profile)} mentor={mentor} requests={requests.data ?? []} />
             </Animated.View>
@@ -237,10 +249,9 @@ function Requests({ query }: { query: ReturnType<typeof useMentorRequests> }) {
   );
 }
 
-/** Pas encore de fiche : « Devenir mentor » l'envoie à l'équipe. */
+/** Pas encore de fiche : « Devenir mentor » passe par la charte, qui envoie la fiche à l'équipe. */
 function BecomeMentor() {
   const profile = useProfile((s) => s.profile);
-  const create = useCreateMyMentor();
   const city = profile.mentorCity ?? profile.destinationCity;
   return (
     <View style={[styles.list, styles.stateCard]}>
@@ -251,22 +262,10 @@ function BecomeMentor() {
         montrer.
       </Text>
       <Button
-        label="Envoyer ma fiche à l’équipe"
+        label="Lire la charte et envoyer ma fiche"
         accent={gradients.mentor}
-        loading={create.isPending}
         disabled={!city || !profile.firstName.trim()}
-        onPress={() =>
-          create.mutate(
-            { firstName: profile.firstName, lastName: profile.lastName, city: city ?? '', origin: profile.originCity },
-            {
-              onSuccess: () => {
-                haptics.success();
-                toast('Fiche envoyée. L’équipe la relit.');
-              },
-              onError: () => toast('Pas envoyée. Vérifie ta connexion et réessaie.', 'info'),
-            },
-          )
-        }
+        onPress={() => router.push('/(app)/charte-mentor')}
       />
       {!city || !profile.firstName.trim() ? (
         <Text variant="caption" color={palette.muted}>
@@ -277,6 +276,22 @@ function BecomeMentor() {
   );
 }
 
+/** Fiche envoyée avant la charte (ou charte qui a changé) : on la fait accepter, sans rien bloquer d'autre. */
+function CharterCard() {
+  return (
+    <PressableScale onPress={() => router.push('/(app)/charte-mentor')} style={[styles.list, styles.charter]} accessibilityRole="button">
+      <IconTile icon={ShieldCheck} tone="green" size={44} radius={14} />
+      <View style={{ flex: 1, gap: 2 }}>
+        <Text variant="bodyStrong">Accepte la charte du mentor</Text>
+        <Text variant="small" color={palette.subtle}>
+          6 engagements pour protéger les étudiants, et toi aussi. Une minute.
+        </Text>
+      </View>
+      <ChevronRight size={18} color={palette.subtle} />
+    </PressableScale>
+  );
+}
+
 /** Fiche envoyée, pas encore validée : on le dit, sans promettre de délai. */
 function PendingCard({ city }: { city: string }) {
   return (
@@ -284,8 +299,8 @@ function PendingCard({ city }: { city: string }) {
       <IconTile icon={Hourglass} tone="amber" size={52} radius={17} />
       <Text variant="h2">Ta fiche est en cours de validation</Text>
       <Text variant="body" color={palette.subtle}>
-        L’équipe relit chaque fiche avant de la montrer. Une fois validée, les étudiants de {city} pourront te proposer un appel, et leurs demandes arriveront
-        ici.
+        L’équipe vérifie chaque mentor et relit sa fiche avant de la montrer. Elle peut te contacter par email pour voir ta carte étudiante, ton LinkedIn ou ton
+        titre de séjour. Une fois validée, les étudiants de {city} pourront te proposer un appel, et leurs demandes arriveront ici.
       </Text>
     </View>
   );
@@ -332,6 +347,7 @@ const styles = StyleSheet.create({
   list: { borderRadius: radius.xl, backgroundColor: palette.surface, overflow: 'hidden', ...shadow.sm },
   stateCard: { padding: 20, gap: 12 },
   empty: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 14 },
+  charter: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 16, borderWidth: 1.5, borderColor: palette.mentor },
   req: { padding: 14, gap: 12 },
   sep: { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: palette.line },
   reqTop: { flexDirection: 'row', alignItems: 'center', gap: 12 },

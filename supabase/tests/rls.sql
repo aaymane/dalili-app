@@ -76,6 +76,16 @@ select tests.must_count('A ne voit pas le profil de B', $q$select * from public.
 select tests.must_fail('A coche une étape pour B', $q$insert into public.step_progress (user_id, step_id) values ('00000000-0000-0000-0000-00000000000b', 'visa')$q$);
 select tests.must_fail('A se donne une note de mentor', $q$insert into public.mentors (user_id, first_name, last_name, city, rating) values (auth.uid(), 'A', 'A', 'Paris', 5)$q$);
 select tests.must_fail('A s''affiche tout seul comme mentor', $q$insert into public.mentors (user_id, first_name, last_name, city, is_active) values (auth.uid(), 'A', 'A', 'Paris', true)$q$);
+select tests.must_fail('A envoie une fiche sans avoir accepté la charte', $q$insert into public.mentors (user_id, first_name, last_name, city) values (auth.uid(), 'A', 'A', 'Paris')$q$);
+select tests.must_fail('A, 17 ans, accepte la charte', $q$select public.accept_mentor_charter(extract(year from now())::int - 17, public.mentor_charter_version())$q$);
+select tests.must_fail('A accepte une ancienne charte', $q$select public.accept_mentor_charter(1999, '2020-01-01')$q$);
+select tests.must_fail('A écrit sa ligne de confiance à la main', $q$insert into public.mentor_trust (user_id, birth_year, charter_version) values (auth.uid(), 1999, public.mentor_charter_version())$q$);
+select public.accept_mentor_charter(1999, public.mentor_charter_version());
+select tests.must_count('A voit sa charte acceptée', 'select * from public.mentor_trust where birth_year = 1999 and verified_at is null', 1);
+select tests.must_fail('A se déclare vérifié', $q$update public.mentor_trust set verified_at = now(), verified_proof = 'linkedin', verified_by = 'Moi' where user_id = auth.uid()$q$);
+select tests.must_fail('A change son année de naissance à la main', 'update public.mentor_trust set birth_year = 1990 where user_id = auth.uid()');
+select public.accept_mentor_charter(1985, public.mentor_charter_version());
+select tests.must_count('réaccepter la charte ne change pas l''année notée', 'select * from public.mentor_trust where birth_year = 1999', 1);
 insert into public.mentors (user_id, first_name, last_name, city) values (auth.uid(), 'A', 'A', 'Paris');
 select tests.must_count('A voit sa fiche mentor en attente', 'select * from public.mentors where not is_active', 1);
 select tests.must_fail('A gonfle le nombre de membres', 'update public.groups set members_count = 9999');
@@ -90,9 +100,35 @@ rollback;
 begin;
 set local role authenticated;
 set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-00000000000a","role":"authenticated"}';
+select public.accept_mentor_charter(1999, public.mentor_charter_version());
 insert into public.mentors (user_id, first_name, last_name, city) values (auth.uid(), 'A', 'A', 'Paris');
 set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-00000000000b","role":"authenticated"}';
 select tests.must_count('B ne voit pas un mentor non validé', 'select * from public.mentors', 0);
+select tests.must_count('B ne voit ni l''âge ni la vérification de A', 'select * from public.mentor_trust', 0);
+rollback;
+
+-- ───────────── mentors vérifiés : pas de mise en ligne sans preuve vue ─────────────
+begin;
+set local role anon;
+select tests.must_fail('anon accepte la charte', $q$select public.accept_mentor_charter(1999, '2026-10-24')$q$);
+select tests.must_fail('anon lit les vérifications', 'select * from public.mentor_trust');
+rollback;
+begin;
+insert into public.mentors (id, user_id, first_name, last_name, city) values
+  ('00000000-0000-0000-0000-0000000000e3', '00000000-0000-0000-0000-00000000000d', 'Nadia', 'Daoud', 'Lille');
+insert into public.mentor_trust (user_id, birth_year, charter_version) values ('00000000-0000-0000-0000-00000000000d', 1998, public.mentor_charter_version());
+set local role service_role;
+select tests.must_fail('le serveur valide une fiche non vérifiée', $q$update public.mentors set is_active = true where id = '00000000-0000-0000-0000-0000000000e3'$q$);
+select tests.must_fail('vérification sans preuve ni nom', $q$update public.mentor_trust set verified_at = now() where user_id = '00000000-0000-0000-0000-00000000000d'$q$);
+select tests.must_fail('preuve inconnue', $q$update public.mentor_trust set verified_at = now(), verified_proof = 'passeport', verified_by = 'Aymane' where user_id = '00000000-0000-0000-0000-00000000000d'$q$);
+update public.mentor_trust set verified_at = now(), verified_proof = 'carte_etudiante', verified_by = 'Aymane' where user_id = '00000000-0000-0000-0000-00000000000d';
+update public.mentors set is_active = true where id = '00000000-0000-0000-0000-0000000000e3';
+select tests.must_count('vérifiée, la fiche est validée', $q$select * from public.mentors where id = '00000000-0000-0000-0000-0000000000e3' and is_active$q$, 1);
+update public.mentors set is_active = false where id = '00000000-0000-0000-0000-0000000000e3';
+update public.mentor_trust set verified_at = null, verified_proof = null, verified_by = null;
+update public.mentors set city = 'Lyon' where id = '00000000-0000-0000-0000-0000000000e3';
+select tests.must_count('une fiche suspendue se modifie sans vérification', $q$select * from public.mentors where id = '00000000-0000-0000-0000-0000000000e3' and city = 'Lyon' and not is_active$q$, 1);
+reset role;
 rollback;
 
 -- ───────────── photos de profil (bucket avatars) ─────────────
@@ -272,6 +308,8 @@ update public.bookings set topic = topic where id = '00000000-0000-0000-0000-000
 select tests.must_count('une mise à jour sans changement de statut ne prévient personne', $q$select * from tests.webhook_calls$q$, 4);
 
 reset role;
+insert into public.mentor_trust (user_id, birth_year, charter_version, verified_at, verified_proof, verified_by)
+  values ('00000000-0000-0000-0000-00000000000d', 1998, public.mentor_charter_version(), now(), 'linkedin', 'Aymane');
 update public.mentors set is_active = true where id = '00000000-0000-0000-0000-0000000000e2';
 select tests.must_count('fiche validée : le site est prévenu', $q$select * from tests.webhook_calls where body ->> 'event' = 'mentor_validated'$q$, 1);
 update public.mentors set city = 'Lille' where id = '00000000-0000-0000-0000-0000000000e2';
