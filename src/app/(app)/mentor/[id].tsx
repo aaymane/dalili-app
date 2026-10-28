@@ -1,6 +1,7 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import { router, useLocalSearchParams } from 'expo-router';
-import { ChevronLeft, Clock, Phone, Quote, Star } from 'lucide-react-native';
+import { ChevronLeft, Clock, Flag, Phone, Quote, Star } from 'lucide-react-native';
+import { useState } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import Animated from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -11,6 +12,7 @@ import { PressableScale } from '@/components/ui/PressableScale';
 import { Text } from '@/components/ui/Text';
 import { useMentor } from '@/data/hooks';
 import { useMyMentor } from '@/features/mentors/hooks';
+import { ReportSheet } from '@/features/safety/components/ReportSheet';
 import { palette, radius, shadow } from '@/theme/tokens';
 import { pop, rise } from '@/theme/motion';
 
@@ -28,6 +30,7 @@ export default function MentorProfile() {
   const { data: listed } = useMentor(id);
   // Ta propre fiche n'est pas dans la liste des mentors : tu la vois quand même, en aperçu.
   const { data: mine } = useMyMentor();
+  const [reporting, setReporting] = useState(false);
   const own = !!mine && mine.id === id;
   const m = listed ?? (own ? mine : undefined);
   if (!m) return <View style={{ flex: 1, backgroundColor: palette.bg }} />;
@@ -165,8 +168,18 @@ export default function MentorProfile() {
               </View>
             ))}
           </View>
+
+          {own ? null : (
+            <PressableScale onPress={() => setReporting(true)} hitSlop={6} style={styles.report} accessibilityLabel={`Signaler ${m.firstName} à l’équipe DALILI`}>
+              <Flag size={14} color={palette.muted} />
+              <Text variant="small" color={palette.muted}>
+                Un souci avec {m.firstName} ? Signaler
+              </Text>
+            </PressableScale>
+          )}
         </View>
       </ScrollView>
+      <ReportSheet visible={reporting} onClose={() => setReporting(false)} target={{ mentorId: m.id }} name={m.firstName} />
       <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, 16) }]}>
         {own ? (
           <Text variant="small" color={palette.subtle} align="center">
@@ -194,5 +207,6 @@ const styles = StyleSheet.create({
   spec: { paddingHorizontal: 12, paddingVertical: 7, borderRadius: 999, backgroundColor: palette.electricSoft },
   lang: { width: 22, height: 22, borderRadius: 11, backgroundColor: palette.electric, alignItems: 'center', justifyContent: 'center' },
   review: { padding: 14, borderRadius: radius.lg, backgroundColor: '#fff', gap: 8, ...shadow.sm },
+  report: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, minHeight: 44, alignSelf: 'center', paddingHorizontal: 12 },
   footer: { position: 'absolute', left: 0, right: 0, bottom: 0, paddingHorizontal: 20, paddingTop: 12, backgroundColor: 'rgba(245,247,253,0.96)' },
 });

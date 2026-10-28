@@ -1,5 +1,5 @@
 import * as WebBrowser from 'expo-web-browser';
-import { BadgeCheck, ChevronRight, ExternalLink, Image as ImageIcon, KeyRound, Lock, Map, MessageCircle, Sparkles, Trash2 } from 'lucide-react-native';
+import { BadgeCheck, ChevronRight, ExternalLink, Flag, Image as ImageIcon, KeyRound, Lock, Map, MessageCircle, Sparkles, Trash2 } from 'lucide-react-native';
 import { useState, type ReactNode } from 'react';
 import { StyleSheet, View } from 'react-native';
 import Animated from 'react-native-reanimated';
@@ -19,6 +19,7 @@ const KEPT = [
   { icon: ImageIcon, title: 'Ta photo', text: 'Privée : pour l’instant, toi seul·e la vois. On retire le lieu et les infos cachées avant l’envoi.' },
   { icon: MessageCircle, title: 'Tes messages dans la communauté', text: 'Visibles par les membres des groupes que tu rejoins.' },
   { icon: Sparkles, title: 'Tes questions à Dalili IA', text: 'Gardées sans ton nom ni ton email, pour améliorer les guides.' },
+  { icon: Flag, title: 'Les signalements du mentorat', text: 'Lus seulement par l’équipe. Si un compte est supprimé, le signalement reste, sans le nom, pour protéger les autres.' },
 ];
 
 const NEVER = [

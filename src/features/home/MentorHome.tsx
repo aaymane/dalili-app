@@ -1,6 +1,7 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
-import { Check, ChevronRight, Eye, Hourglass, PhoneCall, ShieldCheck, Star, Users, WifiOff } from 'lucide-react-native';
+import { Check, ChevronRight, Eye, Flag, Hourglass, PhoneCall, ShieldCheck, Star, Users, WifiOff } from 'lucide-react-native';
+import { useState } from 'react';
 import { StyleSheet, Switch, View } from 'react-native';
 import Animated from 'react-native-reanimated';
 
@@ -19,6 +20,7 @@ import type { MentorRequest, MyMentor } from '@/features/mentors/api';
 import { Constellation } from '@/features/mentors/components/Constellation';
 import { useAnswerRequest, useMentorRequests, useMyMentor, useSetAvailability } from '@/features/mentors/hooks';
 import { displayName, useProfile } from '@/features/profile/store';
+import { ReportSheet } from '@/features/safety/components/ReportSheet';
 import { daysFromToday, formatDayMonth, formatTime, relativeDays } from '@/lib/date';
 import { haptics } from '@/lib/haptics';
 import { enter, leave, pop, reflow } from '@/theme/motion';
@@ -171,6 +173,13 @@ function Requests({ query }: { query: ReturnType<typeof useMentorRequests> }) {
   const answer = useAnswerRequest();
   const list = visible(query.data ?? []);
   const pending = list.filter((r) => r.status === 'pending').length;
+  // La dernière demande signalée reste affichée pendant que la feuille se ferme.
+  const [reported, setReported] = useState<MentorRequest | null>(null);
+  const [reporting, setReporting] = useState(false);
+  const report = (r: MentorRequest) => {
+    setReported(r);
+    setReporting(true);
+  };
 
   const reply = (r: MentorRequest, ok: boolean) => {
     if (ok) haptics.success();
@@ -232,20 +241,38 @@ function Requests({ query }: { query: ReturnType<typeof useMentorRequests> }) {
                       Décliner
                     </Text>
                   </PressableScale>
+                  <ReportButton r={r} onPress={() => report(r)} />
                 </View>
               ) : (
-                <Animated.View entering={pop()} style={styles.confirmed}>
-                  <Check size={14} color={palette.mentor} strokeWidth={2.6} />
-                  <Text variant="smallStrong" color={palette.mentor}>
-                    Appel confirmé
-                  </Text>
-                </Animated.View>
+                <View style={styles.reqActions}>
+                  <Animated.View entering={pop()} style={styles.confirmed}>
+                    <Check size={14} color={palette.mentor} strokeWidth={2.6} />
+                    <Text variant="smallStrong" color={palette.mentor}>
+                      Appel confirmé
+                    </Text>
+                  </Animated.View>
+                  <ReportButton r={r} onPress={() => report(r)} />
+                </View>
               )}
             </Animated.View>
           ))}
         </Animated.View>
       )}
+      <ReportSheet
+        visible={reporting}
+        onClose={() => setReporting(false)}
+        target={reported ? { bookingId: reported.id } : null}
+        name={reported?.student ?? 'cet·te étudiant·e'}
+      />
     </View>
+  );
+}
+
+function ReportButton({ r, onPress }: { r: MentorRequest; onPress: () => void }) {
+  return (
+    <PressableScale onPress={onPress} style={styles.flag} accessibilityLabel={`Signaler ${r.student ?? 'cet·te étudiant·e'} à l’équipe DALILI`}>
+      <Flag size={16} color={palette.muted} />
+    </PressableScale>
   );
 }
 
@@ -354,6 +381,7 @@ const styles = StyleSheet.create({
   reqActions: { flexDirection: 'row', alignItems: 'center', gap: 8, marginLeft: 56 },
   accept: { flexDirection: 'row', alignItems: 'center', gap: 6, height: 40, paddingHorizontal: 16, borderRadius: radius.pill, backgroundColor: palette.mentor },
   decline: { height: 40, paddingHorizontal: 14, justifyContent: 'center', borderRadius: radius.pill },
-  confirmed: { flexDirection: 'row', alignItems: 'center', gap: 6, marginLeft: 56 },
+  confirmed: { flexDirection: 'row', alignItems: 'center', gap: 6, minHeight: 44 },
+  flag: { width: 44, height: 44, marginLeft: 'auto', alignItems: 'center', justifyContent: 'center', borderRadius: radius.pill },
   availRow: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 14 },
 });

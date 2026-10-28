@@ -1,6 +1,6 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import { router, useLocalSearchParams } from 'expo-router';
-import { Mic, MicOff, PhoneOff, RefreshCcw, Video, VideoOff } from 'lucide-react-native';
+import { Flag, Mic, MicOff, PhoneOff, RefreshCcw, Video, VideoOff } from 'lucide-react-native';
 import { useEffect, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import Animated, { FadeIn, useAnimatedStyle, useSharedValue, withRepeat, withTiming } from 'react-native-reanimated';
@@ -11,6 +11,7 @@ import { PressableScale } from '@/components/ui/PressableScale';
 import { Text } from '@/components/ui/Text';
 import { useMentors, useMyBookings } from '@/data/hooks';
 import { useProfile } from '@/features/profile/store';
+import { ReportSheet } from '@/features/safety/components/ReportSheet';
 import { haptics } from '@/lib/haptics';
 import { palette } from '@/theme/tokens';
 
@@ -29,6 +30,7 @@ export default function Call() {
   const [cam, setCam] = useState(true);
   const [secs, setSecs] = useState(0);
   const [connected, setConnected] = useState(false);
+  const [reporting, setReporting] = useState(false);
   const ring = useSharedValue(0);
   useEffect(() => {
     ring.set(withRepeat(withTiming(1, { duration: 1600 }), -1));
@@ -61,6 +63,9 @@ export default function Call() {
             </Text>
           </View>
         </View>
+        <PressableScale onPress={() => setReporting(true)} style={styles.flag} accessibilityLabel={`Signaler ${m.firstName} à l’équipe DALILI`}>
+          <Flag size={18} color="#fff" />
+        </PressableScale>
       </View>
       <View style={styles.center}>
         {!connected && <Animated.View style={[styles.ring, ringStyle]} />}
@@ -97,12 +102,19 @@ export default function Call() {
       <Text variant="caption" color="rgba(255,255,255,0.4)" align="center" style={{ marginBottom: insets.bottom + 8 }}>
         Aperçu — la vidéo temps réel arrive dans la prochaine version
       </Text>
+      <ReportSheet
+        visible={reporting}
+        onClose={() => setReporting(false)}
+        target={booking ? { bookingId: booking.id } : { mentorId: m.id }}
+        name={m.firstName}
+      />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  top: { paddingHorizontal: 20 },
+  top: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20 },
+  flag: { width: 44, height: 44, borderRadius: 22, backgroundColor: 'rgba(255,255,255,0.1)', alignItems: 'center', justifyContent: 'center' },
   pill: { flexDirection: 'row', alignItems: 'center', gap: 10, alignSelf: 'flex-start', padding: 8, paddingRight: 16, borderRadius: 999, backgroundColor: 'rgba(255,255,255,0.1)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.15)' },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 4 },
   ring: { position: 'absolute', width: 170, height: 170, borderRadius: 85, borderWidth: 3, borderColor: '#7FA6FF' },

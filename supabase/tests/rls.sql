@@ -238,6 +238,74 @@ set local role anon;
 select tests.must_fail('anon lit les demandes', 'select * from public.mentor_requests()');
 rollback;
 
+-- ───────────── signaler : seuls les fondateurs lisent, la base retrouve qui est signalé ─────────────
+begin;
+insert into public.mentors (id, user_id, first_name, last_name, city, is_active) values
+  ('00000000-0000-0000-0000-0000000000e1', '00000000-0000-0000-0000-00000000000c', 'Yassine', 'Kadiri', 'Lyon', true),
+  ('00000000-0000-0000-0000-0000000000e2', '00000000-0000-0000-0000-00000000000d', 'Nadia', 'Daoud', 'Lille', false);
+insert into public.bookings (id, student_id, mentor_id, starts_at, status) values
+  ('00000000-0000-0000-0000-0000000000f1', '00000000-0000-0000-0000-00000000000a', '00000000-0000-0000-0000-0000000000e1', now() + interval '2 days', 'pending');
+set local role anon;
+select tests.must_fail('anon signale', $q$select public.report_user('autre', null, '00000000-0000-0000-0000-0000000000e1')$q$);
+select tests.must_fail('anon lit les signalements', 'select * from public.mentorat_reports');
+reset role;
+
+set local role authenticated;
+set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-00000000000a","role":"authenticated"}';
+select tests.must_count('A signale le mentor depuis sa fiche',
+  $q$select * from public.report_user('argent', '  Il m''a demandé 50 €  ', '00000000-0000-0000-0000-0000000000e1') r(v) where v = 'sent'$q$, 1);
+select tests.must_count('A le resignale : déjà ouvert, rien de neuf',
+  $q$select * from public.report_user('harcelement', null, '00000000-0000-0000-0000-0000000000e1') r(v) where v = 'already'$q$, 1);
+select tests.must_count('… et par la demande, c''est la même personne : déjà ouvert',
+  $q$select * from public.report_user('autre', null, null, '00000000-0000-0000-0000-0000000000f1') r(v) where v = 'already'$q$, 1);
+select tests.must_fail('A relit les signalements', 'select * from public.mentorat_reports');
+select tests.must_fail('A écrit un signalement à la main',
+  $q$insert into public.mentorat_reports (reporter_id, reporter_role, reported_id, reason) values (auth.uid(), 'student', '00000000-0000-0000-0000-00000000000c', 'autre')$q$);
+select tests.must_fail('A signale une fiche non validée, sans demande entre eux', $q$select public.report_user('autre', null, '00000000-0000-0000-0000-0000000000e2')$q$);
+select tests.must_fail('A signale sans dire qui', $q$select public.report_user('autre')$q$);
+select tests.must_fail('A choisit un motif inconnu', $q$select public.report_user('spam', null, '00000000-0000-0000-0000-0000000000e1')$q$);
+select tests.must_fail('A écrit plus de 500 caractères', $q$select public.report_user('autre', repeat('x', 501), '00000000-0000-0000-0000-0000000000e1')$q$);
+
+set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-00000000000b","role":"authenticated"}';
+select tests.must_fail('B signale par une demande qui n''est pas la sienne', $q$select public.report_user('autre', null, null, '00000000-0000-0000-0000-0000000000f1')$q$);
+
+set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-00000000000c","role":"authenticated"}';
+select tests.must_count('le mentor signale l''étudiant de sa demande',
+  $q$select * from public.report_user('donnees', 'Veut mon numéro perso', null, '00000000-0000-0000-0000-0000000000f1') r(v) where v = 'sent'$q$, 1);
+select tests.must_fail('le mentor se signale lui-même', $q$select public.report_user('autre', null, '00000000-0000-0000-0000-0000000000e1')$q$);
+reset role;
+
+select tests.must_count('la base a retrouvé les bonnes personnes, et nettoyé le mot',
+  $q$select * from public.mentorat_reports where
+     (reporter_role = 'student' and reporter_id = '00000000-0000-0000-0000-00000000000a' and reported_id = '00000000-0000-0000-0000-00000000000c' and reason = 'argent' and comment = 'Il m''a demandé 50 €')
+     or (reporter_role = 'mentor' and reporter_id = '00000000-0000-0000-0000-00000000000c' and reported_id = '00000000-0000-0000-0000-00000000000a' and booking_id = '00000000-0000-0000-0000-0000000000f1')$q$, 2);
+
+insert into public.mentorat_reports (reporter_id, reporter_role, reported_id, reason, status, handled_at, handled_by)
+  select '00000000-0000-0000-0000-00000000000b', 'student', '00000000-0000-0000-0000-00000000000d', 'autre', 'dismissed', now(), 'Test'
+  from generate_series(1, 10);
+set local role authenticated;
+set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-00000000000b","role":"authenticated"}';
+select tests.must_fail('B, 10 signalements aujourd''hui : le 11e attend demain', $q$select public.report_user('autre', null, '00000000-0000-0000-0000-0000000000e1')$q$);
+reset role;
+
+set local role service_role;
+select tests.must_count('le serveur du site lit les signalements ouverts', $q$select * from public.mentorat_reports where status = 'open'$q$, 2);
+select tests.must_fail('le serveur classe un signalement sans dire qui', $q$update public.mentorat_reports set status = 'handled', handled_at = now() where status = 'open'$q$);
+update public.mentorat_reports set status = 'handled', handled_at = now(), handled_by = 'Aymane' where reporter_role = 'student' and status = 'open';
+reset role;
+
+set local role authenticated;
+set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-00000000000a","role":"authenticated"}';
+select tests.must_count('traité, A peut signaler à nouveau la même personne',
+  $q$select * from public.report_user('harcelement', null, '00000000-0000-0000-0000-0000000000e1') r(v) where v = 'sent'$q$, 1);
+reset role;
+
+delete from auth.users where id = '00000000-0000-0000-0000-00000000000c';
+select tests.must_count('le mentor supprime son compte : les signalements restent',
+  $q$select * from public.mentorat_reports where reporter_role = 'mentor' and reporter_id is null
+     union all select * from public.mentorat_reports where reporter_role = 'student' and reporter_id = '00000000-0000-0000-0000-00000000000a' and reported_id is null$q$, 3);
+rollback;
+
 -- ───────────── notifications : les téléphones et le journal des alertes ─────────────
 begin;
 set local role authenticated;
