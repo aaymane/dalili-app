@@ -1,6 +1,6 @@
 # DALILI — Où on en est
 
-> Mis à jour le 23/10/2026. À relire en début de session, et à mettre à jour à la fin de chaque étape.
+> Mis à jour le 28/10/2026. À relire en début de session, et à mettre à jour à la fin de chaque étape.
 > Détails : `docs/SUPABASE.md` (base), `docs/VISION.md` (plan), `docs/AUDIT.md` (audit site ↔ app).
 
 ## Jalons
@@ -40,7 +40,7 @@
 
 10. ✅ Corrigé le 24/10 : à l'inscription, le prénom, le pays et la date de naissance étaient effacés par le nettoyage « nouveau compte » ; les profils en ligne n'avaient donc pas de prénom, et la reconnexion relançait l'onboarding. Le nettoyage garde maintenant ce que le même compte (même email) vient de saisir ; « onboarding terminé » = profil en ligne avec sa situation ; un champ vide en ligne n'écrase plus le téléphone. Comptes déjà créés : carte « Comment tu t'appelles ? » dans le Profil (met aussi à jour la fiche mentor). Pour tester les notifications : deux appareils, Rappels activés avant l'action (un téléphone ne reçoit que le dernier compte connecté).
 
-11. 🟡 **Sécurité du mentorat** (avant tout vrai étudiant). Partie 1 (24/10) : **charte et mentors majeurs et vérifiés**. Devenir mentor passe par l'écran de la charte (`features/mentors/components/CharterScreen.tsx`, texte dans `charter.ts`, **à relire par les fondateurs**) : année de naissance (18 ans au moins, privée) et 6 engagements à cocher, puis la fiche part. Une fiche d'avant la charte voit « Accepte la charte du mentor » dans son espace. Admin › Mentors : case « Marquer vérifié » (preuve vue + prénom du fondateur, aucune copie), « Valider » grisé tant que ce n'est pas fait. Migration `mentors_confiance` + 16 tests (pas appliquée en prod). Ensuite : Signaler (d), Bloquer (e). Mineurs (c) : règle A, B ou C à décider par les fondateurs, rien de codé.
+11. 🟡 **Sécurité du mentorat** (avant tout vrai étudiant). Partie 1 (24/10) : **charte et mentors majeurs et vérifiés**. Devenir mentor passe par l'écran de la charte (`features/mentors/components/CharterScreen.tsx`, texte dans `charter.ts`, **à relire par les fondateurs**) : année de naissance (18 ans au moins, privée) et 6 engagements à cocher, puis la fiche part. Une fiche d'avant la charte voit « Accepte la charte du mentor » dans son espace. Admin › Mentors : case « Marquer vérifié » (preuve vue + prénom du fondateur, aucune copie), « Valider » grisé tant que ce n'est pas fait. Migration `mentors_confiance` + 16 tests, ✅ appliquée en prod le 28/10 ; site poussé ensuite (l'admin lit `mentor_trust`). Le mentor déjà validé reste en ligne : à marquer vérifié dans l'admin, et il devra accepter la charte dans l'app. Ensuite : Signaler (d), Bloquer (e). Mineurs (c) : règle A, B ou C à décider par les fondateurs, rien de codé.
 
 Plus tard : régénérer `SUPABASE_SECRET_KEY`, `RESEND_API_KEY` et `ANTHROPIC_API_KEY` (elles ont été exposées sur des Preview Vercel), et supprimer les anciens déploiements Preview.
 
