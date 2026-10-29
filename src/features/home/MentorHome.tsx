@@ -20,7 +20,7 @@ import type { MentorRequest, MyMentor } from '@/features/mentors/api';
 import { Constellation } from '@/features/mentors/components/Constellation';
 import { useAnswerRequest, useMentorRequests, useMyMentor, useSetAvailability } from '@/features/mentors/hooks';
 import { displayName, useProfile } from '@/features/profile/store';
-import { ReportSheet } from '@/features/safety/components/ReportSheet';
+import { SafetySheet } from '@/features/safety/components/SafetySheet';
 import { daysFromToday, formatDayMonth, formatTime, relativeDays } from '@/lib/date';
 import { haptics } from '@/lib/haptics';
 import { enter, leave, pop, reflow } from '@/theme/motion';
@@ -258,7 +258,7 @@ function Requests({ query }: { query: ReturnType<typeof useMentorRequests> }) {
           ))}
         </Animated.View>
       )}
-      <ReportSheet
+      <SafetySheet
         visible={reporting}
         onClose={() => setReporting(false)}
         target={reported ? { bookingId: reported.id } : null}
@@ -270,7 +270,7 @@ function Requests({ query }: { query: ReturnType<typeof useMentorRequests> }) {
 
 function ReportButton({ r, onPress }: { r: MentorRequest; onPress: () => void }) {
   return (
-    <PressableScale onPress={onPress} style={styles.flag} accessibilityLabel={`Signaler ${r.student ?? 'cet·te étudiant·e'} à l’équipe DALILI`}>
+    <PressableScale onPress={onPress} style={styles.flag} accessibilityLabel={`Signaler ou bloquer ${r.student ?? 'cet·te étudiant·e'}`}>
       <Flag size={16} color={palette.muted} />
     </PressableScale>
   );

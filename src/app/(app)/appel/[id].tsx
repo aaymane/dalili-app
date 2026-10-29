@@ -11,7 +11,7 @@ import { PressableScale } from '@/components/ui/PressableScale';
 import { Text } from '@/components/ui/Text';
 import { useMentors, useMyBookings } from '@/data/hooks';
 import { useProfile } from '@/features/profile/store';
-import { ReportSheet } from '@/features/safety/components/ReportSheet';
+import { SafetySheet } from '@/features/safety/components/SafetySheet';
 import { haptics } from '@/lib/haptics';
 import { palette } from '@/theme/tokens';
 
@@ -63,7 +63,7 @@ export default function Call() {
             </Text>
           </View>
         </View>
-        <PressableScale onPress={() => setReporting(true)} style={styles.flag} accessibilityLabel={`Signaler ${m.firstName} à l’équipe DALILI`}>
+        <PressableScale onPress={() => setReporting(true)} style={styles.flag} accessibilityLabel={`Signaler ou bloquer ${m.firstName}`}>
           <Flag size={18} color="#fff" />
         </PressableScale>
       </View>
@@ -102,11 +102,12 @@ export default function Call() {
       <Text variant="caption" color="rgba(255,255,255,0.4)" align="center" style={{ marginBottom: insets.bottom + 8 }}>
         Aperçu — la vidéo temps réel arrive dans la prochaine version
       </Text>
-      <ReportSheet
+      <SafetySheet
         visible={reporting}
         onClose={() => setReporting(false)}
         target={booking ? { bookingId: booking.id } : { mentorId: m.id }}
         name={m.firstName}
+        onBlocked={() => router.back()}
       />
     </View>
   );

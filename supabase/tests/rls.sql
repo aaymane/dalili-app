@@ -306,6 +306,77 @@ select tests.must_count('le mentor supprime son compte : les signalements resten
      union all select * from public.mentorat_reports where reporter_role = 'student' and reporter_id = '00000000-0000-0000-0000-00000000000a' and reported_id is null$q$, 3);
 rollback;
 
+-- ───────────── bloquer : dans les deux sens, les demandes en cours annulées, personne ne lit les blocages ─────────────
+begin;
+update public.profiles set first_name = 'Aymen', last_name = 'Amri' where id = '00000000-0000-0000-0000-00000000000a';
+insert into public.mentors (id, user_id, first_name, last_name, city, is_active) values
+  ('00000000-0000-0000-0000-0000000000e1', '00000000-0000-0000-0000-00000000000c', 'Yassine', 'Kadiri', 'Lyon', true),
+  ('00000000-0000-0000-0000-0000000000e2', '00000000-0000-0000-0000-00000000000d', 'Nadia', 'Daoud', 'Lille', true);
+insert into public.bookings (id, student_id, mentor_id, starts_at, status) values
+  ('00000000-0000-0000-0000-0000000000f1', '00000000-0000-0000-0000-00000000000a', '00000000-0000-0000-0000-0000000000e1', now() + interval '2 days', 'confirmed'),
+  ('00000000-0000-0000-0000-0000000000f2', '00000000-0000-0000-0000-00000000000a', '00000000-0000-0000-0000-0000000000e1', now() + interval '3 days', 'pending'),
+  ('00000000-0000-0000-0000-0000000000f3', '00000000-0000-0000-0000-00000000000b', '00000000-0000-0000-0000-0000000000e1', now() + interval '2 days', 'pending'),
+  ('00000000-0000-0000-0000-0000000000f4', '00000000-0000-0000-0000-00000000000a', '00000000-0000-0000-0000-0000000000e2', now() + interval '2 days', 'pending');
+set local role anon;
+select tests.must_fail('anon bloque', $q$select public.block_user('00000000-0000-0000-0000-0000000000e1')$q$);
+select tests.must_fail('anon lit les blocages', 'select * from public.mentorat_blocks');
+select tests.must_fail('anon sonde un blocage', $q$select public.blocked_with('00000000-0000-0000-0000-00000000000c')$q$);
+reset role;
+
+set local role authenticated;
+set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-00000000000b","role":"authenticated"}';
+select tests.must_fail('B bloque par une demande qui n''est pas la sienne', $q$select public.block_user(null, '00000000-0000-0000-0000-0000000000f1')$q$);
+
+-- Le mentor C bloque l'étudiant A depuis une demande reçue.
+set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-00000000000c","role":"authenticated"}';
+select tests.must_fail('le mentor se bloque lui-même', $q$select public.block_user('00000000-0000-0000-0000-0000000000e1')$q$);
+select public.block_user(null, '00000000-0000-0000-0000-0000000000f2');
+select public.block_user(null, '00000000-0000-0000-0000-0000000000f2');
+select tests.must_count('bloquer deux fois ne crée qu''un blocage', 'select * from public.my_blocks()', 1);
+select tests.must_count('le mentor retrouve « Aymen A. » dans ses blocages', $q$select * from public.my_blocks() where name = 'Aymen A.' and not is_mentor$q$, 1);
+select tests.must_count('le mentor ne voit plus les demandes de A', $q$select * from public.mentor_requests() where id in ('00000000-0000-0000-0000-0000000000f1', '00000000-0000-0000-0000-0000000000f2')$q$, 0);
+select tests.must_count('… mais toujours celle de B', $q$select * from public.mentor_requests() where id = '00000000-0000-0000-0000-0000000000f3' and status = 'pending'$q$, 1);
+select tests.must_fail('le mentor lit les blocages à la main', 'select * from public.mentorat_blocks');
+select tests.must_fail('le mentor écrit un blocage à la main',
+  $q$insert into public.mentorat_blocks (blocker_id, blocked_id) values (auth.uid(), '00000000-0000-0000-0000-00000000000b')$q$);
+select tests.must_count('blocked_with ne sonde qu''autour de soi : rien entre A et D', $q$select 1 where public.blocked_with('00000000-0000-0000-0000-00000000000d')$q$, 0);
+
+set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-00000000000a","role":"authenticated"}';
+select tests.must_count('les demandes en cours entre A et le mentor sont annulées, par le mentor',
+  $q$select * from public.bookings where id in ('00000000-0000-0000-0000-0000000000f1', '00000000-0000-0000-0000-0000000000f2') and status = 'cancelled' and cancelled_by = 'mentor'$q$, 2);
+select tests.must_count('… pas celle de A avec un autre mentor', $q$select * from public.bookings where id = '00000000-0000-0000-0000-0000000000f4' and status = 'pending'$q$, 1);
+select tests.must_count('A ne voit plus la fiche du mentor qui l''a bloqué', $q$select * from public.mentors where id = '00000000-0000-0000-0000-0000000000e1'$q$, 0);
+select tests.must_count('… mais toujours les autres mentors', $q$select * from public.mentors where id = '00000000-0000-0000-0000-0000000000e2'$q$, 1);
+select tests.must_fail('A redemande un appel au mentor qui l''a bloqué',
+  $q$insert into public.bookings (student_id, mentor_id, starts_at) values (auth.uid(), '00000000-0000-0000-0000-0000000000e1', now() + interval '4 days')$q$);
+select tests.must_count('A ne voit pas le blocage dont il est l''objet', 'select * from public.my_blocks()', 0);
+reset role;
+select public.unblock_user(k.id) from public.mentorat_blocks k where k.blocker_id = '00000000-0000-0000-0000-00000000000c';
+select tests.must_count('A ne peut pas lever le blocage posé par le mentor', $q$select * from public.mentorat_blocks where blocker_id = '00000000-0000-0000-0000-00000000000c'$q$, 1);
+
+-- L'étudiant A bloque la mentor D depuis sa fiche.
+set local role authenticated;
+select public.block_user('00000000-0000-0000-0000-0000000000e2');
+select tests.must_count('A bloque une mentor : elle disparaît de sa liste', $q$select * from public.mentors where id = '00000000-0000-0000-0000-0000000000e2'$q$, 0);
+select tests.must_count('… sa demande en attente est annulée, par l''étudiant',
+  $q$select * from public.bookings where id = '00000000-0000-0000-0000-0000000000f4' and status = 'cancelled' and cancelled_by = 'student'$q$, 1);
+select tests.must_count('A retrouve « Nadia D. », mentor, dans ses blocages', $q$select * from public.my_blocks() where name = 'Nadia D.' and is_mentor$q$, 1);
+reset role;
+
+select tests.must_count('deux blocages enregistrés', $q$select * from public.mentorat_blocks$q$, 2);
+set local role authenticated;
+set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-00000000000b","role":"authenticated"}';
+select tests.must_count('B voit toujours les deux mentors', $q$select * from public.mentors where id in ('00000000-0000-0000-0000-0000000000e1', '00000000-0000-0000-0000-0000000000e2')$q$, 2);
+
+-- Débloquer.
+set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-00000000000a","role":"authenticated"}';
+select public.unblock_user(b.id) from public.my_blocks() b;
+select tests.must_count('A débloque la mentor : elle revient', $q$select * from public.mentors where id = '00000000-0000-0000-0000-0000000000e2'$q$, 1);
+select tests.must_count('… et la demande annulée ne revient pas', $q$select * from public.bookings where id = '00000000-0000-0000-0000-0000000000f4' and status = 'cancelled'$q$, 1);
+select tests.must_count('le blocage du mentor C, lui, tient toujours', $q$select * from public.mentors where id = '00000000-0000-0000-0000-0000000000e1'$q$, 0);
+reset role;
+rollback;
+
 -- ───────────── notifications : les téléphones et le journal des alertes ─────────────
 begin;
 set local role authenticated;

@@ -12,7 +12,7 @@ import { PressableScale } from '@/components/ui/PressableScale';
 import { Text } from '@/components/ui/Text';
 import { useMentor } from '@/data/hooks';
 import { useMyMentor } from '@/features/mentors/hooks';
-import { ReportSheet } from '@/features/safety/components/ReportSheet';
+import { SafetySheet } from '@/features/safety/components/SafetySheet';
 import { palette, radius, shadow } from '@/theme/tokens';
 import { pop, rise } from '@/theme/motion';
 
@@ -170,16 +170,16 @@ export default function MentorProfile() {
           </View>
 
           {own ? null : (
-            <PressableScale onPress={() => setReporting(true)} hitSlop={6} style={styles.report} accessibilityLabel={`Signaler ${m.firstName} à l’équipe DALILI`}>
+            <PressableScale onPress={() => setReporting(true)} hitSlop={6} style={styles.report} accessibilityLabel={`Signaler ou bloquer ${m.firstName}`}>
               <Flag size={14} color={palette.muted} />
               <Text variant="small" color={palette.muted}>
-                Un souci avec {m.firstName} ? Signaler
+                Un souci avec {m.firstName} ? Signaler ou bloquer
               </Text>
             </PressableScale>
           )}
         </View>
       </ScrollView>
-      <ReportSheet visible={reporting} onClose={() => setReporting(false)} target={{ mentorId: m.id }} name={m.firstName} />
+      <SafetySheet visible={reporting} onClose={() => setReporting(false)} target={{ mentorId: m.id }} name={m.firstName} onBlocked={() => router.back()} />
       <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, 16) }]}>
         {own ? (
           <Text variant="small" color={palette.subtle} align="center">

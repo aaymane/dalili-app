@@ -1,32 +1,66 @@
 /**
- * Signaler une personne du mentorat : un étudiant signale un mentor, un mentor signale un étudiant.
- * La base retrouve elle-même qui est signalé et vérifie le lien (voir
- * supabase/migrations/20261028120000_signalements_mentorat.sql). Seuls les fondateurs lisent les signalements.
+ * Signaler ou bloquer une personne du mentorat : un étudiant et son mentor, dans un sens ou dans l'autre.
+ * La base retrouve elle-même la personne et vérifie le lien (voir supabase/migrations/20261028120000_signalements_mentorat.sql
+ * et 20261028150000_blocages_mentorat.sql). Seuls les fondateurs lisent les signalements ; personne ne lit les blocages.
  * Sans Supabase ou sans session (mode démo) : rien n'est envoyé.
  */
 import { supabase } from '@/lib/supabase';
 
 export type ReportReason = 'harcelement' | 'argent' | 'donnees' | 'faux_profil' | 'autre';
 
-/** Depuis la fiche d'un mentor (`mentorId`), ou depuis une demande entre vous deux (`bookingId`). */
+/** Depuis la fiche d'un mentor (`mentorId`), ou depuis une demande entre vous deux (`bookingId`). Sert aussi à bloquer. */
 export type ReportTarget = { mentorId: string; bookingId?: undefined } | { bookingId: string; mentorId?: undefined };
 
 /** `already` : ton signalement précédent sur cette personne est encore entre les mains de l'équipe. */
 export type ReportResult = 'sent' | 'already' | 'demo';
 
 /** Refus expliqué par la base (trop de signalements aujourd'hui, toi-même…) : le message s'affiche tel quel. */
-export class ReportRefused extends Error {}
+export class SafetyRefused extends Error {}
+
+const refused = (error: { code?: string; message: string }) => (error.code === '23514' ? new SafetyRefused(error.message) : error);
+
+async function online() {
+  if (!supabase) return null;
+  const { data } = await supabase.auth.getSession();
+  return data.session ? supabase : null;
+}
 
 export async function sendReport(target: ReportTarget, reason: ReportReason, comment: string): Promise<ReportResult> {
-  if (!supabase) return 'demo';
-  const { data: session } = await supabase.auth.getSession();
-  if (!session.session) return 'demo';
-  const { data, error } = await supabase.rpc('report_user', {
+  const db = await online();
+  if (!db) return 'demo';
+  const { data, error } = await db.rpc('report_user', {
     p_reason: reason,
     p_comment: comment.trim() || null,
     p_mentor_id: target.mentorId ?? null,
     p_booking_id: target.bookingId ?? null,
   });
-  if (error) throw error.code === '23514' ? new ReportRefused(error.message) : error;
+  if (error) throw refused(error);
   return data === 'already' ? 'already' : 'sent';
+}
+
+/** Bloquer : vous ne vous voyez plus, plus aucune demande ne passe, celles en cours sont annulées. */
+export async function blockUser(target: ReportTarget): Promise<'blocked' | 'demo'> {
+  const db = await online();
+  if (!db) return 'demo';
+  const { error } = await db.rpc('block_user', { p_mentor_id: target.mentorId ?? null, p_booking_id: target.bookingId ?? null });
+  if (error) throw refused(error);
+  return 'blocked';
+}
+
+/** « Prénom N. » de la personne, ou null si elle n'a pas de prénom. */
+export type Block = { id: string; name: string | null; isMentor: boolean; createdAt: string };
+
+export async function fetchMyBlocks(): Promise<Block[]> {
+  const db = await online();
+  if (!db) return [];
+  const { data, error } = await db.rpc('my_blocks');
+  if (error) throw error;
+  return (data ?? []).map((b: Record<string, any>) => ({ id: b.id, name: b.name, isMentor: !!b.is_mentor, createdAt: b.created_at }));
+}
+
+export async function unblockUser(id: string) {
+  const db = await online();
+  if (!db) return;
+  const { error } = await db.rpc('unblock_user', { p_id: id });
+  if (error) throw error;
 }

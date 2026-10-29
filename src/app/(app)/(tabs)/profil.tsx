@@ -1,21 +1,5 @@
 import { router, type Href } from 'expo-router';
-import {
-  type LucideIcon,
-  Bell,
-  Bookmark,
-  BrainCircuit,
-  CalendarCheck2,
-  Camera,
-  ChevronRight,
-  FolderCheck,
-  Languages,
-  LogOut,
-  Map,
-  RefreshCw,
-  Repeat,
-  ShieldCheck,
-  Siren,
-} from 'lucide-react-native';
+import { Ban, Bell, Bookmark, BrainCircuit, CalendarCheck2, Camera, ChevronRight, FolderCheck, Languages, LogOut, type LucideIcon, Map, RefreshCw, Repeat, ShieldCheck, Siren } from 'lucide-react-native';
 import { useState, type ReactNode } from 'react';
 import { Alert, Platform, StyleSheet, Switch, View } from 'react-native';
 import Animated from 'react-native-reanimated';
@@ -169,6 +153,7 @@ export default function Profil() {
           <Row icon={Languages} tone="slate" label="Langue" sub="Français · العربية et English bientôt" onPress={() => toast('Arabe et anglais arrivent bientôt 🌍', 'info')} />
           <Row icon={Siren} tone="red" label="Urgences & SOS" sub="Numéros utiles en France" onPress={go('/(app)/outils/sos')} />
           <Row icon={ShieldCheck} tone="slate" label="Confidentialité" sub="Tes données, supprimer ton compte" onPress={go('/(app)/confidentialite')} />
+          <Row icon={Ban} tone="slate" label="Personnes bloquées" sub="Dans le mentorat" onPress={go('/(app)/bloques')} />
         </Animated.View>
 
         <Animated.View entering={rise(180)} style={styles.group}>
