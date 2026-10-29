@@ -19,6 +19,7 @@ import { useSteps } from '@/features/journey/steps';
 import { formatFullDate } from '@/lib/date';
 import { palette, radius, shadow } from '@/theme/tokens';
 import { rise } from '@/theme/motion';
+import { track } from '@/lib/analytics';
 
 /** Lecteur de guide : le guide du site, rendu en natif, avec sa source et sa date de mise à jour. */
 export default function GuideReader() {
@@ -32,6 +33,9 @@ export default function GuideReader() {
   const [feedback, setFeedback] = useState<boolean | null>(null);
   const p = useSharedValue(0);
   const bar = useAnimatedStyle(() => ({ width: `${p.value * 100}%` }));
+  useEffect(() => {
+    if (id) track('guide_opened', { slug: id });
+  }, [id]);
   useEffect(() => {
     const t = setTimeout(() => id && markRead(id), 8000);
     return () => clearTimeout(t);

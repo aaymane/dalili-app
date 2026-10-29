@@ -18,6 +18,7 @@ import { slidesOf, useStoryCta } from '@/features/schools/story';
 import { haptics } from '@/lib/haptics';
 import { pop, rise } from '@/theme/motion';
 import { palette, radius } from '@/theme/tokens';
+import { track } from '@/lib/analytics';
 
 /** Durée d'une page. */
 const PAGE_MS = 5200;
@@ -45,6 +46,9 @@ export default function Discover() {
   const [index, setIndex] = useState(0);
   const progress = useSharedValue(0);
   const last = index === slides.length - 1;
+  useEffect(() => {
+    if (slug) track('school_story_opened', { school: slug });
+  }, [slug]);
 
   const go = (to: number) => {
     if (to < 0 || to >= slides.length) return;
@@ -67,6 +71,7 @@ export default function Discover() {
     progress.set(0);
     if (index === slides.length - 1) {
       haptics.success();
+      if (slug) track('school_story_finished', { school: slug });
       progress.set(withTiming(1, { duration: 600 }));
       return;
     }

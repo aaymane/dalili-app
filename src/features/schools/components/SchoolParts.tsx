@@ -13,6 +13,7 @@ import { PressableScale } from '@/components/ui/PressableScale';
 import { Chip } from '@/components/ui/Tag';
 import { Text } from '@/components/ui/Text';
 import { palette, radius, shadow } from '@/theme/tokens';
+import { track } from '@/lib/analytics';
 
 import type { School } from '../api';
 import { KenBurns } from './Motion';
@@ -186,6 +187,7 @@ export function InterestSheet({
       { schoolId: school.id, program, message },
       {
         onSuccess: () => {
+          track('school_interest_sent', { school: school.slug, with_program: !!program });
           onClose();
           onSent();
         },

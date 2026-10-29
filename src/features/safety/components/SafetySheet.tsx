@@ -17,6 +17,7 @@ import { haptics } from '@/lib/haptics';
 import { useRoleTheme } from '@/theme';
 import { rise } from '@/theme/motion';
 import { palette, radius, shadow, type Tone } from '@/theme/tokens';
+import { track } from '@/lib/analytics';
 
 import { SafetyRefused, type ReportReason, type ReportTarget } from '../api';
 import { useBlockUser, useSendReport } from '../hooks';
@@ -65,6 +66,7 @@ export function SafetySheet({
       {
         onSuccess: (result) => {
           haptics.success();
+          if (result === 'sent') track('safety_report_sent');
           toast(
             result === 'demo'
               ? 'Merci ! En mode démo, rien n’est envoyé.'

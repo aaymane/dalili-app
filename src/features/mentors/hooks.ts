@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { askNotifications, notifyServer } from '@/features/notifications/push';
+import { track } from '@/lib/analytics';
 
 import { answerRequest, createMyMentor, fetchMentorRequests, fetchMyMentor, setMyAvailability, type MentorRequest, type MyMentor } from './api';
 
@@ -47,6 +48,7 @@ export function useAnswerRequest() {
   return useMutation({
     mutationFn: async ({ id, status }: { id: string; status: 'confirmed' | 'cancelled' }) => {
       await answerRequest(id, status);
+      track('mentor_request_answered', { accepted: status === 'confirmed' });
       // L'étudiant apprend la réponse sur son téléphone.
       void notifyServer('booking_answered', id);
     },

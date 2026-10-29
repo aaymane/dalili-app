@@ -33,6 +33,7 @@ import { useStoryCta } from '@/features/schools/story';
 import { formatFullDate, formatLong } from '@/lib/date';
 import { enter } from '@/theme/motion';
 import { palette, radius, shadow } from '@/theme/tokens';
+import { track } from '@/lib/analytics';
 
 const HERO = 340;
 const PHOTO_W = 260;
@@ -100,6 +101,11 @@ export default function SchoolScreen() {
       if (now !== before) scheduleOnRN(setOverPhoto, now);
     },
   );
+
+  const schoolSlug = school?.slug;
+  useEffect(() => {
+    if (schoolSlug) track('school_viewed', { school: schoolSlug });
+  }, [schoolSlug]);
 
   if (!school) return <View style={{ flex: 1, backgroundColor: palette.bg }} />;
 

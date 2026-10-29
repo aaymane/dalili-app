@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 
 import { useProfile } from '@/features/profile/store';
 import { queryClient } from '@/lib/query';
+import { track } from '@/lib/analytics';
 
 import {
   conversationForBooking,
@@ -100,7 +101,10 @@ export function useSendMessage(conversationId: string) {
       const temp: Message = { id: tempId, conversationId, mine: true, body: body.trim(), createdAt: new Date().toISOString(), pending: true };
       qc.setQueryData<Message[]>(key, (list = []) => [...list.filter((m) => m.id !== tempId), temp]);
     },
-    onSuccess: (m, { tempId }) => qc.setQueryData<Message[]>(key, (list = []) => list.map((x) => (x.id === tempId ? m : x)).filter((x, i, all) => all.findIndex((y) => y.id === x.id) === i)),
+    onSuccess: (m, { tempId }) => {
+      track('message_sent', { as_role: useProfile.getState().profile.activeRole === 'mentor' ? 'mentor' : 'student' });
+      qc.setQueryData<Message[]>(key, (list = []) => list.map((x) => (x.id === tempId ? m : x)).filter((x, i, all) => all.findIndex((y) => y.id === x.id) === i));
+    },
     onError: (_e, { tempId }) => qc.setQueryData<Message[]>(key, (list = []) => list.map((x) => (x.id === tempId ? { ...x, pending: false, failed: true } : x))),
     onSettled: () => qc.invalidateQueries({ queryKey: CONVERSATIONS }),
   });

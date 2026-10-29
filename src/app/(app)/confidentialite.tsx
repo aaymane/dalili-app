@@ -1,7 +1,7 @@
 import * as WebBrowser from 'expo-web-browser';
 import { BadgeCheck, ChevronRight, ExternalLink, Flag, GraduationCap, Image as ImageIcon, KeyRound, Lock, Map, MessageCircle, Sparkles, Trash2 } from 'lucide-react-native';
 import { useState, type ReactNode } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, Switch, View } from 'react-native';
 import Animated from 'react-native-reanimated';
 
 import { AppHeader } from '@/components/layout/AppHeader';
@@ -10,6 +10,7 @@ import { PressableScale } from '@/components/ui/PressableScale';
 import { Text } from '@/components/ui/Text';
 import { DeleteAccountSheet } from '@/features/auth/components/DeleteAccountSheet';
 import { isDemoMode } from '@/features/auth/store';
+import { analyticsAvailable, useAnalyticsConsent } from '@/lib/analytics';
 import { env } from '@/lib/env';
 import { palette, radius, shadow } from '@/theme/tokens';
 import { rise } from '@/theme/motion';
@@ -47,6 +48,8 @@ function Item({ icon, title, text }: { icon: ReactNode; title?: string; text: st
 /** Confidentialité : ce qu'on garde et pourquoi, nos engagements, et la suppression du compte. */
 export default function Confidentialite() {
   const [deleting, setDeleting] = useState(false);
+  const consent = useAnalyticsConsent((s) => s.consent);
+  const setConsent = useAnalyticsConsent((s) => s.setConsent);
 
   return (
     <Screen padded={false} header={<AppHeader back />}>
@@ -75,6 +78,24 @@ export default function Confidentialite() {
             <Item key={text} icon={<Icon size={16} color={palette.electric} />} text={text} />
           ))}
         </Animated.View>
+
+        {analyticsAvailable ? (
+          <Animated.View entering={rise(90)} style={[styles.group, styles.stats]}>
+            <View style={{ flex: 1, gap: 2 }}>
+              <Text variant="bodyStrong">Statistiques anonymes</Text>
+              <Text variant="caption" color={palette.muted}>
+                Quels écrans servent, quelles étapes bloquent. Jamais ton nom, ton email, tes messages ni tes questions à Dalili IA.
+              </Text>
+            </View>
+            <Switch
+              value={consent === 'yes'}
+              onValueChange={(v) => setConsent(v ? 'yes' : 'no')}
+              trackColor={{ true: palette.electric, false: '#D5DAE7' }}
+              thumbColor="#fff"
+              accessibilityLabel="Partager des statistiques anonymes"
+            />
+          </Animated.View>
+        ) : null}
 
         <Animated.View entering={rise(120)} style={styles.group}>
           <PressableScale onPress={() => WebBrowser.openBrowserAsync(`${env.siteUrl}/confidentialite`)} style={styles.row} accessibilityRole="link">
@@ -105,5 +126,6 @@ const styles = StyleSheet.create({
   icon: { width: 32, height: 32, borderRadius: 16, backgroundColor: palette.electricSoft, alignItems: 'center', justifyContent: 'center' },
   group: { borderRadius: radius.xl, backgroundColor: palette.surface, paddingVertical: 4, ...shadow.sm },
   row: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 16, minHeight: 52 },
+  stats: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 16, paddingVertical: 14 },
   divider: { height: StyleSheet.hairlineWidth, backgroundColor: palette.line, marginLeft: 46 },
 });

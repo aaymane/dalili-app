@@ -6,6 +6,7 @@ import { toast } from '@/components/feedback/Toast';
 import { effectiveArrival, useProfile } from '@/features/profile/store';
 import { addDays, toISODate } from '@/lib/date';
 import { persistStorage } from '@/lib/storage';
+import { track } from '@/lib/analytics';
 
 import { syncCustomStep, syncStep } from './api';
 import { useSteps, type Phase, type Step } from './steps';
@@ -46,6 +47,7 @@ export const useJourneyStore = create<JourneyState>()(
         // Seul le geste de l'étudiant ouvre le billet : une reprise depuis le serveur ne passe pas par ici.
         set((s) => ({ overrides: { ...s.overrides, [id]: done }, ticketPending: s.ticketPending || (id === 'visa' && done && !s.ticketSeen) }));
         syncStep(id, done).catch(notSaved);
+        track('step_toggled', { step: id, done });
       },
       addCustom: (title, date) => {
         const item = { id: `custom-${Date.now()}`, title: title.trim(), date, done: false };

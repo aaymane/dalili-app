@@ -5,6 +5,7 @@ import { countryOf } from '@/features/journey/steps';
 import { useJourney } from '@/features/journey/store';
 import { useProfile } from '@/features/profile/store';
 import { haptics } from '@/lib/haptics';
+import { track } from '@/lib/analytics';
 
 import {
   askAssistant,
@@ -72,6 +73,7 @@ export function useAssistant() {
   const ask = async (raw: string) => {
     const question = raw.trim().slice(0, 300);
     if (!question || busy.current) return;
+    track('ai_question_asked');
     busy.current = true;
     haptics.press();
     const history = historyOf(messages);

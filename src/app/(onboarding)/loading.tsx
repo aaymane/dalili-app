@@ -14,6 +14,7 @@ import { useProfile } from '@/features/profile/store';
 import { haptics } from '@/lib/haptics';
 import { palette } from '@/theme/tokens';
 import { pop, rise } from '@/theme/motion';
+import { track } from '@/lib/analytics';
 
 /** « Je prépare ton arrivée à Paris… » — construction animée de l'espace perso. */
 export default function Loading() {
@@ -42,6 +43,7 @@ export default function Loading() {
       haptics.success();
       celebrate();
       complete();
+      track('onboarding_completed', { role: profile.activeRole === 'mentor' ? 'mentor' : 'student' });
     }, 700 + items.length * 750 + 500);
     return () => {
       timers.forEach(clearTimeout);

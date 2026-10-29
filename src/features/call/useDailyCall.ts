@@ -2,6 +2,7 @@ import type { DailyCall, DailyParticipant } from '@daily-co/react-native-daily-j
 import { useEffect, useRef, useState } from 'react';
 
 import { haptics } from '@/lib/haptics';
+import { track } from '@/lib/analytics';
 
 import type { CallInfo } from './api';
 import { loadDaily } from './daily';
@@ -30,6 +31,7 @@ export function useDailyCall(info: CallInfo | null) {
       setRemote(Object.values(all).find((p) => !p.local) ?? null);
     };
     c.on('joined-meeting', () => {
+      track('call_joined', { as_role: info.role });
       setPhase('joined');
       setJoinedAt(Date.now());
       refresh();

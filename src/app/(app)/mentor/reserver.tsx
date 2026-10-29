@@ -22,6 +22,7 @@ import { useLocalDb } from '@/data/local-db';
 import { formatLong } from '@/lib/date';
 import { gradients, palette, radius, shadow } from '@/theme/tokens';
 import { rise } from '@/theme/motion';
+import { track } from '@/lib/analytics';
 
 /** Heures que l'étudiant peut proposer. Ce ne sont pas des disponibilités : le mentor accepte selon son moment. */
 const TIMES = ['09:00', '10:30', '12:00', '14:00', '16:00', '18:00', '19:30', '21:00'];
@@ -63,6 +64,7 @@ export default function Reserve() {
         void askNotifications();
       }
       else addBooking({ id: `b-${Date.now()}`, mentorId: m.id, startsAt, topic: topicText, status: 'pending' });
+      track('mentor_request_sent');
       setDone(true);
     } catch (e) {
       // 42501 = la base refuse (mentor passé en pause entre-temps, ou ta propre fiche) ; sinon, le réseau.
