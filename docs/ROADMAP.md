@@ -22,7 +22,7 @@
 - [x] **Messagerie mentor ↔ étudiant (temps réel)** : ouverte quand le mentor accepte (29/10)
   > `/fonctionnalite Messagerie privée entre un étudiant et son mentor : liste des conversations, écran de chat avec bulles animées, indicateur « en train d'écrire », temps réel avec Supabase Realtime, tables conversations/messages avec RLS (seuls les 2 participants lisent). Accès depuis le profil mentor (« Écrire ») et depuis l'accueil.`
 
-- [ ] **Appels vidéo réels**
+- [x] **Appels vidéo réels** : Daily, salle privée par rendez-vous, jeton donné par le site (29/10) — reste le compte Daily et le premier build
   > `/fonctionnalite Brancher l'écran src/app/(app)/appel/[id].tsx sur LiveKit (ou Daily) : Edge Function qui génère le token de la salle pour le booking, vérification que l'utilisateur est l'étudiant ou le mentor du rendez-vous. Nécessite un development build (expo-dev-client).`
 
 - [ ] **Notifications push & rappels d'échéances**

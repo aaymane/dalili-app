@@ -35,8 +35,8 @@
         "expo-image-picker",
         {
           "photosPermission": "DALILI utilise tes photos pour ta photo de profil.",
-          "cameraPermission": "DALILI utilise l’appareil photo pour ta photo de profil.",
-          "microphonePermission": false
+          "cameraPermission": "DALILI utilise l’appareil photo pour ta photo de profil et tes appels vidéo avec un mentor.",
+          "microphonePermission": "DALILI utilise le micro pendant tes appels avec un mentor."
         }
       ],
       [
@@ -56,7 +56,8 @@
         {
           "faceIDPermission": "DALILI peut utiliser Face ID pour protéger l’accès à ton compte."
         }
-      ]
+      ],
+      "./plugins/withDaily"
     ],
     "experiments": {
       "typedRoutes": true,

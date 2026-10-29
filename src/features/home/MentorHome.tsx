@@ -1,6 +1,6 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
-import { Check, ChevronRight, Eye, Flag, Hourglass, MessageCircle, PhoneCall, ShieldCheck, Star, Users, WifiOff } from 'lucide-react-native';
+import { Check, ChevronRight, Eye, Flag, Hourglass, MessageCircle, PhoneCall, ShieldCheck, Star, Users, Video, WifiOff } from 'lucide-react-native';
 import { useState } from 'react';
 import { StyleSheet, Switch, View } from 'react-native';
 import Animated from 'react-native-reanimated';
@@ -16,6 +16,7 @@ import { IconTile } from '@/components/ui/IconTile';
 import { PressableScale } from '@/components/ui/PressableScale';
 import { SectionHeader } from '@/components/ui/SectionHeader';
 import { Text } from '@/components/ui/Text';
+import { callIsOpen } from '@/features/call/window';
 import type { MentorRequest, MyMentor } from '@/features/mentors/api';
 import { Constellation } from '@/features/mentors/components/Constellation';
 import { useAnswerRequest, useMentorRequests, useMyMentor, useSetAvailability } from '@/features/mentors/hooks';
@@ -255,12 +256,26 @@ function Requests({ query }: { query: ReturnType<typeof useMentorRequests> }) {
                 </View>
               ) : (
                 <View style={styles.reqActions}>
-                  <Animated.View entering={pop()} style={styles.confirmed}>
-                    <Check size={14} color={palette.mentor} strokeWidth={2.6} />
-                    <Text variant="smallStrong" color={palette.mentor}>
-                      Appel confirmé
-                    </Text>
-                  </Animated.View>
+                  {callIsOpen(r.startsAt) ? (
+                    <PressableScale
+                      haptic="press"
+                      onPress={() => router.push({ pathname: '/(app)/appel/[id]', params: { id: r.id } })}
+                      hitSlop={4}
+                      style={styles.accept}
+                      accessibilityLabel={`Rejoindre l’appel avec ${r.student ?? 'cet·te étudiant·e'}`}>
+                      <Video size={16} color={palette.white} />
+                      <Text variant="smallStrong" color={palette.white}>
+                        Rejoindre
+                      </Text>
+                    </PressableScale>
+                  ) : (
+                    <Animated.View entering={pop()} style={styles.confirmed}>
+                      <Check size={14} color={palette.mentor} strokeWidth={2.6} />
+                      <Text variant="smallStrong" color={palette.mentor}>
+                        Appel confirmé
+                      </Text>
+                    </Animated.View>
+                  )}
                   <PressableScale onPress={() => write(r)} disabled={open.isPending} hitSlop={4} style={styles.write} accessibilityLabel={`Écrire à ${r.student ?? 'cet·te étudiant·e'}`}>
                     <MessageCircle size={15} color={palette.mentor} />
                     <Text variant="smallStrong" color={palette.mentor}>

@@ -44,6 +44,8 @@
 
 12. 🟡 **Messagerie mentor ↔ étudiant** (29/10). Choix du 29/10 : la conversation s'ouvre quand le mentor **accepte** une demande (aucun message avant le oui), et pour les demandes déjà acceptées. `features/messages/` : liste « Messages » (icône dans l'en-tête avec les non lus du rôle actif), conversation (bulles qui montent en douceur, « en train d'écrire » sur un canal privé, envoi immédiat, bulle ratée à renvoyer d'un tap, rappel « Restez sur DALILI », drapeau Signaler / Bloquer). « Écrire » sur la carte « Appel confirmé », la demande acceptée côté Mentor et la fiche mentor. Mentor suspendu : conversation lisible, plus d'écriture. Blocage : la conversation disparaît pour les deux. Mode démo : une conversation d'exemple par rôle, avec une réponse simulée. Alerte « X t'a écrit » (site, `notifyMessage`) : une seule par série non lue, jamais en cas de blocage. Migration `messagerie` + 34 tests, ✅ appliquée en prod le 29/10 (1 conversation ouverte pour les demandes déjà acceptées).
 
+13. 🟡 **Appels vidéo avec Daily** (29/10, choix de Daily plutôt que LiveKit). Le site seul parle à Daily (`lib/call.ts`, `/api/v1/call`, clé `DAILY_API_KEY` en Production sur Vercel) : il vérifie en base que tu es l'étudiant ou le mentor de ce rendez-vous **confirmé**, sans blocage et mentor toujours validé, puis crée une salle **privée** (2 personnes, sans chat ni partage d'écran, fermée 2 h après l'heure) et un jeton personnel (« Prénom N. »). La salle s'ouvre **15 minutes avant**. App (`features/call/`) : vrai appel (vidéo de l'autre en plein écran, ta vignette, micro, caméra, changer de caméra, raccrocher, durée, drapeau Signaler / Bloquer), salle d'attente claire (« L'appel s'ouvre à 17h45 », terminé, hors connexion), aperçu en mode démo et dans Expo Go. Bouton « Rejoindre » côté Mentor quand la salle est ouverte. Plugin natif maison `plugins/withDaily.js` (le plugin officiel n'accepte pas encore Expo 58) : permissions caméra et micro, service Android de l'appel. `eas.json` : profils `development` et `development-simulator`. **Ce Mac ne peut pas compiler l'app native** (macOS 13, Xcode 15.2) : le build passe par EAS. ⚠️ `react-native-background-timer` (exigé par Daily) n'est plus maintenu : à confirmer au premier build. Pas encore d'appel en arrière-plan sur iPhone (il faudrait CallKit).
+
 Plus tard : régénérer `SUPABASE_SECRET_KEY`, `RESEND_API_KEY` et `ANTHROPIC_API_KEY` (elles ont été exposées sur des Preview Vercel), et supprimer les anciens déploiements Preview.
 
 Ordre décidé le 21/10 : **l'app d'abord (e, f, g), le site ensuite.**
@@ -53,6 +55,7 @@ Ordre décidé le 21/10 : **l'app d'abord (e, f, g), le site ensuite.**
 1. **Tester sur iPhone à deux comptes** : mentorat (un étudiant demande, un mentor validé accepte), notifications, signaler, bloquer, débloquer, messagerie (temps réel, « en train d'écrire », alerte), billet et « Ton chemin » (M2), Dalili IA (M3).
 2. **Mineurs (c)** : règle A, B ou C à décider par les fondateurs.
 3. **Charte du mentor** (`src/features/mentors/charter.ts`) à relire par les fondateurs.
+4. **Appels vidéo** : créer le compte Daily, mettre `DAILY_API_KEY` dans Vercel (Production seulement), puis un build de développement (`eas build --profile development --platform ios`, ou `development-simulator` sans compte Apple) et tester un vrai appel à deux.
 
 ## Plus tard : le site
 
