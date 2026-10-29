@@ -234,6 +234,49 @@ select tests.must_fail('C commente sans être membre', $q$insert into public.com
 reset role;
 rollback;
 
+-- ───────────── écoles partenaires : fiches publiées seulement, intérêts privés, gardés par DALILI ─────────────
+begin;
+-- L'identifiant de l'école, comme si on l'avait deviné.
+create temp table school_ids on commit drop as select id from public.partner_schools where slug = 'digital-campus-nantes';
+grant select on school_ids to authenticated;
+set local role anon;
+select tests.must_fail('anon lit les écoles', 'select * from public.partner_schools');
+select tests.must_fail('anon lit les intérêts', 'select * from public.school_leads');
+reset role;
+set local role authenticated;
+set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-00000000000a","role":"authenticated"}';
+select tests.must_count('Digital Campus Nantes n''est pas encore publiée : invisible', 'select * from public.partner_schools', 0);
+select tests.must_fail('A se manifeste pour une école non publiée',
+  $q$insert into public.school_leads (school_id) select id from school_ids$q$);
+select tests.must_fail('A publie l''école lui-même', 'update public.partner_schools set is_published = true');
+reset role;
+update public.partner_schools set is_published = true where slug = 'digital-campus-nantes';
+set local role authenticated;
+select tests.must_count('publiée : A voit la fiche et ses 6 formations',
+  $q$select * from public.partner_schools where slug = 'digital-campus-nantes' and jsonb_array_length(programs) = 6$q$, 1);
+insert into public.school_leads (school_id, program, message)
+  values ((select id from public.partner_schools where slug = 'digital-campus-nantes'), ' Bachelor UI & Web design ', '   ');
+select tests.must_count('A se manifeste : formation nettoyée, mot vide = aucun mot',
+  $q$select id from public.school_leads where program = 'Bachelor UI & Web design' and message is null$q$, 1);
+select tests.must_fail('A se manifeste deux fois pour la même école',
+  $q$insert into public.school_leads (school_id) select id from school_ids$q$);
+select tests.must_fail('A se manifeste au nom de B',
+  $q$insert into public.school_leads (school_id, student_id) select id, '00000000-0000-0000-0000-00000000000b' from school_ids$q$);
+select tests.must_fail('A se marque « recontacté » lui-même', $q$update public.school_leads set status = 'contacted'$q$);
+select tests.must_fail('A lit le suivi de l''équipe', 'select status, handled_by from public.school_leads');
+set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-00000000000b","role":"authenticated"}';
+select tests.must_count('B ne voit pas l''intérêt de A', 'select id from public.school_leads', 0);
+delete from public.school_leads;
+set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-00000000000a","role":"authenticated"}';
+select tests.must_count('B n''a pas pu retirer la demande de A', 'select id from public.school_leads', 1);
+delete from public.school_leads;
+select tests.must_count('A retire sa demande', 'select id from public.school_leads', 0);
+reset role;
+set local role service_role;
+select tests.must_count('le serveur du site voit l''école, même non publiée', $q$select * from public.partner_schools where slug = 'digital-campus-nantes'$q$, 1);
+reset role;
+rollback;
+
 -- ───────────── mentorat : une réservation est une demande que le mentor accepte ou décline ─────────────
 begin;
 update public.profiles set first_name = 'Aymen', last_name = 'Amri', origin_city = 'Casablanca', country = 'MA' where id = '00000000-0000-0000-0000-00000000000a';

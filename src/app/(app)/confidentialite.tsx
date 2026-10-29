@@ -1,5 +1,5 @@
 import * as WebBrowser from 'expo-web-browser';
-import { BadgeCheck, ChevronRight, ExternalLink, Flag, Image as ImageIcon, KeyRound, Lock, Map, MessageCircle, Sparkles, Trash2 } from 'lucide-react-native';
+import { BadgeCheck, ChevronRight, ExternalLink, Flag, GraduationCap, Image as ImageIcon, KeyRound, Lock, Map, MessageCircle, Sparkles, Trash2 } from 'lucide-react-native';
 import { useState, type ReactNode } from 'react';
 import { StyleSheet, View } from 'react-native';
 import Animated from 'react-native-reanimated';
@@ -20,6 +20,7 @@ const KEPT = [
   { icon: MessageCircle, title: 'Tes messages dans la communauté', text: 'Visibles par les membres des groupes que tu rejoins.' },
   { icon: MessageCircle, title: 'Tes conversations avec un mentor', text: 'Visibles seulement par vous deux. Elles partent avec ton compte.' },
   { icon: Sparkles, title: 'Tes questions à Dalili IA', text: 'Gardées sans ton nom ni ton email, pour améliorer les guides.' },
+  { icon: GraduationCap, title: 'Tes demandes aux écoles partenaires', text: 'Gardées par DALILI pour te recontacter. Jamais transmises à l’école sans ton accord.' },
   { icon: Flag, title: 'Les signalements du mentorat', text: 'Lus seulement par l’équipe. Si un compte est supprimé, le signalement reste, sans le nom, pour protéger les autres.' },
 ];
 

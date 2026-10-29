@@ -1,6 +1,6 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import { router, useLocalSearchParams } from 'expo-router';
-import { ArrowRight, Bookmark, BookOpen, CheckCircle2, Clock, House, Languages, Search, Sparkles } from 'lucide-react-native';
+import { ArrowRight, Bookmark, BookOpen, CheckCircle2, Clock, GraduationCap, House, Languages, Search, Sparkles } from 'lucide-react-native';
 import { useMemo, useState } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import Animated, { FadeIn } from 'react-native-reanimated';
@@ -21,10 +21,12 @@ import { ToolsGrid } from '@/features/home/ToolsGrid';
 import { MentorRow } from '@/features/mentors/components/MentorCard';
 import { MentorsSoon } from '@/features/mentors/components/MentorsSoon';
 import { useProfile } from '@/features/profile/store';
+import { SchoolCard } from '@/features/schools/components/SchoolParts';
+import { useSchools } from '@/features/schools/hooks';
 import { gradients, palette, radius, shadow } from '@/theme/tokens';
 import { reflow, rise } from '@/theme/motion';
 
-type Tab = 'mentors' | 'guides' | 'hosts';
+type Tab = 'mentors' | 'guides' | 'schools' | 'hosts';
 
 function TabPill({ label, icon, active, onPress, color }: { label: string; icon: React.ReactNode; active: boolean; onPress: () => void; color: string }) {
   return (
@@ -37,7 +39,7 @@ function TabPill({ label, icon, active, onPress, color }: { label: string; icon:
   );
 }
 
-/** Explorer : trouver un mentor, lire les guides, (bientôt) trouver un hôte. */
+/** Explorer : trouver un mentor, lire les guides, découvrir les écoles partenaires, (bientôt) trouver un hôte. */
 export default function Explorer() {
   const params = useLocalSearchParams<{ tab?: Tab }>();
   // L'onglet suit le paramètre d'URL (?tab=guides) tant que l'utilisateur ne change pas d'onglet.
@@ -49,6 +51,7 @@ export default function Explorer() {
   const [city, setCity] = useState<string | null>(profile.destinationCity);
   const [cat, setCat] = useState<GuideCategory | null>(null);
   const { data: mentors = [], isLoading } = useMentors();
+  const schools = useSchools();
   const saved = useLocalDb((s) => s.savedGuides);
   const read = useLocalDb((s) => s.readGuides);
   const toggleSaved = useLocalDb((s) => s.toggleSavedGuide);
@@ -80,7 +83,7 @@ export default function Explorer() {
     return c;
   }, [mentors]);
 
-  const title = tab === 'mentors' ? 'Trouve un mentor' : tab === 'guides' ? 'Guides pratiques' : 'Trouve un hôte';
+  const title = tab === 'mentors' ? 'Trouve un mentor' : tab === 'guides' ? 'Guides pratiques' : tab === 'schools' ? 'Nos écoles partenaires' : 'Trouve un hôte';
 
   return (
     <Screen top={tab === 'hosts' ? gradients.roleTop.host : gradients.roleTop.student} tabBar padded={false} header={<AppHeader />}>
@@ -88,13 +91,17 @@ export default function Explorer() {
         <Animated.View key={title} entering={FadeIn.duration(250)}>
           <Text variant="hero">{title}</Text>
         </Animated.View>
-        <Input icon={<Search size={16} color={palette.electric} />} placeholder={tab === 'guides' ? 'Visa, CAF, logement…' : 'Rechercher'} value={q} onChangeText={setQ} />
-        <View style={{ flexDirection: 'row', gap: 8 }}>
-          <TabPill label="Mentors" icon={<Sparkles size={14} color={tab === 'mentors' ? '#fff' : palette.navy} />} active={tab === 'mentors'} onPress={() => setTab('mentors')} color={palette.electric} />
-          <TabPill label="Guides" icon={<BookOpen size={14} color={tab === 'guides' ? '#fff' : palette.navy} />} active={tab === 'guides'} onPress={() => setTab('guides')} color={palette.electric} />
-          <TabPill label="Hôtes" icon={<House size={14} color={tab === 'hosts' ? '#fff' : palette.navy} />} active={tab === 'hosts'} onPress={() => setTab('hosts')} color={palette.host} />
-        </View>
+        {tab === 'schools' ? null : (
+          <Input icon={<Search size={16} color={palette.electric} />} placeholder={tab === 'guides' ? 'Visa, CAF, logement…' : 'Rechercher'} value={q} onChangeText={setQ} />
+        )}
       </View>
+      {/* Quatre onglets : la rangée défile sur les petits écrans, sans rien couper. */}
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginTop: 14, flexGrow: 0 }} contentContainerStyle={{ gap: 8, paddingHorizontal: 20, paddingVertical: 4 }}>
+        <TabPill label="Mentors" icon={<Sparkles size={14} color={tab === 'mentors' ? '#fff' : palette.navy} />} active={tab === 'mentors'} onPress={() => setTab('mentors')} color={palette.electric} />
+        <TabPill label="Guides" icon={<BookOpen size={14} color={tab === 'guides' ? '#fff' : palette.navy} />} active={tab === 'guides'} onPress={() => setTab('guides')} color={palette.electric} />
+        <TabPill label="Écoles" icon={<GraduationCap size={14} color={tab === 'schools' ? '#fff' : palette.navy} />} active={tab === 'schools'} onPress={() => setTab('schools')} color={palette.electric} />
+        <TabPill label="Hôtes" icon={<House size={14} color={tab === 'hosts' ? '#fff' : palette.navy} />} active={tab === 'hosts'} onPress={() => setTab('hosts')} color={palette.host} />
+      </ScrollView>
 
       {tab === 'mentors' && (
         <Animated.View entering={FadeIn.duration(200)} style={{ gap: 14, marginTop: 14 }}>
@@ -197,6 +204,30 @@ export default function Explorer() {
               );
             })}
           </Animated.View>
+        </Animated.View>
+      )}
+
+      {tab === 'schools' && (
+        <Animated.View entering={FadeIn.duration(200)} style={{ gap: 14, marginTop: 14, paddingHorizontal: 20 }}>
+          <Text variant="body" color={palette.subtle}>
+            Des écoles qui accueillent les étudiants du Maghreb et travaillent avec DALILI. Dis-nous laquelle t’attire : l’équipe te recontacte.
+          </Text>
+          {schools.isPending
+            ? [0, 1].map((k) => <View key={k} style={[styles.skeleton, { height: 230 }]} />)
+            : (schools.data ?? []).map((sc, k) => (
+                <Animated.View key={sc.id} entering={rise(k * 60)}>
+                  <SchoolCard school={sc} />
+                </Animated.View>
+              ))}
+          {!schools.isPending && !schools.data?.length ? (
+            <View style={styles.empty}>
+              <IconTile icon={GraduationCap} tone="blue" size={48} radius={16} />
+              <Text variant="h3">{schools.isError ? 'Pas de connexion' : 'Nos premières écoles arrivent'}</Text>
+              <Text variant="small" color={palette.muted} align="center">
+                {schools.isError ? 'Vérifie ton réseau et réessaie.' : 'On finalise nos premiers partenariats. Elles apparaîtront ici très bientôt.'}
+              </Text>
+            </View>
+          ) : null}
         </Animated.View>
       )}
 
