@@ -26,6 +26,8 @@ export type School = {
   logoUrl: string | null;
   coverUrl: string | null;
   photos: string[];
+  /** « Photos : … © … », affiché sous les photos. */
+  photoCredit: string | null;
   programs: Program[];
   facts: Fact[];
   /** Date où l'équipe a vérifié les infos sur le site officiel de l'école. */
@@ -34,7 +36,8 @@ export type School = {
 
 export type Interest = { id: string; schoolId: string; program: string | null; message: string | null; createdAt: string };
 
-/** Mode démo : mêmes faits que la fiche en base (site officiel, relevés le 29/10/2026), sans photo. */
+/** Mode démo : la même fiche qu'en base (site officiel, relevée le 29/10/2026), photos servies par dalili.study. */
+const MEDIA = 'https://dalili.study/partenaires/digital-campus-nantes';
 const DEMO_SCHOOLS: School[] = [
   {
     id: 'demo-digital-campus-nantes',
@@ -47,9 +50,10 @@ const DEMO_SCHOOLS: School[] = [
     address: 'Central Green, 5-7 route de la Jonelière, bâtiment I, 44300 Nantes',
     transport: ['Tram 2 · arrêt « Facultés »', 'Bus 75 · arrêt « Facultés »', 'Bus 80, E5 et C20 · arrêt « Fac de lettres »', 'Vélos : local sur le campus et station Bicloo « Facultés »'],
     website: 'https://www.digital-campus.fr/ecole/nantes',
-    logoUrl: null,
-    coverUrl: null,
-    photos: [],
+    logoUrl: `${MEDIA}/logo-blanc.svg`,
+    coverUrl: `${MEDIA}/couverture.jpg`,
+    photos: Array.from({ length: 9 }, (_, i) => `${MEDIA}/photo-${String(i + 1).padStart(2, '0')}.jpg`),
+    photoCredit: 'Photos : Digital Campus Nantes, © Guillaume Bouju',
     programs: [
       { name: 'Bachelor digital (1re année)', level: 'Bac+1', format: 'Initial' },
       { name: 'Bachelor Chef de projet digital', level: 'Bac+3', format: 'Alternance dès la 2e année' },
@@ -97,6 +101,7 @@ const toSchool = (r: Record<string, any>): School => ({
   logoUrl: r.logo_url,
   coverUrl: r.cover_url,
   photos: r.photos ?? [],
+  photoCredit: r.photo_credit,
   programs: r.programs ?? [],
   facts: r.facts ?? [],
   checkedOn: r.source_checked_on,

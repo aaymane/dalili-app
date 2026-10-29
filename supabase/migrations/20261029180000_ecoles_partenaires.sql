@@ -1,8 +1,7 @@
 -- Écoles partenaires (29/10/2026).
 -- Une école partenaire a sa fiche dans Explorer ; un étudiant dit « Je suis intéressé·e ».
 -- Choix du 29/10 : la demande reste chez DALILI (les fondateurs la voient dans l'admin et recontactent l'étudiant) ;
--- rien n'est transmis à l'école. Une fiche n'est visible qu'une fois publiée (après l'accord écrit de l'école
--- pour ses photos et son logo).
+-- rien n'est transmis à l'école. Une fiche n'est visible qu'une fois publiée (is_published).
 
 -- 1. Les écoles. Écrites seulement par le serveur du site (clé service) ; lues par les comptes connectés, si publiées.
 create table public.partner_schools (
@@ -18,6 +17,8 @@ create table public.partner_schools (
   logo_url text check (logo_url ~ '^https://'),
   cover_url text check (cover_url ~ '^https://'),
   photos text[] not null default '{}',
+  -- Crédit affiché sous les photos (« Photos : … © … »).
+  photo_credit text,
   -- [{ "name": "Bachelor UI & Web design", "level": "Bac+3", "format": "Alternance dès la 2e année" }]
   programs jsonb not null default '[]',
   -- [{ "value": "92,4 %", "label": "choisissent l'alternance" }]
@@ -69,9 +70,10 @@ end $$;
 revoke all on function public.school_leads_before_insert() from public, anon, authenticated;
 create trigger school_leads_before_insert before insert on public.school_leads for each row execute function public.school_leads_before_insert();
 
--- 4. Première école : Digital Campus Nantes, d'après son site officiel (relevé le 29/10/2026), NON publiée :
---    on la publie (is_published = true) une fois l'accord écrit de l'école reçu, avec ses photos dans notre stockage.
-insert into public.partner_schools (slug, name, city, tagline, description, address, transport, website, programs, facts, source_checked_on, sort)
+-- 4. Première école : Digital Campus Nantes, d'après son site officiel (relevé le 29/10/2026). Ses photos et son logo
+--    (repris de son site, choix du 29/10) sont servis par dalili.study (public/partenaires/digital-campus-nantes/).
+--    Créée NON publiée : on la publie (is_published = true) une fois le site déployé avec ces fichiers.
+insert into public.partner_schools (slug, name, city, tagline, description, address, transport, website, logo_url, cover_url, photos, photo_credit, programs, facts, source_checked_on, sort)
 values (
   'digital-campus-nantes',
   'Digital Campus Nantes',
@@ -81,6 +83,10 @@ values (
   'Central Green, 5-7 route de la Jonelière, bâtiment I, 44300 Nantes',
   array['Tram 2 · arrêt « Facultés »', 'Bus 75 · arrêt « Facultés »', 'Bus 80, E5 et C20 · arrêt « Fac de lettres »', 'Vélos : local sur le campus et station Bicloo « Facultés »'],
   'https://www.digital-campus.fr/ecole/nantes',
+  'https://dalili.study/partenaires/digital-campus-nantes/logo-blanc.svg',
+  'https://dalili.study/partenaires/digital-campus-nantes/couverture.jpg',
+  array(select format('https://dalili.study/partenaires/digital-campus-nantes/photo-%s.jpg', lpad(n::text, 2, '0')) from generate_series(1, 9) n),
+  'Photos : Digital Campus Nantes, © Guillaume Bouju',
   '[
     {"name": "Bachelor digital (1re année)", "level": "Bac+1", "format": "Initial"},
     {"name": "Bachelor Chef de projet digital", "level": "Bac+3", "format": "Alternance dès la 2e année"},
