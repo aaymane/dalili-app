@@ -11,7 +11,8 @@ import { PressableScale } from '@/components/ui/PressableScale';
 import { Text } from '@/components/ui/Text';
 import { MessageRefused, type Message } from '@/features/messages/api';
 import { nameOf } from '@/features/messages/components/ConversationRow';
-import { Bubble, Composer, TrustNote, TypingBubble } from '@/features/messages/components/Thread';
+import { Bubble, Composer, DaySeparator, TrustNote, TypingBubble } from '@/features/messages/components/Thread';
+import { isSameDay } from '@/lib/date';
 import { threadKey, useConversation, useSendMessage, useThread } from '@/features/messages/hooks';
 import { SafetySheet } from '@/features/safety/components/SafetySheet';
 import { useRoleTheme } from '@/theme';
@@ -104,9 +105,15 @@ export default function Thread() {
         }
         ListFooterComponent={thread.typing ? <TypingBubble name={first} /> : undefined}
         renderItem={({ item, index }) => {
+          const prev = messages[index - 1];
           const next = messages[index + 1];
           const showTime = !next || next.mine !== item.mine || new Date(next.createdAt).getTime() - new Date(item.createdAt).getTime() > GAP_MS;
-          return <Bubble m={item} fresh={new Date(item.createdAt).getTime() > openedAt - 1000} showTime={showTime} onRetry={retry} />;
+          return (
+            <>
+              {!prev || !isSameDay(prev.createdAt, item.createdAt) ? <DaySeparator iso={item.createdAt} /> : null}
+              <Bubble m={item} fresh={new Date(item.createdAt).getTime() > openedAt - 1000} showTime={showTime} onRetry={retry} />
+            </>
+          );
         }}
       />
       {c ? (
@@ -125,6 +132,7 @@ export default function Thread() {
 const styles = StyleSheet.create({
   header: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: 16, paddingTop: 8, paddingBottom: 10 },
   round: { width: 44, height: 44, borderRadius: 22, backgroundColor: palette.white, alignItems: 'center', justifyContent: 'center', ...shadow.sm },
-  content: { paddingHorizontal: 16, paddingTop: 4, paddingBottom: 12, gap: 6, flexGrow: 1 },
+  // Les messages partent du bas, près du clavier, comme dans toute messagerie.
+  content: { paddingHorizontal: 16, paddingTop: 4, paddingBottom: 12, gap: 6, flexGrow: 1, justifyContent: 'flex-end' },
   closed: { padding: 14, borderRadius: radius.lg, backgroundColor: palette.surface },
 });

@@ -29,6 +29,7 @@ export function useCallPeer(bookingId: string) {
     return { name: r?.student ?? 'Ton étudiant·e', color: undefined, topic: r?.topic, mentorId: undefined };
   }
   const booking = bookings.find((b) => b.id === bookingId);
-  const m = mentors.find((x) => x.id === booking?.mentorId);
+  // Mode démo sans rendez-vous enregistré : le premier mentor d'exemple, pour que l'aperçu ait un visage.
+  const m = mentors.find((x) => x.id === booking?.mentorId) ?? (booking ? undefined : mentors[0]);
   return { name: m ? m.firstName : 'Ton mentor', color: m?.avatarColor, topic: booking?.topic, mentorId: m?.id };
 }

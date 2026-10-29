@@ -1,12 +1,12 @@
 import { LinearGradient } from 'expo-linear-gradient';
-import { ArrowUp, RotateCcw, ShieldCheck } from 'lucide-react-native';
+import { ArrowUp, Lock, RotateCcw } from 'lucide-react-native';
 import { useEffect, useState } from 'react';
 import { StyleSheet, TextInput, View } from 'react-native';
 import Animated, { useAnimatedStyle, useSharedValue, withDelay, withRepeat, withSequence, withTiming } from 'react-native-reanimated';
 
 import { PressableScale } from '@/components/ui/PressableScale';
 import { Text } from '@/components/ui/Text';
-import { formatTime } from '@/lib/date';
+import { daysFromToday, formatLong, formatTime } from '@/lib/date';
 import { useRoleTheme } from '@/theme';
 import { pop, rise } from '@/theme/motion';
 import { fonts, palette, radius } from '@/theme/tokens';
@@ -71,13 +71,26 @@ export function TypingBubble({ name }: { name: string }) {
   );
 }
 
-/** En tête de conversation : les règles de confiance, en une phrase. */
+/** En tête de conversation : les règles de confiance, en une phrase discrète (comme une messagerie chiffrée). */
 export function TrustNote() {
   return (
     <View style={styles.note}>
-      <ShieldCheck size={16} color={palette.mentor} />
-      <Text variant="caption" color={palette.subtle} style={{ flex: 1 }}>
-        Restez sur DALILI. Ne partage jamais tes papiers, tes codes ou de l’argent. Un souci ? Touche le drapeau en haut.
+      <Lock size={12} color={palette.muted} />
+      <Text variant="caption" color={palette.muted} align="center" style={{ flexShrink: 1 }}>
+        Conversation privée entre vous deux. Ne partage jamais tes papiers, tes codes ou de l’argent.
+      </Text>
+    </View>
+  );
+}
+
+/** « Aujourd'hui », « Hier », puis « mardi 27 octobre » : un repère au changement de jour. */
+export function DaySeparator({ iso }: { iso: string }) {
+  const n = daysFromToday(iso);
+  const label = n === 0 ? 'Aujourd’hui' : n === -1 ? 'Hier' : formatLong(iso);
+  return (
+    <View style={styles.day}>
+      <Text variant="caption" color={palette.subtle}>
+        {label.charAt(0).toUpperCase() + label.slice(1)}
       </Text>
     </View>
   );
@@ -140,7 +153,8 @@ const styles = StyleSheet.create({
   retry: { flexDirection: 'row', alignItems: 'center', gap: 4, minHeight: 28, paddingHorizontal: 6 },
   typing: { flexDirection: 'row', gap: 5, paddingVertical: 14 },
   dot: { width: 7, height: 7, borderRadius: 4, backgroundColor: palette.muted },
-  note: { flexDirection: 'row', alignItems: 'center', gap: 8, padding: 12, borderRadius: radius.lg, backgroundColor: palette.surface, marginBottom: 8 },
+  note: { alignItems: 'center', gap: 4, alignSelf: 'center', maxWidth: 280, paddingVertical: 6, marginBottom: 6 },
+  day: { alignSelf: 'center', paddingHorizontal: 12, paddingVertical: 4, borderRadius: radius.pill, backgroundColor: 'rgba(255,255,255,0.7)', marginVertical: 8 },
   composer: { flexDirection: 'row', alignItems: 'flex-end', gap: 8, paddingLeft: 16, paddingRight: 6, paddingVertical: 6, borderRadius: 26, backgroundColor: palette.white, borderWidth: 1, borderColor: palette.line },
   input: { flex: 1, fontFamily: fonts.body, fontSize: 15, color: palette.navy, maxHeight: 120, paddingVertical: 10, outlineStyle: 'none' } as any,
   send: { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center' },

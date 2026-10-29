@@ -62,17 +62,25 @@ export function PostCard({ p, city, onOpen, hideComments }: { p: PostWithState; 
             {p.likes}
           </Text>
         </PressableScale>
-        <PressableScale
-          onPress={onOpen}
-          disabled={!onOpen}
-          hitSlop={6}
-          style={styles.action}
-          accessibilityLabel={`${p.comments.length} commentaire${p.comments.length > 1 ? 's' : ''}. Commenter`}>
-          <MessageCircle size={18} color={palette.subtle} />
-          <Text variant="smallStrong" color={palette.subtle}>
-            {p.comments.length}
-          </Text>
-        </PressableScale>
+        {onOpen ? (
+          <PressableScale
+            onPress={onOpen}
+            hitSlop={6}
+            style={styles.action}
+            accessibilityLabel={`${p.comments.length} commentaire${p.comments.length > 1 ? 's' : ''}. Commenter`}>
+            <MessageCircle size={18} color={palette.subtle} />
+            <Text variant="smallStrong" color={palette.subtle}>
+              {p.comments.length}
+            </Text>
+          </PressableScale>
+        ) : (
+          <View style={styles.action} accessible accessibilityLabel={`${p.comments.length} commentaire${p.comments.length > 1 ? 's' : ''}`}>
+            <MessageCircle size={18} color={palette.subtle} />
+            <Text variant="smallStrong" color={palette.subtle}>
+              {p.comments.length}
+            </Text>
+          </View>
+        )}
         <View style={{ flex: 1 }} />
         <PressableScale onPress={() => Share.share({ message: `${p.author} sur DALILI : ${p.body}` }).catch(() => {})} accessibilityLabel="Partager">
           <Share2 size={18} color={palette.subtle} />

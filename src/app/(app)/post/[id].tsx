@@ -1,5 +1,5 @@
 import { useQueryClient } from '@tanstack/react-query';
-import { router, useLocalSearchParams } from 'expo-router';
+import { useLocalSearchParams } from 'expo-router';
 import { RotateCcw } from 'lucide-react-native';
 import { useState } from 'react';
 import { Alert, FlatList, StyleSheet, View } from 'react-native';
@@ -14,6 +14,7 @@ import { PressableScale } from '@/components/ui/PressableScale';
 import { Text } from '@/components/ui/Text';
 import { useGroup, usePosts } from '@/data/hooks';
 import { CommentRefused, myName, type Comment } from '@/features/community/api';
+import { useJoinGroup } from '@/features/community/components/GroupCard';
 import { PostCard } from '@/features/community/components/PostCard';
 import { commentsKey, useComments, useDeleteComment, useSendComment } from '@/features/community/hooks';
 import { Composer } from '@/features/messages/components/Thread';
@@ -30,6 +31,7 @@ export default function PostScreen() {
   const comments = useComments(id);
   const send = useSendComment(id, groupId);
   const remove = useDeleteComment(id, groupId);
+  const join = useJoinGroup();
   // Seules les bulles écrites après l'ouverture montent en douceur.
   const [openedAt] = useState(Date.now);
   const list = comments.data ?? [];
@@ -58,7 +60,7 @@ export default function PostScreen() {
   const footer = member ? (
     <Composer onSend={post_} placeholder="Écris un commentaire…" label="Ton commentaire" />
   ) : (
-    <Button label="Rejoindre le groupe pour commenter" variant="secondary" onPress={() => router.back()} />
+    <Button label="Rejoindre le groupe pour commenter" variant="secondary" onPress={() => group && join(group)} />
   );
 
   return (
@@ -87,16 +89,10 @@ export default function PostScreen() {
             </Text>
           )
         }
-        renderItem={({ item: c }) => (
-          <Animated.View entering={new Date(c.createdAt).getTime() > openedAt - 1000 ? rise() : undefined}>
-            <PressableScale
-              onLongPress={c.mine && !c.pending ? () => askDelete(c) : undefined}
-              onPress={c.failed ? () => retry(c) : undefined}
-              disabled={!c.mine}
-              scaleTo={0.99}
-              haptic={false}
-              style={[styles.comment, c.isPostAuthor && styles.byAuthor, (c.pending || c.failed) && { opacity: 0.6 }]}
-              accessibilityHint={c.mine ? 'Appui long pour supprimer' : undefined}>
+        renderItem={({ item: c }) => {
+          const style = [styles.comment, c.isPostAuthor && styles.byAuthor, (c.pending || c.failed) && { opacity: 0.6 }];
+          const body = (
+            <>
               <Avatar name={c.author} size={30} color="#94A3B8" />
               <View style={{ flex: 1, gap: 2 }}>
                 <Text variant="caption" color={palette.electric}>
@@ -113,9 +109,27 @@ export default function PostScreen() {
                   </View>
                 ) : null}
               </View>
-            </PressableScale>
-          </Animated.View>
-        )}
+            </>
+          );
+          return (
+            <Animated.View entering={new Date(c.createdAt).getTime() > openedAt - 1000 ? rise() : undefined}>
+              {/* Seuls les tiens réagissent au doigt : appui long pour supprimer, toucher pour renvoyer s'il est raté. */}
+              {c.mine ? (
+                <PressableScale
+                  onLongPress={c.pending ? undefined : () => askDelete(c)}
+                  onPress={c.failed ? () => retry(c) : undefined}
+                  scaleTo={0.98}
+                  haptic={false}
+                  style={style}
+                  accessibilityHint="Appui long pour supprimer">
+                  {body}
+                </PressableScale>
+              ) : (
+                <View style={style}>{body}</View>
+              )}
+            </Animated.View>
+          );
+        }}
       />
     </Screen>
   );

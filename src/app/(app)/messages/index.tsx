@@ -1,4 +1,4 @@
-import { MessageCircle } from 'lucide-react-native';
+import { Lock, MessageCircle } from 'lucide-react-native';
 import { StyleSheet, View } from 'react-native';
 import Animated from 'react-native-reanimated';
 
@@ -22,8 +22,14 @@ export default function Messages() {
   const list = (q.data ?? []).filter((c) => c.asRole === role);
 
   return (
-    <Screen top={theme.top} padded={false} header={<AppHeader back title="Messages" hideActions />}>
+    <Screen top={theme.top} padded={false} header={<AppHeader back hideActions />}>
       <View style={{ paddingHorizontal: 20, gap: 14 }}>
+        <Animated.View entering={rise()} style={{ gap: 4 }}>
+          <Text variant="hero">Messages</Text>
+          <Text variant="body" color={palette.subtle}>
+            {role === 'mentor' ? 'Avec les étudiants que tu accompagnes.' : 'Avec les mentors qui ont accepté ton appel.'}
+          </Text>
+        </Animated.View>
         {q.isError ? (
           <Animated.View entering={rise()} style={[styles.card, styles.state]}>
             <Text variant="small" color={palette.subtle} style={{ flex: 1 }}>
@@ -47,14 +53,22 @@ export default function Messages() {
                 : 'Quand un mentor accepte ton appel, vous pouvez vous écrire ici, avant et après l’appel.'}
             </Text>
           </Animated.View>
-        ) : (
-          <View style={styles.card}>
-            {list.map((c, i) => (
-              <Animated.View key={c.id} entering={enter(i)} style={i > 0 && styles.sep}>
-                <ConversationRow c={c} />
-              </Animated.View>
-            ))}
-          </View>
+        ) : !list.length ? null : (
+          <>
+            <View style={styles.card}>
+              {list.map((c, i) => (
+                <Animated.View key={c.id} entering={enter(i + 1)} style={i > 0 && styles.sep}>
+                  <ConversationRow c={c} />
+                </Animated.View>
+              ))}
+            </View>
+            <Animated.View entering={rise(200)} style={styles.privacy}>
+              <Lock size={12} color={palette.muted} />
+              <Text variant="caption" color={palette.muted}>
+                Tes conversations ne sont visibles que par vous deux.
+              </Text>
+            </Animated.View>
+          </>
         )}
       </View>
     </Screen>
@@ -66,5 +80,6 @@ const styles = StyleSheet.create({
   state: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 14 },
   retry: { minHeight: 44, justifyContent: 'center', paddingHorizontal: 8 },
   empty: { alignItems: 'center', gap: 10, padding: 24 },
+  privacy: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6 },
   sep: { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: palette.line },
 });

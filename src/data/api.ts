@@ -90,15 +90,21 @@ export async function fetchMentors(): Promise<Mentor[]> {
   return (data ?? []).map(toMentor);
 }
 
+/** Profils de test sans session (captures) : la base refuserait, on montre les données d'exemple. */
+async function noSession() {
+  const { data } = await supabase!.auth.getSession();
+  return !data.session;
+}
+
 export async function fetchGroups(): Promise<Group[]> {
-  if (!supabase) return demoGroups;
+  if (!supabase || (await noSession())) return demoGroups;
   const { data, error } = await supabase.from('groups').select('*').order('members_count', { ascending: false });
   if (error) throw error;
   return (data ?? []).map(toGroup);
 }
 
 export async function fetchEvents(): Promise<CommunityEvent[]> {
-  if (!supabase) return demoEvents;
+  if (!supabase || (await noSession())) return demoEvents;
   const { data, error } = await supabase
     .from('events')
     .select('*')
@@ -109,7 +115,7 @@ export async function fetchEvents(): Promise<CommunityEvent[]> {
 }
 
 export async function fetchPosts(groupId: string): Promise<Post[]> {
-  if (!supabase) return demoPosts.filter((p) => p.groupId === groupId);
+  if (!supabase || (await noSession())) return demoPosts.filter((p) => p.groupId === groupId);
   const { data, error } = await supabase
     .from('posts_with_author')
     .select('*')
