@@ -4,7 +4,7 @@ import { View } from 'react-native';
 import { useDerivedValue, useReducedMotion, useSharedValue, withDelay, withTiming } from 'react-native-reanimated';
 
 import { EASE_OUT } from '@/theme/motion';
-import { palette } from '@/theme/tokens';
+import { useTheme } from '@/theme/scheme';
 
 const HEIGHT = 128;
 /** Places des étoiles autour du centre, en fraction de la largeur (x) et de la hauteur (y) : un dessin irrégulier, comme un vrai ciel. */
@@ -26,6 +26,7 @@ type Props = { helped: number; waiting: number };
  * la boucle de la carte, c'est le ciel étoilé.
  */
 export function Constellation({ helped, waiting }: Props) {
+  const { c } = useTheme();
   const reduce = useReducedMotion();
   const [width, setWidth] = useState(0);
   const draw = useSharedValue(reduce ? 1 : 0);
@@ -64,14 +65,14 @@ export function Constellation({ helped, waiting }: Props) {
               <Circle cx={s.x} cy={s.y} r={s.waiting ? 7 : 9} color={s.waiting ? 'rgba(255,255,255,0.18)' : 'rgba(125,227,185,0.4)'}>
                 <BlurMask blur={6} style="normal" />
               </Circle>
-              <Circle cx={s.x} cy={s.y} r={s.waiting ? 2.5 : 3.5} color={s.waiting ? 'rgba(255,255,255,0.7)' : palette.white} />
+              <Circle cx={s.x} cy={s.y} r={s.waiting ? 2.5 : 3.5} color={s.waiting ? 'rgba(255,255,255,0.7)' : c.white} />
             </Group>
           ))}
-          <Circle cx={width / 2} cy={HEIGHT / 2} r={22} color={palette.mentorGlow} opacity={0.35}>
+          <Circle cx={width / 2} cy={HEIGHT / 2} r={22} color={c.mentorGlow} opacity={0.35}>
             <BlurMask blur={14} style="normal" />
           </Circle>
-          <Circle cx={width / 2} cy={HEIGHT / 2} r={6} color={palette.white} />
-          <Circle cx={width / 2} cy={HEIGHT / 2} r={9} color={palette.mentorGlow} style="stroke" strokeWidth={1.5} />
+          <Circle cx={width / 2} cy={HEIGHT / 2} r={6} color={c.white} />
+          <Circle cx={width / 2} cy={HEIGHT / 2} r={9} color={c.mentorGlow} style="stroke" strokeWidth={1.5} />
         </Canvas>
       ) : null}
     </View>

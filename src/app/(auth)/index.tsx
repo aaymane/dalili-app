@@ -14,13 +14,14 @@ import { PressableScale } from '@/components/ui/PressableScale';
 import { Text } from '@/components/ui/Text';
 import { FlyingMark, INTRO, MarkSlot, SplashCover, useLaunchIntro, Wordmark } from '@/features/auth/components/LaunchIntro';
 import { isDemoMode, useAuth } from '@/features/auth/store';
-import { palette } from '@/theme/tokens';
+import { useTheme } from '@/theme/scheme';
 import { rise } from '@/theme/motion';
 
 const MARK = 86;
 
 /** Écran d'accueil : Google, Apple ou email. Au lancement, il prend le relais de l'écran natif (LaunchIntro). */
 export default function Welcome() {
+  const { c } = useTheme();
   const insets = useSafeAreaInsets();
   const signInWithProvider = useAuth((s) => s.signInWithProvider);
   const [loading, setLoading] = useState<'google' | 'apple' | null>(null);
@@ -56,7 +57,7 @@ export default function Welcome() {
             </View>
           ) : (
             <Animated.View entering={rise()} style={{ alignItems: 'center' }}>
-              <LogoMark size={MARK} color={palette.electricLight} />
+              <LogoMark size={MARK} color={c.electricLight} />
               <Wordmark play={false} style={styles.wordmark} />
             </Animated.View>
           )}

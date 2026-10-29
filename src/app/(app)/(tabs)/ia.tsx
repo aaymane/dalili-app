@@ -16,7 +16,8 @@ import { useSuggestions } from '@/features/ai/suggestions';
 import { stopSpeaking } from '@/features/ai/speech';
 import { useAssistant, type ChatMessage } from '@/features/ai/useAssistant';
 import { displayName, useProfile } from '@/features/profile/store';
-import { fonts, gradients, palette, radius, shadow } from '@/theme/tokens';
+import { makeStyles, useTheme } from '@/theme/scheme';
+import { fonts, radius } from '@/theme/tokens';
 import { rise } from '@/theme/motion';
 
 function Bubble({
@@ -30,6 +31,8 @@ function Bubble({
   onRequest: (id: string) => Promise<boolean>;
   onReport: (id: string) => void;
 }) {
+  const { c } = useTheme();
+  const styles = useStyles();
   if (m.role === 'user') {
     return (
       <Animated.View entering={rise()} style={{ alignItems: 'flex-end' }}>
@@ -45,9 +48,9 @@ function Bubble({
   if (m.status === 'pending') return null;
   return (
     <Animated.View entering={FadeIn.duration(200)} style={{ gap: 10 }}>
-      <View style={[styles.bubbleAi, m.status === 'error' && { backgroundColor: palette.warningSoft }]}>
+      <View style={[styles.bubbleAi, m.status === 'error' && { backgroundColor: c.warningSoft }]}>
         {m.status === 'error' ? (
-          <Text variant="body" color={palette.warningInk}>
+          <Text variant="body" color={c.warningInk}>
             {m.content}
           </Text>
         ) : (
@@ -66,6 +69,8 @@ function Bubble({
 
 /** Dalili IA : répond uniquement avec les guides dalili.study, et montre d'où vient chaque info. */
 export default function DaliliIA() {
+  const { c, gradients } = useTheme();
+  const styles = useStyles();
   const params = useLocalSearchParams<{ q?: string }>();
   const insets = useSafeAreaInsets();
   const profile = useProfile((s) => s.profile);
@@ -107,21 +112,21 @@ export default function DaliliIA() {
   const signal = streaming ? Math.floor(lastContent / 40) : keys;
 
   return (
-    <View style={{ flex: 1, backgroundColor: '#F7F7FF' }}>
-      <LinearGradient colors={['#C9C2FF', '#ECEAFF', '#F7F7FF']} style={StyleSheet.absoluteFill} locations={[0, 0.3, 0.6]} />
+    <View style={{ flex: 1, backgroundColor: c.bg }}>
+      <LinearGradient colors={gradients.aiTop} style={StyleSheet.absoluteFill} locations={[0, 0.3, 0.6]} />
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
         <View style={[styles.top, { paddingTop: insets.top + 8 }]}>
           <View style={styles.status}>
             {empty ? null : <Ame size={44} state={state} signal={signal} surface="light" />}
             <View>
               <Text variant="smallStrong">Dalili IA</Text>
-              <Text variant="caption" color={palette.subtle}>
+              <Text variant="caption" color={c.subtle}>
                 {thinking ? 'Je cherche dans nos guides…' : `D’après nos ${manifest.counts.guides} guides vérifiés`}
               </Text>
             </View>
           </View>
           <PressableScale onPress={() => router.push('/(app)/profil-ia')} style={styles.profileBtn} accessibilityLabel="Ce que Dalili sait de toi">
-            <UserRoundCog size={18} color={palette.aiIndigo} />
+            <UserRoundCog size={18} color={c.aiIndigo} />
           </PressableScale>
         </View>
 
@@ -139,7 +144,7 @@ export default function DaliliIA() {
                 <Text variant="h2" align="center">
                   Salut {displayName(profile)}, je t’écoute.
                 </Text>
-                <Text variant="small" color={palette.subtle} align="center" style={{ maxWidth: 300 }}>
+                <Text variant="small" color={c.subtle} align="center" style={{ maxWidth: 300 }}>
                   Je réponds uniquement avec les guides DALILI, et je te montre d’où vient chaque info. Si je ne sais pas, je te le dis.
                 </Text>
               </Animated.View>
@@ -149,13 +154,13 @@ export default function DaliliIA() {
           ListFooterComponent={
             empty ? (
               <View style={{ gap: 8, marginTop: 8 }}>
-                <Text variant="overline" color={palette.muted}>
+                <Text variant="overline" color={c.muted}>
                   Pour ton étape en cours
                 </Text>
                 {suggestions.map((s, i) => (
                   <Animated.View key={s} entering={rise(120 + i * 60)}>
                     <PressableScale onPress={() => send(s)} style={styles.suggestion}>
-                      <Sparkles size={14} color={palette.aiIndigo} />
+                      <Sparkles size={14} color={c.aiIndigo} />
                       <Text variant="smallStrong" style={{ flex: 1 }}>
                         {s}
                       </Text>
@@ -175,7 +180,7 @@ export default function DaliliIA() {
               setKeys((k) => k + 1);
             }}
             placeholder="Demande-moi n’importe quoi…"
-            placeholderTextColor={palette.muted}
+            placeholderTextColor={c.muted}
             style={styles.input}
             multiline
             maxLength={300}
@@ -196,14 +201,14 @@ export default function DaliliIA() {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles(({ c, shadow, scheme }) => ({
   top: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingBottom: 6 },
-  status: { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: 'rgba(255,255,255,0.7)', paddingLeft: 6, paddingRight: 14, minHeight: 44, borderRadius: 999 },
-  profileBtn: { width: 44, height: 44, borderRadius: 22, backgroundColor: '#fff', alignItems: 'center', justifyContent: 'center', ...shadow.sm },
-  bubbleAi: { backgroundColor: '#fff', borderRadius: 20, borderTopLeftRadius: 6, padding: 14, ...shadow.sm },
+  status: { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: scheme === 'dark' ? 'rgba(20,27,49,0.8)' : 'rgba(255,255,255,0.7)', paddingLeft: 6, paddingRight: 14, minHeight: 44, borderRadius: 999 },
+  profileBtn: { width: 44, height: 44, borderRadius: 22, backgroundColor: c.card, alignItems: 'center', justifyContent: 'center', ...shadow.sm },
+  bubbleAi: { backgroundColor: c.card, borderRadius: 20, borderTopLeftRadius: 6, padding: 14, ...shadow.sm },
   bubbleUser: { maxWidth: '82%', borderRadius: 20, borderBottomRightRadius: 6, padding: 14 },
-  suggestion: { flexDirection: 'row', alignItems: 'center', gap: 10, padding: 14, borderRadius: radius.lg, backgroundColor: '#fff', ...shadow.sm },
-  inputBar: { flexDirection: 'row', alignItems: 'center', gap: 10, marginHorizontal: 16, paddingLeft: 18, paddingRight: 6, minHeight: 56, borderRadius: 28, backgroundColor: '#fff', borderWidth: 1.5, borderColor: '#E3E1FF', ...shadow.md },
-  input: { flex: 1, fontFamily: fonts.body, fontSize: 15, color: palette.navy, maxHeight: 110, paddingVertical: 12, outlineStyle: 'none' } as any,
+  suggestion: { flexDirection: 'row', alignItems: 'center', gap: 10, padding: 14, borderRadius: radius.lg, backgroundColor: c.card, ...shadow.sm },
+  inputBar: { flexDirection: 'row', alignItems: 'center', gap: 10, marginHorizontal: 16, paddingLeft: 18, paddingRight: 6, minHeight: 56, borderRadius: 28, backgroundColor: c.card, borderWidth: 1.5, borderColor: c.line, ...shadow.md },
+  input: { flex: 1, fontFamily: fonts.body, fontSize: 15, color: c.navy, maxHeight: 110, paddingVertical: 12, outlineStyle: 'none' } as any,
   send: { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center' },
-});
+}));

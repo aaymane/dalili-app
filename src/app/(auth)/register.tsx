@@ -17,7 +17,7 @@ import { useAuth } from '@/features/auth/store';
 import { useProfile } from '@/features/profile/store';
 import { countries, type Country, type Gender } from '@/features/profile/types';
 import { haptics } from '@/lib/haptics';
-import { gradients, palette } from '@/theme/tokens';
+import { useTheme } from '@/theme/scheme';
 import { leave, rise } from '@/theme/motion';
 
 function strength(pw: string) {
@@ -30,6 +30,7 @@ function strength(pw: string) {
 }
 
 function StrengthBar({ value }: { value: number }) {
+  const { c } = useTheme();
   const colors = ['#E5484D', '#F59E0B', '#3D78FF', '#16A34A'];
   const labels = ['FAIBLE', 'MOYEN', 'BON', 'FORT'];
   return (
@@ -37,14 +38,15 @@ function StrengthBar({ value }: { value: number }) {
       {[0, 1, 2, 3].map((i) => (
         <Seg key={i} on={i < value} color={colors[Math.max(0, value - 1)]} />
       ))}
-      <Text variant="caption" color={palette.muted} style={{ width: 44, textAlign: 'right' }}>
+      <Text variant="caption" color={c.muted} style={{ width: 44, textAlign: 'right' }}>
         {value ? labels[value - 1] : ''}
       </Text>
     </View>
   );
 }
 function Seg({ on, color }: { on: boolean; color: string }) {
-  const s = useAnimatedStyle(() => ({ backgroundColor: withTiming(on ? color : '#D5DAE7', { duration: 220 }) }));
+  const { c } = useTheme();
+  const s = useAnimatedStyle(() => ({ backgroundColor: withTiming(on ? color : c.lineStrong, { duration: 220 }) }));
   return <Animated.View style={[{ flex: 1, height: 4, borderRadius: 2 }, s]} />;
 }
 
@@ -57,6 +59,7 @@ const formatBirth = (raw: string) => {
 
 /** Création de compte en 2 étapes (identifiants → identité), puis code OTP. */
 export default function Register() {
+  const { c, gradients } = useTheme();
   const signUp = useAuth((s) => s.signUp);
   const update = useProfile((s) => s.update);
   const [step, setStep] = useState(0);
@@ -130,7 +133,7 @@ export default function Register() {
       footer={
         <View style={{ gap: 8 }}>
           {errors.submit ? (
-            <Text variant="small" color={palette.danger} align="center">
+            <Text variant="small" color={c.danger} align="center">
               {errors.submit}
             </Text>
           ) : null}
@@ -140,14 +143,14 @@ export default function Register() {
       <View style={{ paddingHorizontal: 22 }}>
         {step === 0 ? (
           <Animated.View key="s0" entering={rise()} exiting={leave} style={{ gap: 12 }}>
-            <Input label="Email" icon={<Mail size={16} color={palette.electric} />} value={email} onChangeText={setEmail} keyboardType="email-address" autoCapitalize="none" autoComplete="email" placeholder="toi@email.com" error={errors.email} />
-            <Input label="Mot de passe" icon={<Lock size={16} color={palette.electric} />} value={pw} onChangeText={setPw} secureTextEntry placeholder="8 caractères minimum" autoComplete="new-password" error={errors.pw} />
-            <Input label="Confirmer le mot de passe" icon={<Lock size={16} color={palette.electric} />} value={pw2} onChangeText={setPw2} secureTextEntry placeholder="••••••••" error={errors.pw2} />
+            <Input label="Email" icon={<Mail size={16} color={c.electric} />} value={email} onChangeText={setEmail} keyboardType="email-address" autoCapitalize="none" autoComplete="email" placeholder="toi@email.com" error={errors.email} />
+            <Input label="Mot de passe" icon={<Lock size={16} color={c.electric} />} value={pw} onChangeText={setPw} secureTextEntry placeholder="8 caractères minimum" autoComplete="new-password" error={errors.pw} />
+            <Input label="Confirmer le mot de passe" icon={<Lock size={16} color={c.electric} />} value={pw2} onChangeText={setPw2} secureTextEntry placeholder="••••••••" error={errors.pw2} />
             <StrengthBar value={pwStrength} />
           </Animated.View>
         ) : (
           <Animated.View key="s1" entering={rise()} exiting={leave} style={{ gap: 12 }}>
-            <Text variant="overline" color={palette.muted}>
+            <Text variant="overline" color={c.muted}>
               Genre
             </Text>
             <Segmented
@@ -160,24 +163,24 @@ export default function Register() {
                 { value: 'other', label: 'Autre' },
               ]}
             />
-            <Input label="Prénom" icon={<User size={16} color={palette.electric} />} value={first} onChangeText={setFirst} autoComplete="given-name" placeholder="Aymen" error={errors.first} />
-            <Input label="Nom" icon={<IdCard size={16} color={palette.electric} />} value={last} onChangeText={setLast} autoComplete="family-name" placeholder="Amri" />
+            <Input label="Prénom" icon={<User size={16} color={c.electric} />} value={first} onChangeText={setFirst} autoComplete="given-name" placeholder="Aymen" error={errors.first} />
+            <Input label="Nom" icon={<IdCard size={16} color={c.electric} />} value={last} onChangeText={setLast} autoComplete="family-name" placeholder="Amri" />
             <PressableScale onPress={() => setCountryOpen(true)} scaleTo={0.99}>
               <View pointerEvents="none">
                 <Input
                   label="Pays de résidence"
-                  icon={<Globe size={16} color={palette.electric} />}
+                  icon={<Globe size={16} color={c.electric} />}
                   value={selectedCountry ? `${selectedCountry.flag}  ${selectedCountry.label}` : ''}
                   placeholder="Sélectionner"
                   editable={false}
-                  right={<ChevronDown size={18} color={palette.muted} />}
+                  right={<ChevronDown size={18} color={c.muted} />}
                   error={errors.country}
                 />
               </View>
             </PressableScale>
             <Input
               label="Date de naissance"
-              icon={<CalIcon size={16} color={palette.electric} />}
+              icon={<CalIcon size={16} color={c.electric} />}
               value={birth}
               onChangeText={(t) => setBirth(formatBirth(t))}
               keyboardType="number-pad"
@@ -185,16 +188,16 @@ export default function Register() {
               error={errors.birth}
             />
             <PressableScale onPress={() => setCgu((v) => !v)} haptic="select" style={{ flexDirection: 'row', gap: 10, alignItems: 'center', marginTop: 8 }}>
-              <View style={[{ width: 22, height: 22, borderRadius: 7, borderWidth: 1.5, borderColor: '#CBD1E1', alignItems: 'center', justifyContent: 'center' }, cgu && { backgroundColor: palette.electric, borderColor: palette.electric }]}>
+              <View style={[{ width: 22, height: 22, borderRadius: 7, borderWidth: 1.5, borderColor: c.lineStrong, alignItems: 'center', justifyContent: 'center' }, cgu && { backgroundColor: c.electric, borderColor: c.electric }]}>
                 {cgu && <Check size={14} color="#fff" strokeWidth={3} />}
               </View>
-              <Text variant="small" color={palette.subtle} style={{ flex: 1 }}>
-                J’accepte les <Text variant="smallStrong" color={palette.electric}>conditions d’utilisation</Text> et la{' '}
-                <Text variant="smallStrong" color={palette.electric}>politique de confidentialité</Text> de DALILI.
+              <Text variant="small" color={c.subtle} style={{ flex: 1 }}>
+                J’accepte les <Text variant="smallStrong" color={c.electric}>conditions d’utilisation</Text> et la{' '}
+                <Text variant="smallStrong" color={c.electric}>politique de confidentialité</Text> de DALILI.
               </Text>
             </PressableScale>
             {errors.cgu ? (
-              <Text variant="small" color={palette.danger}>
+              <Text variant="small" color={c.danger}>
                 {errors.cgu}
               </Text>
             ) : null}

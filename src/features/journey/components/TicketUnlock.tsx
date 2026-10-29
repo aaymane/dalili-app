@@ -21,7 +21,8 @@ import { Button } from '@/components/ui/Button';
 import { Text } from '@/components/ui/Text';
 import { haptics } from '@/lib/haptics';
 import { EASE_OUT, rise } from '@/theme/motion';
-import { depth, gradients, motion, palette } from '@/theme/tokens';
+import { useTheme } from '@/theme/scheme';
+import { depth, motion } from '@/theme/tokens';
 
 import { useJourneyStore } from '../store';
 import { useTicket } from '../ticket';
@@ -40,6 +41,7 @@ const clamp = (v: number) => {
  * Réduction des animations : billet à plat, sans reflet.
  */
 export function TicketUnlock() {
+  const { c, gradients } = useTheme();
   const insets = useSafeAreaInsets();
   const reduce = useReducedMotion();
   const ticket = useTicket();
@@ -99,10 +101,10 @@ export function TicketUnlock() {
       <TiltingStarField ignite origin={{ x: 0.5, y: 0.55 }} />
       <View style={[styles.content, { paddingTop: insets.top + 56, paddingBottom: insets.bottom + 24 }]}>
         <Animated.View entering={rise(0)} style={{ gap: 8 }} accessible accessibilityRole="header">
-          <Text variant="smallStrong" color={palette.mentorGlow} align="center">
+          <Text variant="smallStrong" color={c.mentorGlow} align="center">
             Ton visa est validé
           </Text>
-          <Text variant="hero" color={palette.white} align="center">
+          <Text variant="hero" color={c.white} align="center">
             Ton billet est débloqué
           </Text>
           <Text variant="body" color="rgba(255,255,255,0.7)" align="center">

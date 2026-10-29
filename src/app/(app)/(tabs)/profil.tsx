@@ -1,7 +1,7 @@
 import { router, type Href } from 'expo-router';
-import { Ban, Bell, Bookmark, BrainCircuit, CalendarCheck2, Camera, ChevronRight, FolderCheck, Languages, LogOut, type LucideIcon, Map, RefreshCw, Repeat, ShieldCheck, Siren } from 'lucide-react-native';
+import { Ban, Bell, Bookmark, BrainCircuit, CalendarCheck2, Camera, ChevronRight, FolderCheck, Languages, LogOut, type LucideIcon, Map, RefreshCw, Repeat, ShieldCheck, Siren, SunMoon } from 'lucide-react-native';
 import { useState, type ReactNode } from 'react';
-import { Alert, Platform, StyleSheet, Switch, View } from 'react-native';
+import { Alert, Platform, Switch, View } from 'react-native';
 import Animated from 'react-native-reanimated';
 
 import { toast } from '@/components/feedback/Toast';
@@ -11,6 +11,7 @@ import { Avatar } from '@/components/ui/Avatar';
 import { IconTile } from '@/components/ui/IconTile';
 import { PressableScale } from '@/components/ui/PressableScale';
 import { ProgressRing } from '@/components/ui/ProgressRing';
+import { Segmented } from '@/components/ui/Segmented';
 import { Text } from '@/components/ui/Text';
 import { useMyBookings } from '@/data/hooks';
 import { useLocalDb } from '@/data/local-db';
@@ -22,28 +23,35 @@ import { AvatarSheet } from '@/features/profile/components/AvatarSheet';
 import { NameCard } from '@/features/profile/components/NameCard';
 import { useProfile } from '@/features/profile/store';
 import { useRoleTheme } from '@/theme';
-import { palette, radius, roleColors, shadow, type Tone } from '@/theme/tokens';
+import { makeStyles, useTheme, useAppearance } from '@/theme/scheme';
+import { radius, roleColors, roleColorsFor, type Tone } from '@/theme/tokens';
 import { pop, rise } from '@/theme/motion';
 
 function Row({ icon, label, sub, onPress, right, tone }: { icon: LucideIcon; label: string; sub?: string; onPress?: () => void; right?: ReactNode; tone: Tone }) {
+  const { c } = useTheme();
+  const styles = useStyles();
   return (
     <PressableScale onPress={onPress} disabled={!onPress && !right} scaleTo={0.985} style={styles.row}>
       <IconTile icon={icon} tone={tone} size={38} radius={12} />
       <View style={{ flex: 1 }}>
         <Text variant="bodyStrong">{label}</Text>
         {sub ? (
-          <Text variant="caption" color={palette.muted}>
+          <Text variant="caption" color={c.muted}>
             {sub}
           </Text>
         ) : null}
       </View>
-      {right ?? <ChevronRight size={18} color={palette.muted} />}
+      {right ?? <ChevronRight size={18} color={c.muted} />}
     </PressableScale>
   );
 }
 
 /** Profil : identité, progression, accès rapides, réglages. */
 export default function Profil() {
+  const appearance = useAppearance((st) => st.preference);
+  const setAppearance = useAppearance((st) => st.setPreference);
+  const { c } = useTheme();
+  const styles = useStyles();
   const profile = useProfile((s) => s.profile);
   const update = useProfile((s) => s.update);
   const [avatarOpen, setAvatarOpen] = useState(false);
@@ -80,13 +88,13 @@ export default function Profil() {
             <Text variant="h1">
               {profile.firstName} {profile.lastName}
             </Text>
-            <Text variant="small" color={palette.muted}>
+            <Text variant="small" color={c.muted}>
               {profile.originCity || '—'} → {profile.destinationCity ?? profile.mentorCity ?? 'France'}
             </Text>
             <View style={{ flexDirection: 'row', gap: 6, marginTop: 4 }}>
               {profile.roles.map((r) => (
-                <View key={r} style={[styles.badge, { backgroundColor: roleColors[r].soft }]}>
-                  <Text variant="caption" color={roleColors[r].main}>
+                <View key={r} style={[styles.badge, { backgroundColor: roleColorsFor(c)[r].soft }]}>
+                  <Text variant="caption" color={roleColorsFor(c)[r].main}>
                     {roleColors[r].label}
                   </Text>
                 </View>
@@ -98,22 +106,22 @@ export default function Profil() {
         {!profile.firstName.trim() ? <NameCard /> : null}
 
         <Animated.View entering={rise(60)} style={styles.stats}>
-          <ProgressRing progress={j.progress} size={64} track="#E6EBF7" textColor={palette.navy} />
+          <ProgressRing progress={j.progress} size={64} track="#E6EBF7" textColor={c.navy} />
           <View style={styles.stat}>
             <Text variant="h1">{j.doneCount}</Text>
-            <Text variant="caption" color={palette.muted}>
+            <Text variant="caption" color={c.muted}>
               étapes faites
             </Text>
           </View>
           <View style={styles.stat}>
             <Text variant="h1">{groups.length}</Text>
-            <Text variant="caption" color={palette.muted}>
+            <Text variant="caption" color={c.muted}>
               groupes
             </Text>
           </View>
           <View style={styles.stat}>
             <Text variant="h1">{bookings.length}</Text>
-            <Text variant="caption" color={palette.muted}>
+            <Text variant="caption" color={c.muted}>
               rendez-vous
             </Text>
           </View>
@@ -145,11 +153,27 @@ export default function Profil() {
                     void unregisterPush();
                   }
                 }}
-                trackColor={{ true: accent, false: '#D5DAE7' }}
+                trackColor={{ true: accent, false: c.lineStrong }}
                 thumbColor="#fff"
               />
             }
           />
+          <View style={styles.appearance}>
+            <IconTile icon={SunMoon} tone="slate" size={38} radius={12} />
+            <View style={{ flex: 1, gap: 8 }}>
+              <Text variant="bodyStrong">Apparence</Text>
+              <Segmented
+                kind="track"
+                options={[
+                  { value: 'system', label: 'Auto' },
+                  { value: 'light', label: 'Clair' },
+                  { value: 'dark', label: 'Sombre' },
+                ]}
+                value={appearance}
+                onChange={setAppearance}
+              />
+            </View>
+          </View>
           <Row icon={Languages} tone="slate" label="Langue" sub="Français · العربية et English bientôt" onPress={() => toast('Arabe et anglais arrivent bientôt 🌍', 'info')} />
           <Row icon={Siren} tone="red" label="Urgences & SOS" sub="Numéros utiles en France" onPress={go('/(app)/outils/sos')} />
           <Row icon={ShieldCheck} tone="slate" label="Confidentialité" sub="Tes données, supprimer ton compte" onPress={go('/(app)/confidentialite')} />
@@ -173,7 +197,7 @@ export default function Profil() {
           )}
           <Row icon={LogOut} tone="red" label="Se déconnecter" onPress={() => confirm('Se déconnecter ?', 'Tu pourras te reconnecter à tout moment.', () => signOut())} />
         </Animated.View>
-        <Text variant="caption" color={palette.muted} align="center">
+        <Text variant="caption" color={c.muted} align="center">
           DALILI v0.1 · {isDemoMode ? 'Mode démo' : 'Connecté à Supabase'} · Fait avec 💙 par des étudiants, pour des étudiants
         </Text>
       </View>
@@ -182,12 +206,13 @@ export default function Profil() {
   );
 }
 
-const styles = StyleSheet.create({
-  card: { flexDirection: 'row', alignItems: 'center', gap: 16, padding: 16, borderRadius: radius.xxl, backgroundColor: '#fff', ...shadow.md },
-  camera: { position: 'absolute', right: -2, bottom: -2, width: 30, height: 30, borderRadius: 15, borderWidth: 3, borderColor: '#fff', alignItems: 'center', justifyContent: 'center' },
+const useStyles = makeStyles(({ c, shadow }) => ({
+  appearance: { flexDirection: 'row', alignItems: 'flex-start', gap: 12, paddingHorizontal: 14, paddingVertical: 12 },
+  card: { flexDirection: 'row', alignItems: 'center', gap: 16, padding: 16, borderRadius: radius.xxl, backgroundColor: c.card, ...shadow.md },
+  camera: { position: 'absolute', right: -2, bottom: -2, width: 30, height: 30, borderRadius: 15, borderWidth: 3, borderColor: c.card, alignItems: 'center', justifyContent: 'center' },
   badge: { paddingHorizontal: 9, paddingVertical: 3, borderRadius: 999 },
-  stats: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 16, borderRadius: radius.xl, backgroundColor: '#fff', ...shadow.sm },
+  stats: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 16, borderRadius: radius.xl, backgroundColor: c.card, ...shadow.sm },
   stat: { alignItems: 'center' },
-  group: { borderRadius: radius.xl, backgroundColor: '#fff', paddingVertical: 4, ...shadow.sm },
+  group: { borderRadius: radius.xl, backgroundColor: c.card, paddingVertical: 4, ...shadow.sm },
   row: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 14, paddingVertical: 11 },
-});
+}));

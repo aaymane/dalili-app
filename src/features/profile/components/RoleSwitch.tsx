@@ -1,11 +1,12 @@
-import { StyleSheet, View } from 'react-native';
+import { View } from 'react-native';
 import Animated, { interpolateColor, useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 import { scheduleOnRN } from 'react-native-worklets';
 
 import { PressableScale } from '@/components/ui/PressableScale';
 import { Text } from '@/components/ui/Text';
 import { EASE_IN_OUT } from '@/theme/motion';
-import { motion, palette, radius, roleColors, shadow, type Role } from '@/theme/tokens';
+import { makeStyles, useTheme } from '@/theme/scheme';
+import { motion, radius, roleColors, type Role } from '@/theme/tokens';
 
 import { useProfile } from '../store';
 
@@ -17,6 +18,8 @@ const ROLES: Role[] = ['student', 'mentor'];
  * Le curseur glisse et prend la couleur du rôle, puis l'accueil change.
  */
 export function RoleSwitch() {
+  const { c } = useTheme();
+  const styles = useStyles();
   const roles = useProfile((s) => s.profile.roles);
   const active = useProfile((s) => s.profile.activeRole);
   const setActiveRole = useProfile((s) => s.setActiveRole);
@@ -55,7 +58,7 @@ export function RoleSwitch() {
             accessibilityRole="tab"
             accessibilityState={{ selected: on }}
             accessibilityLabel={`Mode ${roleColors[r].label}`}>
-            <Text variant="smallStrong" color={on ? palette.white : palette.subtle}>
+            <Text variant="smallStrong" color={on ? c.white : c.subtle}>
               {roleColors[r].label}
             </Text>
           </PressableScale>
@@ -65,8 +68,8 @@ export function RoleSwitch() {
   );
 }
 
-const styles = StyleSheet.create({
-  track: { flexDirection: 'row', padding: 3, borderRadius: radius.pill, backgroundColor: 'rgba(255,255,255,0.72)', ...shadow.sm },
+const useStyles = makeStyles(({ shadow, scheme }) => ({
+  track: { flexDirection: 'row', padding: 3, borderRadius: radius.pill, backgroundColor: scheme === 'dark' ? 'rgba(20,27,49,0.8)' : 'rgba(255,255,255,0.72)', ...shadow.sm },
   thumb: { position: 'absolute', top: 3, left: 3, width: SEG, height: 34, borderRadius: radius.pill },
   seg: { width: SEG, height: 34, alignItems: 'center', justifyContent: 'center' },
-});
+}));

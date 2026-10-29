@@ -10,7 +10,8 @@ import { Text } from '@/components/ui/Text';
 import { useProfile } from '@/features/profile/store';
 import { SafetySheet } from '@/features/safety/components/SafetySheet';
 import { pop, rise } from '@/theme/motion';
-import { palette, radius } from '@/theme/tokens';
+import { useTheme } from '@/theme/scheme';
+import { radius } from '@/theme/tokens';
 
 import type { CallInfo } from '../api';
 import { loadDaily } from '../daily';
@@ -19,6 +20,7 @@ import { CallAvatar, CallBackdrop, CallControls, CallTop, duration } from './Cal
 
 /** Le vrai appel : la vidéo de l'autre en plein écran, la tienne en vignette, les commandes en bas. */
 export function LiveCall({ bookingId, info, color, onRetry }: { bookingId: string; info: CallInfo; color?: string; onRetry: () => void }) {
+  const { c } = useTheme();
   const insets = useSafeAreaInsets();
   const profile = useProfile((s) => s.profile);
   const call = useDailyCall(info);
@@ -64,7 +66,7 @@ export function LiveCall({ bookingId, info, color, onRetry }: { bookingId: strin
         <View style={styles.center}>
           <CallAvatar name={name} color={color} waiting={call.phase === 'joining' || (call.phase === 'joined' && !call.remote)} />
           <Animated.View key={status} entering={rise()} style={{ alignItems: 'center', gap: 4, marginTop: 18 }}>
-            <Text variant="h1" color={palette.white} align="center">
+            <Text variant="h1" color={c.white} align="center">
               {call.phase === 'error'
                 ? 'La connexion a coupé'
                 : call.phase === 'left'

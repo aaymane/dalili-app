@@ -1,7 +1,7 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import { CalendarDays, Pencil, Trophy, X } from 'lucide-react-native';
 import { useMemo, useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { View } from 'react-native';
 import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
 
 import { AppHeader } from '@/components/layout/AppHeader';
@@ -21,10 +21,13 @@ import { phaseMeta, type Phase } from '@/features/journey/steps';
 import { useJourney, type JourneyItem } from '@/features/journey/store';
 import { useProfile } from '@/features/profile/store';
 import { daysFromToday, formatDayMonth, isSameDay, monthShort, relativeDays } from '@/lib/date';
-import { gradients, palette, radius, shadow } from '@/theme/tokens';
+import { makeStyles, useTheme } from '@/theme/scheme';
+import { radius } from '@/theme/tokens';
 import { rise } from '@/theme/motion';
 
 function DeadlineRow({ item }: { item: JourneyItem }) {
+  const { c } = useTheme();
+  const styles = useStyles();
   const d = daysFromToday(item.date);
   const title = item.kind === 'official' ? item.step.title : item.custom.title;
   const tag = item.kind === 'official' ? item.step.tags.join(' · ') : 'MA TÂCHE';
@@ -36,7 +39,7 @@ function DeadlineRow({ item }: { item: JourneyItem }) {
         <Text variant="h3" style={{ fontSize: 15 }}>
           {item.date.getDate()}
         </Text>
-        <Text variant="caption" color={palette.muted} style={{ fontSize: 9 }}>
+        <Text variant="caption" color={c.muted} style={{ fontSize: 9 }}>
           {monthShort(item.date)}
         </Text>
       </View>
@@ -44,7 +47,7 @@ function DeadlineRow({ item }: { item: JourneyItem }) {
         <Text variant="smallStrong" style={item.done && { textDecorationLine: 'line-through' }}>
           {title}
         </Text>
-        <Text variant="caption" color={palette.muted}>
+        <Text variant="caption" color={c.muted}>
           {tag}
         </Text>
       </View>
@@ -55,6 +58,8 @@ function DeadlineRow({ item }: { item: JourneyItem }) {
 
 /** Parcours-quête : « Mes étapes » par phase + « Calendrier » des échéances. */
 export default function Parcours() {
+  const { c, gradients } = useTheme();
+  const styles = useStyles();
   const params = useLocalSearchParams<{ view?: string }>();
   const [view, setView] = useState<'steps' | 'calendar'>(params.view === 'calendar' ? 'calendar' : 'steps');
   const [day, setDay] = useState<Date | null>(null);
@@ -89,7 +94,7 @@ export default function Parcours() {
                   <View style={{ flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: 12 }}>
                     <View>
                       <Text variant="h2">{phaseMeta[p].title}</Text>
-                      <Text variant="small" color={palette.muted}>
+                      <Text variant="small" color={c.muted}>
                         {phaseMeta[p].subtitle(profile)}
                       </Text>
                     </View>
@@ -101,7 +106,7 @@ export default function Parcours() {
                         </Text>
                       </View>
                     ) : (
-                      <Text variant="smallStrong" color={palette.muted}>
+                      <Text variant="smallStrong" color={c.muted}>
                         {prog.done}/{prog.total}
                       </Text>
                     )}
@@ -112,7 +117,7 @@ export default function Parcours() {
                 </Animated.View>
               );
             })}
-            <Text variant="caption" color={palette.muted} align="center">
+            <Text variant="caption" color={c.muted} align="center">
               Touche le rond pour valider une étape · touche la ligne pour la fiche
             </Text>
             <AddStepCard />
@@ -124,21 +129,21 @@ export default function Parcours() {
             <PressableScale onPress={() => setArrivalOpen(true)} style={styles.arrival}>
               <IconTile icon={CalendarDays} tone="blue" size={42} radius={13} />
               <View style={{ flex: 1 }}>
-                <Text variant="overline" color={palette.muted} style={{ fontSize: 9 }}>
+                <Text variant="overline" color={c.muted} style={{ fontSize: 9 }}>
                   Arrivée prévue
                 </Text>
                 <Text variant="bodyStrong">
-                  {formatDayMonth(j.arrival)} · <Text variant="small" color={palette.subtle}>{relativeDays(j.arrival)}</Text>
+                  {formatDayMonth(j.arrival)} · <Text variant="small" color={c.subtle}>{relativeDays(j.arrival)}</Text>
                 </Text>
               </View>
-              <Pencil size={16} color={palette.electric} />
+              <Pencil size={16} color={c.electric} />
             </PressableScale>
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
               <Text variant="h2">{day ? `Le ${formatDayMonth(day)}` : 'Tes prochaines échéances'}</Text>
               {day ? (
                 <PressableScale onPress={() => setDay(null)} style={{ flexDirection: 'row', alignItems: 'center', gap: 2 }}>
-                  <X size={13} color={palette.muted} />
-                  <Text variant="smallStrong" color={palette.muted}>
+                  <X size={13} color={c.muted} />
+                  <Text variant="smallStrong" color={c.muted}>
                     Tout afficher
                   </Text>
                 </PressableScale>
@@ -152,9 +157,9 @@ export default function Parcours() {
               </View>
             ) : (
               <View style={styles.empty}>
-                <CalendarDays size={22} color={palette.muted} />
+                <CalendarDays size={22} color={c.muted} />
                 <Text variant="h3">Rien de prévu ce jour</Text>
-                <Text variant="small" color={palette.muted} align="center">
+                <Text variant="small" color={c.muted} align="center">
                   Profite — ou ajoute une tâche ci-dessous, la date est déjà pré-remplie.
                 </Text>
               </View>
@@ -168,10 +173,10 @@ export default function Parcours() {
   );
 }
 
-const styles = StyleSheet.create({
-  badge: { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: '#FEF3C7', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 999 },
-  arrival: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 12, borderRadius: radius.xl, backgroundColor: '#fff', ...shadow.sm },
-  deadline: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 12, borderRadius: radius.xl, backgroundColor: '#fff', ...shadow.sm },
-  dateBox: { width: 48, height: 48, borderRadius: 14, backgroundColor: '#F2F4FA', alignItems: 'center', justifyContent: 'center' },
-  empty: { alignItems: 'center', gap: 6, padding: 22, borderRadius: radius.xl, backgroundColor: '#fff', ...shadow.sm },
-});
+const useStyles = makeStyles(({ c, shadow }) => ({
+  badge: { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: c.warningSoft, paddingHorizontal: 8, paddingVertical: 4, borderRadius: 999 },
+  arrival: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 12, borderRadius: radius.xl, backgroundColor: c.card, ...shadow.sm },
+  deadline: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 12, borderRadius: radius.xl, backgroundColor: c.card, ...shadow.sm },
+  dateBox: { width: 48, height: 48, borderRadius: 14, backgroundColor: c.fill, alignItems: 'center', justifyContent: 'center' },
+  empty: { alignItems: 'center', gap: 6, padding: 22, borderRadius: radius.xl, backgroundColor: c.card, ...shadow.sm },
+}));

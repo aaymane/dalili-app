@@ -9,11 +9,14 @@ import { PressableScale } from '@/components/ui/PressableScale';
 import { Text } from '@/components/ui/Text';
 import { useProfile } from '@/features/profile/store';
 import { haptics } from '@/lib/haptics';
-import { palette, radius, roleColors, type Role, type Tone } from '@/theme/tokens';
+import { makeStyles, useTheme } from '@/theme/scheme';
+import { radius, roleColors, type Role, type Tone } from '@/theme/tokens';
 import { pop, rise } from '@/theme/motion';
 
 /** « Comment veux-tu vivre l'app aujourd'hui ? » : sélecteur de rôle persistant. */
 export default function RoleSwitcher() {
+  const { c: colors } = useTheme();
+  const styles = useStyles();
   const active = useProfile((s) => s.profile.activeRole);
   const isMentor = useProfile((s) => s.profile.roles.includes('mentor'));
   const setActiveRole = useProfile((s) => s.setActiveRole);
@@ -37,7 +40,7 @@ export default function RoleSwitcher() {
   return (
     <View style={styles.root}>
       <Text variant="h1">Comment veux-tu vivre{'\n'}l’app aujourd’hui ?</Text>
-      <Text variant="body" color={palette.subtle} style={{ marginTop: 6, marginBottom: 18 }}>
+      <Text variant="body" color={colors.subtle} style={{ marginTop: 6, marginBottom: 18 }}>
         Un seul compte : tes données et tes conversations te suivent.
       </Text>
       <View style={styles.list}>
@@ -58,18 +61,18 @@ export default function RoleSwitcher() {
                 </View>
                 <View style={{ flex: 1, gap: 2 }}>
                   <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                    <Text variant="h3" color={soon ? palette.muted : palette.navy}>
+                    <Text variant="h3" color={soon ? colors.muted : colors.navy}>
                       {roleColors[c.role].label}
                     </Text>
                     {soon ? (
                       <View style={styles.soon}>
-                        <Text variant="caption" color={palette.subtle}>
+                        <Text variant="caption" color={colors.subtle}>
                           Bientôt
                         </Text>
                       </View>
                     ) : null}
                   </View>
-                  <Text variant="small" color={palette.subtle}>
+                  <Text variant="small" color={colors.subtle}>
                     {c.text}
                   </Text>
                 </View>
@@ -87,12 +90,12 @@ export default function RoleSwitcher() {
   );
 }
 
-const styles = StyleSheet.create({
-  root: { padding: 22, paddingTop: 26, paddingBottom: 34, backgroundColor: palette.surface },
-  list: { borderRadius: radius.xl, backgroundColor: palette.surface, overflow: 'hidden', borderWidth: 1, borderColor: palette.line },
+const useStyles = makeStyles(({ c }) => ({
+  root: { padding: 22, paddingTop: 26, paddingBottom: 34, backgroundColor: c.surface },
+  list: { borderRadius: radius.xl, backgroundColor: c.surface, overflow: 'hidden', borderWidth: 1, borderColor: c.line },
   row: { flexDirection: 'row', alignItems: 'center', gap: 14, padding: 14, minHeight: 74 },
-  sep: { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: palette.line },
-  soon: { paddingHorizontal: 8, paddingVertical: 2, borderRadius: radius.pill, backgroundColor: palette.bg },
-  radio: { width: 24, height: 24, borderRadius: 12, borderWidth: 2, borderColor: palette.line, alignItems: 'center', justifyContent: 'center' },
+  sep: { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: c.line },
+  soon: { paddingHorizontal: 8, paddingVertical: 2, borderRadius: radius.pill, backgroundColor: c.bg },
+  radio: { width: 24, height: 24, borderRadius: 12, borderWidth: 2, borderColor: c.line, alignItems: 'center', justifyContent: 'center' },
   radioDot: { width: 12, height: 12, borderRadius: 6 },
-});
+}));

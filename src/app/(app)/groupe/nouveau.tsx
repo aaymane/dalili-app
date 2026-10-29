@@ -16,7 +16,7 @@ import { remoteCreateGroup } from '@/data/api';
 import { useLocalDb } from '@/data/local-db';
 import { Cover } from '@/features/community/components/Cover';
 import { useProfile } from '@/features/profile/store';
-import { gradients, palette } from '@/theme/tokens';
+import { useTheme } from '@/theme/scheme';
 
 const COVERS: { colors: [string, string]; emoji: string }[] = [
   { colors: ['#F59E0B', '#1E1B4B'], emoji: '🗼' },
@@ -29,6 +29,7 @@ const COVERS: { colors: [string, string]; emoji: string }[] = [
 
 /** Création de groupe : couverture, ville, nom, description, confidentialité. */
 export default function NewGroup() {
+  const { c: colors, gradients } = useTheme();
   const profile = useProfile((s) => s.profile);
   const addGroup = useLocalDb((s) => s.addGroup);
   const [cover, setCover] = useState(0);
@@ -61,7 +62,7 @@ export default function NewGroup() {
         <Cover colors={COVERS[cover].colors} emoji={COVERS[cover].emoji} height={150} label="GROUPE" />
         <View style={{ flexDirection: 'row', gap: 8, justifyContent: 'center' }}>
           {COVERS.map((c, i) => (
-            <PressableScale key={i} haptic="select" onPress={() => setCover(i)} style={{ width: 40, height: 40, borderRadius: 12, overflow: 'hidden', borderWidth: 2, borderColor: cover === i ? palette.electric : 'transparent' }}>
+            <PressableScale key={i} haptic="select" onPress={() => setCover(i)} style={{ width: 40, height: 40, borderRadius: 12, overflow: 'hidden', borderWidth: 2, borderColor: cover === i ? colors.electric : 'transparent' }}>
               <Cover colors={c.colors} emoji={c.emoji} height={36} radius={10} />
             </PressableScale>
           ))}
@@ -70,8 +71,8 @@ export default function NewGroup() {
         <Input label="Ville du groupe" placeholder="Paris" value={city} onChangeText={setCity} />
         <Input label="Description" placeholder="Décris le but et les activités de ton groupe…" value={desc} onChangeText={setDesc} multiline />
         <Text variant="h3">Confidentialité</Text>
-        <OptionCard title="Public" subtitle="Tout le monde peut voir les membres et les posts." icon={<Globe size={20} color={palette.navy} />} selected={privacy === 'public'} onPress={() => setPrivacy('public')} />
-        <OptionCard title="Privé" subtitle="Seuls les membres peuvent voir les membres et posts." icon={<Lock size={20} color={palette.navy} />} selected={privacy === 'private'} onPress={() => setPrivacy('private')} />
+        <OptionCard title="Public" subtitle="Tout le monde peut voir les membres et les posts." icon={<Globe size={20} color={colors.navy} />} selected={privacy === 'public'} onPress={() => setPrivacy('public')} />
+        <OptionCard title="Privé" subtitle="Seuls les membres peuvent voir les membres et posts." icon={<Lock size={20} color={colors.navy} />} selected={privacy === 'private'} onPress={() => setPrivacy('private')} />
       </View>
       <SuccessModal
         visible={!!created}

@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/Button';
 import { PressableScale } from '@/components/ui/PressableScale';
 import { Text } from '@/components/ui/Text';
 import { haptics } from '@/lib/haptics';
-import { palette, shadow } from '@/theme/tokens';
+import { makeStyles, useTheme } from '@/theme/scheme';
 import { cardIn, cardOut, pop } from '@/theme/motion';
 
 import { celebrate } from './Confetti';
@@ -24,6 +24,8 @@ type Props = {
 
 /** Carte de succès (« Rendez-vous confirmé ! », « Groupe créé ! »…) + confettis. */
 export function SuccessModal({ visible, title, message, cta, onCta, onClose, closeLabel = 'Fermer' }: Props) {
+  const { c } = useTheme();
+  const styles = useStyles();
   useEffect(() => {
     if (visible) {
       haptics.success();
@@ -51,13 +53,13 @@ export function SuccessModal({ visible, title, message, cta, onCta, onClose, clo
             <Text variant="h1" align="center">
               {title}
             </Text>
-            <Text variant="body" color={palette.subtle} align="center" style={{ marginTop: 8, marginBottom: 20 }}>
+            <Text variant="body" color={c.subtle} align="center" style={{ marginTop: 8, marginBottom: 20 }}>
               {message}
             </Text>
             <Button label={cta} onPress={onCta} />
             {onClose ? (
               <PressableScale onPress={onClose} style={{ alignSelf: 'center', padding: 14 }}>
-                <Text variant="bodyStrong" color={palette.subtle}>
+                <Text variant="bodyStrong" color={c.subtle}>
                   {closeLabel}
                 </Text>
               </PressableScale>
@@ -71,12 +73,12 @@ export function SuccessModal({ visible, title, message, cta, onCta, onClose, clo
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles(({ c, shadow }) => ({
   backdrop: { flex: 1, backgroundColor: 'rgba(10,13,31,0.5)', alignItems: 'center', justifyContent: 'center', padding: 24 },
   card: {
     width: '100%',
     maxWidth: 380,
-    backgroundColor: '#fff',
+    backgroundColor: c.card,
     borderRadius: 32,
     padding: 24,
     paddingTop: 28,
@@ -88,10 +90,10 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: palette.success,
+    backgroundColor: c.success,
     alignItems: 'center',
     justifyContent: 'center',
     alignSelf: 'center',
     marginBottom: 14,
   },
-});
+}));

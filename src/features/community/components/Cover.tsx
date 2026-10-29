@@ -1,11 +1,13 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import type { ReactNode } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { View } from 'react-native';
 
 import { Text } from '@/components/ui/Text';
+import { makeStyles } from '@/theme/scheme';
 
 /** Couverture illustrée (dégradé + emoji + halos) — remplace les photos tant qu'il n'y en a pas. */
 export function Cover({ colors, emoji, height = 150, label, labelColor = '#3D78FF', children, radius = 22 }: { colors: readonly [string, string]; emoji: string; height?: number; label?: string; labelColor?: string; children?: ReactNode; radius?: number }) {
+  const styles = useStyles();
   return (
     <LinearGradient colors={colors} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={[styles.cover, { height, borderRadius: radius }]}>
       <View style={[styles.halo, { width: height * 1.2, height: height * 1.2, right: -height * 0.3, top: -height * 0.35 }]} />
@@ -23,9 +25,9 @@ export function Cover({ colors, emoji, height = 150, label, labelColor = '#3D78F
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles(({ c }) => ({
   cover: { overflow: 'hidden', justifyContent: 'flex-end' },
-  halo: { position: 'absolute', borderRadius: 999, backgroundColor: '#fff', opacity: 0.12 },
+  halo: { position: 'absolute', borderRadius: 999, backgroundColor: c.card, opacity: 0.12 },
   emoji: { position: 'absolute' },
   label: { position: 'absolute', left: 12, bottom: 12, paddingHorizontal: 8, paddingVertical: 3, borderRadius: 999 },
-});
+}));

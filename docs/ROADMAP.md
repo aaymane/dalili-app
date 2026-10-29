@@ -44,7 +44,7 @@
 
 - [ ] **Internationalisation FR / العربية / EN** (avec RTL pour l'arabe)
   > `/fonctionnalite Internationalisation avec expo-localization + i18next : extraire tous les textes en fichiers fr.json/ar.json/en.json, gérer le RTL pour l'arabe (I18nManager), sélecteur de langue dans le Profil.`
-- [ ] **Mode sombre** (tokens déjà centralisés)
+- [x] **Mode sombre** : thème vivant, bascule instantanée, Profil › Apparence (Auto / Clair / Sombre) (29/10)
 - [ ] **Guides synchronisés avec dalili.study** (les 64 guides via une table `guides` ou le CMS du site)
 - [ ] **Espace Hôte (V2)** : annonces d'hébergement temporaire, vérification d'identité, réservation
 - [x] **Analytics** (PostHog, serveur européen) : après accord, anonyme, 13 événements, projet UE configuré (29/10)

@@ -12,7 +12,8 @@ import { DeleteAccountSheet } from '@/features/auth/components/DeleteAccountShee
 import { isDemoMode } from '@/features/auth/store';
 import { analyticsAvailable, useAnalyticsConsent } from '@/lib/analytics';
 import { env } from '@/lib/env';
-import { palette, radius, shadow } from '@/theme/tokens';
+import { makeStyles, useTheme } from '@/theme/scheme';
+import { radius } from '@/theme/tokens';
 import { rise } from '@/theme/motion';
 
 const KEPT = [
@@ -32,12 +33,14 @@ const NEVER = [
 ];
 
 function Item({ icon, title, text }: { icon: ReactNode; title?: string; text: string }) {
+  const { c } = useTheme();
+  const styles = useStyles();
   return (
     <View style={styles.item}>
       <View style={styles.icon}>{icon}</View>
       <View style={{ flex: 1, gap: 2 }}>
         {title ? <Text variant="bodyStrong">{title}</Text> : null}
-        <Text variant={title ? 'caption' : 'small'} color={title ? palette.muted : palette.navy}>
+        <Text variant={title ? 'caption' : 'small'} color={title ? c.muted : c.navy}>
           {text}
         </Text>
       </View>
@@ -47,6 +50,8 @@ function Item({ icon, title, text }: { icon: ReactNode; title?: string; text: st
 
 /** Confidentialité : ce qu'on garde et pourquoi, nos engagements, et la suppression du compte. */
 export default function Confidentialite() {
+  const { c } = useTheme();
+  const styles = useStyles();
   const [deleting, setDeleting] = useState(false);
   const consent = useAnalyticsConsent((s) => s.consent);
   const setConsent = useAnalyticsConsent((s) => s.setConsent);
@@ -55,27 +60,27 @@ export default function Confidentialite() {
     <Screen padded={false} header={<AppHeader back />}>
       <View style={{ paddingHorizontal: 20, gap: 16 }}>
         <Text variant="hero">Confidentialité</Text>
-        <Text variant="body" color={palette.subtle}>
+        <Text variant="body" color={c.subtle}>
           {isDemoMode ? 'En mode démo, tout reste sur ce téléphone. Rien n’est envoyé en ligne.' : 'Tes données restent à toi. Voici ce qu’on garde, et pourquoi.'}
         </Text>
 
         {!isDemoMode && (
           <Animated.View entering={rise()} style={styles.card}>
-            <Text variant="overline" color={palette.muted}>
+            <Text variant="overline" color={c.muted}>
               Ce qu’on garde
             </Text>
             {KEPT.map(({ icon: Icon, title, text }) => (
-              <Item key={title} icon={<Icon size={16} color={palette.electric} />} title={title} text={text} />
+              <Item key={title} icon={<Icon size={16} color={c.electric} />} title={title} text={text} />
             ))}
           </Animated.View>
         )}
 
         <Animated.View entering={rise(60)} style={styles.card}>
-          <Text variant="overline" color={palette.muted}>
+          <Text variant="overline" color={c.muted}>
             Nos engagements
           </Text>
           {NEVER.map(({ icon: Icon, text }) => (
-            <Item key={text} icon={<Icon size={16} color={palette.electric} />} text={text} />
+            <Item key={text} icon={<Icon size={16} color={c.electric} />} text={text} />
           ))}
         </Animated.View>
 
@@ -83,14 +88,14 @@ export default function Confidentialite() {
           <Animated.View entering={rise(90)} style={[styles.group, styles.stats]}>
             <View style={{ flex: 1, gap: 2 }}>
               <Text variant="bodyStrong">Statistiques anonymes</Text>
-              <Text variant="caption" color={palette.muted}>
+              <Text variant="caption" color={c.muted}>
                 Quels écrans servent, quelles étapes bloquent. Jamais ton nom, ton email, tes messages ni tes questions à Dalili IA.
               </Text>
             </View>
             <Switch
               value={consent === 'yes'}
               onValueChange={(v) => setConsent(v ? 'yes' : 'no')}
-              trackColor={{ true: palette.electric, false: '#D5DAE7' }}
+              trackColor={{ true: c.electric, false: c.lineStrong }}
               thumbColor="#fff"
               accessibilityLabel="Partager des statistiques anonymes"
             />
@@ -99,19 +104,19 @@ export default function Confidentialite() {
 
         <Animated.View entering={rise(120)} style={styles.group}>
           <PressableScale onPress={() => WebBrowser.openBrowserAsync(`${env.siteUrl}/confidentialite`)} style={styles.row} accessibilityRole="link">
-            <ExternalLink size={18} color={palette.navy} />
+            <ExternalLink size={18} color={c.navy} />
             <Text variant="bodyStrong" style={{ flex: 1 }}>
               Lire la politique complète
             </Text>
-            <ChevronRight size={18} color={palette.muted} />
+            <ChevronRight size={18} color={c.muted} />
           </PressableScale>
           <View style={styles.divider} />
           <PressableScale haptic="press" onPress={() => setDeleting(true)} style={styles.row} accessibilityRole="button">
-            <Trash2 size={18} color={palette.danger} />
-            <Text variant="bodyStrong" color={palette.danger} style={{ flex: 1 }}>
+            <Trash2 size={18} color={c.danger} />
+            <Text variant="bodyStrong" color={c.danger} style={{ flex: 1 }}>
               Supprimer mon compte
             </Text>
-            <ChevronRight size={18} color={palette.muted} />
+            <ChevronRight size={18} color={c.muted} />
           </PressableScale>
         </Animated.View>
       </View>
@@ -120,12 +125,12 @@ export default function Confidentialite() {
   );
 }
 
-const styles = StyleSheet.create({
-  card: { padding: 16, gap: 14, borderRadius: radius.xl, backgroundColor: palette.surface, ...shadow.sm },
+const useStyles = makeStyles(({ c, shadow }) => ({
+  card: { padding: 16, gap: 14, borderRadius: radius.xl, backgroundColor: c.surface, ...shadow.sm },
   item: { flexDirection: 'row', gap: 12, alignItems: 'flex-start' },
-  icon: { width: 32, height: 32, borderRadius: 16, backgroundColor: palette.electricSoft, alignItems: 'center', justifyContent: 'center' },
-  group: { borderRadius: radius.xl, backgroundColor: palette.surface, paddingVertical: 4, ...shadow.sm },
+  icon: { width: 32, height: 32, borderRadius: 16, backgroundColor: c.electricSoft, alignItems: 'center', justifyContent: 'center' },
+  group: { borderRadius: radius.xl, backgroundColor: c.surface, paddingVertical: 4, ...shadow.sm },
   row: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 16, minHeight: 52 },
   stats: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 16, paddingVertical: 14 },
-  divider: { height: StyleSheet.hairlineWidth, backgroundColor: palette.line, marginLeft: 46 },
-});
+  divider: { height: StyleSheet.hairlineWidth, backgroundColor: c.line, marginLeft: 46 },
+}));

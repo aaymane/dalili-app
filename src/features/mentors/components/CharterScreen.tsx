@@ -1,6 +1,6 @@
 import { Calendar, Check, ShieldCheck } from 'lucide-react-native';
 import { useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { View } from 'react-native';
 import Animated from 'react-native-reanimated';
 
 import { toast } from '@/components/feedback/Toast';
@@ -13,7 +13,8 @@ import { Text } from '@/components/ui/Text';
 import { useProfile } from '@/features/profile/store';
 import { haptics } from '@/lib/haptics';
 import { enter } from '@/theme/motion';
-import { gradients, palette, radius, shadow, tones } from '@/theme/tokens';
+import { makeStyles, useTheme } from '@/theme/scheme';
+import { radius } from '@/theme/tokens';
 
 import { birthYearError, CHARTER } from '../charter';
 import { useCreateMyMentor } from '../hooks';
@@ -32,6 +33,8 @@ type Props = {
  * La base refuse une fiche sans charte acceptée : cet écran est le seul chemin pour devenir mentor.
  */
 export function CharterScreen({ step, total, hasSheet, onBack, onDone }: Props) {
+  const { c: colors, tones, gradients } = useTheme();
+  const styles = useStyles();
   const profile = useProfile((s) => s.profile);
   const create = useCreateMyMentor();
   const [year, setYear] = useState(profile.birthDate?.slice(0, 4) ?? '');
@@ -77,7 +80,7 @@ export function CharterScreen({ step, total, hasSheet, onBack, onDone }: Props) 
           subtitle="Les étudiants te font confiance. Ces engagements les protègent, et toi aussi."
           step={step}
           total={total}
-          accent={palette.mentor}
+          accent={colors.mentor}
           onBack={onBack}
         />
       }
@@ -95,7 +98,7 @@ export function CharterScreen({ step, total, hasSheet, onBack, onDone }: Props) 
         <Animated.View entering={enter(0)} style={{ gap: 6 }}>
           <Input
             label="Année de naissance"
-            icon={<Calendar size={16} color={palette.mentor} />}
+            icon={<Calendar size={16} color={colors.mentor} />}
             value={year}
             onChangeText={(t) => {
               setYear(t.replace(/\D/g, '').slice(0, 4));
@@ -107,7 +110,7 @@ export function CharterScreen({ step, total, hasSheet, onBack, onDone }: Props) 
             maxLength={4}
             error={showError ? yearError : null}
           />
-          <Text variant="caption" color={palette.muted} style={{ marginLeft: 6 }}>
+          <Text variant="caption" color={colors.muted} style={{ marginLeft: 6 }}>
             Elle reste privée : seule l’équipe DALILI la voit.
           </Text>
         </Animated.View>
@@ -124,10 +127,10 @@ export function CharterScreen({ step, total, hasSheet, onBack, onDone }: Props) 
                 style={[styles.row, on && styles.rowOn]}>
                 <View style={[styles.box, on && styles.boxOn]}>{on ? <Check size={14} color="#fff" strokeWidth={3} /> : null}</View>
                 <View style={{ flex: 1, gap: 2 }}>
-                  <Text variant="bodyStrong" color={on ? tones.green.ink : palette.navy}>
+                  <Text variant="bodyStrong" color={on ? tones.green.ink : colors.navy}>
                     {c.title}
                   </Text>
-                  <Text variant="small" color={palette.subtle}>
+                  <Text variant="small" color={colors.subtle}>
                     {c.body}
                   </Text>
                 </View>
@@ -136,7 +139,7 @@ export function CharterScreen({ step, total, hasSheet, onBack, onDone }: Props) 
           );
         })}
         <Animated.View entering={enter(CHARTER.length + 1)}>
-          <Text variant="caption" color={palette.muted} align="center">
+          <Text variant="caption" color={colors.muted} align="center">
             Ensuite, l’équipe vérifie ton profil (carte étudiante, LinkedIn ou titre de séjour) avant de montrer ta fiche. On ne garde aucune copie.
           </Text>
         </Animated.View>
@@ -145,9 +148,9 @@ export function CharterScreen({ step, total, hasSheet, onBack, onDone }: Props) 
   );
 }
 
-const styles = StyleSheet.create({
-  row: { flexDirection: 'row', alignItems: 'flex-start', gap: 12, padding: 14, borderRadius: radius.lg, backgroundColor: palette.white, borderWidth: 1.5, borderColor: palette.line, ...shadow.sm },
-  rowOn: { borderColor: palette.mentor, backgroundColor: palette.mentorSoft },
-  box: { width: 24, height: 24, marginTop: 1, borderRadius: 8, borderWidth: 1.5, borderColor: '#CBD1E1', alignItems: 'center', justifyContent: 'center', backgroundColor: palette.white },
-  boxOn: { backgroundColor: palette.mentor, borderColor: palette.mentor },
-});
+const useStyles = makeStyles(({ c, shadow }) => ({
+  row: { flexDirection: 'row', alignItems: 'flex-start', gap: 12, padding: 14, borderRadius: radius.lg, backgroundColor: c.card, borderWidth: 1.5, borderColor: c.line, ...shadow.sm },
+  rowOn: { borderColor: c.mentor, backgroundColor: c.mentorSoft },
+  box: { width: 24, height: 24, marginTop: 1, borderRadius: 8, borderWidth: 1.5, borderColor: c.lineStrong, alignItems: 'center', justifyContent: 'center', backgroundColor: c.card },
+  boxOn: { backgroundColor: c.mentor, borderColor: c.mentor },
+}));

@@ -22,11 +22,12 @@ import { GlossarySheetHost } from '@/features/guides/components/GlossarySheet';
 import { useProfile } from '@/features/profile/store';
 import { persistOptions, queryClient } from '@/lib/query';
 import { useHydrated } from '@/lib/useHydrated';
-import { palette } from '@/theme/tokens';
+import { useTheme } from '@/theme/scheme';
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
 
 export default function RootLayout() {
+  const { c, scheme } = useTheme();
   const [fontsLoaded] = useFonts({
     Montserrat_500Medium,
     Montserrat_600SemiBold,
@@ -58,8 +59,8 @@ export default function RootLayout() {
     <GestureHandlerRootView style={{ flex: 1 }}>
       <PersistQueryClientProvider client={queryClient} persistOptions={persistOptions}>
         <SafeAreaProvider>
-          <StatusBar style="dark" />
-          <Stack screenOptions={{ headerShown: false, animation: 'fade', contentStyle: { backgroundColor: palette.bg } }}>
+          <StatusBar style={scheme === 'dark' ? 'light' : 'dark'} />
+          <Stack screenOptions={{ headerShown: false, animation: 'fade', contentStyle: { backgroundColor: c.bg } }}>
             <Stack.Protected guard={!signedIn}>
               <Stack.Screen name="(auth)" />
             </Stack.Protected>

@@ -14,10 +14,11 @@ import { remoteCreatePost } from '@/data/api';
 import { useGroup } from '@/data/hooks';
 import { useLocalDb } from '@/data/local-db';
 import { useProfile } from '@/features/profile/store';
-import { gradients, palette } from '@/theme/tokens';
+import { useTheme } from '@/theme/scheme';
 
 /** Publier dans un groupe. */
 export default function NewPost() {
+  const { c, gradients } = useTheme();
   const { groupId } = useLocalSearchParams<{ groupId: string }>();
   const { data: g } = useGroup(groupId);
   const profile = useProfile((s) => s.profile);
@@ -30,7 +31,7 @@ export default function NewPost() {
       id: `p-${Date.now()}`,
       groupId,
       author: `${profile.firstName} ${profile.lastName}`.trim() || 'Moi',
-      authorColor: palette.electric,
+      authorColor: c.electric,
       createdAt: new Date().toISOString(),
       body: body.trim(),
       likes: 0,
@@ -48,13 +49,13 @@ export default function NewPost() {
           <Avatar name={`${profile.firstName} ${profile.lastName}`} uri={profile.avatarUri} size={42} />
           <View>
             <Text variant="bodyStrong">{profile.firstName || 'Toi'}</Text>
-            <Text variant="caption" color={palette.muted}>
+            <Text variant="caption" color={c.muted}>
               dans {g?.name ?? 'le groupe'}
             </Text>
           </View>
         </View>
         <Input placeholder="Partage une question, un bon plan, une victoire…" value={body} onChangeText={setBody} multiline autoFocus />
-        <Text variant="caption" color={palette.muted}>
+        <Text variant="caption" color={c.muted}>
           Sois bienveillant·e : pas de données personnelles (numéro, adresse) en public.
         </Text>
       </View>

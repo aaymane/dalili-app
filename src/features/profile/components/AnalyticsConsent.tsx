@@ -10,7 +10,7 @@ import { Text } from '@/components/ui/Text';
 import { countryOf } from '@/features/journey/steps';
 import { useProfile } from '@/features/profile/store';
 import { analyticsAvailable, setAnalyticsContext, trackScreen, useAnalyticsConsent } from '@/lib/analytics';
-import { palette } from '@/theme/tokens';
+import { useTheme } from '@/theme/scheme';
 
 /** Chaque écran ouvert (par son modèle de route) et le contexte rôle + pays, si l'utilisateur a dit oui. */
 export function useAnalyticsTracking() {
@@ -34,6 +34,7 @@ export function useAnalyticsTracking() {
  * aider DALILI avec des statistiques anonymes. Fermer la feuille vaut « non merci ».
  */
 export function AnalyticsConsentSheet() {
+  const { c } = useTheme();
   const consent = useAnalyticsConsent((s) => s.consent);
   const setConsent = useAnalyticsConsent((s) => s.setConsent);
   const onboarded = useProfile((s) => s.onboardingDone);
@@ -57,7 +58,7 @@ export function AnalyticsConsentSheet() {
         <IconTile icon={BarChart3} tone="blue" size={52} radius={17} />
         <View style={{ gap: 6 }}>
           <Text variant="h2">Tu nous aides à améliorer DALILI ?</Text>
-          <Text variant="body" color={palette.subtle}>
+          <Text variant="body" color={c.subtle}>
             Des statistiques anonymes : quels écrans servent, quelles étapes bloquent. Jamais ton nom, ton email, tes messages ni tes questions à Dalili IA.
           </Text>
         </View>
@@ -65,7 +66,7 @@ export function AnalyticsConsentSheet() {
           <Button label="Oui, j’aide" onPress={() => answer(true)} />
           <Button label="Non merci" variant="ghost" onPress={() => answer(false)} />
         </View>
-        <Text variant="caption" color={palette.muted} align="center">
+        <Text variant="caption" color={c.muted} align="center">
           Tu peux changer d’avis quand tu veux, dans Profil › Confidentialité.
         </Text>
       </View>

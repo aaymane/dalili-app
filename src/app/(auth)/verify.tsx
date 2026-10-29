@@ -12,13 +12,16 @@ import { PressableScale } from '@/components/ui/PressableScale';
 import { Text } from '@/components/ui/Text';
 import { isDemoMode, useAuth } from '@/features/auth/store';
 import { haptics } from '@/lib/haptics';
-import { gradients, palette, radius } from '@/theme/tokens';
+import { makeStyles, useTheme } from '@/theme/scheme';
+import { radius } from '@/theme/tokens';
 import { pop, rise } from '@/theme/motion';
 
 const LEN = 6;
 
 /** Vérification de l'email par code à 6 chiffres. */
 export default function Verify() {
+  const { c, gradients } = useTheme();
+  const styles = useStyles();
   const { email = '' } = useLocalSearchParams<{ email: string }>();
   const verifyOtp = useAuth((s) => s.verifyOtp);
   const resendOtp = useAuth((s) => s.resendOtp);
@@ -72,7 +75,7 @@ export default function Verify() {
           <Text variant="hero" align="center">
             Vérifions que c’est{'\n'}bien toi.
           </Text>
-          <Text variant="body" color={palette.subtle} align="center">
+          <Text variant="body" color={c.subtle} align="center">
             Code envoyé à <Text variant="bodyStrong">{email}</Text>
           </Text>
         </Animated.View>
@@ -83,7 +86,7 @@ export default function Verify() {
             const ch = code[i];
             const active = i === code.length;
             return (
-              <View key={i} pointerEvents="none" style={[styles.box, active && styles.boxActive, ch && styles.boxFilled, error && { borderColor: palette.danger }]}>
+              <View key={i} pointerEvents="none" style={[styles.box, active && styles.boxActive, ch && styles.boxFilled, error && { borderColor: c.danger }]}>
                 {ch ? (
                   <Animated.View entering={pop()}>
                     <Text variant="h1">{ch}</Text>
@@ -113,26 +116,26 @@ export default function Verify() {
           />
         </Animated.View>
         {error ? (
-          <Text variant="small" color={palette.danger}>
+          <Text variant="small" color={c.danger}>
             {error}
           </Text>
         ) : null}
 
         <PressableScale disabled={seconds > 0} onPress={resend}>
-          <Text variant="small" color={palette.muted}>
+          <Text variant="small" color={c.muted}>
             Pas reçu ?{' '}
-            <Text variant="smallStrong" color={palette.electric}>
+            <Text variant="smallStrong" color={c.electric}>
               {seconds > 0 ? `Renvoyer dans 0:${String(seconds).padStart(2, '0')}` : 'Renvoyer le code'}
             </Text>
           </Text>
         </PressableScale>
         {isDemoMode ? (
-          <Text variant="caption" color={palette.muted} align="center">
+          <Text variant="caption" color={c.muted} align="center">
             Mode démo : tape n’importe quel code à 6 chiffres.
           </Text>
         ) : null}
         <PressableScale onPress={() => router.back()}>
-          <Text variant="smallStrong" color={palette.subtle}>
+          <Text variant="smallStrong" color={c.subtle}>
             Modifier mon email
           </Text>
         </PressableScale>
@@ -141,12 +144,12 @@ export default function Verify() {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles(({ c }) => ({
   wrap: { alignItems: 'center', gap: 22, paddingTop: 40 },
   boxes: { flexDirection: 'row', gap: 9, marginTop: 8 },
-  box: { width: 46, height: 56, borderRadius: radius.md, borderWidth: 1.5, borderColor: '#E1E5F0', backgroundColor: '#fff', alignItems: 'center', justifyContent: 'center' },
-  boxActive: { borderColor: palette.electric, borderWidth: 2 },
-  boxFilled: { borderColor: '#B9C9F7', backgroundColor: '#F6F8FF' },
-  caret: { width: 2, height: 24, backgroundColor: palette.electric, borderRadius: 1 },
+  box: { width: 46, height: 56, borderRadius: radius.md, borderWidth: 1.5, borderColor: c.line, backgroundColor: c.card, alignItems: 'center', justifyContent: 'center' },
+  boxActive: { borderColor: c.electric, borderWidth: 2 },
+  boxFilled: { borderColor: c.electricLight, backgroundColor: c.cardSelected },
+  caret: { width: 2, height: 24, backgroundColor: c.electric, borderRadius: 1 },
   hidden: { position: 'absolute', opacity: 0, width: 1, height: 1 },
-});
+}));

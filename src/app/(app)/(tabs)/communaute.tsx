@@ -1,7 +1,7 @@
 import { router } from 'expo-router';
 import { Plus, Search, SlidersHorizontal } from 'lucide-react-native';
 import { useMemo, useState } from 'react';
-import { ScrollView, StyleSheet, View } from 'react-native';
+import { ScrollView, View } from 'react-native';
 import Animated, { FadeIn } from 'react-native-reanimated';
 
 import { BottomSheet } from '@/components/feedback/BottomSheet';
@@ -17,11 +17,13 @@ import { Text } from '@/components/ui/Text';
 import { useEvents, useGroups } from '@/data/hooks';
 import { EventCard, GroupCard } from '@/features/community/components/GroupCard';
 import { useRoleTheme } from '@/theme';
-import { palette, shadow } from '@/theme/tokens';
+import { makeStyles, useTheme } from '@/theme/scheme';
 import { pop, rise } from '@/theme/motion';
 
 /** Communautés : groupes par ville + événements proches. */
 export default function Communaute() {
+  const { c } = useTheme();
+  const styles = useStyles();
   const { top } = useRoleTheme();
   const { data: groups } = useGroups();
   const { data: events } = useEvents();
@@ -45,13 +47,13 @@ export default function Communaute() {
         <View style={{ paddingHorizontal: 20, gap: 14 }}>
           <Text variant="hero">Communautés</Text>
           <Input
-            icon={<Search size={16} color={palette.electric} />}
+            icon={<Search size={16} color={c.electric} />}
             placeholder="Cherche un groupe, événements…"
             value={q}
             onChangeText={setQ}
             right={
-              <PressableScale onPress={() => setMode(mode === 'all' ? 'groups' : 'all')} style={[styles.filter, mode !== 'all' && { backgroundColor: palette.electric }]}>
-                <SlidersHorizontal size={16} color={mode !== 'all' ? '#fff' : palette.navy} />
+              <PressableScale onPress={() => setMode(mode === 'all' ? 'groups' : 'all')} style={[styles.filter, mode !== 'all' && { backgroundColor: c.electric }]}>
+                <SlidersHorizontal size={16} color={mode !== 'all' ? '#fff' : c.navy} />
               </PressableScale>
             }
           />
@@ -102,7 +104,7 @@ export default function Communaute() {
       </Screen>
       <Animated.View entering={pop(300)} style={[styles.fab, { bottom: TAB_BAR_SPACE - 4 }]}>
         <PressableScale onPress={() => setFab(true)} haptic="press" style={styles.fabBtn} accessibilityLabel="Créer">
-          <Plus size={24} color={palette.navy} />
+          <Plus size={24} color={c.navy} />
         </PressableScale>
       </Animated.View>
       <BottomSheet visible={fab} onClose={() => setFab(false)}>
@@ -118,8 +120,8 @@ export default function Communaute() {
   );
 }
 
-const styles = StyleSheet.create({
-  filter: { width: 34, height: 34, borderRadius: 10, backgroundColor: '#F1F3F9', alignItems: 'center', justifyContent: 'center' },
+const useStyles = makeStyles(({ c, shadow }) => ({
+  filter: { width: 34, height: 34, borderRadius: 10, backgroundColor: c.fill, alignItems: 'center', justifyContent: 'center' },
   fab: { position: 'absolute', right: 20 },
-  fabBtn: { width: 54, height: 54, borderRadius: 27, backgroundColor: '#fff', alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: '#D6E0FF', ...shadow.md },
-});
+  fabBtn: { width: 54, height: 54, borderRadius: 27, backgroundColor: c.card, alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: c.electricSoft, ...shadow.md },
+}));

@@ -6,7 +6,8 @@ import { useDerivedValue, useSharedValue, type SharedValue } from 'react-native-
 import { skyEffect, useSkyUniforms } from '@/components/brand/StarField';
 import { PressableScale } from '@/components/ui/PressableScale';
 import { Text } from '@/components/ui/Text';
-import { gradients, palette, radius, shadow } from '@/theme/tokens';
+import { makeStyles, useTheme } from '@/theme/scheme';
+import { radius } from '@/theme/tokens';
 
 export type TicketData = {
   from: string;
@@ -61,6 +62,7 @@ function bars(seed: string) {
  * perforation). Les encoches laissent voir ce qu'il y a derrière, quel que soit le fond de l'écran.
  */
 function TicketBackground({ locked = false, holo }: { locked?: boolean; holo?: Holo }) {
+  const { gradients } = useTheme();
   const size = useSharedValue({ width: 0, height: 0 });
   const uniforms = useSkyUniforms(size, { variant: 'card' });
   const clip = useDerivedValue(() => {
@@ -140,6 +142,8 @@ function ticketLabel(d: TicketData) {
  * Le jour J, elle devient « Bienvenue à … » et le talon reçoit le tampon « Arrivé·e ».
  */
 export function Ticket({ data, onPress, holo }: { data: TicketData; onPress?: () => void; holo?: Holo }) {
+  const { c } = useTheme();
+  const styles = useStyles();
   const arrived = data.days <= 0;
   const content = (
     <View style={styles.card}>
@@ -162,7 +166,7 @@ export function Ticket({ data, onPress, holo }: { data: TicketData; onPress?: ()
             <Text variant="h1" color="#fff" style={styles.city} numberOfLines={1}>
               {data.from}
             </Text>
-            <Plane size={16} color={palette.electricLight} style={{ marginHorizontal: 8 }} />
+            <Plane size={16} color={c.electricLight} style={{ marginHorizontal: 8 }} />
             <Text variant="h1" color="#fff" style={styles.city} numberOfLines={1}>
               {data.to}
             </Text>
@@ -233,12 +237,14 @@ export function Ticket({ data, onPress, holo }: { data: TicketData; onPress?: ()
 
 /** Tampon d'arrivée, posé de travers comme à la douane. */
 function Stamp() {
+  const { c } = useTheme();
+  const styles = useStyles();
   return (
     <View style={styles.stamp}>
-      <Text variant="overline" color={palette.mentorGlow} style={{ fontSize: 9, letterSpacing: 1.4 }}>
+      <Text variant="overline" color={c.mentorGlow} style={{ fontSize: 9, letterSpacing: 1.4 }}>
         Arrivé·e
       </Text>
-      <Text variant="caption" color={palette.mentorGlow}>
+      <Text variant="caption" color={c.mentorGlow}>
         France
       </Text>
     </View>
@@ -247,6 +253,7 @@ function Stamp() {
 
 /** Le billet tant que le visa n'est pas validé : flouté, avec un cadenas. */
 export function LockedTicket() {
+  const styles = useStyles();
   return (
     <View style={[styles.wrap, { minHeight: 150 }]} accessible accessibilityLabel="Ton billet, verrouillé. Il se débloque quand ton visa est validé.">
       <TicketBackground locked />
@@ -262,7 +269,7 @@ export function LockedTicket() {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles(({ c, shadow }) => ({
   wrap: { ...shadow.md },
   card: { flexDirection: 'row', minHeight: 150 },
   main: { flex: 1, padding: 18, gap: 10 },
@@ -273,7 +280,7 @@ const styles = StyleSheet.create({
   stub: { width: STUB, alignItems: 'center', justifyContent: 'center', paddingVertical: 14, paddingHorizontal: 8, gap: 2 },
   countdown: { fontFamily: 'Montserrat_900Black', fontSize: 28, lineHeight: 34 },
   barcode: { flexDirection: 'row', gap: 1.5, marginTop: 8 },
-  stamp: { width: 70, height: 70, borderRadius: 35, borderWidth: 2, borderColor: palette.mentorGlow, alignItems: 'center', justifyContent: 'center', transform: [{ rotate: '-12deg' }] },
+  stamp: { width: 70, height: 70, borderRadius: 35, borderWidth: 2, borderColor: c.mentorGlow, alignItems: 'center', justifyContent: 'center', transform: [{ rotate: '-12deg' }] },
   lockWrap: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, alignItems: 'center', justifyContent: 'center', gap: 8, padding: 20 },
   lock: { width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(255,255,255,0.16)', alignItems: 'center', justifyContent: 'center' },
-});
+}));

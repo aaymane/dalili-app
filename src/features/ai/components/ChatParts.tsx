@@ -1,7 +1,7 @@
 import { router } from 'expo-router';
 import { BookOpen, BookPlus, Check, ChevronRight, HeartHandshake, Phone, RotateCcw, Scale, Square, ThumbsDown, UsersRound, Volume2 } from 'lucide-react-native';
 import { useState } from 'react';
-import { Linking, StyleSheet, View } from 'react-native';
+import { Linking, View } from 'react-native';
 import Animated, { FadeIn } from 'react-native-reanimated';
 
 import { BottomSheet } from '@/components/feedback/BottomSheet';
@@ -19,7 +19,8 @@ import { useJourney } from '@/features/journey/store';
 import { isInFrance, useProfile } from '@/features/profile/store';
 import { relativeDays } from '@/lib/date';
 import { haptics } from '@/lib/haptics';
-import { palette, radius, shadow, tones } from '@/theme/tokens';
+import { makeStyles, useTheme } from '@/theme/scheme';
+import { radius } from '@/theme/tokens';
 import { rise } from '@/theme/motion';
 
 import { slugOf, type AssistantAction, type FeedbackReason, type SourceRef } from '../api';
@@ -28,6 +29,7 @@ import type { ChatMessage } from '../useAssistant';
 
 /** Markdown léger des réponses : titres, listes, gras et liens (via RichText). */
 export function AnswerText({ text }: { text: string }) {
+  const { c } = useTheme();
   const lines = text.split('\n');
   return (
     <View style={{ gap: 6 }}>
@@ -40,7 +42,7 @@ export function AnswerText({ text }: { text: string }) {
         if (bullet)
           return (
             <View key={i} style={{ flexDirection: 'row', gap: 8, paddingLeft: 2 }}>
-              <Text variant="body" color={palette.aiIndigo}>
+              <Text variant="body" color={c.aiIndigo}>
                 {bullet[1] ? `${bullet[1]}.` : '•'}
               </Text>
               <View style={{ flex: 1 }}>
@@ -62,18 +64,20 @@ const openSource = (s: SourceRef) => {
 
 /** Pastilles « D'après nos guides » : chaque source ouvre le guide dans l'app. */
 export function SourcePills({ sources: all }: { sources: SourceRef[] }) {
+  const { c } = useTheme();
+  const styles = useStyles();
   // Un guide = une pastille, même si plusieurs extraits en viennent (anciennes versions du site).
   const sources = all.filter((s, i) => all.findIndex((x) => x.url === s.url) === i);
   if (!sources.length) return null;
   return (
     <View style={{ gap: 6 }}>
-      <Text variant="overline" color={palette.muted} style={{ fontSize: 9.5 }}>
+      <Text variant="overline" color={c.muted} style={{ fontSize: 9.5 }}>
         D’après nos guides
       </Text>
       {sources.map((s, i) => (
         <Animated.View key={s.url} entering={rise(i * 60)}>
           <PressableScale onPress={() => openSource(s)} style={styles.source} accessibilityRole="link" accessibilityLabel={`Lire le guide ${s.title}`}>
-            <BookOpen size={15} color={palette.aiIndigo} />
+            <BookOpen size={15} color={c.aiIndigo} />
             <Text variant="smallStrong" style={{ flex: 1 }} numberOfLines={2}>
               {s.title}
             </Text>
@@ -89,6 +93,8 @@ export function SourcePills({ sources: all }: { sources: SourceRef[] }) {
  * Une étape qui ne concerne pas ton profil n'apparaît pas.
  */
 export function StepActions({ actions }: { actions: AssistantAction[] }) {
+  const { c, tones } = useTheme();
+  const styles = useStyles();
   const j = useJourney();
   const items = actions
     .map((a) => j.all.find((i) => i.kind === 'official' && i.step.id === a.stepId))
@@ -107,14 +113,14 @@ export function StepActions({ actions }: { actions: AssistantAction[] }) {
               {item.done ? <Check size={20} color={tones.green.ink} strokeWidth={2.6} /> : <StepIcon name={item.step.icon} size={20} color={tones.blue.ink} />}
             </IconTile>
             <View style={{ flex: 1 }}>
-              <Text variant="caption" color={palette.muted}>
+              <Text variant="caption" color={c.muted}>
                 {item.done ? 'Étape déjà faite' : `Ton étape · ${relativeDays(item.date)}`}
               </Text>
               <Text variant="smallStrong" numberOfLines={2}>
                 {item.step.title}
               </Text>
             </View>
-            <ChevronRight size={18} color={palette.subtle} />
+            <ChevronRight size={18} color={c.subtle} />
           </PressableScale>
         </Animated.View>
       ))}
@@ -124,6 +130,8 @@ export function StepActions({ actions }: { actions: AssistantAction[] }) {
 
 /** Sous une réponse : 🔊 l'écouter, 👎 la signaler. */
 export function AnswerTools({ m, onReport }: { m: ChatMessage; onReport: () => void }) {
+  const { c } = useTheme();
+  const styles = useStyles();
   const speaking = useSpeech((s) => s.speakingId === m.id);
   return (
     <View style={styles.tools}>
@@ -131,24 +139,24 @@ export function AnswerTools({ m, onReport }: { m: ChatMessage; onReport: () => v
         haptic="select"
         onPress={() => speakAnswer(m.id, m.content, m.lang)}
         hitSlop={4}
-        style={[styles.tool, speaking && { backgroundColor: palette.aiSoft }]}
+        style={[styles.tool, speaking && { backgroundColor: c.aiSoft }]}
         accessibilityLabel={speaking ? 'Arrêter la lecture' : 'Écouter la réponse'}>
-        {speaking ? <Square size={13} color={palette.aiIndigo} fill={palette.aiIndigo} /> : <Volume2 size={16} color={palette.subtle} />}
-        <Text variant="caption" color={speaking ? palette.aiIndigo : palette.subtle}>
+        {speaking ? <Square size={13} color={c.aiIndigo} fill={c.aiIndigo} /> : <Volume2 size={16} color={c.subtle} />}
+        <Text variant="caption" color={speaking ? c.aiIndigo : c.subtle}>
           {speaking ? 'Arrêter' : 'Écouter'}
         </Text>
       </PressableScale>
       {m.queryId && m.reported ? (
         <Animated.View entering={FadeIn} style={styles.tool}>
-          <Check size={15} color={palette.success} />
-          <Text variant="caption" color={palette.success}>
+          <Check size={15} color={c.success} />
+          <Text variant="caption" color={c.success}>
             Merci, on vérifie
           </Text>
         </Animated.View>
       ) : m.queryId ? (
         <PressableScale onPress={onReport} hitSlop={4} style={styles.tool} accessibilityLabel="Signaler : cette réponse est fausse">
-          <ThumbsDown size={15} color={palette.subtle} />
-          <Text variant="caption" color={palette.subtle}>
+          <ThumbsDown size={15} color={c.subtle} />
+          <Text variant="caption" color={c.subtle}>
             Signaler
           </Text>
         </PressableScale>
@@ -174,6 +182,8 @@ export function FeedbackSheet({
   onClose: () => void;
   onSend: (reason: FeedbackReason, comment: string) => Promise<'sent' | 'demo' | 'failed'>;
 }) {
+  const { c } = useTheme();
+  const styles = useStyles();
   const [reason, setReason] = useState<FeedbackReason | null>(null);
   const [comment, setComment] = useState('');
   const [sending, setSending] = useState(false);
@@ -201,7 +211,7 @@ export function FeedbackSheet({
       <View style={{ gap: 14 }}>
         <View style={{ gap: 4 }}>
           <Text variant="h2">Qu’est-ce qui ne va pas ?</Text>
-          <Text variant="small" color={palette.subtle}>
+          <Text variant="small" color={c.subtle}>
             L’équipe relit chaque signalement et corrige le guide si besoin. Ton nom n’est jamais envoyé.
           </Text>
         </View>
@@ -226,10 +236,12 @@ export function FeedbackSheet({
 }
 
 function Option({ icon, label, onPress, done }: { icon: React.ReactNode; label: string; onPress: () => void; done?: boolean }) {
+  const { c } = useTheme();
+  const styles = useStyles();
   return (
-    <PressableScale onPress={onPress} disabled={done} style={[styles.option, done && { borderColor: palette.success }]}>
+    <PressableScale onPress={onPress} disabled={done} style={[styles.option, done && { borderColor: c.success }]}>
       {icon}
-      <Text variant="smallStrong" style={{ flex: 1 }} color={done ? palette.success : palette.navy}>
+      <Text variant="smallStrong" style={{ flex: 1 }} color={done ? c.success : c.navy}>
         {label}
       </Text>
     </PressableScale>
@@ -238,16 +250,17 @@ function Option({ icon, label, onPress, done }: { icon: React.ReactNode; label: 
 
 /** Un refus propose TOUJOURS : le guide le plus proche, un mentor, et « On l'ajoute à nos guides ». */
 export function RefusalOptions({ m, onRequest }: { m: ChatMessage; onRequest: () => Promise<boolean> }) {
+  const { c } = useTheme();
   const [sending, setSending] = useState(false);
   const nearest = m.sources?.[0];
   return (
     <Animated.View entering={FadeIn.delay(120)} style={{ gap: 8 }}>
       {nearest ? (
-        <Option icon={<BookOpen size={17} color={palette.aiIndigo} />} label={`Le guide le plus proche : ${nearest.title}`} onPress={() => openSource(nearest)} />
+        <Option icon={<BookOpen size={17} color={c.aiIndigo} />} label={`Le guide le plus proche : ${nearest.title}`} onPress={() => openSource(nearest)} />
       ) : null}
-      <Option icon={<UsersRound size={17} color={palette.mentor} />} label="Demander à un mentor" onPress={() => router.navigate('/(app)/(tabs)/explorer')} />
+      <Option icon={<UsersRound size={17} color={c.mentor} />} label="Demander à un mentor" onPress={() => router.navigate('/(app)/(tabs)/explorer')} />
       <Option
-        icon={m.requested ? <Check size={17} color={palette.success} /> : <BookPlus size={17} color={palette.electric} />}
+        icon={m.requested ? <Check size={17} color={c.success} /> : <BookPlus size={17} color={c.electric} />}
         label={m.requested ? 'Merci ! L’équipe va l’ajouter à ses guides à écrire.' : 'On l’ajoute à nos guides'}
         done={m.requested}
         onPress={async () => {
@@ -264,13 +277,15 @@ export function RefusalOptions({ m, onRequest }: { m: ChatMessage; onRequest: ()
 
 /** Filets de sécurité sous une réponse, selon les drapeaux du cerveau. */
 export function SafetyNotes({ m }: { m: ChatMessage }) {
+  const { c } = useTheme();
+  const styles = useStyles();
   const flags = m.flags ?? [];
   const inFrance = useProfile((s) => isInFrance(s.profile));
   const { data: mentors = [] } = useMentors();
   return (
     <>
       {flags.includes('distress') && !inFrance ? (
-        <View style={[styles.note, { backgroundColor: '#FFF1F2' }]}>
+        <View style={[styles.note, { backgroundColor: c.dangerSoft }]}>
           <HeartHandshake size={18} color="#E11D48" />
           <View style={{ flex: 1 }}>
             <Text variant="smallStrong" color="#9F1239">
@@ -283,7 +298,7 @@ export function SafetyNotes({ m }: { m: ChatMessage }) {
         </View>
       ) : null}
       {flags.includes('distress') && inFrance ? (
-        <PressableScale onPress={() => Linking.openURL('tel:3114')} style={[styles.note, { backgroundColor: '#FFF1F2' }]} accessibilityLabel="Appeler le 3114">
+        <PressableScale onPress={() => Linking.openURL('tel:3114')} style={[styles.note, { backgroundColor: c.dangerSoft }]} accessibilityLabel="Appeler le 3114">
           <HeartHandshake size={18} color="#E11D48" />
           <View style={{ flex: 1 }}>
             <Text variant="smallStrong" color="#9F1239">
@@ -297,11 +312,11 @@ export function SafetyNotes({ m }: { m: ChatMessage }) {
         </PressableScale>
       ) : null}
       {flags.includes('stress') || flags.includes('complex') ? (
-        <PressableScale onPress={() => router.navigate(mentors.length ? '/(app)/(tabs)/explorer' : '/(app)/(tabs)/communaute')} style={[styles.note, { backgroundColor: palette.mentorSoft }]}>
-          <UsersRound size={18} color={palette.mentor} />
+        <PressableScale onPress={() => router.navigate(mentors.length ? '/(app)/(tabs)/explorer' : '/(app)/(tabs)/communaute')} style={[styles.note, { backgroundColor: c.mentorSoft }]}>
+          <UsersRound size={18} color={c.mentor} />
           <Text variant="small" style={{ flex: 1 }}>
             {flags.includes('complex') ? 'Ta situation mérite l’avis d’une personne. ' : 'Tu n’es pas seul·e à vivre ça. '}
-            <Text variant="smallStrong" color={palette.mentor}>
+            <Text variant="smallStrong" color={c.mentor}>
               {mentors.length ? 'Un étudiant passé par là peut t’appeler gratuitement.' : 'Parles-en avec les étudiants de la communauté.'}
             </Text>
           </Text>
@@ -309,8 +324,8 @@ export function SafetyNotes({ m }: { m: ChatMessage }) {
       ) : null}
       {flags.includes('legal') ? (
         <View style={styles.legal}>
-          <Scale size={14} color={palette.muted} />
-          <Text variant="caption" color={palette.muted} style={{ flex: 1 }}>
+          <Scale size={14} color={c.muted} />
+          <Text variant="caption" color={c.muted} style={{ flex: 1 }}>
             Ce n’est pas un conseil juridique. Pour ton cas précis, vérifie auprès de la préfecture, du consulat ou d’un juriste.
           </Text>
         </View>
@@ -320,24 +335,26 @@ export function SafetyNotes({ m }: { m: ChatMessage }) {
 }
 
 export function RetryButton({ onPress }: { onPress: () => void }) {
+  const { c } = useTheme();
+  const styles = useStyles();
   return (
     <PressableScale onPress={onPress} style={styles.retry}>
-      <RotateCcw size={15} color={palette.electric} />
-      <Text variant="smallStrong" color={palette.electric}>
+      <RotateCcw size={15} color={c.electric} />
+      <Text variant="smallStrong" color={c.electric}>
         Renvoyer ma question
       </Text>
     </PressableScale>
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles(({ c, shadow }) => ({
   tools: { flexDirection: 'row', gap: 8 },
   reasons: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  tool: { flexDirection: 'row', alignItems: 'center', gap: 6, height: 36, paddingHorizontal: 12, borderRadius: radius.pill, backgroundColor: palette.surface },
-  action: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 10, borderRadius: radius.lg, backgroundColor: palette.surface, ...shadow.sm },
-  source: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: 12, paddingVertical: 10, borderRadius: radius.lg, backgroundColor: '#fff', borderWidth: 1, borderColor: '#E3E1FF' },
-  option: { flexDirection: 'row', alignItems: 'center', gap: 10, minHeight: 48, paddingHorizontal: 14, paddingVertical: 10, borderRadius: radius.lg, backgroundColor: '#fff', borderWidth: 1.5, borderColor: '#E3E1FF', ...shadow.sm },
+  tool: { flexDirection: 'row', alignItems: 'center', gap: 6, height: 36, paddingHorizontal: 12, borderRadius: radius.pill, backgroundColor: c.surface },
+  action: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 10, borderRadius: radius.lg, backgroundColor: c.surface, ...shadow.sm },
+  source: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: 12, paddingVertical: 10, borderRadius: radius.lg, backgroundColor: c.card, borderWidth: 1, borderColor: '#E3E1FF' },
+  option: { flexDirection: 'row', alignItems: 'center', gap: 10, minHeight: 48, paddingHorizontal: 14, paddingVertical: 10, borderRadius: radius.lg, backgroundColor: c.card, borderWidth: 1.5, borderColor: '#E3E1FF', ...shadow.sm },
   note: { flexDirection: 'row', alignItems: 'center', gap: 10, padding: 12, borderRadius: radius.lg },
   legal: { flexDirection: 'row', gap: 8, alignItems: 'flex-start', paddingHorizontal: 4 },
-  retry: { flexDirection: 'row', alignItems: 'center', gap: 6, alignSelf: 'flex-start', paddingHorizontal: 14, minHeight: 44, borderRadius: 999, borderWidth: 1.5, borderColor: '#C9D6FF', backgroundColor: '#fff' },
-});
+  retry: { flexDirection: 'row', alignItems: 'center', gap: 6, alignSelf: 'flex-start', paddingHorizontal: 14, minHeight: 44, borderRadius: 999, borderWidth: 1.5, borderColor: '#C9D6FF', backgroundColor: c.card },
+}));

@@ -1,6 +1,6 @@
 import { Check, Cloud } from 'lucide-react-native';
 import { useEffect, useRef } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { View } from 'react-native';
 import Animated, { useAnimatedStyle, withSpring } from 'react-native-reanimated';
 
 import { celebrate } from '@/components/feedback/Confetti';
@@ -11,7 +11,8 @@ import { Text } from '@/components/ui/Text';
 import { useContent } from '@/data/hooks';
 import { useLocalDb } from '@/data/local-db';
 import { haptics } from '@/lib/haptics';
-import { gradients, motion, palette, radius, shadow } from '@/theme/tokens';
+import { makeStyles, useTheme } from '@/theme/scheme';
+import { motion, radius } from '@/theme/tokens';
 import { pop, rise } from '@/theme/motion';
 
 const GROUPS: { title: string; emoji: string; items: { id: string; label: string; hint?: string }[] }[] = [
@@ -54,12 +55,14 @@ const GROUPS: { title: string; emoji: string; items: { id: string; label: string
 ];
 
 function DocRow({ id, label, hint: staticHint }: { id: string; label: string; hint?: string }) {
+  const { c } = useTheme();
+  const styles = useStyles();
   const { data: figures } = useContent('figures');
   // Le montant exigé vient des chiffres officiels du site (il a changé le 1er août 2026).
   const hint = id === 'resources' && figures.verified.compteBloqueMensuel ? `Au moins ${figures.verified.compteBloqueMensuel.display}` : staticHint;
   const on = useLocalDb((s) => !!s.documents[id]);
   const toggle = useLocalDb((s) => s.toggleDocument);
-  const box = useAnimatedStyle(() => ({ transform: [{ scale: withSpring(on ? 1 : 0.92, motion.springBouncy) }], backgroundColor: on ? palette.success : '#EEF1F7' }));
+  const box = useAnimatedStyle(() => ({ transform: [{ scale: withSpring(on ? 1 : 0.92, motion.springBouncy) }], backgroundColor: on ? c.success : c.fill }));
   return (
     <PressableScale
       haptic={false}
@@ -77,11 +80,11 @@ function DocRow({ id, label, hint: staticHint }: { id: string; label: string; hi
         )}
       </Animated.View>
       <View style={{ flex: 1 }}>
-        <Text variant="bodyStrong" color={on ? palette.subtle : palette.navy} style={on && { textDecorationLine: 'line-through' }}>
+        <Text variant="bodyStrong" color={on ? c.subtle : c.navy} style={on && { textDecorationLine: 'line-through' }}>
           {label}
         </Text>
         {hint ? (
-          <Text variant="caption" color={palette.muted}>
+          <Text variant="caption" color={c.muted}>
             {hint}
           </Text>
         ) : null}
@@ -92,6 +95,8 @@ function DocRow({ id, label, hint: staticHint }: { id: string; label: string; hi
 
 /** Checklist « Mes documents » — tout ce qu'il faut avoir sous la main. */
 export default function Documents() {
+  const { c, gradients } = useTheme();
+  const styles = useStyles();
   const docs = useLocalDb((s) => s.documents);
   const total = GROUPS.reduce((a, g) => a + g.items.length, 0);
   const done = Object.values(docs).filter(Boolean).length;
@@ -112,7 +117,7 @@ export default function Documents() {
             <Text variant="bodyStrong">
               {done}/{total} prêts
             </Text>
-            <Text variant="smallStrong" color={palette.success}>
+            <Text variant="smallStrong" color={c.success}>
               {Math.round(pct * 100)}%
             </Text>
           </View>
@@ -133,7 +138,7 @@ export default function Documents() {
           </Animated.View>
         ))}
         <View style={styles.tip}>
-          <Cloud size={18} color={palette.electric} />
+          <Cloud size={18} color={c.electric} />
           <Text variant="small" style={{ flex: 1 }}>
             Astuce : scanne tous tes papiers dans un dossier en ligne. Le jour où on te les demande, tu es prêt·e en 10 secondes.
           </Text>
@@ -143,12 +148,12 @@ export default function Documents() {
   );
 }
 
-const styles = StyleSheet.create({
-  progress: { gap: 10, padding: 16, borderRadius: radius.xl, backgroundColor: '#fff', ...shadow.sm },
-  track: { height: 10, borderRadius: 5, backgroundColor: '#EEF1F7', overflow: 'hidden' },
-  fill: { height: 10, borderRadius: 5, backgroundColor: palette.success },
-  group: { borderRadius: radius.xl, backgroundColor: '#fff', paddingVertical: 4, ...shadow.sm },
+const useStyles = makeStyles(({ c, shadow }) => ({
+  progress: { gap: 10, padding: 16, borderRadius: radius.xl, backgroundColor: c.card, ...shadow.sm },
+  track: { height: 10, borderRadius: 5, backgroundColor: c.fill, overflow: 'hidden' },
+  fill: { height: 10, borderRadius: 5, backgroundColor: c.success },
+  group: { borderRadius: radius.xl, backgroundColor: c.card, paddingVertical: 4, ...shadow.sm },
   row: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 14, paddingVertical: 12 },
   box: { width: 26, height: 26, borderRadius: 8, alignItems: 'center', justifyContent: 'center' },
-  tip: { flexDirection: 'row', gap: 10, alignItems: 'center', padding: 14, borderRadius: radius.lg, backgroundColor: palette.electricSoft },
-});
+  tip: { flexDirection: 'row', gap: 10, alignItems: 'center', padding: 14, borderRadius: radius.lg, backgroundColor: c.electricSoft },
+}));

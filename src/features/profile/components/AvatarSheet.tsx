@@ -8,7 +8,7 @@ import { toast } from '@/components/feedback/Toast';
 import { Button } from '@/components/ui/Button';
 import { Text } from '@/components/ui/Text';
 import { haptics } from '@/lib/haptics';
-import { palette } from '@/theme/tokens';
+import { useTheme } from '@/theme/scheme';
 
 import { uploadAvatar } from '../api';
 import { prepareAvatar } from '../avatar';
@@ -16,6 +16,7 @@ import { useProfile } from '../store';
 
 /** Choisir ou prendre sa photo de profil : recadrée en carré, nettoyée, gardée et envoyée. */
 export function AvatarSheet({ visible, onClose }: { visible: boolean; onClose: () => void }) {
+  const { c } = useTheme();
   const update = useProfile((s) => s.update);
   // Choix en attente : la galerie ou l'appareil photo ne s'ouvre qu'une fois la feuille fermée.
   const pending = useRef<'camera' | 'library' | null>(null);
@@ -63,11 +64,11 @@ export function AvatarSheet({ visible, onClose }: { visible: boolean; onClose: (
     <BottomSheet visible={visible} onClose={onClose} onClosed={onClosed}>
       <View style={{ gap: 12 }}>
         <Text variant="h2">Ta photo de profil</Text>
-        <Text variant="small" color={palette.muted}>
+        <Text variant="small" color={c.muted}>
           Pour l’instant, toi seul·e la vois. Avant l’envoi, on retire le lieu et les infos cachées de la photo.
         </Text>
-        <Button label="Prendre une photo" variant="secondary" iconLeft={<Camera size={18} color={palette.navy} />} onPress={() => choose('camera')} />
-        <Button label="Choisir dans la galerie" variant="secondary" iconLeft={<ImageIcon size={18} color={palette.navy} />} onPress={() => choose('library')} />
+        <Button label="Prendre une photo" variant="secondary" iconLeft={<Camera size={18} color={c.navy} />} onPress={() => choose('camera')} />
+        <Button label="Choisir dans la galerie" variant="secondary" iconLeft={<ImageIcon size={18} color={c.navy} />} onPress={() => choose('library')} />
         <Button label="Annuler" variant="secondary" onPress={onClose} />
       </View>
     </BottomSheet>

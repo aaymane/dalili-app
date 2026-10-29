@@ -1,14 +1,17 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { ArrowRight, Sparkles } from 'lucide-react-native';
-import { StyleSheet, View } from 'react-native';
+import { View } from 'react-native';
 
 import { PressableScale } from '@/components/ui/PressableScale';
 import { Text } from '@/components/ui/Text';
-import { gradients, radius, shadow } from '@/theme/tokens';
+import { makeStyles, useTheme } from '@/theme/scheme';
+import { radius } from '@/theme/tokens';
 
 /** Bandeau « Demande à l'IA de Dalili ». */
 export function AiCta({ prompt }: { prompt?: string }) {
+  const { gradients } = useTheme();
+  const styles = useStyles();
   return (
     <PressableScale onPress={() => router.navigate({ pathname: '/(app)/(tabs)/ia', params: prompt ? { q: prompt } : {} })} haptic="press">
       <LinearGradient colors={gradients.ai} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.card}>
@@ -29,7 +32,7 @@ export function AiCta({ prompt }: { prompt?: string }) {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles(({ shadow }) => ({
   card: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 16, borderRadius: radius.xl, ...shadow.glow, shadowColor: '#5B5CF0' },
   icon: { width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(255,255,255,0.18)', alignItems: 'center', justifyContent: 'center' },
-});
+}));

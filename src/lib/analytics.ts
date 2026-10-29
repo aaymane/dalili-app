@@ -32,7 +32,8 @@ export type AnalyticsEvents = {
   safety_report_sent: Record<string, never>;
 };
 
-export const analyticsAvailable = Boolean(env.posthogKey);
+/** Sans clé, ou en développement sans `EXPO_PUBLIC_POSTHOG_IN_DEV=1` : rien n'est envoyé, et la question n'est pas posée. */
+export const analyticsAvailable = Boolean(env.posthogKey) && (!__DEV__ || Boolean(process.env.EXPO_PUBLIC_POSTHOG_IN_DEV));
 
 let client: PostHog | null = null;
 function ph() {
@@ -44,7 +45,6 @@ function ph() {
     // Pas de profil de personne : des événements anonymes, jamais reliés à un compte.
     personProfiles: 'never',
     captureAppLifecycleEvents: true,
-    disabled: __DEV__ && !process.env.EXPO_PUBLIC_POSTHOG_IN_DEV,
   });
   return client;
 }

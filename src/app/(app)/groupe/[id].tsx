@@ -16,13 +16,16 @@ import { useJoinGroup } from '@/features/community/components/GroupCard';
 import { PostCard } from '@/features/community/components/PostCard';
 import { useProfile } from '@/features/profile/store';
 import { monthShort } from '@/lib/date';
-import { palette, radius, shadow } from '@/theme/tokens';
+import { makeStyles, useTheme } from '@/theme/scheme';
+import { radius } from '@/theme/tokens';
 import { pop, rise } from '@/theme/motion';
 
 type Tab = 'feed' | 'events' | 'members';
 
 /** Page groupe : à propos, fil d'actualité, événements, membres. Contenu réservé aux membres. */
 export default function GroupPage() {
+  const { c } = useTheme();
+  const styles = useStyles();
   const { id } = useLocalSearchParams<{ id: string }>();
   const insets = useSafeAreaInsets();
   const { data: g } = useGroup(id);
@@ -90,7 +93,7 @@ export default function GroupPage() {
               ] as [Tab, string][]
             ).map(([k, l]) => (
               <PressableScale key={k} haptic="select" onPress={() => setTab(k)} style={[styles.tabItem, tab === k && styles.tabOn]}>
-                <Text variant="smallStrong" color={tab === k ? palette.electric : palette.subtle}>
+                <Text variant="smallStrong" color={tab === k ? c.electric : c.subtle}>
                   {l}
                 </Text>
               </PressableScale>
@@ -100,12 +103,12 @@ export default function GroupPage() {
           {!g.isMember ? (
             <Animated.View entering={FadeIn} style={styles.locked}>
               <View style={styles.lockIcon}>
-                <Lock size={20} color={palette.electric} />
+                <Lock size={20} color={c.electric} />
               </View>
               <Text variant="h2" align="center">
                 Contenu réservé aux membres
               </Text>
-              <Text variant="small" color={palette.subtle} align="center">
+              <Text variant="small" color={c.subtle} align="center">
                 Rejoins le groupe pour voir les publications, les événements et échanger avec les autres étudiants.
               </Text>
               <PressableScale onPress={() => join(g)} haptic="press" style={[styles.joinBtn, { alignSelf: 'center' }]}>
@@ -120,7 +123,7 @@ export default function GroupPage() {
               <PressableScale onPress={() => router.push({ pathname: '/(app)/post/nouveau', params: { groupId: g.id } })} style={styles.composer}>
                 <Avatar name={`${profile.firstName} ${profile.lastName}`} uri={profile.avatarUri} size={38} />
                 <View style={styles.composerInput}>
-                  <Text variant="small" color={palette.muted}>
+                  <Text variant="small" color={c.muted}>
                     Partager quelque chose avec le groupe…
                   </Text>
                 </View>
@@ -129,14 +132,14 @@ export default function GroupPage() {
                 <PostCard key={p.id} p={p} city={g.city} onOpen={() => router.push({ pathname: '/(app)/post/[id]', params: { id: p.id, groupId: g.id } })} />
               ))}
               {!posts.length && (
-                <Text variant="small" color={palette.muted} align="center">
+                <Text variant="small" color={c.muted} align="center">
                   Sois le premier à publier ✨
                 </Text>
               )}
             </Animated.View>
           ) : tab === 'events' ? (
             <Animated.View key="events" entering={FadeIn} style={styles.panel}>
-              <Text variant="overline" color={palette.muted}>
+              <Text variant="overline" color={c.muted}>
                 Événements à venir
               </Text>
               {groupEvents.map((e) => (
@@ -152,8 +155,8 @@ export default function GroupPage() {
                   <View style={{ flex: 1 }}>
                     <Text variant="bodyStrong">{e.title}</Text>
                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-                      <MapPin size={12} color={palette.muted} />
-                      <Text variant="caption" color={palette.muted}>
+                      <MapPin size={12} color={c.muted} />
+                      <Text variant="caption" color={c.muted}>
                         {e.place}, {e.city}
                       </Text>
                     </View>
@@ -163,18 +166,18 @@ export default function GroupPage() {
             </Animated.View>
           ) : (
             <Animated.View key="members" entering={FadeIn} style={styles.panel}>
-              <Text variant="overline" color={palette.muted}>
+              <Text variant="overline" color={c.muted}>
                 Nouveaux membres
               </Text>
               {[`${profile.firstName} ${profile.lastName}`.trim() || 'Toi', ...members].map((n, i) => (
                 <View key={n} style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-                  <Avatar name={n} size={38} color={i ? '#94A3B8' : palette.electric} uri={i ? null : profile.avatarUri} />
+                  <Avatar name={n} size={38} color={i ? '#94A3B8' : c.electric} uri={i ? null : profile.avatarUri} />
                   <Text variant="bodyStrong" style={{ flex: 1 }}>
                     {n}
                     {i === 0 ? ' (toi)' : ''}
                   </Text>
                   {i > 0 && (
-                    <Text variant="smallStrong" color={palette.electric}>
+                    <Text variant="smallStrong" color={c.electric}>
                       Suivre
                     </Text>
                   )}
@@ -187,7 +190,7 @@ export default function GroupPage() {
       {g.isMember && (
         <Animated.View entering={pop()} style={[styles.fab, { bottom: insets.bottom + 24 }]}>
           <PressableScale onPress={() => router.push({ pathname: '/(app)/post/nouveau', params: { groupId: g.id } })} style={styles.fabBtn} accessibilityLabel="Écrire un post">
-            <Pencil size={20} color={palette.navy} />
+            <Pencil size={20} color={c.navy} />
           </PressableScale>
         </Animated.View>
       )}
@@ -195,21 +198,21 @@ export default function GroupPage() {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles(({ c, shadow }) => ({
   back: { position: 'absolute', top: 12, left: 12, width: 38, height: 38, borderRadius: 19, backgroundColor: 'rgba(0,0,0,0.25)', alignItems: 'center', justifyContent: 'center' },
-  joinBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, alignSelf: 'flex-start', backgroundColor: palette.electric, paddingHorizontal: 16, height: 38, borderRadius: 999, marginTop: 8 },
-  about: { padding: 16, borderRadius: radius.xl, backgroundColor: '#fff', ...shadow.sm },
-  tag: { paddingHorizontal: 10, paddingVertical: 5, borderRadius: 999, backgroundColor: '#F1F3F9' },
-  tabs: { flexDirection: 'row', backgroundColor: '#fff', borderRadius: radius.lg, padding: 4, ...shadow.sm },
+  joinBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, alignSelf: 'flex-start', backgroundColor: c.electric, paddingHorizontal: 16, height: 38, borderRadius: 999, marginTop: 8 },
+  about: { padding: 16, borderRadius: radius.xl, backgroundColor: c.card, ...shadow.sm },
+  tag: { paddingHorizontal: 10, paddingVertical: 5, borderRadius: 999, backgroundColor: c.fill },
+  tabs: { flexDirection: 'row', backgroundColor: c.card, borderRadius: radius.lg, padding: 4, ...shadow.sm },
   tabItem: { flex: 1, height: 42, alignItems: 'center', justifyContent: 'center', borderRadius: radius.md },
-  tabOn: { backgroundColor: palette.electricSoft },
-  locked: { gap: 10, padding: 22, borderRadius: radius.xl, backgroundColor: '#fff', ...shadow.sm },
-  lockIcon: { alignSelf: 'center', width: 52, height: 52, borderRadius: 26, backgroundColor: palette.electricSoft, alignItems: 'center', justifyContent: 'center' },
-  composer: { flexDirection: 'row', alignItems: 'center', gap: 10, padding: 12, borderRadius: radius.xl, backgroundColor: '#fff', ...shadow.sm },
-  composerInput: { flex: 1, padding: 12, borderRadius: radius.md, backgroundColor: '#F4F6FB' },
-  panel: { gap: 14, padding: 16, borderRadius: radius.xl, backgroundColor: '#fff', ...shadow.sm },
+  tabOn: { backgroundColor: c.electricSoft },
+  locked: { gap: 10, padding: 22, borderRadius: radius.xl, backgroundColor: c.card, ...shadow.sm },
+  lockIcon: { alignSelf: 'center', width: 52, height: 52, borderRadius: 26, backgroundColor: c.electricSoft, alignItems: 'center', justifyContent: 'center' },
+  composer: { flexDirection: 'row', alignItems: 'center', gap: 10, padding: 12, borderRadius: radius.xl, backgroundColor: c.card, ...shadow.sm },
+  composerInput: { flex: 1, padding: 12, borderRadius: radius.md, backgroundColor: c.fill },
+  panel: { gap: 14, padding: 16, borderRadius: radius.xl, backgroundColor: c.card, ...shadow.sm },
   eventRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  dateBox: { width: 50, height: 54, borderRadius: 14, backgroundColor: palette.electric, alignItems: 'center', justifyContent: 'center' },
+  dateBox: { width: 50, height: 54, borderRadius: 14, backgroundColor: c.electric, alignItems: 'center', justifyContent: 'center' },
   fab: { position: 'absolute', right: 20 },
-  fabBtn: { width: 54, height: 54, borderRadius: 27, backgroundColor: '#fff', alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: '#D6E0FF', ...shadow.md },
-});
+  fabBtn: { width: 54, height: 54, borderRadius: 27, backgroundColor: c.card, alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: c.electricSoft, ...shadow.md },
+}));

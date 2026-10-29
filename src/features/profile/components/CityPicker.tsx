@@ -1,6 +1,6 @@
 import { MapPin, Search, Sparkles, ChevronRight } from 'lucide-react-native';
 import { useMemo, useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { View } from 'react-native';
 import Animated, { FadeIn, LinearTransition, useAnimatedStyle, withTiming } from 'react-native-reanimated';
 
 import { IconTile } from '@/components/ui/IconTile';
@@ -8,19 +8,22 @@ import { Input } from '@/components/ui/Input';
 import { PressableScale } from '@/components/ui/PressableScale';
 import { Text } from '@/components/ui/Text';
 import { useContent } from '@/data/hooks';
-import { palette, radius, shadow } from '@/theme/tokens';
+import { makeStyles, useTheme } from '@/theme/scheme';
+import { radius } from '@/theme/tokens';
 import { reflow } from '@/theme/motion';
 
 function CityCard({ name, budget, selected, onPress }: { name: string; budget: string; selected: boolean; onPress: () => void }) {
-  const s = useAnimatedStyle(() => ({ borderColor: withTiming(selected ? palette.electric : '#EEF0F6', { duration: 160 }) }));
+  const { c } = useTheme();
+  const styles = useStyles();
+  const s = useAnimatedStyle(() => ({ borderColor: withTiming(selected ? c.electric : c.line, { duration: 160 }) }));
   return (
     <PressableScale onPress={onPress} haptic="select">
-      <Animated.View style={[styles.city, s, selected && { backgroundColor: '#F6F8FF' }]}>
+      <Animated.View style={[styles.city, s, selected && { backgroundColor: c.cardSelected }]}>
         <IconTile icon={MapPin} tone={selected ? 'blue' : 'slate'} size={30} radius={10} />
         <Text variant="smallStrong" numberOfLines={1}>
           {name}
         </Text>
-        <Text variant="caption" color={palette.muted} style={{ fontSize: 10 }}>
+        <Text variant="caption" color={c.muted} style={{ fontSize: 10 }}>
           {budget}
         </Text>
       </Animated.View>
@@ -30,6 +33,8 @@ function CityCard({ name, budget, selected, onPress }: { name: string; budget: s
 
 /** Choix de ville : « je ne sais pas encore » + recherche + grille. */
 export function CityPicker({ value, onChange, allowUnknown = true }: { value: string | null | undefined; onChange: (v: string | null) => void; allowUnknown?: boolean }) {
+  const { c } = useTheme();
+  const styles = useStyles();
   const [q, setQ] = useState('');
   const { data: cities } = useContent('cities');
   const list = useMemo(() => cities.filter((c) => c.name.toLowerCase().includes(q.trim().toLowerCase())), [q, cities]);
@@ -51,7 +56,7 @@ export function CityPicker({ value, onChange, allowUnknown = true }: { value: st
           <ChevronRight size={18} color="#fff" />
         </PressableScale>
       )}
-      <Input icon={<Search size={16} color={palette.electric} />} placeholder="Rechercher une ville…" value={q} onChangeText={setQ} />
+      <Input icon={<Search size={16} color={c.electric} />} placeholder="Rechercher une ville…" value={q} onChangeText={setQ} />
       <Animated.View layout={reflow} style={styles.grid}>
         {list.map((c) => (
           <Animated.View key={c.id} entering={FadeIn} layout={LinearTransition} style={{ width: '31.5%' }}>
@@ -68,8 +73,8 @@ export function CityPicker({ value, onChange, allowUnknown = true }: { value: st
   );
 }
 
-const styles = StyleSheet.create({
-  unknown: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 14, borderRadius: radius.xl, backgroundColor: palette.navyInk, borderWidth: 2, borderColor: 'transparent', ...shadow.md },
+const useStyles = makeStyles(({ c, shadow }) => ({
+  unknown: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 14, borderRadius: radius.xl, backgroundColor: c.navyInk, borderWidth: 2, borderColor: 'transparent', ...shadow.md },
   grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, justifyContent: 'space-between' },
-  city: { padding: 10, gap: 6, borderRadius: radius.lg, backgroundColor: '#fff', borderWidth: 1.5, ...shadow.sm, minHeight: 92 },
-});
+  city: { padding: 10, gap: 6, borderRadius: radius.lg, backgroundColor: c.card, borderWidth: 1.5, ...shadow.sm, minHeight: 92 },
+}));

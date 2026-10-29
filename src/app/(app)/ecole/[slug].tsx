@@ -32,7 +32,8 @@ import { useMyInterest, useSchool, useWithdrawInterest } from '@/features/school
 import { useStoryCta } from '@/features/schools/story';
 import { formatFullDate, formatLong } from '@/lib/date';
 import { enter } from '@/theme/motion';
-import { palette, radius, shadow } from '@/theme/tokens';
+import { makeStyles, useTheme } from '@/theme/scheme';
+import { radius, lightPalette } from '@/theme/tokens';
 import { track } from '@/lib/analytics';
 
 const HERO = 340;
@@ -40,6 +41,8 @@ const PHOTO_W = 260;
 
 /** « Découvrir en 30 s » : une onde douce l'appelle sans clignoter. */
 function DiscoverButton({ onPress }: { onPress: () => void }) {
+  const { c } = useTheme();
+  const styles = useStyles();
   const reduced = useReducedMotion();
   const wave = useSharedValue(0);
   useEffect(() => {
@@ -50,9 +53,9 @@ function DiscoverButton({ onPress }: { onPress: () => void }) {
     <PressableScale onPress={onPress} haptic="press" style={styles.discover} accessibilityLabel="Découvrir l’école en 30 secondes">
       <View style={styles.play}>
         <Animated.View style={[styles.playRing, ring]} />
-        <Play size={14} color={palette.navy} fill={palette.navy} />
+        <Play size={14} color={lightPalette.navy} fill={lightPalette.navy} />
       </View>
-      <Text variant="smallStrong" color={palette.white}>
+      <Text variant="smallStrong" color={c.white}>
         Découvrir en 30 s
       </Text>
     </PressableScale>
@@ -63,6 +66,8 @@ const transportIcon = (line: string): LucideIcon => (/tram/i.test(line) ? TramFr
 
 /** La fiche d'une école partenaire : ce qu'elle propose, où elle est, et « Je suis intéressé·e ». */
 export default function SchoolScreen() {
+  const { c } = useTheme();
+  const styles = useStyles();
   const { slug } = useLocalSearchParams<{ slug: string }>();
   const insets = useSafeAreaInsets();
   const { data: school } = useSchool(slug);
@@ -107,7 +112,7 @@ export default function SchoolScreen() {
     if (schoolSlug) track('school_viewed', { school: schoolSlug });
   }, [schoolSlug]);
 
-  if (!school) return <View style={{ flex: 1, backgroundColor: palette.bg }} />;
+  if (!school) return <View style={{ flex: 1, backgroundColor: c.bg }} />;
 
   const openMaps = () => {
     if (!school.address) return;
@@ -139,7 +144,7 @@ export default function SchoolScreen() {
         {/* Le titre et « Découvrir » défilent avec la page (et restent touchables) ; la photo glisse plus lentement derrière. */}
         <View style={[styles.heroText, { height: HERO - 28, paddingBottom: 44 }]} pointerEvents="box-none">
           <PartnerBadge dark />
-          <Text variant="hero" color={palette.white} style={styles.heroTitle}>
+          <Text variant="hero" color={c.white} style={styles.heroTitle}>
             {school.name}
           </Text>
           {school.tagline ? (
@@ -154,8 +159,8 @@ export default function SchoolScreen() {
             <Animated.View entering={enter(i++)} style={styles.facts}>
               {school.facts.map((f, k) => (
                 <View key={f.label} style={styles.fact}>
-                  <CountUp value={f.value} color={palette.electric} delay={250 + k * 120} />
-                  <Text variant="caption" color={palette.subtle} numberOfLines={4}>
+                  <CountUp value={f.value} color={c.electric} delay={250 + k * 120} />
+                  <Text variant="caption" color={c.subtle} numberOfLines={4}>
                     {f.label}
                   </Text>
                 </View>
@@ -165,13 +170,13 @@ export default function SchoolScreen() {
 
           {school.description ? (
             <Animated.View entering={enter(i++)} style={{ gap: 8 }}>
-              <Text variant="overline" color={palette.muted}>
+              <Text variant="overline" color={c.muted}>
                 En bref
               </Text>
-              <Text variant="body" color={palette.navy}>
+              <Text variant="body" color={c.navy}>
                 {school.description}
               </Text>
-              <Text variant="small" color={palette.subtle}>
+              <Text variant="small" color={c.subtle}>
                 RNCP : le répertoire national des certifications. Un titre RNCP est reconnu par l’État.
               </Text>
             </Animated.View>
@@ -179,7 +184,7 @@ export default function SchoolScreen() {
 
           {school.photos.length ? (
             <Animated.View entering={enter(i++)} style={{ gap: 8 }}>
-              <Text variant="overline" color={palette.muted}>
+              <Text variant="overline" color={c.muted}>
                 L’école en photos
               </Text>
               <ScrollView
@@ -194,7 +199,7 @@ export default function SchoolScreen() {
                 ))}
               </ScrollView>
               {school.photoCredit ? (
-                <Text variant="caption" color={palette.muted}>
+                <Text variant="caption" color={c.muted}>
                   {school.photoCredit}
                 </Text>
               ) : null}
@@ -202,7 +207,7 @@ export default function SchoolScreen() {
           ) : null}
 
           <Animated.View entering={enter(i++)} style={{ gap: 10 }}>
-            <Text variant="overline" color={palette.muted}>
+            <Text variant="overline" color={c.muted}>
               Les formations à {school.city}
             </Text>
             <View style={styles.group}>
@@ -214,17 +219,17 @@ export default function SchoolScreen() {
                   style={[styles.program, k > 0 && styles.sep]}
                   accessibilityLabel={`${p.name}, ${p.level}, ${p.format}. Je suis intéressé·e`}>
                   <View style={styles.level}>
-                    <Text variant="caption" color={palette.electric}>
+                    <Text variant="caption" color={c.electric}>
                       {p.level}
                     </Text>
                   </View>
                   <View style={{ flex: 1, gap: 2 }}>
                     <Text variant="bodyStrong">{p.name}</Text>
-                    <Text variant="caption" color={palette.muted}>
+                    <Text variant="caption" color={c.muted}>
                       {p.format}
                     </Text>
                   </View>
-                  <ChevronRight size={18} color={palette.muted} />
+                  <ChevronRight size={18} color={c.muted} />
                 </PressableScale>
               ))}
             </View>
@@ -232,7 +237,7 @@ export default function SchoolScreen() {
 
           {school.address ? (
             <Animated.View entering={enter(i++)} style={{ gap: 10 }}>
-              <Text variant="overline" color={palette.muted}>
+              <Text variant="overline" color={c.muted}>
                 Le campus
               </Text>
               <View style={styles.group}>
@@ -241,7 +246,7 @@ export default function SchoolScreen() {
                   <Text variant="small" style={{ flex: 1 }}>
                     {school.address}
                   </Text>
-                  <ExternalLink size={16} color={palette.muted} />
+                  <ExternalLink size={16} color={c.muted} />
                 </PressableScale>
                 {school.transport.map((t) => (
                   <View key={t} style={[styles.row, styles.sep]}>
@@ -259,7 +264,7 @@ export default function SchoolScreen() {
             <IconTile icon={Globe} tone="violet" size={44} radius={14} />
             <View style={{ flex: 1, gap: 4 }}>
               <Text variant="h3">Tu arrives de l’étranger ?</Text>
-              <Text variant="small" color={palette.subtle}>
+              <Text variant="small" color={c.subtle}>
                 Campus France, visa, alternance quand on vient du Maghreb : pose ta question dans ta demande, l’équipe DALILI t’aide à y voir clair.
               </Text>
             </View>
@@ -268,14 +273,14 @@ export default function SchoolScreen() {
           <Animated.View entering={enter(i++)} style={{ gap: 6, alignItems: 'center' }}>
             {school.website ? (
               <PressableScale onPress={() => openLink(school.website!)} hitSlop={6} style={styles.source}>
-                <Text variant="smallStrong" color={palette.electric}>
+                <Text variant="smallStrong" color={c.electric}>
                   Voir le site de l’école
                 </Text>
-                <ExternalLink size={14} color={palette.electric} />
+                <ExternalLink size={14} color={c.electric} />
               </PressableScale>
             ) : null}
             {school.checkedOn ? (
-              <Text variant="caption" color={palette.muted} align="center">
+              <Text variant="caption" color={c.muted} align="center">
                 Infos tirées du site officiel de l’école, vérifiées le {formatFullDate(school.checkedOn)}.
               </Text>
             ) : null}
@@ -290,24 +295,24 @@ export default function SchoolScreen() {
         </Text>
       </Animated.View>
       <PressableScale onPress={() => router.back()} style={[styles.back, { top: insets.top + 6 }]} accessibilityLabel="Retour">
-        <ChevronLeft size={20} color={palette.navy} />
+        <ChevronLeft size={20} color={c.navy} />
       </PressableScale>
 
       <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, 16) }]}>
-        <LinearGradient colors={['rgba(245,247,253,0)', palette.bg]} style={styles.fade} pointerEvents="none" />
+        <LinearGradient colors={['rgba(245,247,253,0)', c.bg]} style={styles.fade} pointerEvents="none" />
         {interest ? (
           <View style={styles.sent}>
             <View style={styles.sentIcon}>
-              <Check size={16} color={palette.white} strokeWidth={3} />
+              <Check size={16} color={c.white} strokeWidth={3} />
             </View>
             <View style={{ flex: 1 }}>
               <Text variant="bodyStrong">Demande envoyée</Text>
-              <Text variant="caption" color={palette.muted}>
+              <Text variant="caption" color={c.muted}>
                 Le {formatLong(interest.createdAt)} · l’équipe te recontacte par email
               </Text>
             </View>
             <PressableScale onPress={askWithdraw} hitSlop={8} style={styles.withdraw} accessibilityLabel="Retirer ma demande">
-              <Text variant="smallStrong" color={palette.subtle}>
+              <Text variant="smallStrong" color={c.subtle}>
                 Retirer
               </Text>
             </PressableScale>
@@ -330,30 +335,30 @@ export default function SchoolScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: palette.bg },
+const useStyles = makeStyles(({ c, shadow }) => ({
+  root: { flex: 1, backgroundColor: c.bg },
   hero: { position: 'absolute', left: 0, right: 0, top: 0 },
   heroText: { paddingHorizontal: 20, gap: 8, justifyContent: 'flex-end' },
   heroTitle: { textShadowColor: 'rgba(0,0,0,0.35)', textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 12 },
-  sheet: { gap: 26, paddingHorizontal: 20, paddingTop: 24, borderTopLeftRadius: 28, borderTopRightRadius: 28, backgroundColor: palette.bg, minHeight: 600 },
+  sheet: { gap: 26, paddingHorizontal: 20, paddingTop: 24, borderTopLeftRadius: 28, borderTopRightRadius: 28, backgroundColor: c.bg, minHeight: 600 },
   facts: { flexDirection: 'row', gap: 10 },
-  fact: { flex: 1, gap: 4, padding: 14, borderRadius: radius.xl, backgroundColor: palette.white, ...shadow.sm },
-  photo: { width: PHOTO_W, height: 180, borderRadius: radius.xl, backgroundColor: palette.surface },
+  fact: { flex: 1, gap: 4, padding: 14, borderRadius: radius.xl, backgroundColor: c.card, ...shadow.sm },
+  photo: { width: PHOTO_W, height: 180, borderRadius: radius.xl, backgroundColor: c.surface },
   discover: { flexDirection: 'row', alignItems: 'center', gap: 10, alignSelf: 'flex-start', marginTop: 8, paddingLeft: 6, paddingRight: 16, height: 44, borderRadius: radius.pill, backgroundColor: 'rgba(255,255,255,0.16)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.25)' },
-  play: { width: 32, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center', backgroundColor: palette.white },
-  playRing: { position: 'absolute', width: 32, height: 32, borderRadius: 16, borderWidth: 2, borderColor: palette.white },
-  group: { borderRadius: radius.xl, backgroundColor: palette.white, overflow: 'hidden', ...shadow.sm },
+  play: { width: 32, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center', backgroundColor: lightPalette.white },
+  playRing: { position: 'absolute', width: 32, height: 32, borderRadius: 16, borderWidth: 2, borderColor: c.white },
+  group: { borderRadius: radius.xl, backgroundColor: c.card, overflow: 'hidden', ...shadow.sm },
   program: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 14, paddingVertical: 14, minHeight: 64 },
-  sep: { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: palette.line },
-  level: { minWidth: 52, alignItems: 'center', paddingHorizontal: 8, paddingVertical: 5, borderRadius: radius.pill, backgroundColor: palette.electricSoft },
+  sep: { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: c.line },
+  level: { minWidth: 52, alignItems: 'center', paddingHorizontal: 8, paddingVertical: 5, borderRadius: radius.pill, backgroundColor: c.electricSoft },
   row: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 14, paddingVertical: 12, minHeight: 56 },
-  intl: { flexDirection: 'row', gap: 12, padding: 16, borderRadius: radius.xl, backgroundColor: palette.white, ...shadow.sm },
+  intl: { flexDirection: 'row', gap: 12, padding: 16, borderRadius: radius.xl, backgroundColor: c.card, ...shadow.sm },
   source: { flexDirection: 'row', alignItems: 'center', gap: 6, minHeight: 44 },
-  bar: { position: 'absolute', left: 0, right: 0, top: 0, justifyContent: 'center', backgroundColor: palette.bg, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: palette.line },
-  back: { position: 'absolute', left: 16, width: 44, height: 44, borderRadius: 22, backgroundColor: palette.white, alignItems: 'center', justifyContent: 'center', ...shadow.sm },
-  footer: { position: 'absolute', left: 0, right: 0, bottom: 0, paddingHorizontal: 20, paddingTop: 12, backgroundColor: palette.bg },
+  bar: { position: 'absolute', left: 0, right: 0, top: 0, justifyContent: 'center', backgroundColor: c.bg, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: c.line },
+  back: { position: 'absolute', left: 16, width: 44, height: 44, borderRadius: 22, backgroundColor: c.card, alignItems: 'center', justifyContent: 'center', ...shadow.sm },
+  footer: { position: 'absolute', left: 0, right: 0, bottom: 0, paddingHorizontal: 20, paddingTop: 12, backgroundColor: c.bg },
   fade: { position: 'absolute', left: 0, right: 0, top: -28, height: 28 },
-  sent: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 12, borderRadius: radius.xl, backgroundColor: palette.white, ...shadow.sm },
-  sentIcon: { width: 32, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center', backgroundColor: palette.mentor },
+  sent: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 12, borderRadius: radius.xl, backgroundColor: c.card, ...shadow.sm },
+  sentIcon: { width: 32, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center', backgroundColor: c.mentor },
   withdraw: { minHeight: 44, justifyContent: 'center', paddingHorizontal: 8 },
-});
+}));

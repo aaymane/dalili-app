@@ -2,7 +2,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { useQueryClient } from '@tanstack/react-query';
 import { Clock } from 'lucide-react-native';
 import { useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { View } from 'react-native';
 import Animated, { FadeIn } from 'react-native-reanimated';
 
 import { SuccessModal } from '@/components/feedback/SuccessModal';
@@ -20,7 +20,8 @@ import { useMentor } from '@/data/hooks';
 import { askNotifications, notifyServer } from '@/features/notifications/push';
 import { useLocalDb } from '@/data/local-db';
 import { formatLong } from '@/lib/date';
-import { gradients, palette, radius, shadow } from '@/theme/tokens';
+import { makeStyles, useTheme } from '@/theme/scheme';
+import { radius } from '@/theme/tokens';
 import { rise } from '@/theme/motion';
 import { track } from '@/lib/analytics';
 
@@ -36,6 +37,8 @@ const at = (day: Date, time: string) => {
 
 /** Demande d'appel à un mentor : un sujet, un jour, une heure. Le mentor accepte ou décline selon son moment. */
 export default function Reserve() {
+  const { c, gradients } = useTheme();
+  const styles = useStyles();
   const { id } = useLocalSearchParams<{ id: string }>();
   const { data: m } = useMentor(id);
   const qc = useQueryClient();
@@ -87,11 +90,11 @@ export default function Reserve() {
         <Animated.View entering={rise()} style={styles.who}>
           <Avatar name={`${m.firstName} ${m.lastName}`} color={m.avatarColor} size={52} />
           <View style={{ flex: 1 }}>
-            <Text variant="smallStrong" color={palette.electric}>
+            <Text variant="smallStrong" color={c.electric}>
               Appel gratuit · 30 min
             </Text>
             <Text variant="h2">Avec {m.firstName}</Text>
-            <Text variant="small" color={palette.muted}>
+            <Text variant="small" color={c.muted}>
               {m.headline ? `${m.headline} · ` : ''}
               {m.city}
             </Text>
@@ -101,7 +104,7 @@ export default function Reserve() {
         {paused ? (
           <Animated.View entering={rise(60)} style={styles.note}>
             <Text variant="bodyStrong">{m.firstName} est en pause pour le moment</Text>
-            <Text variant="small" color={palette.subtle}>
+            <Text variant="small" color={c.subtle}>
               Les mentors sont des étudiants bénévoles. Un autre mentor peut sûrement t’aider dès maintenant.
             </Text>
             <Button label="Voir les autres mentors" variant="secondary" size="md" onPress={() => router.navigate('/(app)/(tabs)/explorer')} />
@@ -109,7 +112,7 @@ export default function Reserve() {
         ) : (
           <>
             <Animated.View entering={rise(60)} style={styles.note}>
-              <Text variant="small" color={palette.subtle}>
+              <Text variant="small" color={c.subtle}>
                 Propose un moment qui t’arrange. {m.firstName} accepte selon ses disponibilités, et tu vois sa réponse sur ton accueil.
               </Text>
             </Animated.View>
@@ -119,8 +122,8 @@ export default function Reserve() {
               <Input placeholder="Ex : mon rendez-vous de visa" value={topic} onChangeText={setTopic} maxLength={80} />
               <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
                 {m.specialties.map((sp) => (
-                  <PressableScale key={sp} haptic="select" onPress={() => setTopic(sp)} style={[styles.suggest, topic === sp && { backgroundColor: palette.electric }]}>
-                    <Text variant="smallStrong" color={topic === sp ? palette.white : palette.electric}>
+                  <PressableScale key={sp} haptic="select" onPress={() => setTopic(sp)} style={[styles.suggest, topic === sp && { backgroundColor: c.electric }]}>
+                    <Text variant="smallStrong" color={topic === sp ? c.white : c.electric}>
                       {sp}
                     </Text>
                   </PressableScale>
@@ -140,8 +143,8 @@ export default function Reserve() {
             {day ? (
               <Animated.View entering={FadeIn.duration(250)} style={styles.timesCard}>
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                  <Clock size={16} color={palette.electric} />
-                  <Text variant="h3" color={palette.electric}>
+                  <Clock size={16} color={c.electric} />
+                  <Text variant="h3" color={c.electric}>
                     À quelle heure, {formatLong(day)} ?
                   </Text>
                 </View>
@@ -155,9 +158,9 @@ export default function Reserve() {
                         disabled={off}
                         haptic="select"
                         onPress={() => setTime(t)}
-                        style={[styles.time, on && { backgroundColor: palette.electric, borderColor: palette.electric }, off && { opacity: 0.35 }]}
+                        style={[styles.time, on && { backgroundColor: c.electric, borderColor: c.electric }, off && { opacity: 0.35 }]}
                         accessibilityState={{ selected: on, disabled: off }}>
-                        <Text variant="bodyStrong" color={on ? palette.white : palette.navy}>
+                        <Text variant="bodyStrong" color={on ? c.white : c.navy}>
                           {t.replace(':', 'h')}
                         </Text>
                       </PressableScale>
@@ -184,11 +187,11 @@ export default function Reserve() {
   );
 }
 
-const styles = StyleSheet.create({
-  who: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 14, borderRadius: radius.xl, backgroundColor: palette.surface, ...shadow.sm },
-  note: { gap: 10, padding: 14, borderRadius: radius.lg, backgroundColor: palette.surface },
-  suggest: { paddingHorizontal: 12, paddingVertical: 7, borderRadius: 999, backgroundColor: palette.electricSoft },
-  timesCard: { gap: 14, padding: 16, borderRadius: radius.xl, backgroundColor: palette.surface, ...shadow.sm },
+const useStyles = makeStyles(({ c, shadow }) => ({
+  who: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 14, borderRadius: radius.xl, backgroundColor: c.surface, ...shadow.sm },
+  note: { gap: 10, padding: 14, borderRadius: radius.lg, backgroundColor: c.surface },
+  suggest: { paddingHorizontal: 12, paddingVertical: 7, borderRadius: 999, backgroundColor: c.electricSoft },
+  timesCard: { gap: 14, padding: 16, borderRadius: radius.xl, backgroundColor: c.surface, ...shadow.sm },
   times: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  time: { width: '23%', height: 44, borderRadius: radius.md, borderWidth: 1.5, borderColor: palette.line, backgroundColor: palette.surface, alignItems: 'center', justifyContent: 'center' },
-});
+  time: { width: '23%', height: 44, borderRadius: radius.md, borderWidth: 1.5, borderColor: c.line, backgroundColor: c.surface, alignItems: 'center', justifyContent: 'center' },
+}));

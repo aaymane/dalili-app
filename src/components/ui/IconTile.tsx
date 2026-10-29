@@ -3,7 +3,7 @@ import type { LucideIcon } from 'lucide-react-native';
 import type { ReactNode } from 'react';
 import { StyleSheet, View } from 'react-native';
 
-import { useTheme } from '@/theme/scheme';
+import { makeStyles, useTheme } from '@/theme/scheme';
 import { type Tone } from '@/theme/tokens';
 
 type Props = {
@@ -20,6 +20,7 @@ type Props = {
 
 /** Tuile d'icône : ton doux bicolore (par défaut), dégradé ou aplat. */
 export function IconTile({ icon: Icon, tone = 'blue', children, size = 44, colors, bg, radius }: Props) {
+  const styles = useStyles();
   const { tones } = useTheme();
   const r = radius ?? size * 0.32;
   const box = { width: size, height: size, borderRadius: r, alignItems: 'center', justifyContent: 'center' } as const;
@@ -39,7 +40,7 @@ export function IconTile({ icon: Icon, tone = 'blue', children, size = 44, color
   );
 }
 
-const styles = StyleSheet.create({
-  // Liseré clair en haut : la tuile a l'air posée, sans ombre.
-  edge: { borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(255,255,255,0.9)' },
-});
+const useStyles = makeStyles(({ scheme }) => ({
+  // Liseré clair : la tuile a l'air posée, sans ombre (discret en mode sombre).
+  edge: { borderWidth: StyleSheet.hairlineWidth, borderColor: scheme === 'dark' ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.9)' },
+}));

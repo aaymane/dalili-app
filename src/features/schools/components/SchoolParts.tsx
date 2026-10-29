@@ -12,7 +12,8 @@ import { Input } from '@/components/ui/Input';
 import { PressableScale } from '@/components/ui/PressableScale';
 import { Chip } from '@/components/ui/Tag';
 import { Text } from '@/components/ui/Text';
-import { palette, radius, shadow } from '@/theme/tokens';
+import { makeStyles, useTheme } from '@/theme/scheme';
+import { radius, lightPalette } from '@/theme/tokens';
 import { track } from '@/lib/analytics';
 
 import type { School } from '../api';
@@ -45,6 +46,8 @@ export function SchoolCover({
   cinematic?: boolean;
   children?: React.ReactNode;
 }) {
+  const { c } = useTheme();
+  const styles = useStyles();
   return (
     <View style={[styles.cover, { height }]}>
       {school.coverUrl && cinematic ? (
@@ -81,7 +84,7 @@ export function SchoolCover({
               {school.logoUrl ? (
                 <Image source={{ uri: school.logoUrl }} style={{ width: 44, height: 44 }} contentFit="contain" />
               ) : (
-                <Text variant="h1" color={palette.white}>
+                <Text variant="h1" color={c.white}>
                   {monogram(school.name)}
                 </Text>
               )}
@@ -102,10 +105,12 @@ export function SchoolCover({
 
 /** Le badge de confiance, partout où l'école apparaît. */
 export function PartnerBadge({ dark }: { dark?: boolean }) {
+  const { c } = useTheme();
+  const styles = useStyles();
   return (
     <View style={[styles.badge, dark && styles.badgeDark]}>
-      <BadgeCheck size={13} color={dark ? palette.white : palette.electric} />
-      <Text variant="caption" color={dark ? palette.white : palette.electric} style={{ letterSpacing: 0.4 }}>
+      <BadgeCheck size={13} color={dark ? c.white : c.electric} />
+      <Text variant="caption" color={dark ? c.white : c.electric} style={{ letterSpacing: 0.4 }}>
         École partenaire DALILI
       </Text>
     </View>
@@ -114,6 +119,8 @@ export function PartnerBadge({ dark }: { dark?: boolean }) {
 
 /** Dans Explorer : la carte d'une école partenaire. */
 export function SchoolCard({ school }: { school: School }) {
+  const { c } = useTheme();
+  const styles = useStyles();
   const levels = [...new Set(school.programs.map((p) => p.level))].sort();
   const alternance = school.programs.some((p) => /alternance/i.test(p.format));
   return (
@@ -133,7 +140,7 @@ export function SchoolCard({ school }: { school: School }) {
           <PartnerBadge dark />
         </View>
         <View style={styles.cardTitle}>
-          <Text variant="h2" color={palette.white}>
+          <Text variant="h2" color={c.white}>
             {school.name}
           </Text>
           {school.tagline ? (
@@ -144,12 +151,12 @@ export function SchoolCard({ school }: { school: School }) {
         </View>
       </SchoolCover>
       <View style={styles.cardInfo}>
-        <GraduationCap size={16} color={palette.electric} />
+        <GraduationCap size={16} color={c.electric} />
         <Text variant="smallStrong" style={{ flex: 1 }} numberOfLines={1}>
           {school.programs.length} formations · {levels.length > 1 ? `${levels[0]} à ${levels[levels.length - 1]}` : levels[0]}
           {alternance ? ' · Alternance' : ''}
         </Text>
-        <ChevronRight size={18} color={palette.muted} />
+        <ChevronRight size={18} color={c.muted} />
       </View>
     </PressableScale>
   );
@@ -172,6 +179,8 @@ export function InterestSheet({
   onClose: () => void;
   onSent: () => void;
 }) {
+  const { c } = useTheme();
+  const styles = useStyles();
   const send = useSendInterest();
   const [program, setProgram] = useState<string | null>(initialProgram ?? null);
   const [message, setMessage] = useState('');
@@ -208,12 +217,12 @@ export function InterestSheet({
       <View style={{ gap: 16 }}>
         <View style={{ gap: 4 }}>
           <Text variant="h2">{school.name} t’intéresse ?</Text>
-          <Text variant="small" color={palette.subtle}>
+          <Text variant="small" color={c.subtle}>
             Dis-nous ce qui t’attire. L’équipe DALILI te recontacte par email pour t’aider à y voir clair.
           </Text>
         </View>
         <View style={{ gap: 8 }}>
-          <Text variant="overline" color={palette.muted}>
+          <Text variant="overline" color={c.muted}>
             La formation qui t’attire
           </Text>
           <View style={styles.chips} accessibilityRole="radiogroup">
@@ -230,8 +239,8 @@ export function InterestSheet({
         </View>
         <Input multiline placeholder="Ta question (facultatif) : admission, alternance, logement…" value={message} onChangeText={setMessage} maxLength={500} />
         <View style={styles.privacy}>
-          <BadgeCheck size={16} color={palette.mentor} />
-          <Text variant="caption" color={palette.subtle} style={{ flex: 1 }}>
+          <BadgeCheck size={16} color={c.mentor} />
+          <Text variant="caption" color={c.subtle} style={{ flex: 1 }}>
             Ta demande reste chez DALILI. Rien n’est transmis à l’école sans ton accord, et tu peux la retirer quand tu veux.
           </Text>
         </View>
@@ -241,16 +250,16 @@ export function InterestSheet({
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles(({ c, shadow }) => ({
   cover: {
     overflow: 'hidden',
     justifyContent: 'flex-end',
-    backgroundColor: palette.navyDeep,
+    backgroundColor: c.navyDeep,
   },
   halo: {
     position: 'absolute',
     borderRadius: 999,
-    backgroundColor: '#fff',
+    backgroundColor: lightPalette.white,
     opacity: 0.1,
   },
   monogram: {
@@ -274,7 +283,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 5,
     borderRadius: radius.pill,
-    backgroundColor: palette.electricSoft,
+    backgroundColor: c.electricSoft,
   },
   badgeDark: {
     backgroundColor: 'rgba(255,255,255,0.16)',
@@ -283,7 +292,7 @@ const styles = StyleSheet.create({
   },
   card: {
     borderRadius: radius.xxl,
-    backgroundColor: palette.white,
+    backgroundColor: c.card,
     overflow: 'hidden',
     ...shadow.md,
   },
@@ -303,6 +312,6 @@ const styles = StyleSheet.create({
     gap: 10,
     padding: 12,
     borderRadius: radius.lg,
-    backgroundColor: palette.mentorSoft,
+    backgroundColor: c.mentorSoft,
   },
-});
+}));

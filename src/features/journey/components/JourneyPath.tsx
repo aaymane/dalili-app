@@ -23,7 +23,7 @@ import { Text } from '@/components/ui/Text';
 import { useProfile } from '@/features/profile/store';
 import { haptics } from '@/lib/haptics';
 import { EASE_IN_OUT, EASE_OUT } from '@/theme/motion';
-import { palette } from '@/theme/tokens';
+import { makeStyles, useTheme } from '@/theme/scheme';
 
 import { buildMilestones, pathGeometry, type Milestone, type PathGeometry } from '../path';
 import { useTicket } from '../ticket';
@@ -45,6 +45,7 @@ const TICKET_H = 156;
  * Au bout, le billet, verrouillé tant que le visa n'est pas validé.
  */
 export function JourneyPath() {
+  const { c } = useTheme();
   const profile = useProfile((s) => s.profile);
   const j = useJourney();
   const milestones = useMemo(() => buildMilestones(profile, j.all), [profile, j.all]);
@@ -123,7 +124,7 @@ export function JourneyPath() {
                 <DashPathEffect intervals={[2, 9]} />
               </Path>
               <Path path={skPath} style="stroke" strokeWidth={5} strokeCap="round" start={0} end={traveled}>
-                <LinearGradient start={vec(0, 0)} end={vec(0, geo.height)} colors={[palette.electricLight, palette.electric]} />
+                <LinearGradient start={vec(0, 0)} end={vec(0, geo.height)} colors={[c.electricLight, c.electric]} />
               </Path>
             </Canvas>
           </View>
@@ -154,6 +155,8 @@ function Node({
   left: boolean;
   width: number;
 }) {
+  const { c } = useTheme();
+  const styles = useStyles();
   const style = useAnimatedStyle(() => {
     const on = reveal.get() >= at - 0.01;
     const timing = { duration: 360, easing: EASE_OUT };
@@ -178,17 +181,17 @@ function Node({
             style={[
               styles.dot,
               { width: size, height: size, borderRadius: size / 2 },
-              done && { backgroundColor: palette.electric },
-              current && { backgroundColor: '#fff', borderWidth: 3, borderColor: palette.electric },
-              m.status === 'todo' && { backgroundColor: '#fff', borderWidth: 1.5, borderStyle: 'dashed', borderColor: '#B7C0DA' },
-              m.icon === 'start' && { backgroundColor: palette.navy },
+              done && { backgroundColor: c.electric },
+              current && { backgroundColor: c.card, borderWidth: 3, borderColor: c.electric },
+              m.status === 'todo' && { backgroundColor: c.card, borderWidth: 1.5, borderStyle: 'dashed', borderColor: '#B7C0DA' },
+              m.icon === 'start' && { backgroundColor: c.navy },
             ]}>
             {m.icon === 'start' ? (
               <MapPin size={18} color="#fff" />
             ) : done ? (
               <Check size={18} color="#fff" strokeWidth={3} />
             ) : (
-              <StepIcon name={m.icon} size={18} color={current ? palette.electric : palette.muted} />
+              <StepIcon name={m.icon} size={18} color={current ? c.electric : c.muted} />
             )}
           </View>
         </View>
@@ -200,10 +203,10 @@ function Node({
               </Text>
             </View>
           ) : null}
-          <Text variant="bodyStrong" color={m.status === 'todo' ? palette.subtle : palette.navy} align={left ? 'left' : 'right'} numberOfLines={2}>
+          <Text variant="bodyStrong" color={m.status === 'todo' ? c.subtle : c.navy} align={left ? 'left' : 'right'} numberOfLines={2}>
             {m.title}
           </Text>
-          <Text variant="caption" color={done && m.icon !== 'start' ? palette.success : palette.muted} align={left ? 'left' : 'right'}>
+          <Text variant="caption" color={done && m.icon !== 'start' ? c.success : c.muted} align={left ? 'left' : 'right'}>
             {m.detail}
           </Text>
         </View>
@@ -214,6 +217,8 @@ function Node({
 
 /** L'avion suit la tangente du sentier, posé sur la part déjà parcourue. */
 function FlyingPlane({ geo, traveled }: { geo: PathGeometry; traveled: SharedValue<number> }) {
+  const { c } = useTheme();
+  const styles = useStyles();
   const { lut } = geo;
   const style = useAnimatedStyle(() => {
     const f = Math.min(1, Math.max(0, traveled.get())) * (lut.length - 1);
@@ -230,18 +235,18 @@ function FlyingPlane({ geo, traveled }: { geo: PathGeometry; traveled: SharedVal
     <Animated.View pointerEvents="none" style={[styles.plane, style]}>
       <View style={styles.planeGlow} />
       <Svg width={PLANE} height={PLANE} viewBox="0 0 24 24">
-        <SvgPath d={PLANE_PATH} fill={palette.electric} />
+        <SvgPath d={PLANE_PATH} fill={c.electric} />
       </Svg>
     </Animated.View>
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles(({ c }) => ({
   node: { position: 'absolute' },
   row: { alignItems: 'center', gap: 12 },
   dot: { alignItems: 'center', justifyContent: 'center' },
-  halo: { position: 'absolute', width: NODE + 26, height: NODE + 26, borderRadius: (NODE + 26) / 2, backgroundColor: palette.electricSoft },
-  here: { backgroundColor: palette.electric, paddingHorizontal: 8, paddingVertical: 2, borderRadius: 999, marginBottom: 2 },
+  halo: { position: 'absolute', width: NODE + 26, height: NODE + 26, borderRadius: (NODE + 26) / 2, backgroundColor: c.electricSoft },
+  here: { backgroundColor: c.electric, paddingHorizontal: 8, paddingVertical: 2, borderRadius: 999, marginBottom: 2 },
   plane: { position: 'absolute', left: 0, top: 0, width: PLANE, height: PLANE },
   planeGlow: {
     position: 'absolute',
@@ -252,4 +257,4 @@ const styles = StyleSheet.create({
     borderRadius: PLANE,
     backgroundColor: 'rgba(1,77,248,0.18)',
   },
-});
+}));

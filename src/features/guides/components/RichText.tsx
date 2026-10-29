@@ -5,7 +5,8 @@ import { Text as RNText } from 'react-native';
 
 import { Text } from '@/components/ui/Text';
 import { haptics } from '@/lib/haptics';
-import { palette, type TypeVariant } from '@/theme/tokens';
+import { useTheme } from '@/theme/scheme';
+import { type TypeVariant } from '@/theme/tokens';
 
 import { openTerm } from './GlossarySheet';
 
@@ -24,7 +25,9 @@ export function openLink(url: string) {
  * - `[[CAF]]` devient un mot cliquable qui ouvre sa définition (le « mur du vocabulaire ») ;
  * - `**gras**` et `[libellé](url)` viennent des guides du site.
  */
-export function RichText({ text, variant = 'body', color = palette.navy }: { text: string; variant?: TypeVariant; color?: string }) {
+export function RichText({ text, variant = 'body', color }: { text: string; variant?: TypeVariant; color?: string }) {
+  const { c } = useTheme();
+  color ??= c.navy;
   const parts = text.split(TOKEN);
   return (
     <Text variant={variant} color={color}>
@@ -40,7 +43,7 @@ export function RichText({ text, variant = 'body', color = palette.navy }: { tex
               }}
               accessibilityRole="link"
               accessibilityHint="Ouvre la définition"
-              style={{ color: palette.electric, textDecorationLine: 'underline', textDecorationStyle: 'dotted', fontFamily: 'OpenSans_600SemiBold' }}>
+              style={{ color: c.electric, textDecorationLine: 'underline', textDecorationStyle: 'dotted', fontFamily: 'OpenSans_600SemiBold' }}>
               {term[1]}
             </RNText>
           );
@@ -58,7 +61,7 @@ export function RichText({ text, variant = 'body', color = palette.navy }: { tex
               key={i}
               onPress={() => openLink(link[2])}
               accessibilityRole="link"
-              style={{ color: palette.electric, textDecorationLine: 'underline', fontFamily: 'OpenSans_600SemiBold' }}>
+              style={{ color: c.electric, textDecorationLine: 'underline', fontFamily: 'OpenSans_600SemiBold' }}>
               {link[1]}
             </RNText>
           );

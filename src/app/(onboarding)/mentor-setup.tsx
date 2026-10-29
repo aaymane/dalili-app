@@ -1,7 +1,7 @@
 import { router } from 'expo-router';
 import { ArrowRight, ChevronRight, GraduationCap, Home, LifeBuoy } from 'lucide-react-native';
 import { useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { View } from 'react-native';
 import Animated from 'react-native-reanimated';
 
 import { Screen } from '@/components/layout/Screen';
@@ -13,11 +13,14 @@ import { Tag } from '@/components/ui/Tag';
 import { Text } from '@/components/ui/Text';
 import { CityPicker } from '@/features/profile/components/CityPicker';
 import { useProfile } from '@/features/profile/store';
-import { gradients, palette, radius, shadow } from '@/theme/tokens';
+import { makeStyles, useTheme } from '@/theme/scheme';
+import { radius } from '@/theme/tokens';
 import { leave, rise } from '@/theme/motion';
 
 /** Parcours « Je vis déjà en France » : ville → comment aider (Mentor / Hôte / j'ai besoin d'aide). */
 export default function MentorSetup() {
+  const { c, gradients } = useTheme();
+  const styles = useStyles();
   const profile = useProfile((s) => s.profile);
   const update = useProfile((s) => s.update);
   const [i, setI] = useState(0);
@@ -35,7 +38,7 @@ export default function MentorSetup() {
           subtitle={i === 0 ? 'On te connecte aux étudiants qui arrivent près de chez toi.' : 'Tu pourras faire les deux plus tard, depuis ton profil.'}
           step={i}
           total={3}
-          accent={palette.mentor}
+          accent={c.mentor}
           onBack={() => (i ? setI(0) : router.back())}
         />
       }
@@ -53,13 +56,13 @@ export default function MentorSetup() {
                   // La charte d'abord : c'est elle qui envoie la fiche à l'équipe.
                   router.push('/(onboarding)/charte');
                 }}
-                style={[styles.choice, { backgroundColor: '#E8EEFF' }]}>
+                style={[styles.choice, { backgroundColor: c.electricSoft }]}>
                 <IconTile icon={GraduationCap} tone="blue" size={56} radius={18} />
                 <View style={{ flex: 1, gap: 4 }}>
-                  <Text variant="h3" color={palette.electric}>
+                  <Text variant="h3" color={c.electric}>
                     Devenir Mentor
                   </Text>
-                  <Text variant="small" color={palette.subtle}>
+                  <Text variant="small" color={c.subtle}>
                     Guide les étudiants : démarches, conseils, ton expérience
                   </Text>
                   <View style={{ flexDirection: 'row', gap: 6, marginTop: 4 }}>
@@ -68,17 +71,17 @@ export default function MentorSetup() {
                     <Tag label="CV" />
                   </View>
                 </View>
-                <ChevronRight size={18} color={palette.electric} />
+                <ChevronRight size={18} color={c.electric} />
               </PressableScale>
             </Animated.View>
             <Animated.View entering={rise(160)}>
-              <View style={[styles.choice, { backgroundColor: palette.hostSoft, opacity: 0.85 }]}>
+              <View style={[styles.choice, { backgroundColor: c.hostSoft, opacity: 0.85 }]}>
                 <IconTile icon={Home} tone="orange" size={56} radius={18} />
                 <View style={{ flex: 1, gap: 4 }}>
-                  <Text variant="h3" color={palette.host}>
+                  <Text variant="h3" color={c.host}>
                     Devenir Hôte
                   </Text>
-                  <Text variant="small" color={palette.subtle}>
+                  <Text variant="small" color={c.subtle}>
                     Cette fonctionnalité arrive bientôt
                   </Text>
                   <View style={{ flexDirection: 'row', gap: 6, marginTop: 4 }}>
@@ -95,11 +98,11 @@ export default function MentorSetup() {
                   router.push('/(onboarding)/student-setup');
                 }}
                 style={styles.help}>
-                <LifeBuoy size={18} color={palette.electric} />
-                <Text variant="smallStrong" color={palette.electric} style={{ flex: 1 }}>
+                <LifeBuoy size={18} color={c.electric} />
+                <Text variant="smallStrong" color={c.electric} style={{ flex: 1 }}>
                   En fait, je viens d’arriver et j’ai besoin d’aide
                 </Text>
-                <ChevronRight size={16} color={palette.electric} />
+                <ChevronRight size={16} color={c.electric} />
               </PressableScale>
             </Animated.View>
           </>
@@ -109,7 +112,7 @@ export default function MentorSetup() {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles(({ shadow, c }) => ({
   choice: { flexDirection: 'row', alignItems: 'center', gap: 14, padding: 16, borderRadius: radius.xl, ...shadow.sm },
-  help: { flexDirection: 'row', alignItems: 'center', gap: 10, padding: 14, borderRadius: radius.lg, borderWidth: 1.5, borderColor: '#D6E0FF', borderStyle: 'dashed' },
-});
+  help: { flexDirection: 'row', alignItems: 'center', gap: 10, padding: 14, borderRadius: radius.lg, borderWidth: 1.5, borderColor: c.electricSoft, borderStyle: 'dashed' },
+}));

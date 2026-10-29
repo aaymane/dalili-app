@@ -9,7 +9,7 @@ import { Text } from '@/components/ui/Text';
 import { useProfile } from '@/features/profile/store';
 import { haptics } from '@/lib/haptics';
 import { pop } from '@/theme/motion';
-import { palette } from '@/theme/tokens';
+import { useTheme } from '@/theme/scheme';
 
 import { CallAvatar, CallBackdrop, CallControls, CallTop, duration } from './CallParts';
 
@@ -18,6 +18,7 @@ import { CallAvatar, CallBackdrop, CallControls, CallTop, duration } from './Cal
  * L'appel « décroche » au bout de 2 secondes pour montrer l'écran tel qu'il sera.
  */
 export function CallPreview({ name, color, topic, note, onFlag }: { name: string; color?: string; topic?: string; note: string; onFlag?: () => void }) {
+  const { c } = useTheme();
   const insets = useSafeAreaInsets();
   const profile = useProfile((s) => s.profile);
   const [mic, setMic] = useState(true);
@@ -44,7 +45,7 @@ export function CallPreview({ name, color, topic, note, onFlag }: { name: string
       <CallTop name={name} color={color} status={connected ? duration(secs) : 'Connexion…'} onFlag={onFlag} />
       <View style={styles.center}>
         <CallAvatar name={name} color={color} waiting={!connected} />
-        <Text variant="h1" color={palette.white} style={{ marginTop: 18 }}>
+        <Text variant="h1" color={c.white} style={{ marginTop: 18 }}>
           {connected ? `En appel avec ${name}` : `On appelle ${name}…`}
         </Text>
         <Text variant="small" color="rgba(255,255,255,0.6)">
@@ -54,7 +55,7 @@ export function CallPreview({ name, color, topic, note, onFlag }: { name: string
       {cam ? (
         <Animated.View entering={pop()} style={[styles.self, { top: insets.top + 70 }]}>
           <Avatar name={`${profile.firstName} ${profile.lastName}`} uri={profile.avatarUri} size={70} />
-          <Text variant="caption" color={palette.white} style={{ marginTop: 6 }}>
+          <Text variant="caption" color={c.white} style={{ marginTop: 6 }}>
             {profile.firstName || 'Toi'}
           </Text>
         </Animated.View>

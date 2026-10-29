@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/Button';
 import { IconTile } from '@/components/ui/IconTile';
 import { Text } from '@/components/ui/Text';
 import { useStep } from '@/features/journey/steps';
-import { palette } from '@/theme/tokens';
+import { useTheme } from '@/theme/scheme';
 
 import { findTerm, useGlossary } from '../glossary';
 
@@ -22,6 +22,7 @@ export const openTerm = (t: string) => useGlossarySheet.getState().open(t);
 
 /** Définition d'un terme du lexique, accessible depuis n'importe quel texte. */
 export function GlossarySheetHost() {
+  const { c } = useTheme();
   const { term, close } = useGlossarySheet();
   const glossary = useGlossary();
   const t = term ? findTerm(glossary, term) : null;
@@ -35,22 +36,22 @@ export function GlossarySheetHost() {
             <View style={{ flex: 1 }}>
               <Text variant="h1">{t.term}</Text>
               {t.full ? (
-                <Text variant="small" color={palette.muted}>
+                <Text variant="small" color={c.muted}>
                   {t.full}
                 </Text>
               ) : null}
             </View>
           </View>
-          <View style={{ backgroundColor: palette.electricSoft, borderRadius: 18, padding: 16 }}>
-            <Text variant="overline" color={palette.electric} style={{ marginBottom: 6 }}>
+          <View style={{ backgroundColor: c.electricSoft, borderRadius: 18, padding: 16 }}>
+            <Text variant="overline" color={c.electric} style={{ marginBottom: 6 }}>
               En une phrase
             </Text>
             <Text variant="body">{t.simple}</Text>
           </View>
           {t.example ? (
             <View style={{ flexDirection: 'row', gap: 10, alignItems: 'flex-start' }}>
-              <Lightbulb size={18} color={palette.warning} style={{ marginTop: 2 }} />
-              <Text variant="body" color={palette.subtle} style={{ flex: 1 }}>
+              <Lightbulb size={18} color={c.warning} style={{ marginTop: 2 }} />
+              <Text variant="body" color={c.subtle} style={{ flex: 1 }}>
                 {t.example}
               </Text>
             </View>

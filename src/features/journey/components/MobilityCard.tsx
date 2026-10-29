@@ -1,7 +1,7 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { ArrowRight, Pencil } from 'lucide-react-native';
-import { StyleSheet, View } from 'react-native';
+import { View } from 'react-native';
 
 import { StarField } from '@/components/brand/StarField';
 import { PressableScale } from '@/components/ui/PressableScale';
@@ -9,13 +9,16 @@ import { ProgressRing } from '@/components/ui/ProgressRing';
 import { Text } from '@/components/ui/Text';
 import { useProfile } from '@/features/profile/store';
 import { formatDayMonth, relativeDays } from '@/lib/date';
-import { gradients, radius, shadow } from '@/theme/tokens';
+import { makeStyles, useTheme } from '@/theme/scheme';
+import { radius } from '@/theme/tokens';
 
 import { useJourney } from '../store';
 import { RouteArc } from './RouteArc';
 
 /** Carte sombre « TA MOBILITÉ » : trajet, progression, compte à rebours. */
 export function MobilityCard({ onEditArrival, compact }: { onEditArrival?: () => void; compact?: boolean }) {
+  const { gradients } = useTheme();
+  const styles = useStyles();
   const profile = useProfile((s) => s.profile);
   const j = useJourney();
   const pct = Math.round(j.progress * 100);
@@ -71,7 +74,7 @@ export function MobilityCard({ onEditArrival, compact }: { onEditArrival?: () =>
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles(({ shadow }) => ({
   card: { borderRadius: radius.xxl, padding: 18, overflow: 'hidden', ...shadow.md },
   glow: { position: 'absolute', right: -60, top: -60, width: 220, height: 220, borderRadius: 110, opacity: 0.6 },
   cities: { flexDirection: 'row', justifyContent: 'space-between', gap: 12, marginTop: 2 },
@@ -79,5 +82,5 @@ const styles = StyleSheet.create({
   progressRow: { flexDirection: 'row', alignItems: 'center', gap: 14, marginTop: 14 },
   divider: { height: 1, backgroundColor: 'rgba(255,255,255,0.1)', marginVertical: 14 },
   edit: { width: 34, height: 34, borderRadius: 17, backgroundColor: 'rgba(255,255,255,0.1)', alignItems: 'center', justifyContent: 'center' },
-});
+}));
 

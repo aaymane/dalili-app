@@ -1,6 +1,6 @@
 import { Check, Info, TriangleAlert } from 'lucide-react-native';
 import { useMemo, useState } from 'react';
-import { ScrollView, StyleSheet, View } from 'react-native';
+import { ScrollView, View } from 'react-native';
 import Animated, { FadeIn, useAnimatedStyle, withSpring } from 'react-native-reanimated';
 
 import { AppHeader } from '@/components/layout/AppHeader';
@@ -13,15 +13,18 @@ import { computeBudget, type BudgetHousing, type BudgetSituation } from '@/data/
 import { useContent } from '@/data/hooks';
 import { openLink } from '@/features/guides/components/RichText';
 import { useProfile } from '@/features/profile/store';
-import { gradients, motion, palette, radius, shadow } from '@/theme/tokens';
+import { makeStyles, useTheme } from '@/theme/scheme';
+import { motion, radius } from '@/theme/tokens';
 
 function Bar({ label, value, max, color }: { label: string; value: number; max: number; color: string }) {
+  const { c } = useTheme();
+  const styles = useStyles();
   const s = useAnimatedStyle(() => ({ width: withSpring(`${Math.max(4, (Math.abs(value) / max) * 100)}%`, motion.springSoft) }));
   return (
     <View style={{ gap: 6 }}>
       <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
         <Text variant="smallStrong">{label}</Text>
-        <Text variant="smallStrong" color={value < 0 ? palette.success : palette.navy}>
+        <Text variant="smallStrong" color={value < 0 ? c.success : c.navy}>
           {value < 0 ? '−' : ''}
           {Math.abs(value)} €
         </Text>
@@ -46,6 +49,8 @@ const SITUATIONS: { value: BudgetSituation; label: string }[] = [
  * L'APL n'est comptée que si ta situation y ouvre droit (réforme du 1er juillet 2026).
  */
 export default function Budget() {
+  const { c, gradients } = useTheme();
+  const styles = useStyles();
   const profile = useProfile((s) => s.profile);
   const { data: tools } = useContent('tools');
   const { data: figures } = useContent('figures');
@@ -70,7 +75,7 @@ export default function Budget() {
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginHorizontal: -20 }} contentContainerStyle={{ gap: 8, paddingHorizontal: 20 }}>
           {t.cities.map((x) => (
             <PressableScale key={x.slug} haptic="select" onPress={() => setCity(x.slug)}>
-              <Chip label={x.name} active={city === x.slug} color={palette.success} />
+              <Chip label={x.name} active={city === x.slug} color={c.success} />
             </PressableScale>
           ))}
         </ScrollView>
@@ -90,7 +95,7 @@ export default function Budget() {
           <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
             {SITUATIONS.map((s) => (
               <PressableScale key={s.value} haptic="select" onPress={() => setSituation(s.value)}>
-                <Chip label={s.label} active={situation === s.value} color={palette.success} />
+                <Chip label={s.label} active={situation === s.value} color={c.success} />
               </PressableScale>
             ))}
           </View>
@@ -117,9 +122,9 @@ export default function Budget() {
           {b.aplEligible ? <Bar label="APL (estimation)" value={-b.aplMid} max={max} color="#16A34A" /> : null}
         </View>
 
-        <View style={[styles.note, { backgroundColor: b.aplEligible ? palette.successSoft : palette.warningSoft }]}>
-          {b.aplEligible ? <Check size={18} color={palette.success} /> : <TriangleAlert size={18} color={palette.warningInk} />}
-          <Text variant="small" style={{ flex: 1 }} color={b.aplEligible ? palette.navy : palette.warningInk}>
+        <View style={[styles.note, { backgroundColor: b.aplEligible ? c.successSoft : c.warningSoft }]}>
+          {b.aplEligible ? <Check size={18} color={c.success} /> : <TriangleAlert size={18} color={c.warningInk} />}
+          <Text variant="small" style={{ flex: 1 }} color={b.aplEligible ? c.navy : c.warningInk}>
             {b.aplEligible
               ? `Ta situation peut t’ouvrir l’APL : environ ${b.aplMin} à ${b.aplMax} € par mois. Le montant réel se calcule sur caf.fr.`
               : 'Depuis le 1er juillet 2026, ta situation n’ouvre plus droit à l’APL. Ce budget n’en compte donc aucune.'}
@@ -127,12 +132,12 @@ export default function Budget() {
         </View>
 
         {resources ? (
-          <View style={[styles.note, { backgroundColor: palette.electricSoft }]}>
-            <Info size={18} color={palette.electric} />
+          <View style={[styles.note, { backgroundColor: c.electricSoft }]}>
+            <Info size={18} color={c.electric} />
             <Text variant="small" style={{ flex: 1 }}>
               Pour le visa, tu dois prouver <Text variant="smallStrong">{resources.display}</Text>. Ici, prévois plutôt{' '}
               <Text variant="smallStrong">≈ {Math.max(Math.round(resourcesValue), b.gross)} €</Text> pour vivre sereinement.{' '}
-              <Text variant="caption" color={palette.electric} onPress={() => openLink(resources.current.source)} accessibilityRole="link">
+              <Text variant="caption" color={c.electric} onPress={() => openLink(resources.current.source)} accessibilityRole="link">
                 Source : {resources.current.sourceLabel}
               </Text>
             </Text>
@@ -140,8 +145,8 @@ export default function Budget() {
         ) : null}
 
         <View style={styles.note}>
-          <Info size={16} color={palette.muted} />
-          <Text variant="caption" color={palette.muted} style={{ flex: 1 }}>
+          <Info size={16} color={c.muted} />
+          <Text variant="caption" color={c.muted} style={{ flex: 1 }}>
             Même calcul que le simulateur de dalili.study. Frais d’inscription en plus : ≈ {b.tuitionAnnual} € par an + CVEC ≈ {b.cvec} €.
           </Text>
         </View>
@@ -150,10 +155,10 @@ export default function Budget() {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles(({ c, shadow }) => ({
   total: { gap: 6, padding: 20, borderRadius: radius.xxl, backgroundColor: '#0F3B2E', ...shadow.md },
-  card: { gap: 14, padding: 18, borderRadius: radius.xl, backgroundColor: palette.surface, ...shadow.sm },
-  track: { height: 8, borderRadius: 4, backgroundColor: '#EEF1F7', overflow: 'hidden' },
+  card: { gap: 14, padding: 18, borderRadius: radius.xl, backgroundColor: c.surface, ...shadow.sm },
+  track: { height: 8, borderRadius: 4, backgroundColor: c.fill, overflow: 'hidden' },
   fill: { height: 8, borderRadius: 4 },
   note: { flexDirection: 'row', gap: 10, alignItems: 'center', padding: 14, borderRadius: radius.lg },
-});
+}));

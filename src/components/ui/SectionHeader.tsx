@@ -1,20 +1,22 @@
 import { ArrowRight } from 'lucide-react-native';
 import { View } from 'react-native';
 
-import { palette } from '@/theme/tokens';
+import { useTheme } from '@/theme/scheme';
 
 import { PressableScale } from './PressableScale';
 import { Text } from './Text';
 
 type Props = { title: string; subtitle?: string; action?: string; onAction?: () => void; right?: string; accent?: string };
 
-export function SectionHeader({ title, subtitle, action, onAction, right, accent = palette.electric }: Props) {
+export function SectionHeader({ title, subtitle, action, onAction, right, accent }: Props) {
+  const { c } = useTheme();
+  accent ??= c.electric;
   return (
     <View style={{ flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: 12 }}>
       <View style={{ flex: 1 }}>
         <Text variant="h2">{title}</Text>
         {subtitle ? (
-          <Text variant="small" color={palette.muted}>
+          <Text variant="small" color={c.muted}>
             {subtitle}
           </Text>
         ) : null}
@@ -27,7 +29,7 @@ export function SectionHeader({ title, subtitle, action, onAction, right, accent
           <ArrowRight size={14} color={accent} />
         </PressableScale>
       ) : right ? (
-        <Text variant="smallStrong" color={palette.muted}>
+        <Text variant="smallStrong" color={c.muted}>
           {right}
         </Text>
       ) : null}

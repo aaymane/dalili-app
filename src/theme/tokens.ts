@@ -282,6 +282,10 @@ export const gradients = {
   sky: ['#9DB6FF', '#E3EAFF', '#FFFFFF'] as const,
   mint: ['#A5EBC8', '#E6F8EF', '#FFFFFF'] as const,
   lilac: ['#CDB6FF', '#EFE8FF', '#FFFFFF'] as const,
+  /** Hauts d'écran thématiques : Dalili IA (lavande), lexique (lilas), urgences (rose). */
+  aiTop: ['#C9C2FF', '#ECEAFF', '#F5F7FD'] as const,
+  lilacTop: ['#CDB6FF', '#EFE8FF', '#F5F7FD'] as const,
+  sosTop: ['#FFC9D2', '#FFE9ED', '#F5F7FD'] as const,
   /** Haut d'écran par rôle. */
   roleTop: {
     student: ['#9FB5FF', '#D9E2FF', '#F5F7FD'],
@@ -298,6 +302,9 @@ export const darkGradients = {
   sky: ['#16224F', '#0D1431', '#070B18'] as const,
   mint: ['#0F3326', '#0A1A16', '#070B18'] as const,
   lilac: ['#2A2054', '#141130', '#070B18'] as const,
+  aiTop: ['#221E52', '#120F31', '#070B18'] as const,
+  lilacTop: ['#2A2054', '#141130', '#070B18'] as const,
+  sosTop: ['#3B1622', '#1C0D14', '#070B18'] as const,
   roleTop: {
     student: ['#15214F', '#0C1331', '#070B18'],
     mentor: ['#0F3326', '#0A1A16', '#070B18'],

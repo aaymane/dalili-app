@@ -1,6 +1,6 @@
 import { Search } from 'lucide-react-native';
 import { useMemo, useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { View } from 'react-native';
 import Animated from 'react-native-reanimated';
 
 import { AppHeader } from '@/components/layout/AppHeader';
@@ -10,11 +10,14 @@ import { PressableScale } from '@/components/ui/PressableScale';
 import { Text } from '@/components/ui/Text';
 import { openTerm } from '@/features/guides/components/GlossarySheet';
 import { useGlossary } from '@/features/guides/glossary';
-import { palette, radius, shadow } from '@/theme/tokens';
+import { makeStyles, useTheme } from '@/theme/scheme';
+import { radius } from '@/theme/tokens';
 import { reflow, rise } from '@/theme/motion';
 
 /** Lexique A→Z des démarches françaises, en mots simples. */
 export default function Lexique() {
+  const { c, gradients } = useTheme();
+  const styles = useStyles();
   const [q, setQ] = useState('');
   const glossary = useGlossary();
   const list = useMemo(() => {
@@ -25,17 +28,17 @@ export default function Lexique() {
   }, [q, glossary]);
   const letters = [...new Set(list.map((g) => g.term[0].toUpperCase()))];
   return (
-    <Screen top={['#CDB6FF', '#EFE8FF', '#F5F7FD']} padded={false} header={<AppHeader back />}>
+    <Screen top={gradients.lilacTop} padded={false} header={<AppHeader back />}>
       <View style={{ paddingHorizontal: 20, gap: 14 }}>
         <Text variant="hero">Le lexique{'\n'}anti-jargon</Text>
-        <Text variant="body" color={palette.subtle}>
+        <Text variant="body" color={c.subtle}>
           {glossary.length} mots de l’administration française, expliqués comme par un ami.
         </Text>
-        <Input icon={<Search size={16} color={palette.electric} />} placeholder="CAF, VLS-TS, caution…" value={q} onChangeText={setQ} autoCapitalize="none" />
+        <Input icon={<Search size={16} color={c.electric} />} placeholder="CAF, VLS-TS, caution…" value={q} onChangeText={setQ} autoCapitalize="none" />
         <Animated.View layout={reflow} style={{ gap: 18 }}>
           {letters.map((l) => (
             <View key={l} style={{ gap: 8 }}>
-              <Text variant="h2" color={palette.aiIndigo}>
+              <Text variant="h2" color={c.aiIndigo}>
                 {l}
               </Text>
               {list
@@ -47,13 +50,13 @@ export default function Lexique() {
                         <Text variant="bodyStrong">
                           {g.term}
                           {g.full ? (
-                            <Text variant="small" color={palette.muted}>
+                            <Text variant="small" color={c.muted}>
                               {'  '}
                               {g.full}
                             </Text>
                           ) : null}
                         </Text>
-                        <Text variant="small" color={palette.subtle} numberOfLines={2}>
+                        <Text variant="small" color={c.subtle} numberOfLines={2}>
                           {g.simple}
                         </Text>
                       </View>
@@ -68,6 +71,6 @@ export default function Lexique() {
   );
 }
 
-const styles = StyleSheet.create({
-  row: { padding: 14, borderRadius: radius.lg, backgroundColor: '#fff', ...shadow.sm },
-});
+const useStyles = makeStyles(({ c, shadow }) => ({
+  row: { padding: 14, borderRadius: radius.lg, backgroundColor: c.card, ...shadow.sm },
+}));

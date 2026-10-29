@@ -11,7 +11,7 @@ import { NightBackground } from '@/components/layout/NightBackground';
 import { PressableScale } from '@/components/ui/PressableScale';
 import { Text } from '@/components/ui/Text';
 import { useProfile } from '@/features/profile/store';
-import { palette } from '@/theme/tokens';
+import { useTheme } from '@/theme/scheme';
 import { rise } from '@/theme/motion';
 
 function SituationCard({ title, text, badge, colors, icon, onPress, delay }: { title: string; text: string; badge: string; colors: [string, string]; icon: ReactNode; onPress: () => void; delay: number }) {
@@ -43,6 +43,7 @@ function SituationCard({ title, text, badge, colors, icon, onPress, delay }: { t
 
 /** « Où vis-tu en ce moment ? » — aiguille vers le parcours Étudiant ou Mentor/Hôte. */
 export default function Situation() {
+  const { c } = useTheme();
   const insets = useSafeAreaInsets();
   const update = useProfile((s) => s.update);
   return (
@@ -81,7 +82,7 @@ export default function Situation() {
           title="Je vis déjà en France"
           text="Je peux aider les nouveaux arrivants"
           badge="MENTOR · HÔTE"
-          colors={['#34D399', palette.mentor]}
+          colors={['#34D399', c.mentor]}
           icon={<Home size={26} color="#fff" />}
           delay={340}
           onPress={() => {

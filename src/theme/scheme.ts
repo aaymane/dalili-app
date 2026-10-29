@@ -16,7 +16,7 @@ import { persistStorage } from '@/lib/storage';
 import { darkGradients, darkPalette, darkShadow, darkTones, gradients, lightPalette, lightTones, shadow, type Palette, type ShadowSet, type ToneSet } from './tokens';
 
 /** Passe à `true` quand tous les écrans lisent leurs couleurs dans le thème vivant. */
-export const DARK_MODE_READY = false;
+export const DARK_MODE_READY = true;
 
 export type Scheme = 'light' | 'dark';
 export type Preference = 'system' | Scheme;

@@ -1,6 +1,6 @@
 import { UserRound } from 'lucide-react-native';
 import { useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { View } from 'react-native';
 import Animated from 'react-native-reanimated';
 
 import { toast } from '@/components/feedback/Toast';
@@ -11,7 +11,8 @@ import { Text } from '@/components/ui/Text';
 import { setMyMentorName } from '@/features/mentors/api';
 import { haptics } from '@/lib/haptics';
 import { rise } from '@/theme/motion';
-import { palette, radius, shadow } from '@/theme/tokens';
+import { makeStyles, useTheme } from '@/theme/scheme';
+import { radius } from '@/theme/tokens';
 
 import { useProfile } from '../store';
 
@@ -20,6 +21,8 @@ import { useProfile } from '../store';
  * Il part en ligne avec le profil, et sur la fiche mentor si tu en as une.
  */
 export function NameCard() {
+  const { c } = useTheme();
+  const styles = useStyles();
   const update = useProfile((s) => s.update);
   const isMentor = useProfile((s) => s.profile.roles.includes('mentor'));
   const [first, setFirst] = useState('');
@@ -48,7 +51,7 @@ export function NameCard() {
         <IconTile icon={UserRound} tone="blue" size={44} radius={14} />
         <View style={{ flex: 1 }}>
           <Text variant="h3">Comment tu t’appelles ?</Text>
-          <Text variant="small" color={palette.subtle}>
+          <Text variant="small" color={c.subtle}>
             {isMentor ? 'Les étudiants voient ton prénom sur ta fiche mentor.' : 'Ton prénom s’affiche pour tes mentors et dans la communauté.'}
           </Text>
         </View>
@@ -60,6 +63,6 @@ export function NameCard() {
   );
 }
 
-const styles = StyleSheet.create({
-  card: { gap: 12, padding: 16, borderRadius: radius.xl, backgroundColor: palette.surface, ...shadow.sm },
-});
+const useStyles = makeStyles(({ c, shadow }) => ({
+  card: { gap: 12, padding: 16, borderRadius: radius.xl, backgroundColor: c.surface, ...shadow.sm },
+}));

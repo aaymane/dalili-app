@@ -6,7 +6,7 @@ import { Glow } from '@/components/brand/Glow';
 import { LogoMark } from '@/components/brand/Logo';
 import { Text } from '@/components/ui/Text';
 import { EASE_IN_OUT, EASE_OUT, rise } from '@/theme/motion';
-import { palette } from '@/theme/tokens';
+import { useTheme } from '@/theme/scheme';
 
 /**
  * Ouverture de l'app (docs/DIRECTION.md §3, « Lancement »). La première image reproduit l'écran de lancement natif
@@ -22,8 +22,9 @@ export const INTRO = { bloom: 900, move: 1000, moveFor: 1000, word: 1800, letter
 
 /** L'écran de lancement natif, à l'identique : affiché tant que l'app se prépare (polices, session). */
 export function SplashFrame() {
+  const { c } = useTheme();
   return (
-    <View style={{ flex: 1, backgroundColor: palette.navyDeep, alignItems: 'center', justifyContent: 'center' }}>
+    <View style={{ flex: 1, backgroundColor: c.navyDeep, alignItems: 'center', justifyContent: 'center' }}>
       <LogoMark size={SPLASH_MARK} color="#fff" />
     </View>
   );
@@ -42,13 +43,14 @@ export function useLaunchIntro() {
 
 /** Fond plat de l'écran de lancement, qui s'efface pour révéler la nuit pendant que les étoiles s'allument. */
 export function SplashCover() {
+  const { c } = useTheme();
   const reduced = useReducedMotion();
   const opacity = useSharedValue(1);
   useEffect(() => {
     opacity.set(reduced ? 0 : withDelay(400, withTiming(0, { duration: 1400, easing: EASE_OUT })));
   }, [opacity, reduced]);
   const style = useAnimatedStyle(() => ({ opacity: opacity.value }));
-  return <Animated.View pointerEvents="none" style={[StyleSheet.absoluteFill, { backgroundColor: palette.navyDeep }, style]} />;
+  return <Animated.View pointerEvents="none" style={[StyleSheet.absoluteFill, { backgroundColor: c.navyDeep }, style]} />;
 }
 
 /**
@@ -56,6 +58,7 @@ export function SplashCover() {
  * l'emplacement réservé dans la mise en page, mesuré dans la fenêtre.
  */
 export function FlyingMark({ size, target }: { size: number; target: { x: number; y: number } | null }) {
+  const { c } = useTheme();
   const { width, height } = useWindowDimensions();
   const reduced = useReducedMotion();
   const dx = useSharedValue(0);
@@ -122,9 +125,9 @@ export function FlyingMark({ size, target }: { size: number; target: { x: number
           },
           glowStyle,
         ]}>
-        <Glow size={halo} color={palette.electricLight} opacity={0.7} />
+        <Glow size={halo} color={c.electricLight} opacity={0.7} />
       </Animated.View>
-      <LogoMark size={size} color={palette.electricLight} />
+      <LogoMark size={size} color={c.electricLight} />
       <Animated.View style={[StyleSheet.absoluteFill, whiteStyle]}>
         <LogoMark size={size} color="#fff" />
       </Animated.View>

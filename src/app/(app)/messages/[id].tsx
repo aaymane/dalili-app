@@ -1,7 +1,7 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import { ChevronLeft, Flag } from 'lucide-react-native';
 import { useEffect, useRef, useState } from 'react';
-import { FlatList, StyleSheet, View } from 'react-native';
+import { FlatList, View } from 'react-native';
 import { useQueryClient } from '@tanstack/react-query';
 
 import { toast } from '@/components/feedback/Toast';
@@ -16,13 +16,16 @@ import { isSameDay } from '@/lib/date';
 import { threadKey, useConversation, useSendMessage, useThread } from '@/features/messages/hooks';
 import { SafetySheet } from '@/features/safety/components/SafetySheet';
 import { useRoleTheme } from '@/theme';
-import { palette, radius, shadow } from '@/theme/tokens';
+import { makeStyles, useTheme } from '@/theme/scheme';
+import { radius } from '@/theme/tokens';
 
 /** Plus de 5 minutes entre deux messages, ou un autre auteur : on affiche l'heure sous la bulle. */
 const GAP_MS = 5 * 60_000;
 
 /** Une conversation : bulles, « en train d'écrire », envoi immédiat, signaler ou bloquer en haut. */
 export default function Thread() {
+  const { c: colors } = useTheme();
+  const styles = useStyles();
   const { id } = useLocalSearchParams<{ id: string }>();
   const theme = useRoleTheme();
   const qc = useQueryClient();
@@ -56,20 +59,20 @@ export default function Thread() {
   const header = (
     <View style={styles.header}>
       <PressableScale onPress={() => router.back()} style={styles.round} accessibilityLabel="Retour">
-        <ChevronLeft size={20} color={palette.navy} />
+        <ChevronLeft size={20} color={colors.navy} />
       </PressableScale>
-      <Avatar name={name || '?'} size={38} color={c?.asRole === 'student' ? palette.mentor : palette.electricLight} />
+      <Avatar name={name || '?'} size={38} color={c?.asRole === 'student' ? colors.mentor : colors.electricLight} />
       <View style={{ flex: 1 }}>
         <Text variant="h3" numberOfLines={1}>
           {name}
         </Text>
-        <Text variant="caption" color={thread.typing ? theme.accent : palette.muted}>
+        <Text variant="caption" color={thread.typing ? theme.accent : colors.muted}>
           {thread.typing ? 'en train d’écrire…' : c?.asRole === 'student' ? 'Ton mentor' : 'Étudiant·e'}
         </Text>
       </View>
       {c?.bookingId || c?.asRole === 'student' ? (
         <PressableScale onPress={() => setSafety(true)} style={styles.round} accessibilityLabel={`Signaler ou bloquer ${first}`}>
-          <Flag size={16} color={palette.subtle} />
+          <Flag size={16} color={colors.subtle} />
         </PressableScale>
       ) : null}
     </View>
@@ -77,7 +80,7 @@ export default function Thread() {
 
   const footer = c?.canWrite === false ? (
     <View style={styles.closed}>
-      <Text variant="small" color={palette.subtle} align="center">
+      <Text variant="small" color={colors.subtle} align="center">
         {first} n’est plus disponible comme mentor pour le moment. Tu peux relire vos messages.
       </Text>
     </View>
@@ -98,7 +101,7 @@ export default function Thread() {
         ListHeaderComponent={<TrustNote />}
         ListEmptyComponent={
           thread.isPending ? undefined : (
-            <Text variant="small" color={palette.subtle} align="center" style={{ marginTop: 24 }}>
+            <Text variant="small" color={colors.subtle} align="center" style={{ marginTop: 24 }}>
               {thread.isError ? 'Impossible de charger les messages. Vérifie ta connexion.' : `Écris le premier message à ${first || 'ton contact'}.`}
             </Text>
           )
@@ -129,10 +132,10 @@ export default function Thread() {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles(({ c, shadow }) => ({
   header: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: 16, paddingTop: 8, paddingBottom: 10 },
-  round: { width: 44, height: 44, borderRadius: 22, backgroundColor: palette.white, alignItems: 'center', justifyContent: 'center', ...shadow.sm },
+  round: { width: 44, height: 44, borderRadius: 22, backgroundColor: c.card, alignItems: 'center', justifyContent: 'center', ...shadow.sm },
   // Les messages partent du bas, près du clavier, comme dans toute messagerie.
   content: { paddingHorizontal: 16, paddingTop: 4, paddingBottom: 12, gap: 6, flexGrow: 1, justifyContent: 'flex-end' },
-  closed: { padding: 14, borderRadius: radius.lg, backgroundColor: palette.surface },
-});
+  closed: { padding: 14, borderRadius: radius.lg, backgroundColor: c.surface },
+}));

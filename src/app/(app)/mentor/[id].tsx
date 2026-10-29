@@ -2,7 +2,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { router, useLocalSearchParams } from 'expo-router';
 import { ChevronLeft, Clock, Flag, Phone, Quote, Star } from 'lucide-react-native';
 import { useState } from 'react';
-import { ScrollView, StyleSheet, View } from 'react-native';
+import { ScrollView, View } from 'react-native';
 import Animated from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -14,7 +14,8 @@ import { useMentor } from '@/data/hooks';
 import { useMyMentor } from '@/features/mentors/hooks';
 import { useConversationWithMentor } from '@/features/messages/hooks';
 import { SafetySheet } from '@/features/safety/components/SafetySheet';
-import { palette, radius, shadow } from '@/theme/tokens';
+import { makeStyles, useTheme } from '@/theme/scheme';
+import { radius } from '@/theme/tokens';
 import { pop, rise } from '@/theme/motion';
 
 const LANG: Record<string, { code: string; label: string }> = {
@@ -26,6 +27,8 @@ const LANG: Record<string, { code: string; label: string }> = {
 
 /** Profil public d'un mentor : parcours, spécialités, langues, témoignages. */
 export default function MentorProfile() {
+  const { c } = useTheme();
+  const styles = useStyles();
   const { id } = useLocalSearchParams<{ id: string }>();
   const insets = useSafeAreaInsets();
   const { data: listed } = useMentor(id);
@@ -36,10 +39,10 @@ export default function MentorProfile() {
   const conversation = useConversationWithMentor(id);
   const own = !!mine && mine.id === id;
   const m = listed ?? (own ? mine : undefined);
-  if (!m) return <View style={{ flex: 1, backgroundColor: palette.bg }} />;
+  if (!m) return <View style={{ flex: 1, backgroundColor: c.bg }} />;
 
   return (
-    <View style={{ flex: 1, backgroundColor: palette.bg }}>
+    <View style={{ flex: 1, backgroundColor: c.bg }}>
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 120 + insets.bottom }}>
         <LinearGradient colors={['#5B8BFF', '#1F56F5']} style={[styles.header, { paddingTop: insets.top + 10 }]}>
           <PressableScale onPress={() => router.back()} style={[styles.back, { top: insets.top + 10 }]} accessibilityLabel="Retour">
@@ -70,12 +73,12 @@ export default function MentorProfile() {
           <Animated.View entering={rise(120)} style={styles.stats}>
             {[
               { v: m.rating.toFixed(1), l: 'NOTE', icon: <Star size={14} color="#F59E0B" fill="#F59E0B" /> },
-              { v: String(m.sessions), l: 'SESSIONS', icon: <Phone size={14} color={palette.mentor} /> },
-              { v: `${m.responseHours}h`, l: 'RÉPONSE', icon: <Clock size={14} color={palette.electric} /> },
+              { v: String(m.sessions), l: 'SESSIONS', icon: <Phone size={14} color={c.mentor} /> },
+              { v: `${m.responseHours}h`, l: 'RÉPONSE', icon: <Clock size={14} color={c.electric} /> },
             ].map((s, i) => (
               <View key={s.l} style={[styles.stat, i < 2 && styles.statBorder]}>
                 <Text variant="h1">{s.v}</Text>
-                <Text variant="caption" color={palette.muted} style={{ fontSize: 9, letterSpacing: 0.6 }}>
+                <Text variant="caption" color={c.muted} style={{ fontSize: 9, letterSpacing: 0.6 }}>
                   {s.l}
                 </Text>
                 {s.icon}
@@ -84,14 +87,14 @@ export default function MentorProfile() {
           </Animated.View>
 
           <Animated.View entering={rise(160)} style={styles.quote}>
-            <Quote size={26} color={palette.electric} fill={palette.electric} />
+            <Quote size={26} color={c.electric} fill={c.electric} />
             <Text variant="body" style={{ fontStyle: 'italic' }}>
               {m.quote}
             </Text>
           </Animated.View>
 
           <Animated.View entering={rise(200)} style={{ gap: 14 }}>
-            <Text variant="overline" color={palette.muted}>
+            <Text variant="overline" color={c.muted}>
               Son parcours
             </Text>
             {m.journey.map((s, i) => (
@@ -103,11 +106,11 @@ export default function MentorProfile() {
                   {i < m.journey.length - 1 && <View style={styles.tlLine} />}
                 </View>
                 <View style={{ flex: 1, paddingBottom: 6 }}>
-                  <Text variant="smallStrong" color={palette.electric}>
+                  <Text variant="smallStrong" color={c.electric}>
                     {s.year}
                   </Text>
                   <Text variant="bodyStrong">{s.title}</Text>
-                  <Text variant="small" color={palette.muted}>
+                  <Text variant="small" color={c.muted}>
                     {s.detail}
                   </Text>
                 </View>
@@ -116,13 +119,13 @@ export default function MentorProfile() {
           </Animated.View>
 
           <View style={{ gap: 10 }}>
-            <Text variant="overline" color={palette.muted}>
+            <Text variant="overline" color={c.muted}>
               Spécialités
             </Text>
             <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
               {m.specialties.map((s) => (
                 <View key={s} style={styles.spec}>
-                  <Text variant="smallStrong" color={palette.electric}>
+                  <Text variant="smallStrong" color={c.electric}>
                     {s}
                   </Text>
                 </View>
@@ -131,7 +134,7 @@ export default function MentorProfile() {
           </View>
 
           <View style={{ gap: 10 }}>
-            <Text variant="overline" color={palette.muted}>
+            <Text variant="overline" color={c.muted}>
               Langues parlées
             </Text>
             <View style={{ flexDirection: 'row', gap: 14, flexWrap: 'wrap' }}>
@@ -149,7 +152,7 @@ export default function MentorProfile() {
           </View>
 
           <View style={{ gap: 10 }}>
-            <Text variant="overline" color={palette.muted}>
+            <Text variant="overline" color={c.muted}>
               Témoignages récents
             </Text>
             {m.reviews.map((r) => (
@@ -165,7 +168,7 @@ export default function MentorProfile() {
                     ))}
                   </View>
                 </View>
-                <Text variant="small" color={palette.subtle}>
+                <Text variant="small" color={c.subtle}>
                   {r.text}
                 </Text>
               </View>
@@ -174,8 +177,8 @@ export default function MentorProfile() {
 
           {own ? null : (
             <PressableScale onPress={() => setReporting(true)} hitSlop={6} style={styles.report} accessibilityLabel={`Signaler ou bloquer ${m.firstName}`}>
-              <Flag size={14} color={palette.muted} />
-              <Text variant="small" color={palette.muted}>
+              <Flag size={14} color={c.muted} />
+              <Text variant="small" color={c.muted}>
                 Un souci avec {m.firstName} ? Signaler ou bloquer
               </Text>
             </PressableScale>
@@ -185,7 +188,7 @@ export default function MentorProfile() {
       <SafetySheet visible={reporting} onClose={() => setReporting(false)} target={{ mentorId: m.id }} name={m.firstName} onBlocked={() => router.back()} />
       <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, 16) }]}>
         {own ? (
-          <Text variant="small" color={palette.subtle} align="center">
+          <Text variant="small" color={c.subtle} align="center">
             C’est ton profil, tel que les étudiants le voient.
           </Text>
         ) : (
@@ -207,20 +210,20 @@ export default function MentorProfile() {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles(({ c, shadow }) => ({
   header: { alignItems: 'center', gap: 10, paddingBottom: 54, borderBottomLeftRadius: 34, borderBottomRightRadius: 34 },
   back: { position: 'absolute', left: 16, top: 54, width: 38, height: 38, borderRadius: 19, backgroundColor: 'rgba(255,255,255,0.18)', alignItems: 'center', justifyContent: 'center', zIndex: 2 },
   certified: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 999, backgroundColor: 'rgba(255,255,255,0.18)' },
-  stats: { flexDirection: 'row', backgroundColor: '#fff', borderRadius: radius.xl, paddingVertical: 14, borderWidth: 2, borderColor: '#D6E0FF', ...shadow.md },
+  stats: { flexDirection: 'row', backgroundColor: c.card, borderRadius: radius.xl, paddingVertical: 14, borderWidth: 2, borderColor: c.electricSoft, ...shadow.md },
   stat: { flex: 1, alignItems: 'center', gap: 2 },
-  statBorder: { borderRightWidth: 1, borderRightColor: palette.line },
-  quote: { padding: 18, borderRadius: radius.xl, backgroundColor: '#EEF3FF', gap: 8 },
-  tlDot: { width: 20, height: 20, borderRadius: 10, borderWidth: 2, borderColor: palette.electric, alignItems: 'center', justifyContent: 'center', backgroundColor: '#fff' },
-  tlInner: { width: 8, height: 8, borderRadius: 4, backgroundColor: palette.electric },
-  tlLine: { width: 2, flex: 1, backgroundColor: '#D6E0FF', marginVertical: 2 },
-  spec: { paddingHorizontal: 12, paddingVertical: 7, borderRadius: 999, backgroundColor: palette.electricSoft },
-  lang: { width: 22, height: 22, borderRadius: 11, backgroundColor: palette.electric, alignItems: 'center', justifyContent: 'center' },
-  review: { padding: 14, borderRadius: radius.lg, backgroundColor: '#fff', gap: 8, ...shadow.sm },
+  statBorder: { borderRightWidth: 1, borderRightColor: c.line },
+  quote: { padding: 18, borderRadius: radius.xl, backgroundColor: c.electricSoft, gap: 8 },
+  tlDot: { width: 20, height: 20, borderRadius: 10, borderWidth: 2, borderColor: c.electric, alignItems: 'center', justifyContent: 'center', backgroundColor: c.card },
+  tlInner: { width: 8, height: 8, borderRadius: 4, backgroundColor: c.electric },
+  tlLine: { width: 2, flex: 1, backgroundColor: c.electricSoft, marginVertical: 2 },
+  spec: { paddingHorizontal: 12, paddingVertical: 7, borderRadius: 999, backgroundColor: c.electricSoft },
+  lang: { width: 22, height: 22, borderRadius: 11, backgroundColor: c.electric, alignItems: 'center', justifyContent: 'center' },
+  review: { padding: 14, borderRadius: radius.lg, backgroundColor: c.card, gap: 8, ...shadow.sm },
   report: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, minHeight: 44, alignSelf: 'center', paddingHorizontal: 12 },
-  footer: { position: 'absolute', left: 0, right: 0, bottom: 0, paddingHorizontal: 20, paddingTop: 12, backgroundColor: 'rgba(245,247,253,0.96)' },
-});
+  footer: { position: 'absolute', left: 0, right: 0, bottom: 0, paddingHorizontal: 20, paddingTop: 12, backgroundColor: c.bg },
+}));

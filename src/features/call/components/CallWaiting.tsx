@@ -6,7 +6,7 @@ import Animated from 'react-native-reanimated';
 import { Button } from '@/components/ui/Button';
 import { Text } from '@/components/ui/Text';
 import { rise } from '@/theme/motion';
-import { palette } from '@/theme/tokens';
+import { useTheme } from '@/theme/scheme';
 
 import { CallAvatar, CallBackdrop, CallTop } from './CallParts';
 
@@ -26,6 +26,7 @@ export function CallWaiting({
   icon?: LucideIcon;
   onRetry?: () => void;
 }) {
+  const { c } = useTheme();
   const Icon = onRetry ? WifiOff : icon;
   return (
     <View style={styles.root}>
@@ -35,7 +36,7 @@ export function CallWaiting({
         <CallAvatar name={name} color={color} waiting={false} />
         <Animated.View entering={rise(80)} style={styles.card}>
           <Icon size={20} color="#7FA6FF" />
-          <Text variant="h2" color={palette.white} align="center">
+          <Text variant="h2" color={c.white} align="center">
             {title}
           </Text>
           <Text variant="small" color="rgba(255,255,255,0.7)" align="center">

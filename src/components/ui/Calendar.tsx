@@ -102,10 +102,10 @@ export function Calendar({ selected, onSelect, marked = [], highlight, initialMo
                   haptic="select"
                   disabled={disabled || !onSelect}
                   onPress={() => onSelect?.(d)}
-                  style={[styles.day, isHi && { backgroundColor: '#E7DDFF' }, today && !isSel && { borderWidth: 1.5, borderColor: accent }]}>
+                  style={[styles.day, isHi && { backgroundColor: c.lilac }, today && !isSel && { borderWidth: 1.5, borderColor: accent }]}>
                   {/* Le jour choisi se pose (au lieu de changer de couleur d'un coup). */}
                   {isSel && <Animated.View entering={pop()} style={[StyleSheet.absoluteFill, { borderRadius: 11, backgroundColor: accent }]} />}
-                  <Text variant="smallStrong" color={isSel ? '#fff' : disabled ? c.lineStrong : c.navy}>
+                  <Text variant="smallStrong" color={isSel ? c.onAccent : disabled ? c.lineStrong : c.navy}>
                     {d.getDate()}
                   </Text>
                 </PressableScale>

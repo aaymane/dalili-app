@@ -17,13 +17,15 @@ import { useSchool } from '@/features/schools/hooks';
 import { slidesOf, useStoryCta } from '@/features/schools/story';
 import { haptics } from '@/lib/haptics';
 import { pop, rise } from '@/theme/motion';
-import { palette, radius } from '@/theme/tokens';
+import { makeStyles, useTheme } from '@/theme/scheme';
+import { radius, lightPalette } from '@/theme/tokens';
 import { track } from '@/lib/analytics';
 
 /** Durée d'une page. */
 const PAGE_MS = 5200;
 
 function Segment({ i, index, progress }: { i: number; index: number; progress: SharedValue<number> }) {
+  const styles = useStyles();
   const style = useAnimatedStyle(() => ({ width: `${(i < index ? 1 : i > index ? 0 : progress.value) * 100}%` }));
   return (
     <View style={styles.segment}>
@@ -38,6 +40,8 @@ function Segment({ i, index, progress }: { i: number; index: number; progress: S
  * à gauche = précédente, appuyer longtemps = pause.
  */
 export default function Discover() {
+  const { c: colors } = useTheme();
+  const styles = useStyles();
   const { slug } = useLocalSearchParams<{ slug: string }>();
   const insets = useSafeAreaInsets();
   const { data: school } = useSchool(slug);
@@ -127,13 +131,13 @@ export default function Discover() {
             {school.logoUrl ? (
               <Image source={{ uri: school.logoUrl }} style={styles.logo} contentFit="contain" />
             ) : (
-              <Text variant="smallStrong" color={palette.white}>
+              <Text variant="smallStrong" color={colors.white}>
                 {school.name}
               </Text>
             )}
           </View>
           <PressableScale onPress={() => router.back()} style={styles.close} accessibilityLabel="Fermer la présentation">
-            <X size={20} color={palette.white} />
+            <X size={20} color={colors.white} />
           </PressableScale>
         </View>
       </View>
@@ -147,12 +151,12 @@ export default function Discover() {
           </Animated.View>
           {slide.big ? (
             <Animated.View entering={pop(180)}>
-              <CountUp value={slide.big} variant="hero" color={palette.white} style={styles.big} delay={200} />
+              <CountUp value={slide.big} variant="hero" color={colors.white} style={styles.big} delay={200} />
             </Animated.View>
           ) : null}
           {slide.title ? (
             <Animated.View entering={rise(200)}>
-              <Text variant="hero" color={palette.white}>
+              <Text variant="hero" color={colors.white}>
                 {slide.title}
               </Text>
             </Animated.View>
@@ -168,7 +172,7 @@ export default function Discover() {
             <View style={styles.chips} pointerEvents="none">
               {slide.chips.map((c, k) => (
                 <Animated.View key={c} entering={rise(300 + k * 70)} style={styles.chip}>
-                  <Text variant="smallStrong" color={palette.white}>
+                  <Text variant="smallStrong" color={colors.white}>
                     {c}
                   </Text>
                 </Animated.View>
@@ -197,13 +201,13 @@ export default function Discover() {
   );
 }
 
-const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: palette.navyDeep },
+const useStyles = makeStyles(({ c }) => ({
+  root: { flex: 1, backgroundColor: c.navyDeep },
   shade: { position: 'absolute', left: 0, right: 0 },
   top: { position: 'absolute', left: 0, right: 0, top: 0, paddingHorizontal: 12, gap: 12 },
   bars: { flexDirection: 'row', gap: 4 },
   segment: { flex: 1, height: 3, borderRadius: 2, backgroundColor: 'rgba(255,255,255,0.3)', overflow: 'hidden' },
-  segmentFill: { height: 3, borderRadius: 2, backgroundColor: palette.white },
+  segmentFill: { height: 3, borderRadius: 2, backgroundColor: lightPalette.white },
   head: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 4 },
   brand: { height: 32, justifyContent: 'center' },
   logo: { width: 96, height: 32 },
@@ -213,4 +217,4 @@ const styles = StyleSheet.create({
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 4 },
   chip: { paddingHorizontal: 12, paddingVertical: 8, borderRadius: radius.pill, backgroundColor: 'rgba(255,255,255,0.14)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.22)' },
   replay: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, minHeight: 44 },
-});
+}));

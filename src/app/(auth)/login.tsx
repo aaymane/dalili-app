@@ -15,10 +15,11 @@ import { Text } from '@/components/ui/Text';
 import { useAuth } from '@/features/auth/store';
 import { haptics } from '@/lib/haptics';
 import { supabase } from '@/lib/supabase';
-import { palette } from '@/theme/tokens';
+import { useTheme } from '@/theme/scheme';
 import { rise } from '@/theme/motion';
 
 export default function Login() {
+  const { c } = useTheme();
   const insets = useSafeAreaInsets();
   const signIn = useAuth((s) => s.signIn);
   const [email, setEmail] = useState('');
@@ -54,7 +55,7 @@ export default function Login() {
             <ChevronLeft size={20} color="#fff" />
           </PressableScale>
           <Animated.View entering={rise()} style={styles.hero}>
-            <LogoMark size={64} color={palette.electricLight} />
+            <LogoMark size={64} color={c.electricLight} />
             <Text variant="h1" color="#fff" style={{ fontFamily: 'Montserrat_900Black', letterSpacing: 2 }}>
               DALILI
             </Text>
@@ -72,7 +73,7 @@ export default function Login() {
             <Input
               dark
               label="Email"
-              icon={<Mail size={16} color={palette.electric} />}
+              icon={<Mail size={16} color={c.electric} />}
               value={email}
               onChangeText={setEmail}
               placeholder="toi@email.com"
@@ -84,7 +85,7 @@ export default function Login() {
             <Input
               dark
               label="Mot de passe"
-              icon={<Lock size={16} color={palette.electric} />}
+              icon={<Lock size={16} color={c.electric} />}
               value={password}
               onChangeText={setPassword}
               placeholder="••••••••"

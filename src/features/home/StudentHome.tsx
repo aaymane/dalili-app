@@ -1,7 +1,7 @@
 import { router } from 'expo-router';
 import { ChevronRight, Map, MessageCircle } from 'lucide-react-native';
 import { useState } from 'react';
-import { ScrollView, StyleSheet, View } from 'react-native';
+import { ScrollView, View } from 'react-native';
 import Animated from 'react-native-reanimated';
 
 import { AppHeader } from '@/components/layout/AppHeader';
@@ -23,7 +23,8 @@ import { MentorTile } from '@/features/mentors/components/MentorCard';
 import { MentorsSoon } from '@/features/mentors/components/MentorsSoon';
 import { useProfile } from '@/features/profile/store';
 import { enter, reflow } from '@/theme/motion';
-import { gradients, palette, radius, shadow } from '@/theme/tokens';
+import { makeStyles, useTheme } from '@/theme/scheme';
+import { radius } from '@/theme/tokens';
 
 import { ActionCard } from './ActionCard';
 import { AskField } from './AskField';
@@ -35,6 +36,8 @@ import { ToolsGrid } from './ToolsGrid';
  * l'Âme et la phrase du jour, ta seule action, le champ pour demander à Dalili, puis le reste.
  */
 export function StudentHome() {
+  const { c, gradients } = useTheme();
+  const styles = useStyles();
   const profile = useProfile((s) => s.profile);
   const j = useJourney();
   const { data: mentors = [] } = useMentors();
@@ -83,11 +86,11 @@ export function StudentHome() {
             <IconTile icon={Map} tone="blue" size={46} radius={23} />
             <View style={{ flex: 1 }}>
               <Text variant="bodyStrong">Tout mon parcours-quête</Text>
-              <Text variant="caption" color={palette.muted}>
+              <Text variant="caption" color={c.muted}>
                 {j.doneCount}/{j.total} étapes faites · {Math.round(j.progress * 100)} %
               </Text>
             </View>
-            <ChevronRight size={18} color={palette.subtle} />
+            <ChevronRight size={18} color={c.subtle} />
           </PressableScale>
         </Animated.View>
         <Animated.View entering={enter(4)}>
@@ -144,12 +147,12 @@ export function StudentHome() {
                 <IconTile icon={MessageCircle} tone="blue" size={46} radius={23} />
                 <View style={{ flex: 1 }}>
                   <Text variant="bodyStrong">{g.name}</Text>
-                  <Text variant="caption" color={palette.muted} numberOfLines={1}>
+                  <Text variant="caption" color={c.muted} numberOfLines={1}>
                     {g.tags.join(' · ')}
                   </Text>
                 </View>
                 <View style={styles.count}>
-                  <Text variant="caption" color={palette.subtle}>
+                  <Text variant="caption" color={c.subtle}>
                     {g.members}
                   </Text>
                 </View>
@@ -163,8 +166,8 @@ export function StudentHome() {
   );
 }
 
-const styles = StyleSheet.create({
-  journeyRow: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 12, minHeight: 44, borderRadius: radius.xl, backgroundColor: '#fff', ...shadow.sm },
-  groupRow: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 12, borderRadius: radius.xl, backgroundColor: '#fff', ...shadow.sm },
-  count: { paddingHorizontal: 9, paddingVertical: 3, borderRadius: 999, backgroundColor: '#F1F3F9' },
-});
+const useStyles = makeStyles(({ c, shadow }) => ({
+  journeyRow: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 12, minHeight: 44, borderRadius: radius.xl, backgroundColor: c.card, ...shadow.sm },
+  groupRow: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 12, borderRadius: radius.xl, backgroundColor: c.card, ...shadow.sm },
+  count: { paddingHorizontal: 9, paddingVertical: 3, borderRadius: 999, backgroundColor: c.fill },
+}));

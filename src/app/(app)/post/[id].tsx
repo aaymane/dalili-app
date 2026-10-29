@@ -2,7 +2,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useLocalSearchParams } from 'expo-router';
 import { RotateCcw } from 'lucide-react-native';
 import { useState } from 'react';
-import { Alert, FlatList, StyleSheet, View } from 'react-native';
+import { Alert, FlatList, View } from 'react-native';
 import Animated from 'react-native-reanimated';
 
 import { toast } from '@/components/feedback/Toast';
@@ -20,10 +20,13 @@ import { commentsKey, useComments, useDeleteComment, useSendComment } from '@/fe
 import { Composer } from '@/features/messages/components/Thread';
 import { haptics } from '@/lib/haptics';
 import { rise } from '@/theme/motion';
-import { palette, radius } from '@/theme/tokens';
+import { makeStyles, useTheme } from '@/theme/scheme';
+import { radius } from '@/theme/tokens';
 
 /** Une publication en plein écran : le post, tous ses commentaires, et un champ collé au clavier. */
 export default function PostScreen() {
+  const { c: colors } = useTheme();
+  const styles = useStyles();
   const { id, groupId } = useLocalSearchParams<{ id: string; groupId?: string }>();
   const qc = useQueryClient();
   const { data: group } = useGroup(groupId);
@@ -76,7 +79,7 @@ export default function PostScreen() {
           post ? (
             <View style={{ gap: 14, marginBottom: 6 }}>
               <PostCard p={post} city={group?.city} hideComments />
-              <Text variant="overline" color={palette.muted}>
+              <Text variant="overline" color={colors.muted}>
                 {list.length ? `${list.length} commentaire${list.length > 1 ? 's' : ''}` : 'Commentaires'}
               </Text>
             </View>
@@ -84,7 +87,7 @@ export default function PostScreen() {
         }
         ListEmptyComponent={
           comments.isPending ? undefined : (
-            <Text variant="small" color={palette.subtle} align="center" style={{ marginTop: 12 }}>
+            <Text variant="small" color={colors.subtle} align="center" style={{ marginTop: 12 }}>
               {comments.isError ? 'Impossible de charger les commentaires. Vérifie ta connexion.' : 'Personne n’a encore répondu. Sois le premier ou la première 🙂'}
             </Text>
           )
@@ -95,15 +98,15 @@ export default function PostScreen() {
             <>
               <Avatar name={c.author} size={30} color="#94A3B8" />
               <View style={{ flex: 1, gap: 2 }}>
-                <Text variant="caption" color={palette.electric}>
+                <Text variant="caption" color={colors.electric}>
                   {c.mine ? 'Toi' : c.author}
                   {c.isPostAuthor ? ' (Auteur)' : ''}
                 </Text>
                 <Text variant="small">{c.body}</Text>
                 {c.failed ? (
                   <View style={styles.failed}>
-                    <RotateCcw size={12} color={palette.danger} />
-                    <Text variant="caption" color={palette.danger}>
+                    <RotateCcw size={12} color={colors.danger} />
+                    <Text variant="caption" color={colors.danger}>
                       Pas envoyé · Toucher pour renvoyer
                     </Text>
                   </View>
@@ -135,9 +138,9 @@ export default function PostScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles(({ c }) => ({
   content: { paddingHorizontal: 20, paddingBottom: 16, gap: 8, flexGrow: 1 },
-  comment: { flexDirection: 'row', gap: 10, padding: 12, borderRadius: radius.lg, backgroundColor: palette.white },
-  byAuthor: { backgroundColor: '#EEF3FF' },
+  comment: { flexDirection: 'row', gap: 10, padding: 12, borderRadius: radius.lg, backgroundColor: c.card },
+  byAuthor: { backgroundColor: c.electricSoft },
   failed: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 2 },
-});
+}));

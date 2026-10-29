@@ -2,7 +2,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
 import { ArrowRight, ArrowUpRight, CalendarDays, ChevronLeft, Link2, MapPin, Tag as TagIcon } from 'lucide-react-native';
 import { useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { View } from 'react-native';
 import Animated from 'react-native-reanimated';
 
 import { SuccessModal } from '@/components/feedback/SuccessModal';
@@ -18,11 +18,14 @@ import { useLocalDb } from '@/data/local-db';
 import { Cover } from '@/features/community/components/Cover';
 import { useJourneyStore } from '@/features/journey/store';
 import { formatLong, formatTime, toISODate } from '@/lib/date';
-import { palette, radius, shadow } from '@/theme/tokens';
+import { makeStyles, useTheme } from '@/theme/scheme';
+import { radius } from '@/theme/tokens';
 import { rise } from '@/theme/motion';
 
 /** Détail d'un événement + inscription (ajoutée au calendrier du Parcours). */
 export default function EventPage() {
+  const { c } = useTheme();
+  const styles = useStyles();
   const { id } = useLocalSearchParams<{ id: string }>();
   const { data: e } = useEvent(id);
   const toggle = useLocalDb((s) => s.toggleEvent);
@@ -55,8 +58,8 @@ export default function EventPage() {
         <Animated.View entering={rise()} style={{ gap: 6 }}>
           <Text variant="hero">{e.title}</Text>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-            <CalendarDays size={15} color={palette.electric} />
-            <Text variant="body" color={palette.subtle}>
+            <CalendarDays size={15} color={c.electric} />
+            <Text variant="body" color={c.subtle}>
               {formatLong(e.startsAt)} · {formatTime(e.startsAt)}
             </Text>
           </View>
@@ -65,7 +68,7 @@ export default function EventPage() {
         <View style={styles.card}>
           <Text variant="body">{e.description}</Text>
         </View>
-        <View style={[styles.card, { backgroundColor: palette.electric, gap: 10 }]}>
+        <View style={[styles.card, { backgroundColor: c.electric, gap: 10 }]}>
           <Text variant="bodyStrong" color="#fff">
             {e.place}
           </Text>
@@ -77,7 +80,7 @@ export default function EventPage() {
           </View>
           <View style={styles.map}>
             <View style={styles.pin}>
-              <MapPin size={22} color="#fff" fill={palette.electric} />
+              <MapPin size={22} color="#fff" fill={c.electric} />
             </View>
             <View style={[styles.road, { top: 30, transform: [{ rotate: '-8deg' }] }]} />
             <View style={[styles.road, { top: 70, transform: [{ rotate: '12deg' }] }]} />
@@ -96,12 +99,12 @@ export default function EventPage() {
           </Text>
         </View>
         <View style={[styles.card, styles.row]}>
-          <TagIcon size={18} color={palette.electric} />
+          <TagIcon size={18} color={c.electric} />
           <View>
-            <Text variant="caption" color={palette.muted}>
+            <Text variant="caption" color={c.muted}>
               Tarif
             </Text>
-            <Text variant="bodyStrong" color={palette.electric}>
+            <Text variant="bodyStrong" color={c.electric}>
               {e.price === 'free' ? 'Gratuit pour les membres Dalili' : 'Payant — infos sur place'}
             </Text>
           </View>
@@ -113,11 +116,11 @@ export default function EventPage() {
             </View>
             <View style={{ flex: 1 }}>
               <Text variant="bodyStrong">{e.link.replace(/^https?:\/\//, '')}</Text>
-              <Text variant="caption" color={palette.muted}>
+              <Text variant="caption" color={c.muted}>
                 Pour plus d’informations
               </Text>
             </View>
-            <ArrowUpRight size={18} color={palette.mentor} />
+            <ArrowUpRight size={18} color={c.mentor} />
           </PressableScale>
         ) : null}
       </View>
@@ -136,12 +139,12 @@ export default function EventPage() {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles(({ c, shadow }) => ({
   back: { position: 'absolute', top: 12, left: 12, width: 38, height: 38, borderRadius: 19, backgroundColor: 'rgba(0,0,0,0.25)', alignItems: 'center', justifyContent: 'center' },
-  card: { padding: 16, borderRadius: radius.xl, backgroundColor: '#fff', ...shadow.sm },
+  card: { padding: 16, borderRadius: radius.xl, backgroundColor: c.card, ...shadow.sm },
   row: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  map: { height: 110, borderRadius: radius.md, backgroundColor: '#E8EEF8', overflow: 'hidden', alignItems: 'center', justifyContent: 'center' },
-  road: { position: 'absolute', left: -20, right: -20, height: 10, backgroundColor: '#fff' },
+  map: { height: 110, borderRadius: radius.md, backgroundColor: c.fill, overflow: 'hidden', alignItems: 'center', justifyContent: 'center' },
+  road: { position: 'absolute', left: -20, right: -20, height: 10, backgroundColor: c.card },
   pin: { zIndex: 2 },
-  linkIcon: { width: 36, height: 36, borderRadius: 10, backgroundColor: palette.mentor, alignItems: 'center', justifyContent: 'center' },
-});
+  linkIcon: { width: 36, height: 36, borderRadius: 10, backgroundColor: c.mentor, alignItems: 'center', justifyContent: 'center' },
+}));

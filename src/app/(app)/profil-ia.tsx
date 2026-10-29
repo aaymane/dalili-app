@@ -1,7 +1,7 @@
 import { router } from 'expo-router';
 import { BrainCircuit, Pencil, ShieldCheck, Sparkles } from 'lucide-react-native';
 import { useState, type ReactNode } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { View } from 'react-native';
 import Animated from 'react-native-reanimated';
 
 import { LogoOrb } from '@/components/brand/LogoOrb';
@@ -28,23 +28,26 @@ import {
   type StudyLevel,
 } from '@/features/profile/types';
 import { formatLong, relativeDays } from '@/lib/date';
-import { palette, radius, shadow } from '@/theme/tokens';
+import { makeStyles, useTheme } from '@/theme/scheme';
+import { radius } from '@/theme/tokens';
 import { rise } from '@/theme/motion';
 
 type Field = 'city' | 'level' | 'campus' | 'housing' | 'concerns' | null;
 
 function Fact({ label, value, onEdit, delay }: { label: string; value: ReactNode; onEdit: () => void; delay: number }) {
+  const { c: colors } = useTheme();
+  const styles = useStyles();
   return (
     <Animated.View entering={rise(delay)}>
       <PressableScale onPress={onEdit} scaleTo={0.985} style={styles.fact}>
         <View style={{ flex: 1, gap: 3 }}>
-          <Text variant="overline" color={palette.muted} style={{ fontSize: 9.5 }}>
+          <Text variant="overline" color={colors.muted} style={{ fontSize: 9.5 }}>
             {label}
           </Text>
           {typeof value === 'string' ? <Text variant="bodyStrong">{value}</Text> : value}
         </View>
         <View style={styles.edit}>
-          <Pencil size={14} color={palette.aiIndigo} />
+          <Pencil size={14} color={colors.aiIndigo} />
         </View>
       </PressableScale>
     </Animated.View>
@@ -53,6 +56,8 @@ function Fact({ label, value, onEdit, delay }: { label: string; value: ReactNode
 
 /** Profil IA : transparence totale sur ce que Dalili utilise pour personnaliser — et tout est modifiable. */
 export default function ProfilIA() {
+  const { c: colors, gradients } = useTheme();
+  const styles = useStyles();
   const profile = useProfile((s) => s.profile);
   const update = useProfile((s) => s.update);
   const j = useJourney();
@@ -63,14 +68,14 @@ export default function ProfilIA() {
   const summary = `Tu es ${profile.studyLevel ? who[profile.studyLevel] : 'étudiant·e'}, tu pars de ${profile.originCity || 'chez toi'} pour ${profile.destinationCity ?? 'une ville à choisir'} ${relativeDays(j.arrival)}. ${j.current ? `Ta priorité du moment : « ${j.current.step.title} ».` : 'Toutes tes démarches sont faites !'}${profile.concerns.length ? ` Ce qui t'inquiète le plus : ${profile.concerns.map((c) => concernLabels[c].label.toLowerCase()).join(', ')}.` : ''}`;
 
   return (
-    <Screen top={['#C9C2FF', '#ECEAFF', '#F5F7FD']} padded={false} header={<AppHeader back />}>
+    <Screen top={gradients.aiTop} padded={false} header={<AppHeader back />}>
       <View style={{ paddingHorizontal: 20, gap: 14 }}>
         <View style={{ alignItems: 'center' }}>
           <LogoOrb size={84} />
           <Text variant="hero" align="center">
             Ce que Dalili{'\n'}sait de toi
           </Text>
-          <Text variant="small" color={palette.subtle} align="center" style={{ marginTop: 6, maxWidth: 320 }}>
+          <Text variant="small" color={colors.subtle} align="center" style={{ marginTop: 6, maxWidth: 320 }}>
             Ces infos servent uniquement à personnaliser ton parcours, tes mentors et les réponses de l’IA. Touche pour modifier.
           </Text>
         </View>
@@ -100,7 +105,7 @@ export default function ProfilIA() {
               {profile.concerns.length ? (
                 profile.concerns.map((c) => (
                   <View key={c} style={styles.chip}>
-                    <Text variant="smallStrong" color={palette.aiIndigo}>
+                    <Text variant="smallStrong" color={colors.aiIndigo}>
                       {concernLabels[c].emoji} {concernLabels[c].label}
                     </Text>
                   </View>
@@ -114,8 +119,8 @@ export default function ProfilIA() {
         />
 
         <View style={styles.privacy}>
-          <ShieldCheck size={18} color={palette.success} />
-          <Text variant="small" color={palette.subtle} style={{ flex: 1 }}>
+          <ShieldCheck size={18} color={colors.success} />
+          <Text variant="small" color={colors.subtle} style={{ flex: 1 }}>
             Dalili ne vend jamais tes données. Quand tu poses une question, seuls ta question, les derniers messages, ton pays et ton étape en cours sont envoyés. Les questions sont gardées sans ton nom ni ton email, pour améliorer nos guides.
           </Text>
         </View>
@@ -158,10 +163,10 @@ export default function ProfilIA() {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles(({ c, shadow }) => ({
   summary: { gap: 10, padding: 18, borderRadius: radius.xl, backgroundColor: '#5B5CF0', ...shadow.glow, shadowColor: '#5B5CF0' },
-  fact: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 14, borderRadius: radius.lg, backgroundColor: '#fff', ...shadow.sm },
-  edit: { width: 32, height: 32, borderRadius: 16, backgroundColor: palette.aiSoft, alignItems: 'center', justifyContent: 'center' },
-  chip: { paddingHorizontal: 10, paddingVertical: 5, borderRadius: 999, backgroundColor: palette.aiSoft },
-  privacy: { flexDirection: 'row', alignItems: 'center', gap: 10, padding: 14, borderRadius: radius.lg, backgroundColor: palette.successSoft },
-});
+  fact: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 14, borderRadius: radius.lg, backgroundColor: c.card, ...shadow.sm },
+  edit: { width: 32, height: 32, borderRadius: 16, backgroundColor: c.aiSoft, alignItems: 'center', justifyContent: 'center' },
+  chip: { paddingHorizontal: 10, paddingVertical: 5, borderRadius: 999, backgroundColor: c.aiSoft },
+  privacy: { flexDirection: 'row', alignItems: 'center', gap: 10, padding: 14, borderRadius: radius.lg, backgroundColor: c.successSoft },
+}));

@@ -12,12 +12,13 @@ import { Text } from '@/components/ui/Text';
 import { syncProfile } from '@/features/profile/api';
 import { useProfile } from '@/features/profile/store';
 import { haptics } from '@/lib/haptics';
-import { palette } from '@/theme/tokens';
+import { useTheme } from '@/theme/scheme';
 import { pop, rise } from '@/theme/motion';
 import { track } from '@/lib/analytics';
 
 /** « Je prépare ton arrivée à Paris… » — construction animée de l'espace perso. */
 export default function Loading() {
+  const { c } = useTheme();
   const { role = 'student' } = useLocalSearchParams<{ role: 'student' | 'mentor' }>();
   const insets = useSafeAreaInsets();
   const profile = useProfile((s) => s.profile);
@@ -73,7 +74,7 @@ export default function Loading() {
           const state = k <= done ? 'done' : k === done + 1 ? 'active' : 'idle';
           return (
             <Animated.View key={label} entering={rise(250 + k * 90)} style={[styles.row, state === 'active' && styles.rowActive]}>
-              <View style={[styles.bullet, state === 'done' && { backgroundColor: palette.success, borderColor: palette.success }]}>
+              <View style={[styles.bullet, state === 'done' && { backgroundColor: c.success, borderColor: c.success }]}>
                 {state === 'done' ? (
                   <Animated.View entering={pop()}>
                     <Check size={12} color="#fff" strokeWidth={3.5} />

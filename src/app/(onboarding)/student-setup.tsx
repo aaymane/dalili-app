@@ -16,7 +16,7 @@ import {
   type LucideIcon,
 } from 'lucide-react-native';
 import { useState, type ReactNode } from 'react';
-import { Platform, StyleSheet, View } from 'react-native';
+import { Platform, View } from 'react-native';
 import Animated from 'react-native-reanimated';
 
 import { Screen } from '@/components/layout/Screen';
@@ -32,16 +32,20 @@ import { useProfile } from '@/features/profile/store';
 import { concernLabels, type CampusStatus, type Concern, type HousingStatus, type StudyLevel } from '@/features/profile/types';
 import { haptics } from '@/lib/haptics';
 import { toISODate } from '@/lib/date';
-import { gradients, palette, radius, shadow, type Tone } from '@/theme/tokens';
+import { makeStyles, useTheme } from '@/theme/scheme';
+import { radius, type Tone } from '@/theme/tokens';
 import { leave, rise } from '@/theme/motion';
 
 const tile = (tone: Tone, icon: LucideIcon) => <IconTile icon={icon} tone={tone} size={42} radius={13} />;
 
 const QUESTIONS = 6;
-const tops = [gradients.peach, gradients.sky, gradients.mint, gradients.lilac, gradients.peach, gradients.sky, gradients.lilac];
+/** Le haut d'écran de chaque question (dégradé pastel du thème en cours). */
+const TOPS = ['peach', 'sky', 'mint', 'lilac', 'peach', 'sky', 'lilac'] as const;
 
 /** Questions d'onboarding Étudiant : chaque réponse personnalise le parcours, les mentors et l'IA. */
 export default function StudentQuestions() {
+  const { c: colors, gradients } = useTheme();
+  const styles = useStyles();
   const profile = useProfile((s) => s.profile);
   const update = useProfile((s) => s.update);
   const [i, setI] = useState(0);
@@ -88,7 +92,7 @@ export default function StudentQuestions() {
 
   return (
     <Screen
-      top={tops[i]}
+      top={gradients[TOPS[i]]}
       bg="#fff"
       padded={false}
       header={
@@ -196,7 +200,7 @@ export default function StudentQuestions() {
               return (
                 <PressableScale key={c} onPress={() => toggleConcern(c)} haptic="select" style={[styles.concern, on && styles.concernOn]}>
                   <Text style={{ fontSize: 22 }}>{concernLabels[c].emoji}</Text>
-                  <Text variant="smallStrong" color={on ? palette.electric : palette.navy} align="center">
+                  <Text variant="smallStrong" color={on ? colors.electric : colors.navy} align="center">
                     {concernLabels[c].label}
                   </Text>
                 </PressableScale>
@@ -216,12 +220,12 @@ export default function StudentQuestions() {
                 <IconTile icon={BellRing} tone="blue" size={36} radius={11} />
                 <View style={{ flex: 1 }}>
                   <Text variant="smallStrong">{n.t}</Text>
-                  <Text variant="caption" color={palette.muted}>
+                  <Text variant="caption" color={colors.muted}>
                     {n.s}
                   </Text>
                 </View>
                 <View style={styles.due}>
-                  <Text variant="caption" color={palette.danger}>
+                  <Text variant="caption" color={colors.danger}>
                     {n.d}
                   </Text>
                 </View>
@@ -234,12 +238,12 @@ export default function StudentQuestions() {
   );
 }
 
-const styles = StyleSheet.create({
-  unknown: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 14, borderRadius: radius.xl, backgroundColor: palette.navyInk, borderWidth: 2, borderColor: 'transparent', ...shadow.md },
+const useStyles = makeStyles(({ c, shadow }) => ({
+  unknown: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 14, borderRadius: radius.xl, backgroundColor: c.navyInk, borderWidth: 2, borderColor: 'transparent', ...shadow.md },
   concerns: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, justifyContent: 'space-between' },
-  concern: { width: '48%', minHeight: 92, padding: 12, borderRadius: radius.lg, backgroundColor: '#fff', borderWidth: 1.5, borderColor: '#EDF0F7', alignItems: 'center', justifyContent: 'center', gap: 6, ...shadow.sm },
-  concernOn: { borderColor: palette.electric, backgroundColor: '#F6F8FF' },
-  notifCard: { gap: 10, padding: 14, borderRadius: radius.xl, backgroundColor: '#fff', ...shadow.md },
-  notif: { flexDirection: 'row', alignItems: 'center', gap: 10, padding: 10, borderRadius: radius.md, backgroundColor: '#F7F8FC' },
-  due: { backgroundColor: palette.dangerSoft, borderRadius: 999, paddingHorizontal: 8, paddingVertical: 3 },
-});
+  concern: { width: '48%', minHeight: 92, padding: 12, borderRadius: radius.lg, backgroundColor: c.card, borderWidth: 1.5, borderColor: c.line, alignItems: 'center', justifyContent: 'center', gap: 6, ...shadow.sm },
+  concernOn: { borderColor: c.electric, backgroundColor: c.cardSelected },
+  notifCard: { gap: 10, padding: 14, borderRadius: radius.xl, backgroundColor: c.card, ...shadow.md },
+  notif: { flexDirection: 'row', alignItems: 'center', gap: 10, padding: 10, borderRadius: radius.md, backgroundColor: c.fill },
+  due: { backgroundColor: c.dangerSoft, borderRadius: 999, paddingHorizontal: 8, paddingVertical: 3 },
+}));

@@ -1,7 +1,7 @@
 import { router } from 'expo-router';
 import { Ban, ChevronRight, Flag, ShieldAlert, type LucideIcon } from 'lucide-react-native';
 import { useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { View } from 'react-native';
 import Animated from 'react-native-reanimated';
 
 import { BottomSheet } from '@/components/feedback/BottomSheet';
@@ -16,7 +16,8 @@ import { isInFrance, useProfile } from '@/features/profile/store';
 import { haptics } from '@/lib/haptics';
 import { useRoleTheme } from '@/theme';
 import { rise } from '@/theme/motion';
-import { palette, radius, shadow, type Tone } from '@/theme/tokens';
+import { makeStyles, useTheme } from '@/theme/scheme';
+import { radius, type Tone } from '@/theme/tokens';
 import { track } from '@/lib/analytics';
 
 import { SafetyRefused, type ReportReason, type ReportTarget } from '../api';
@@ -50,6 +51,8 @@ export function SafetySheet({
   name: string;
   onBlocked?: () => void;
 }) {
+  const { c } = useTheme();
+  const styles = useStyles();
   const theme = useRoleTheme();
   const send = useSendReport();
   const block = useBlockUser();
@@ -127,7 +130,7 @@ export function SafetySheet({
         <Animated.View key="report" entering={rise()} style={styles.body}>
           <View style={{ gap: 4 }}>
             <Text variant="h2">Signaler {name}</Text>
-            <Text variant="small" color={palette.subtle}>
+            <Text variant="small" color={c.subtle}>
               Seule l’équipe DALILI lit ton signalement. {name} n’est pas prévenu·e.
             </Text>
           </View>
@@ -165,7 +168,7 @@ export function SafetySheet({
             ].map((line) => (
               <View key={line} style={styles.line}>
                 <View style={styles.dot} />
-                <Text variant="small" color={palette.subtle} style={{ flex: 1 }}>
+                <Text variant="small" color={c.subtle} style={{ flex: 1 }}>
                   {line}
                 </Text>
               </View>
@@ -173,7 +176,7 @@ export function SafetySheet({
           </View>
           <Button label={`Bloquer ${name}`} variant="danger" onPress={confirmBlock} loading={block.isPending} disabled={!target} />
           <PressableScale onPress={() => setStep('report')} hitSlop={6} style={styles.link}>
-            <Text variant="smallStrong" color={palette.subtle}>
+            <Text variant="smallStrong" color={c.subtle}>
               Il s’est passé quelque chose ? Signale-le aussi
             </Text>
           </PressableScale>
@@ -184,22 +187,26 @@ export function SafetySheet({
 }
 
 function Choice({ icon, tone, title, text, onPress }: { icon: LucideIcon; tone: Tone; title: string; text: string; onPress: () => void }) {
+  const { c } = useTheme();
+  const styles = useStyles();
   return (
     <PressableScale onPress={onPress} style={styles.choice} accessibilityRole="button" accessibilityLabel={title}>
       <IconTile icon={icon} tone={tone} size={42} radius={14} />
       <View style={{ flex: 1, gap: 2 }}>
         <Text variant="bodyStrong">{title}</Text>
-        <Text variant="small" color={palette.subtle}>
+        <Text variant="small" color={c.subtle}>
           {text}
         </Text>
       </View>
-      <ChevronRight size={18} color={palette.muted} />
+      <ChevronRight size={18} color={c.muted} />
     </PressableScale>
   );
 }
 
 /** En France : le 17 et l'écran SOS. Ailleurs, les numéros français ne marchent pas : la police du pays. */
 function Danger({ onClose }: { onClose: () => void }) {
+  const { c } = useTheme();
+  const styles = useStyles();
   const inFrance = useProfile((s) => isInFrance(s.profile));
   if (!inFrance) {
     return (
@@ -223,17 +230,17 @@ function Danger({ onClose }: { onClose: () => void }) {
       <Text variant="small" style={{ flex: 1 }}>
         En danger maintenant ? Appelle le 17 (police).
       </Text>
-      <ChevronRight size={18} color={palette.muted} />
+      <ChevronRight size={18} color={c.muted} />
     </PressableScale>
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles(({ c, shadow }) => ({
   body: { gap: 14 },
   reasons: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  choice: { flexDirection: 'row', alignItems: 'center', gap: 12, minHeight: 64, padding: 12, borderRadius: radius.lg, backgroundColor: palette.white, ...shadow.sm },
-  danger: { flexDirection: 'row', alignItems: 'center', gap: 10, minHeight: 48, padding: 10, borderRadius: radius.lg, backgroundColor: palette.dangerSoft },
+  choice: { flexDirection: 'row', alignItems: 'center', gap: 12, minHeight: 64, padding: 12, borderRadius: radius.lg, backgroundColor: c.card, ...shadow.sm },
+  danger: { flexDirection: 'row', alignItems: 'center', gap: 10, minHeight: 48, padding: 10, borderRadius: radius.lg, backgroundColor: c.dangerSoft },
   line: { flexDirection: 'row', gap: 10, alignItems: 'flex-start' },
-  dot: { width: 6, height: 6, borderRadius: 3, marginTop: 7, backgroundColor: palette.danger },
+  dot: { width: 6, height: 6, borderRadius: 3, marginTop: 7, backgroundColor: c.danger },
   link: { alignSelf: 'center', minHeight: 44, justifyContent: 'center' },
-});
+}));

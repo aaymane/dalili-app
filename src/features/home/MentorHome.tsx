@@ -26,7 +26,8 @@ import { SafetySheet } from '@/features/safety/components/SafetySheet';
 import { daysFromToday, formatDayMonth, formatTime, relativeDays } from '@/lib/date';
 import { haptics } from '@/lib/haptics';
 import { enter, leave, pop, reflow } from '@/theme/motion';
-import { gradients, palette, radius, shadow } from '@/theme/tokens';
+import { makeStyles, useTheme } from '@/theme/scheme';
+import { palette, radius } from '@/theme/tokens';
 
 const AVATAR_TONES = [palette.electricLight, palette.aiIndigo, palette.mentor, palette.host];
 const avatarTone = (name: string) => AVATAR_TONES[[...name].reduce((n, c) => n + c.charCodeAt(0), 0) % AVATAR_TONES.length];
@@ -54,6 +55,8 @@ function impactOf(requests: MentorRequest[]) {
 
 /** Accueil Mentor : ta carte nuit, les demandes à traiter, ta disponibilité. */
 export function MentorHome() {
+  const { c, gradients } = useTheme();
+  const styles = useStyles();
   const profile = useProfile((s) => s.profile);
   const mine = useMyMentor();
   const requests = useMentorRequests();
@@ -103,7 +106,7 @@ export function MentorHome() {
                 <View style={styles.availRow}>
                   <View style={{ flex: 1 }}>
                     <Text variant="bodyStrong">{mentor.availableThisWeek ? 'Je prends des demandes' : 'En pause'}</Text>
-                    <Text variant="small" color={palette.subtle}>
+                    <Text variant="small" color={c.subtle}>
                       {mentor.availableThisWeek
                         ? `Les étudiants de ${mentor.city} peuvent te proposer un appel`
                         : 'Personne ne peut te demander d’appel pour le moment'}
@@ -115,7 +118,7 @@ export function MentorHome() {
                       haptics.select();
                       availability.mutate(v, { onError: () => toast('Pas enregistré. Vérifie ta connexion et réessaie.', 'info') });
                     }}
-                    trackColor={{ true: palette.mentor, false: palette.line }}
+                    trackColor={{ true: c.mentor, false: c.line }}
                     accessibilityLabel="Je prends des demandes"
                   />
                 </View>
@@ -125,7 +128,7 @@ export function MentorHome() {
               <Button
                 label="Voir mon profil public"
                 variant="secondary"
-                iconLeft={<Eye size={18} color={palette.navy} />}
+                iconLeft={<Eye size={18} color={c.navy} />}
                 onPress={() => router.push({ pathname: '/(app)/mentor/[id]', params: { id: mentor.id } })}
               />
             </Reveal>
@@ -137,6 +140,8 @@ export function MentorHome() {
 }
 
 function ImpactCard({ name, mentor, requests }: { name: string; mentor: MyMentor; requests: MentorRequest[] }) {
+  const { c, gradients } = useTheme();
+  const styles = useStyles();
   const pending = requests.filter((r) => r.status === 'pending').length;
   const impact = impactOf(requests);
   const sentence = pending
@@ -152,19 +157,19 @@ function ImpactCard({ name, mentor, requests }: { name: string; mentor: MyMentor
         <Text variant="smallStrong" color="rgba(255,255,255,0.6)">
           Bonjour {name}
         </Text>
-        <Text variant="h2" color={palette.white}>
+        <Text variant="h2" color={c.white}>
           {sentence}
         </Text>
       </View>
       <View style={styles.stats}>
-        <Stat icon={<Users size={14} color={palette.mentorGlow} />} value={String(impact.acceptedThisMonth)} label="acceptés ce mois" />
+        <Stat icon={<Users size={14} color={c.mentorGlow} />} value={String(impact.acceptedThisMonth)} label="acceptés ce mois" />
         <View style={styles.statSep} />
-        <Stat icon={<PhoneCall size={14} color={palette.mentorGlow} />} value={String(impact.calls)} label="appels" />
+        <Stat icon={<PhoneCall size={14} color={c.mentorGlow} />} value={String(impact.calls)} label="appels" />
         <View style={styles.statSep} />
         {mentor.sessions > 0 ? (
-          <Stat icon={<Star size={14} color={palette.mentorGlow} fill={palette.mentorGlow} />} value={mentor.rating.toFixed(1).replace('.', ',')} label="note" />
+          <Stat icon={<Star size={14} color={c.mentorGlow} fill={c.mentorGlow} />} value={mentor.rating.toFixed(1).replace('.', ',')} label="note" />
         ) : (
-          <Stat icon={<Star size={14} color={palette.mentorGlow} />} value="Nouveau" label="pas encore noté" />
+          <Stat icon={<Star size={14} color={c.mentorGlow} />} value="Nouveau" label="pas encore noté" />
         )}
       </View>
     </LinearGradient>
@@ -172,6 +177,8 @@ function ImpactCard({ name, mentor, requests }: { name: string; mentor: MyMentor
 }
 
 function Requests({ query }: { query: ReturnType<typeof useMentorRequests> }) {
+  const { c } = useTheme();
+  const styles = useStyles();
   const answer = useAnswerRequest();
   const list = visible(query.data ?? []);
   const pending = list.filter((r) => r.status === 'pending').length;
@@ -211,7 +218,7 @@ function Requests({ query }: { query: ReturnType<typeof useMentorRequests> }) {
       ) : !query.isPending && !list.length ? (
         <View style={[styles.list, styles.empty]}>
           <IconTile icon={Hourglass} tone="green" size={44} radius={14} />
-          <Text variant="small" color={palette.subtle} style={{ flex: 1 }}>
+          <Text variant="small" color={c.subtle} style={{ flex: 1 }}>
             Quand un étudiant te propose un appel, sa demande arrive ici. Tu acceptes selon ce que tu fais à ce moment-là.
           </Text>
         </View>
@@ -223,18 +230,18 @@ function Requests({ query }: { query: ReturnType<typeof useMentorRequests> }) {
                 <Avatar name={r.student ?? 'Étudiant'} size={44} color={avatarTone(r.student ?? r.id)} />
                 <View style={{ flex: 1 }}>
                   <Text variant="bodyStrong">{r.student ?? 'Un·e étudiant·e'}</Text>
-                  <Text variant="small" color={palette.subtle} numberOfLines={1}>
+                  <Text variant="small" color={c.subtle} numberOfLines={1}>
                     {r.topic}
                   </Text>
                   {r.city ? (
-                    <Text variant="caption" color={palette.muted}>
+                    <Text variant="caption" color={c.muted}>
                       Depuis {r.city}
                     </Text>
                   ) : null}
                 </View>
                 <View style={{ alignItems: 'flex-end' }}>
                   <Text variant="smallStrong">{when(r.startsAt)}</Text>
-                  <Text variant="small" color={palette.subtle}>
+                  <Text variant="small" color={c.subtle}>
                     {formatTime(r.startsAt)}
                   </Text>
                 </View>
@@ -242,13 +249,13 @@ function Requests({ query }: { query: ReturnType<typeof useMentorRequests> }) {
               {r.status === 'pending' ? (
                 <View style={styles.reqActions}>
                   <PressableScale haptic="press" onPress={() => reply(r, true)} hitSlop={4} style={styles.accept} accessibilityLabel={`Accepter l’appel avec ${r.student ?? 'cet étudiant'}`}>
-                    <Check size={16} color={palette.white} strokeWidth={2.6} />
-                    <Text variant="smallStrong" color={palette.white}>
+                    <Check size={16} color={c.white} strokeWidth={2.6} />
+                    <Text variant="smallStrong" color={c.white}>
                       Accepter
                     </Text>
                   </PressableScale>
                   <PressableScale onPress={() => reply(r, false)} hitSlop={4} style={styles.decline} accessibilityLabel={`Décliner la demande de ${r.student ?? 'cet étudiant'}`}>
-                    <Text variant="smallStrong" color={palette.subtle}>
+                    <Text variant="smallStrong" color={c.subtle}>
                       Décliner
                     </Text>
                   </PressableScale>
@@ -263,22 +270,22 @@ function Requests({ query }: { query: ReturnType<typeof useMentorRequests> }) {
                       hitSlop={4}
                       style={styles.accept}
                       accessibilityLabel={`Rejoindre l’appel avec ${r.student ?? 'cet·te étudiant·e'}`}>
-                      <Video size={16} color={palette.white} />
-                      <Text variant="smallStrong" color={palette.white}>
+                      <Video size={16} color={c.white} />
+                      <Text variant="smallStrong" color={c.white}>
                         Rejoindre
                       </Text>
                     </PressableScale>
                   ) : (
                     <Animated.View entering={pop()} style={styles.confirmed}>
-                      <Check size={14} color={palette.mentor} strokeWidth={2.6} />
-                      <Text variant="smallStrong" color={palette.mentor}>
+                      <Check size={14} color={c.mentor} strokeWidth={2.6} />
+                      <Text variant="smallStrong" color={c.mentor}>
                         Appel confirmé
                       </Text>
                     </Animated.View>
                   )}
                   <PressableScale onPress={() => write(r)} disabled={open.isPending} hitSlop={4} style={styles.write} accessibilityLabel={`Écrire à ${r.student ?? 'cet·te étudiant·e'}`}>
-                    <MessageCircle size={15} color={palette.mentor} />
-                    <Text variant="smallStrong" color={palette.mentor}>
+                    <MessageCircle size={15} color={c.mentor} />
+                    <Text variant="smallStrong" color={c.mentor}>
                       Écrire
                     </Text>
                   </PressableScale>
@@ -300,22 +307,26 @@ function Requests({ query }: { query: ReturnType<typeof useMentorRequests> }) {
 }
 
 function ReportButton({ r, onPress }: { r: MentorRequest; onPress: () => void }) {
+  const { c } = useTheme();
+  const styles = useStyles();
   return (
     <PressableScale onPress={onPress} style={styles.flag} accessibilityLabel={`Signaler ou bloquer ${r.student ?? 'cet·te étudiant·e'}`}>
-      <Flag size={16} color={palette.muted} />
+      <Flag size={16} color={c.muted} />
     </PressableScale>
   );
 }
 
 /** Pas encore de fiche : « Devenir mentor » passe par la charte, qui envoie la fiche à l'équipe. */
 function BecomeMentor() {
+  const { c, gradients } = useTheme();
+  const styles = useStyles();
   const profile = useProfile((s) => s.profile);
   const city = profile.mentorCity ?? profile.destinationCity;
   return (
     <View style={[styles.list, styles.stateCard]}>
       <IconTile icon={Users} tone="green" size={52} radius={17} />
       <Text variant="h2">Deviens mentor</Text>
-      <Text variant="body" color={palette.subtle}>
+      <Text variant="body" color={c.subtle}>
         Tu es passé·e par là. Ta fiche permet aux étudiants qui arrivent à {city ?? 'ta ville'} de te demander un appel gratuit. L’équipe la relit avant de la
         montrer.
       </Text>
@@ -326,7 +337,7 @@ function BecomeMentor() {
         onPress={() => router.push('/(app)/charte-mentor')}
       />
       {!city || !profile.firstName.trim() ? (
-        <Text variant="caption" color={palette.muted}>
+        <Text variant="caption" color={c.muted}>
           {!profile.firstName.trim() ? 'Ajoute d’abord ton prénom dans ton profil : les étudiants le verront.' : 'Choisis d’abord ta ville dans ton profil.'}
         </Text>
       ) : null}
@@ -336,27 +347,31 @@ function BecomeMentor() {
 
 /** Fiche envoyée avant la charte (ou charte qui a changé) : on la fait accepter, sans rien bloquer d'autre. */
 function CharterCard() {
+  const { c } = useTheme();
+  const styles = useStyles();
   return (
     <PressableScale onPress={() => router.push('/(app)/charte-mentor')} style={[styles.list, styles.charter]} accessibilityRole="button">
       <IconTile icon={ShieldCheck} tone="green" size={44} radius={14} />
       <View style={{ flex: 1, gap: 2 }}>
         <Text variant="bodyStrong">Accepte la charte du mentor</Text>
-        <Text variant="small" color={palette.subtle}>
+        <Text variant="small" color={c.subtle}>
           6 engagements pour protéger les étudiants, et toi aussi. Une minute.
         </Text>
       </View>
-      <ChevronRight size={18} color={palette.subtle} />
+      <ChevronRight size={18} color={c.subtle} />
     </PressableScale>
   );
 }
 
 /** Fiche envoyée, pas encore validée : on le dit, sans promettre de délai. */
 function PendingCard({ city }: { city: string }) {
+  const { c } = useTheme();
+  const styles = useStyles();
   return (
     <View style={[styles.list, styles.stateCard]}>
       <IconTile icon={Hourglass} tone="amber" size={52} radius={17} />
       <Text variant="h2">Ta fiche est en cours de validation</Text>
-      <Text variant="body" color={palette.subtle}>
+      <Text variant="body" color={c.subtle}>
         L’équipe vérifie chaque mentor et relit sa fiche avant de la montrer. Elle peut te contacter par email pour voir ta carte étudiante, ton LinkedIn ou ton
         titre de séjour. Une fois validée, les étudiants de {city} pourront te proposer un appel, et leurs demandes arriveront ici.
       </Text>
@@ -365,14 +380,16 @@ function PendingCard({ city }: { city: string }) {
 }
 
 function OfflineCard({ onRetry }: { onRetry: () => void }) {
+  const { c } = useTheme();
+  const styles = useStyles();
   return (
     <View style={[styles.list, styles.empty]}>
       <IconTile icon={WifiOff} tone="slate" size={44} radius={14} />
-      <Text variant="small" color={palette.subtle} style={{ flex: 1 }}>
+      <Text variant="small" color={c.subtle} style={{ flex: 1 }}>
         Pas de connexion pour le moment.
       </Text>
       <PressableScale onPress={onRetry} hitSlop={6} accessibilityLabel="Réessayer">
-        <Text variant="smallStrong" color={palette.mentor}>
+        <Text variant="smallStrong" color={c.mentor}>
           Réessayer
         </Text>
       </PressableScale>
@@ -381,11 +398,13 @@ function OfflineCard({ onRetry }: { onRetry: () => void }) {
 }
 
 function Stat({ icon, value, label }: { icon: React.ReactNode; value: string; label: string }) {
+  const { c } = useTheme();
+  const styles = useStyles();
   return (
     <View style={styles.stat}>
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
         {icon}
-        <Text variant="h3" color={palette.white}>
+        <Text variant="h3" color={c.white}>
           {value}
         </Text>
       </View>
@@ -396,24 +415,24 @@ function Stat({ icon, value, label }: { icon: React.ReactNode; value: string; la
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles(({ c, shadow }) => ({
   hero: { borderRadius: radius.xxl, padding: 20, paddingTop: 8, gap: 14, overflow: 'hidden', ...shadow.md },
-  skeleton: { height: 300, borderRadius: radius.xxl, backgroundColor: palette.surface, opacity: 0.6 },
+  skeleton: { height: 300, borderRadius: radius.xxl, backgroundColor: c.surface, opacity: 0.6 },
   stats: { flexDirection: 'row', alignItems: 'center', paddingTop: 14, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: 'rgba(255,255,255,0.18)' },
   stat: { flex: 1, alignItems: 'center', gap: 2 },
   statSep: { width: StyleSheet.hairlineWidth, height: 28, backgroundColor: 'rgba(255,255,255,0.18)' },
-  list: { borderRadius: radius.xl, backgroundColor: palette.surface, overflow: 'hidden', ...shadow.sm },
+  list: { borderRadius: radius.xl, backgroundColor: c.surface, overflow: 'hidden', ...shadow.sm },
   stateCard: { padding: 20, gap: 12 },
   empty: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 14 },
-  charter: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 16, borderWidth: 1.5, borderColor: palette.mentor },
+  charter: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 16, borderWidth: 1.5, borderColor: c.mentor },
   req: { padding: 14, gap: 12 },
-  sep: { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: palette.line },
+  sep: { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: c.line },
   reqTop: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   reqActions: { flexDirection: 'row', alignItems: 'center', gap: 8, marginLeft: 56 },
-  accept: { flexDirection: 'row', alignItems: 'center', gap: 6, height: 40, paddingHorizontal: 16, borderRadius: radius.pill, backgroundColor: palette.mentor },
+  accept: { flexDirection: 'row', alignItems: 'center', gap: 6, height: 40, paddingHorizontal: 16, borderRadius: radius.pill, backgroundColor: c.mentor },
   decline: { height: 40, paddingHorizontal: 14, justifyContent: 'center', borderRadius: radius.pill },
   confirmed: { flexDirection: 'row', alignItems: 'center', gap: 6, minHeight: 44 },
-  write: { flexDirection: 'row', alignItems: 'center', gap: 6, height: 40, paddingHorizontal: 14, borderRadius: radius.pill, backgroundColor: palette.mentorSoft },
+  write: { flexDirection: 'row', alignItems: 'center', gap: 6, height: 40, paddingHorizontal: 14, borderRadius: radius.pill, backgroundColor: c.mentorSoft },
   flag: { width: 44, height: 44, marginLeft: 'auto', alignItems: 'center', justifyContent: 'center', borderRadius: radius.pill },
   availRow: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 14 },
-});
+}));

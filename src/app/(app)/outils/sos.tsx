@@ -7,7 +7,8 @@ import { Screen } from '@/components/layout/Screen';
 import { IconTile } from '@/components/ui/IconTile';
 import { PressableScale } from '@/components/ui/PressableScale';
 import { Text } from '@/components/ui/Text';
-import { palette, radius, shadow, tones, type Tone } from '@/theme/tokens';
+import { makeStyles, useTheme } from '@/theme/scheme';
+import { radius, type Tone } from '@/theme/tokens';
 import { rise } from '@/theme/motion';
 
 const URGENT: { n: string; l: string; d: string; icon: LucideIcon; tone: Tone }[] = [
@@ -27,12 +28,14 @@ const USEFUL: { n: string; l: string; d: string; display?: string; icon: LucideI
 
 /** SOS : numéros d'urgence et d'écoute en France, appel en 1 tap. */
 export default function Sos() {
+  const { c, tones, gradients } = useTheme();
+  const styles = useStyles();
   const call = (n: string) => Linking.openURL(`tel:${n}`).catch(() => {});
   return (
-    <Screen top={['#FFC9D2', '#FFE9ED', '#F5F7FD']} padded={false} header={<AppHeader back />}>
+    <Screen top={gradients.sosTop} padded={false} header={<AppHeader back />}>
       <View style={{ paddingHorizontal: 20, gap: 16 }}>
         <Text variant="hero">Urgences & SOS</Text>
-        <Text variant="body" color={palette.subtle}>
+        <Text variant="body" color={c.subtle}>
           En cas d’urgence, appelle directement. Ces numéros sont gratuits, même sans crédit.
         </Text>
         <View style={styles.grid}>
@@ -42,14 +45,14 @@ export default function Sos() {
                 <View style={styles.urgentTop}>
                   <IconTile icon={u.icon} tone={u.tone} size={40} radius={13} />
                   <View style={[styles.callDot, { backgroundColor: tones[u.tone].ink }]}>
-                    <Phone size={14} color={palette.white} fill={palette.white} />
+                    <Phone size={14} color={c.white} fill={c.white} />
                   </View>
                 </View>
                 <Text variant="hero" color={tones[u.tone].ink} style={{ fontSize: 38, lineHeight: 44, marginTop: 10 }}>
                   {u.n}
                 </Text>
                 <Text variant="h3">{u.l}</Text>
-                <Text variant="caption" color={palette.subtle}>
+                <Text variant="caption" color={c.subtle}>
                   {u.d}
                 </Text>
               </PressableScale>
@@ -67,11 +70,11 @@ export default function Sos() {
                 <Text variant="bodyStrong">
                   {u.display ?? u.n} · {u.l}
                 </Text>
-                <Text variant="caption" color={palette.muted}>
+                <Text variant="caption" color={c.muted}>
                   {u.d}
                 </Text>
               </View>
-              <Phone size={16} color={palette.muted} />
+              <Phone size={16} color={c.muted} />
             </PressableScale>
           ))}
         </View>
@@ -86,13 +89,13 @@ export default function Sos() {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles(({ c, shadow }) => ({
   grid: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', gap: 12 },
-  urgent: { padding: 14, borderRadius: radius.xl, gap: 2, minHeight: 150, backgroundColor: palette.surface, ...shadow.sm },
+  urgent: { padding: 14, borderRadius: radius.xl, gap: 2, minHeight: 150, backgroundColor: c.surface, ...shadow.sm },
   urgentTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   callDot: { width: 32, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
-  list: { borderRadius: radius.xl, backgroundColor: '#fff', paddingVertical: 4, ...shadow.sm },
+  list: { borderRadius: radius.xl, backgroundColor: c.card, paddingVertical: 4, ...shadow.sm },
   row: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 14, paddingVertical: 12 },
-  sep: { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: palette.line },
-  consulate: { flexDirection: 'row', gap: 12, alignItems: 'center', padding: 14, borderRadius: radius.xl, backgroundColor: palette.surface, ...shadow.sm },
-});
+  sep: { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: c.line },
+  consulate: { flexDirection: 'row', gap: 12, alignItems: 'center', padding: 14, borderRadius: radius.xl, backgroundColor: c.surface, ...shadow.sm },
+}));

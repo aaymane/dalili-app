@@ -1,6 +1,6 @@
 import { router } from 'expo-router';
 import { Check, GripVertical } from 'lucide-react-native';
-import { StyleSheet, View } from 'react-native';
+import { View } from 'react-native';
 import Animated, { useAnimatedStyle, withSpring, withTiming } from 'react-native-reanimated';
 
 import { celebrate } from '@/components/feedback/Confetti';
@@ -9,24 +9,27 @@ import { StatusPill, Tag } from '@/components/ui/Tag';
 import { Text } from '@/components/ui/Text';
 import { daysFromToday, formatDayMonth } from '@/lib/date';
 import { haptics } from '@/lib/haptics';
-import { motion, palette, radius, shadow } from '@/theme/tokens';
+import { makeStyles, useTheme } from '@/theme/scheme';
+import { motion, radius } from '@/theme/tokens';
 import { pop } from '@/theme/motion';
 
 import { useJourneyStore, type JourneyItem } from '../store';
 
 /** Ligne d'étape du Parcours-quête (officielle ou perso), avec validation animée. */
 export function StepRow({ item }: { item: JourneyItem }) {
+  const { c } = useTheme();
+  const styles = useStyles();
   const toggle = useJourneyStore((s) => s.toggle);
   const toggleCustom = useJourneyStore((s) => s.toggleCustom);
   const done = item.done;
   const isCurrent = item.current;
 
   const box = useAnimatedStyle(() => ({
-    borderColor: withTiming(isCurrent ? palette.electric : '#EEF0F6', { duration: 200 }),
+    borderColor: withTiming(isCurrent ? c.electric : c.line, { duration: 200 }),
     opacity: withTiming(done || isCurrent ? 1 : 0.92, { duration: 200 }),
   }));
   const check = useAnimatedStyle(() => ({
-    backgroundColor: withTiming(done ? palette.success : isCurrent ? palette.electricSoft : '#EEF1F7', { duration: 220 }),
+    backgroundColor: withTiming(done ? c.success : isCurrent ? c.electricSoft : c.fill, { duration: 220 }),
     transform: [{ scale: withSpring(done ? 1 : 0.94, motion.springBouncy) }],
   }));
 
@@ -62,12 +65,12 @@ export function StepRow({ item }: { item: JourneyItem }) {
           </Animated.View>
         </PressableScale>
         <View style={{ flex: 1, gap: 5 }}>
-          <Text variant="smallStrong" numberOfLines={2} color={done ? palette.navy : isCurrent ? palette.navy : palette.subtle}>
+          <Text variant="smallStrong" numberOfLines={2} color={done ? c.navy : isCurrent ? c.navy : c.subtle}>
             {title}
           </Text>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
             <Tag label={tags.join(' · ')} />
-            <Text variant="caption" color={palette.muted}>
+            <Text variant="caption" color={c.muted}>
               {sub}
             </Text>
           </View>
@@ -87,9 +90,9 @@ export function StepRow({ item }: { item: JourneyItem }) {
   );
 }
 
-const styles = StyleSheet.create({
-  row: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 12, paddingRight: 10, borderRadius: radius.lg, backgroundColor: '#fff', borderWidth: 1.5, ...shadow.sm },
-  current: { ...shadow.md, shadowColor: palette.electric, shadowOpacity: 0.16 },
+const useStyles = makeStyles(({ c, shadow }) => ({
+  row: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 12, paddingRight: 10, borderRadius: radius.lg, backgroundColor: c.card, borderWidth: 1.5, ...shadow.sm },
+  current: { ...shadow.md, shadowColor: c.electric, shadowOpacity: 0.16 },
   check: { width: 30, height: 30, borderRadius: 15, alignItems: 'center', justifyContent: 'center' },
-  currentDot: { width: 12, height: 12, borderRadius: 6, backgroundColor: palette.electric, borderWidth: 3, borderColor: '#BFD0FF' },
-});
+  currentDot: { width: 12, height: 12, borderRadius: 6, backgroundColor: c.electric, borderWidth: 3, borderColor: c.electricSoft },
+}));

@@ -2,7 +2,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { BookOpen } from 'lucide-react-native';
 import { useEffect, useRef, useState } from 'react';
-import { StyleSheet, useWindowDimensions, View } from 'react-native';
+import { useWindowDimensions, View } from 'react-native';
 import Animated, { Extrapolation, FadeIn, interpolate, useAnimatedStyle } from 'react-native-reanimated';
 
 import { useScrollY } from '@/components/motion/scroll';
@@ -12,7 +12,8 @@ import { PressableScale } from '@/components/ui/PressableScale';
 import { Text } from '@/components/ui/Text';
 import { Ame, type AmeState } from '@/features/ame/Ame';
 import { useJourney } from '@/features/journey/store';
-import { depth, gradients, palette, radius, shadow } from '@/theme/tokens';
+import { makeStyles, useTheme } from '@/theme/scheme';
+import { depth, radius } from '@/theme/tokens';
 
 import { useBrief } from './brief';
 
@@ -22,6 +23,7 @@ const MAX_DELAY = 1200;
 let revealedOnce = false;
 
 function Words({ text, animate }: { text: string; animate: boolean }) {
+  const styles = useStyles();
   const words = text.split(' ');
   if (!animate) {
     return (
@@ -45,6 +47,8 @@ function Words({ text, animate }: { text: string; animate: boolean }) {
 
 /** Haut de l'accueil : l'Âme, le salut, la phrase du jour et sa source. */
 export function BriefHero() {
+  const { gradients } = useTheme();
+  const styles = useStyles();
   const brief = useBrief();
   const j = useJourney();
   const [animate] = useState(() => !revealedOnce);
@@ -115,10 +119,12 @@ export function BriefHero() {
  * pour que le billet reste le seul héros et que l'action du jour reste visible sans défiler.
  */
 export function BriefLine() {
+  const { c } = useTheme();
+  const styles = useStyles();
   const brief = useBrief();
   return (
     <View style={{ gap: 6 }}>
-      <Text variant="smallStrong" color={palette.subtle}>
+      <Text variant="smallStrong" color={c.subtle}>
         {brief.hello} {brief.lead}
       </Text>
       <Text variant="h2">{brief.sentence}</Text>
@@ -128,8 +134,8 @@ export function BriefLine() {
           style={styles.sourceLight}
           accessibilityRole="link"
           accessibilityLabel={`D’après notre guide ${brief.source.title}`}>
-          <BookOpen size={14} color={palette.electric} />
-          <Text variant="caption" color={palette.electric} style={{ flexShrink: 1 }} numberOfLines={1}>
+          <BookOpen size={14} color={c.electric} />
+          <Text variant="caption" color={c.electric} style={{ flexShrink: 1 }} numberOfLines={1}>
             D’après notre guide · {brief.source.title}
           </Text>
         </PressableScale>
@@ -138,10 +144,10 @@ export function BriefLine() {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles(({ shadow }) => ({
   card: { borderRadius: radius.xxl, padding: 20, paddingTop: 8, gap: 14, overflow: 'hidden', ...shadow.md },
   ame: { alignItems: 'center', marginBottom: -6 },
   words: { flexDirection: 'row', flexWrap: 'wrap' },
   source: { flexDirection: 'row', alignItems: 'center', gap: 8, minHeight: 36, alignSelf: 'stretch', paddingHorizontal: 12, borderRadius: 999, backgroundColor: 'rgba(255,255,255,0.08)' },
   sourceLight: { flexDirection: 'row', alignItems: 'center', gap: 6, minHeight: 44, alignSelf: 'flex-start' },
-});
+}));

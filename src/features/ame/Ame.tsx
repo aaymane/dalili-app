@@ -29,7 +29,8 @@ import {
   type SharedValue,
 } from 'react-native-reanimated';
 
-import { motion, palette } from '@/theme/tokens';
+import { useTheme } from '@/theme/scheme';
+import { motion } from '@/theme/tokens';
 
 import { FACE, LOGO_CENTER, LOGO_SIZE, PIECE_BAS, PIECE_HAUT } from './shaders';
 
@@ -120,6 +121,7 @@ type Props = {
  * Seule boucle de l'écran ; pose fixe si « Réduire les animations » ; pause hors focus.
  */
 export function Ame({ size = 160, state = 'rest', signal = 0, surface = 'dark' }: Props) {
+  const { c } = useTheme();
   const reduce = useReducedMotion();
   const focused = useIsFocused();
   const small = size < 64;
@@ -215,7 +217,7 @@ export function Ame({ size = 160, state = 'rest', signal = 0, surface = 'dark' }
             y={size * 0.84}
             width={size * 0.52}
             height={size * 0.07}
-            color={palette.navy}
+            color={c.navy}
             opacity={shadowOpacity}
           >
             <BlurMask blur={size * 0.04} style="normal" />

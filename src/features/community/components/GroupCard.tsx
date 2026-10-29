@@ -1,6 +1,6 @@
 import { router } from 'expo-router';
 import { Users } from 'lucide-react-native';
-import { StyleSheet, View } from 'react-native';
+import { View } from 'react-native';
 
 import { toast } from '@/components/feedback/Toast';
 import { Button } from '@/components/ui/Button';
@@ -10,7 +10,8 @@ import { remoteJoinGroup } from '@/data/api';
 import type { EventWithState, GroupWithState } from '@/data/hooks';
 import { useLocalDb } from '@/data/local-db';
 import { formatLong, formatTime } from '@/lib/date';
-import { palette, radius, shadow } from '@/theme/tokens';
+import { makeStyles, useTheme } from '@/theme/scheme';
+import { radius } from '@/theme/tokens';
 
 import { Cover } from './Cover';
 
@@ -24,6 +25,8 @@ export function useJoinGroup() {
 }
 
 export function GroupCard({ g }: { g: GroupWithState }) {
+  const { c } = useTheme();
+  const styles = useStyles();
   const join = useJoinGroup();
   return (
     <PressableScale scaleTo={0.98} onPress={() => router.push({ pathname: '/(app)/groupe/[id]', params: { id: g.id } })} style={styles.card}>
@@ -32,8 +35,8 @@ export function GroupCard({ g }: { g: GroupWithState }) {
         <View style={{ flex: 1 }}>
           <Text variant="h3">{g.name}</Text>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-            <Users size={12} color={palette.muted} />
-            <Text variant="caption" color={palette.muted}>
+            <Users size={12} color={c.muted} />
+            <Text variant="caption" color={c.muted}>
               {g.members} membres
             </Text>
           </View>
@@ -45,16 +48,18 @@ export function GroupCard({ g }: { g: GroupWithState }) {
 }
 
 export function EventCard({ e }: { e: EventWithState }) {
+  const { c } = useTheme();
+  const styles = useStyles();
   return (
     <PressableScale scaleTo={0.98} onPress={() => router.push({ pathname: '/(app)/evenement/[id]', params: { id: e.id } })} style={styles.card}>
       <Cover colors={e.cover} emoji={e.emoji} label="ÉVÉNEMENT" labelColor="#7A5AF8" height={130} radius={18} />
       <View style={styles.row}>
         <View style={{ flex: 1, gap: 2 }}>
           <Text variant="h3">{e.title}</Text>
-          <Text variant="caption" color={palette.subtle}>
+          <Text variant="caption" color={c.subtle}>
             📍 {e.city} · {formatLong(e.startsAt)} · {formatTime(e.startsAt)}
           </Text>
-          <Text variant="caption" color={palette.muted}>
+          <Text variant="caption" color={c.muted}>
             {e.attendees}/{e.capacity} personnes
           </Text>
         </View>
@@ -70,7 +75,7 @@ export function EventCard({ e }: { e: EventWithState }) {
   );
 }
 
-const styles = StyleSheet.create({
-  card: { padding: 8, borderRadius: radius.xl, backgroundColor: '#fff', ...shadow.sm },
+const useStyles = makeStyles(({ c, shadow }) => ({
+  card: { padding: 8, borderRadius: radius.xl, backgroundColor: c.card, ...shadow.sm },
   row: { flexDirection: 'row', alignItems: 'center', gap: 10, padding: 8, paddingTop: 12 },
-});
+}));

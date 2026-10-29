@@ -1,7 +1,7 @@
 import { router } from 'expo-router';
 import { BellRing, CalendarClock, Hourglass, PartyPopper, Video, type LucideIcon } from 'lucide-react-native';
 import { useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { View } from 'react-native';
 import Animated from 'react-native-reanimated';
 
 import { AppHeader } from '@/components/layout/AppHeader';
@@ -12,13 +12,16 @@ import { Text } from '@/components/ui/Text';
 import { useMentors, useMyBookings } from '@/data/hooks';
 import { useJourney } from '@/features/journey/store';
 import { daysFromToday, formatLong, formatTime } from '@/lib/date';
-import { gradients, palette, radius, shadow, type Tone } from '@/theme/tokens';
+import { makeStyles, useTheme } from '@/theme/scheme';
+import { radius, type Tone } from '@/theme/tokens';
 import { rise } from '@/theme/motion';
 
 type N = { id: string; icon: LucideIcon; tone: Tone; title: string; sub: string; onPress?: () => void; urgent?: boolean };
 
 /** Centre de notifications : échéances proches, rendez-vous, bienvenue. */
 export default function Notifications() {
+  const { c, gradients } = useTheme();
+  const styles = useStyles();
   const j = useJourney();
   const [since] = useState(() => Date.now());
   const bookings = useMyBookings().data.filter((b) => (b.status === 'pending' || b.status === 'confirmed') && new Date(b.startsAt).getTime() > since);
@@ -59,15 +62,15 @@ export default function Notifications() {
       <View style={{ paddingHorizontal: 20, gap: 10 }}>
         {items.map((n, i) => (
           <Animated.View key={n.id} entering={rise(i * 50)}>
-            <PressableScale onPress={n.onPress ?? (() => {})} style={[styles.row, n.urgent && { borderColor: '#FBD5D5', borderWidth: 1.5 }]}>
+            <PressableScale onPress={n.onPress ?? (() => {})} style={[styles.row, n.urgent && { borderColor: c.dangerSoft, borderWidth: 1.5 }]}>
               <IconTile icon={n.icon} tone={n.tone} size={42} radius={13} />
               <View style={{ flex: 1 }}>
                 <Text variant="bodyStrong">{n.title}</Text>
-                <Text variant="caption" color={n.urgent ? palette.danger : palette.muted}>
+                <Text variant="caption" color={n.urgent ? c.danger : c.muted}>
                   {n.sub}
                 </Text>
               </View>
-              {n.urgent ? <BellRing size={16} color={palette.danger} /> : null}
+              {n.urgent ? <BellRing size={16} color={c.danger} /> : null}
             </PressableScale>
           </Animated.View>
         ))}
@@ -76,6 +79,6 @@ export default function Notifications() {
   );
 }
 
-const styles = StyleSheet.create({
-  row: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 14, borderRadius: radius.xl, backgroundColor: '#fff', borderWidth: 1.5, borderColor: 'transparent', ...shadow.sm },
-});
+const useStyles = makeStyles(({ c, shadow }) => ({
+  row: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 14, borderRadius: radius.xl, backgroundColor: c.card, borderWidth: 1.5, borderColor: 'transparent', ...shadow.sm },
+}));

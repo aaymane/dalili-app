@@ -98,7 +98,8 @@ const useStyles = makeStyles(({ c, shadow }) => ({
   base: { overflow: 'hidden' },
   inner: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
   secondary: { backgroundColor: c.card, borderWidth: 1, borderColor: c.line },
-  white: { backgroundColor: c.card, ...shadow.sm },
+  // Un vrai blanc dans les deux thèmes (bouton posé sur une photo ou un fond nuit).
+  white: { backgroundColor: lightPalette.white, ...shadow.sm },
   glass: { backgroundColor: 'rgba(255,255,255,0.12)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.18)' },
 }));
 

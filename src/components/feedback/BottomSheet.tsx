@@ -167,7 +167,7 @@ export function BottomSheet({ visible, onClose, onClosed, children, scroll, maxH
   );
 }
 
-const useStyles = makeStyles(({ c }) => ({
+const useStyles = makeStyles(({ c, scheme }) => ({
   backdrop: { flex: 1, backgroundColor: 'rgba(10,13,31,0.45)' },
   sheet: {
     position: 'absolute',
@@ -181,5 +181,5 @@ const useStyles = makeStyles(({ c }) => ({
     ...(Platform.OS === 'web' ? { maxWidth: 520, alignSelf: 'center', marginHorizontal: 'auto' } : null),
   },
   handleZone: { height: 30, alignItems: 'center', justifyContent: 'center', marginBottom: 2 },
-  handle: { width: 40, height: 5, borderRadius: 3, backgroundColor: '#1F2850', opacity: 0.9 },
+  handle: { width: 40, height: 5, borderRadius: 3, backgroundColor: scheme === 'dark' ? c.lineStrong : c.navy, opacity: 0.9 },
 }));

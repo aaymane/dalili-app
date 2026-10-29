@@ -2,7 +2,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { router, useLocalSearchParams } from 'expo-router';
 import { ArrowRight, Bookmark, BookOpen, CheckCircle2, Clock, GraduationCap, House, Languages, Search, Sparkles } from 'lucide-react-native';
 import { useMemo, useState } from 'react';
-import { ScrollView, StyleSheet, View } from 'react-native';
+import { ScrollView, View } from 'react-native';
 import Animated, { FadeIn } from 'react-native-reanimated';
 
 import { AppHeader } from '@/components/layout/AppHeader';
@@ -15,7 +15,7 @@ import { Text } from '@/components/ui/Text';
 import { readMinutes } from '@/data/content';
 import { useContent, useMentors } from '@/data/hooks';
 import { useLocalDb } from '@/data/local-db';
-import { categories, categoryOf, type GuideCategory } from '@/features/guides/categories';
+import { categories, categoryOf, type GuideCategory, softOf } from '@/features/guides/categories';
 import { countryOf } from '@/features/journey/steps';
 import { ToolsGrid } from '@/features/home/ToolsGrid';
 import { MentorRow } from '@/features/mentors/components/MentorCard';
@@ -23,16 +23,19 @@ import { MentorsSoon } from '@/features/mentors/components/MentorsSoon';
 import { useProfile } from '@/features/profile/store';
 import { SchoolCard } from '@/features/schools/components/SchoolParts';
 import { useSchools } from '@/features/schools/hooks';
-import { gradients, palette, radius, shadow } from '@/theme/tokens';
+import { makeStyles, useTheme } from '@/theme/scheme';
+import { radius } from '@/theme/tokens';
 import { reflow, rise } from '@/theme/motion';
 
 type Tab = 'mentors' | 'guides' | 'schools' | 'hosts';
 
 function TabPill({ label, icon, active, onPress, color }: { label: string; icon: React.ReactNode; active: boolean; onPress: () => void; color: string }) {
+  const { c: colors, shadow } = useTheme();
+  const styles = useStyles();
   return (
     <PressableScale onPress={onPress} haptic="select" style={[styles.tab, active ? { backgroundColor: color, ...shadow.glow, shadowColor: color } : styles.tabIdle]}>
       {icon}
-      <Text variant="smallStrong" color={active ? '#fff' : palette.navy}>
+      <Text variant="smallStrong" color={active ? '#fff' : colors.navy}>
         {label}
       </Text>
     </PressableScale>
@@ -41,6 +44,8 @@ function TabPill({ label, icon, active, onPress, color }: { label: string; icon:
 
 /** Explorer : trouver un mentor, lire les guides, découvrir les écoles partenaires, (bientôt) trouver un hôte. */
 export default function Explorer() {
+  const { c: colors, gradients, scheme } = useTheme();
+  const styles = useStyles();
   const params = useLocalSearchParams<{ tab?: Tab }>();
   // L'onglet suit le paramètre d'URL (?tab=guides) tant que l'utilisateur ne change pas d'onglet.
   const [picked, setPicked] = useState<{ from?: string; tab: Tab } | null>(null);
@@ -92,15 +97,15 @@ export default function Explorer() {
           <Text variant="hero">{title}</Text>
         </Animated.View>
         {tab === 'schools' ? null : (
-          <Input icon={<Search size={16} color={palette.electric} />} placeholder={tab === 'guides' ? 'Visa, CAF, logement…' : 'Rechercher'} value={q} onChangeText={setQ} />
+          <Input icon={<Search size={16} color={colors.electric} />} placeholder={tab === 'guides' ? 'Visa, CAF, logement…' : 'Rechercher'} value={q} onChangeText={setQ} />
         )}
       </View>
       {/* Quatre onglets : la rangée défile sur les petits écrans, sans rien couper. */}
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginTop: 14, flexGrow: 0 }} contentContainerStyle={{ gap: 8, paddingHorizontal: 20, paddingVertical: 4 }}>
-        <TabPill label="Mentors" icon={<Sparkles size={14} color={tab === 'mentors' ? '#fff' : palette.navy} />} active={tab === 'mentors'} onPress={() => setTab('mentors')} color={palette.electric} />
-        <TabPill label="Guides" icon={<BookOpen size={14} color={tab === 'guides' ? '#fff' : palette.navy} />} active={tab === 'guides'} onPress={() => setTab('guides')} color={palette.electric} />
-        <TabPill label="Écoles" icon={<GraduationCap size={14} color={tab === 'schools' ? '#fff' : palette.navy} />} active={tab === 'schools'} onPress={() => setTab('schools')} color={palette.electric} />
-        <TabPill label="Hôtes" icon={<House size={14} color={tab === 'hosts' ? '#fff' : palette.navy} />} active={tab === 'hosts'} onPress={() => setTab('hosts')} color={palette.host} />
+        <TabPill label="Mentors" icon={<Sparkles size={14} color={tab === 'mentors' ? '#fff' : colors.navy} />} active={tab === 'mentors'} onPress={() => setTab('mentors')} color={colors.electric} />
+        <TabPill label="Guides" icon={<BookOpen size={14} color={tab === 'guides' ? '#fff' : colors.navy} />} active={tab === 'guides'} onPress={() => setTab('guides')} color={colors.electric} />
+        <TabPill label="Écoles" icon={<GraduationCap size={14} color={tab === 'schools' ? '#fff' : colors.navy} />} active={tab === 'schools'} onPress={() => setTab('schools')} color={colors.electric} />
+        <TabPill label="Hôtes" icon={<House size={14} color={tab === 'hosts' ? '#fff' : colors.navy} />} active={tab === 'hosts'} onPress={() => setTab('hosts')} color={colors.host} />
       </ScrollView>
 
       {tab === 'mentors' && (
@@ -129,7 +134,7 @@ export default function Explorer() {
             {!isLoading && mentors.length > 0 && !mentorList.length ? (
               <View style={styles.empty}>
                 <Text variant="h3">Pas encore de mentor ici</Text>
-                <Text variant="small" color={palette.muted} align="center">
+                <Text variant="small" color={colors.muted} align="center">
                   {city ? `Essaie une autre ville, ou deviens le premier mentor de ${city} 💙` : 'Essaie avec un autre mot.'}
                 </Text>
               </View>
@@ -171,7 +176,7 @@ export default function Explorer() {
               return (
                 <Animated.View key={g.slug} entering={rise(Math.min(i, 6) * 40)} layout={reflow}>
                   <PressableScale onPress={() => router.push({ pathname: '/(app)/guide/[id]', params: { id: g.slug } })} style={styles.guide}>
-                    <View style={[styles.emoji, { backgroundColor: c.soft }]}>
+                    <View style={[styles.emoji, { backgroundColor: softOf(c, scheme) }]}>
                       <Text style={{ fontSize: 24 }}>{c.emoji}</Text>
                     </View>
                     <View style={{ flex: 1, gap: 3 }}>
@@ -182,14 +187,14 @@ export default function Explorer() {
                         {g.title}
                       </Text>
                       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-                        <Clock size={12} color={palette.muted} />
-                        <Text variant="caption" color={palette.muted}>
+                        <Clock size={12} color={colors.muted} />
+                        <Text variant="caption" color={colors.muted}>
                           {readMinutes(g.readTime)} min
                         </Text>
                         {read.includes(g.slug) ? (
                           <>
-                            <CheckCircle2 size={12} color={palette.success} style={{ marginLeft: 6 }} />
-                            <Text variant="caption" color={palette.success}>
+                            <CheckCircle2 size={12} color={colors.success} style={{ marginLeft: 6 }} />
+                            <Text variant="caption" color={colors.success}>
                               Lu
                             </Text>
                           </>
@@ -197,7 +202,7 @@ export default function Explorer() {
                       </View>
                     </View>
                     <PressableScale onPress={() => toggleSaved(g.slug)} haptic="select" hitSlop={10} accessibilityLabel="Enregistrer le guide">
-                      <Bookmark size={20} color={saved.includes(g.slug) ? palette.electric : palette.muted} fill={saved.includes(g.slug) ? palette.electric : 'transparent'} />
+                      <Bookmark size={20} color={saved.includes(g.slug) ? colors.electric : colors.muted} fill={saved.includes(g.slug) ? colors.electric : 'transparent'} />
                     </PressableScale>
                   </PressableScale>
                 </Animated.View>
@@ -209,7 +214,7 @@ export default function Explorer() {
 
       {tab === 'schools' && (
         <Animated.View entering={FadeIn.duration(200)} style={{ gap: 14, marginTop: 14, paddingHorizontal: 20 }}>
-          <Text variant="body" color={palette.subtle}>
+          <Text variant="body" color={colors.subtle}>
             Des écoles qui accueillent les étudiants du Maghreb et travaillent avec DALILI. Dis-nous laquelle t’attire : l’équipe te recontacte.
           </Text>
           {schools.isPending
@@ -223,7 +228,7 @@ export default function Explorer() {
             <View style={styles.empty}>
               <IconTile icon={GraduationCap} tone="blue" size={48} radius={16} />
               <Text variant="h3">{schools.isError ? 'Pas de connexion' : 'Nos premières écoles arrivent'}</Text>
-              <Text variant="small" color={palette.muted} align="center">
+              <Text variant="small" color={colors.muted} align="center">
                 {schools.isError ? 'Vérifie ton réseau et réessaie.' : 'On finalise nos premiers partenariats. Elles apparaîtront ici très bientôt.'}
               </Text>
             </View>
@@ -258,7 +263,7 @@ export default function Explorer() {
                 Devenez un point d’ancrage pour votre communauté
               </Text>
               <View style={styles.hostArrow}>
-                <ArrowRight size={16} color={palette.host} />
+                <ArrowRight size={16} color={colors.host} />
               </View>
             </PressableScale>
           </LinearGradient>
@@ -268,18 +273,18 @@ export default function Explorer() {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles(({ c, shadow }) => ({
   tab: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 14, height: 40, borderRadius: radius.pill },
-  tabIdle: { backgroundColor: '#fff', ...shadow.sm },
-  skeleton: { height: 92, borderRadius: radius.xl, backgroundColor: '#E9EDF7' },
-  empty: { alignItems: 'center', gap: 6, padding: 24, borderRadius: radius.xl, backgroundColor: '#fff' },
+  tabIdle: { backgroundColor: c.card, ...shadow.sm },
+  skeleton: { height: 92, borderRadius: radius.xl, backgroundColor: c.fill },
+  empty: { alignItems: 'center', gap: 6, padding: 24, borderRadius: radius.xl, backgroundColor: c.card },
   lexique: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 16, borderRadius: radius.xl, ...shadow.md },
-  guide: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 12, borderRadius: radius.xl, backgroundColor: '#fff', ...shadow.sm },
+  guide: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 12, borderRadius: radius.xl, backgroundColor: c.card, ...shadow.sm },
   emoji: { width: 56, height: 56, borderRadius: 18, alignItems: 'center', justifyContent: 'center' },
-  hostCard: { borderRadius: radius.xxl, padding: 20, gap: 8, ...shadow.md, shadowColor: palette.host },
+  hostCard: { borderRadius: radius.xxl, padding: 20, gap: 8, ...shadow.md, shadowColor: c.host },
   soon: { alignSelf: 'flex-start', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 999, backgroundColor: 'rgba(255,255,255,0.22)' },
   progress: { height: 5, borderRadius: 3, backgroundColor: 'rgba(255,255,255,0.3)', marginTop: 18, overflow: 'hidden' },
-  progressFill: { height: 5, backgroundColor: '#fff', borderRadius: 3 },
+  progressFill: { height: 5, backgroundColor: c.card, borderRadius: 3 },
   hostCta: { flexDirection: 'row', alignItems: 'center', gap: 10, marginTop: 14 },
-  hostArrow: { width: 36, height: 36, borderRadius: 18, backgroundColor: '#fff', alignItems: 'center', justifyContent: 'center' },
-});
+  hostArrow: { width: 36, height: 36, borderRadius: 18, backgroundColor: c.card, alignItems: 'center', justifyContent: 'center' },
+}));

@@ -1,13 +1,14 @@
 import { router, type Href } from 'expo-router';
 import { BookOpenText, FolderCheck, Languages, PiggyBank, Siren, type LucideIcon } from 'lucide-react-native';
-import { ScrollView, StyleSheet } from 'react-native';
+import { ScrollView } from 'react-native';
 import Animated from 'react-native-reanimated';
 
 import { IconTile } from '@/components/ui/IconTile';
 import { PressableScale } from '@/components/ui/PressableScale';
 import { Text } from '@/components/ui/Text';
 import { useContent } from '@/data/hooks';
-import { palette, radius, shadow, type Tone } from '@/theme/tokens';
+import { makeStyles, useTheme } from '@/theme/scheme';
+import { radius, type Tone } from '@/theme/tokens';
 import { rise } from '@/theme/motion';
 
 const TOOLS: { label: string; sub: string; href: Href; icon: LucideIcon; tone: Tone }[] = [
@@ -20,6 +21,8 @@ const TOOLS: { label: string; sub: string; href: Href; icon: LucideIcon; tone: T
 
 /** Boîte à outils (accès rapide). */
 export function ToolsGrid() {
+  const { c } = useTheme();
+  const styles = useStyles();
   const { data: manifest } = useContent('manifest');
   return (
     <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 10, paddingHorizontal: 20 }} style={{ marginHorizontal: -20 }}>
@@ -30,7 +33,7 @@ export function ToolsGrid() {
             <Text variant="smallStrong" style={{ marginTop: 8 }}>
               {t.label}
             </Text>
-            <Text variant="caption" color={palette.muted}>
+            <Text variant="caption" color={c.muted}>
               {t.label === 'Guides' ? `${manifest.guides.length} guides vérifiés` : t.sub}
             </Text>
           </PressableScale>
@@ -40,6 +43,6 @@ export function ToolsGrid() {
   );
 }
 
-const styles = StyleSheet.create({
-  tool: { width: 104, padding: 12, borderRadius: radius.lg, backgroundColor: '#fff', ...shadow.sm },
-});
+const useStyles = makeStyles(({ c, shadow }) => ({
+  tool: { width: 104, padding: 12, borderRadius: radius.lg, backgroundColor: c.card, ...shadow.sm },
+}));
