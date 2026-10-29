@@ -18,6 +18,7 @@ const KEPT = [
   { icon: Map, title: 'Ton profil et ton parcours', text: 'Pour reprendre là où tu en étais, même sur un autre téléphone.' },
   { icon: ImageIcon, title: 'Ta photo', text: 'Privée : pour l’instant, toi seul·e la vois. On retire le lieu et les infos cachées avant l’envoi.' },
   { icon: MessageCircle, title: 'Tes messages dans la communauté', text: 'Visibles par les membres des groupes que tu rejoins.' },
+  { icon: MessageCircle, title: 'Tes conversations avec un mentor', text: 'Visibles seulement par vous deux. Elles partent avec ton compte.' },
   { icon: Sparkles, title: 'Tes questions à Dalili IA', text: 'Gardées sans ton nom ni ton email, pour améliorer les guides.' },
   { icon: Flag, title: 'Les signalements du mentorat', text: 'Lus seulement par l’équipe. Si un compte est supprimé, le signalement reste, sans le nom, pour protéger les autres.' },
 ];

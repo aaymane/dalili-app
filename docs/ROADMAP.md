@@ -19,7 +19,7 @@
 - [x] **Sécurité du mentorat** : charte et mentors de 18 ans vérifiés (24/10), signaler et bloquer un mentor ou un étudiant (28/10)
 - [ ] **Mineurs** : règle A, B ou C à choisir par les fondateurs
 
-- [ ] **Messagerie mentor ↔ étudiant (temps réel)**
+- [x] **Messagerie mentor ↔ étudiant (temps réel)** : ouverte quand le mentor accepte (29/10)
   > `/fonctionnalite Messagerie privée entre un étudiant et son mentor : liste des conversations, écran de chat avec bulles animées, indicateur « en train d'écrire », temps réel avec Supabase Realtime, tables conversations/messages avec RLS (seuls les 2 participants lisent). Accès depuis le profil mentor (« Écrire ») et depuis l'accueil.`
 
 - [ ] **Appels vidéo réels**

@@ -377,6 +377,97 @@ select tests.must_count('le blocage du mentor C, lui, tient toujours', $q$select
 reset role;
 rollback;
 
+-- ───────────── messagerie : ouverte quand le mentor accepte, lue seulement par les deux participants ─────────────
+begin;
+update public.profiles set first_name = 'Aymen', last_name = 'Amri' where id = '00000000-0000-0000-0000-00000000000a';
+insert into public.mentors (id, user_id, first_name, last_name, city, is_active) values
+  ('00000000-0000-0000-0000-0000000000e1', '00000000-0000-0000-0000-00000000000c', 'Yassine', 'Kadiri', 'Lyon', true);
+insert into public.mentor_trust (user_id, birth_year, charter_version, verified_at, verified_proof, verified_by)
+  values ('00000000-0000-0000-0000-00000000000c', 1998, public.mentor_charter_version(), now(), 'linkedin', 'Aymane');
+insert into public.bookings (id, student_id, mentor_id, starts_at, status) values
+  ('00000000-0000-0000-0000-0000000000f1', '00000000-0000-0000-0000-00000000000a', '00000000-0000-0000-0000-0000000000e1', now() + interval '2 days', 'pending');
+set local role anon;
+select tests.must_fail('anon lit les messages', 'select * from public.messages');
+select tests.must_fail('anon liste des conversations', 'select * from public.my_conversations()');
+reset role;
+
+set local role authenticated;
+set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-00000000000a","role":"authenticated"}';
+select tests.must_count('demande en attente : pas encore de conversation', 'select * from public.my_conversations()', 0);
+select tests.must_fail('A crée une conversation à la main',
+  $q$insert into public.conversations (student_id, mentor_id) values (auth.uid(), '00000000-0000-0000-0000-0000000000e1')$q$);
+
+set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-00000000000c","role":"authenticated"}';
+update public.bookings set status = 'confirmed' where id = '00000000-0000-0000-0000-0000000000f1';
+
+set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-00000000000a","role":"authenticated"}';
+select tests.must_count('le mentor accepte : la conversation s''ouvre, avec son nom',
+  $q$select * from public.my_conversations() where as_role = 'student' and other_name = 'Yassine Kadiri' and can_write and unread = 0$q$, 1);
+select tests.must_count('A la retrouve depuis la demande', $q$select 1 where public.conversation_for_booking('00000000-0000-0000-0000-0000000000f1') is not null$q$, 1);
+insert into public.messages (conversation_id, body) select id, '  Salut Yassine !  ' from public.my_conversations();
+select tests.must_count('A écrit : son nom et l''heure viennent de la base, le texte est nettoyé',
+  $q$select * from public.messages where sender_id = auth.uid() and body = 'Salut Yassine !'$q$, 1);
+select tests.must_fail('A écrit au nom du mentor',
+  $q$insert into public.messages (conversation_id, body, sender_id) select id, 'Faux', '00000000-0000-0000-0000-00000000000c' from public.my_conversations()$q$);
+select tests.must_fail('A antidate un message',
+  $q$insert into public.messages (conversation_id, body, created_at) select id, 'Hier', now() - interval '1 day' from public.my_conversations()$q$);
+select tests.must_fail('A envoie un message vide', $q$insert into public.messages (conversation_id, body) select id, '   ' from public.my_conversations()$q$);
+select tests.must_fail('A envoie plus de 2000 caractères', $q$insert into public.messages (conversation_id, body) select id, repeat('x', 2001) from public.my_conversations()$q$);
+select tests.must_fail('A modifie son message', $q$update public.messages set body = 'Autre chose'$q$);
+select tests.must_fail('A lit les conversations à la main', 'select * from public.conversations');
+select tests.must_fail('A marque lu à la place du mentor', 'update public.conversations set mentor_read_at = now()');
+
+reset role;
+-- L'identifiant de la conversation, comme si B l'avait deviné.
+create temp table conv_ids on commit drop as select id from public.conversations;
+grant select on conv_ids to authenticated;
+set local role authenticated;
+set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-00000000000b","role":"authenticated"}';
+select tests.must_count('B ne voit aucune conversation', 'select * from public.my_conversations()', 0);
+select tests.must_count('B ne lit aucun message', 'select * from public.messages', 0);
+select tests.must_count('B ne retrouve pas la conversation depuis la demande', $q$select 1 where public.conversation_for_booking('00000000-0000-0000-0000-0000000000f1') is not null$q$, 0);
+select tests.must_fail('B écrit dans la conversation de A', $q$insert into public.messages (conversation_id, body) select id, 'Coucou' from conv_ids$q$);
+select public.mark_conversation_read(id) from conv_ids;
+
+set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-00000000000c","role":"authenticated"}';
+select tests.must_count('le mentor voit « Aymen A. » et 1 message non lu (B n''a rien pu marquer lu)',
+  $q$select * from public.my_conversations() where as_role = 'mentor' and other_name = 'Aymen A.' and unread = 1 and last_body = 'Salut Yassine !' and not last_from_me$q$, 1);
+select public.mark_conversation_read(id) from public.my_conversations();
+select tests.must_count('le mentor a lu : plus de non lu', 'select * from public.my_conversations() where unread = 0', 1);
+insert into public.messages (conversation_id, body) select id, 'Salut Aymen, dis-moi tout.' from public.my_conversations();
+
+set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-00000000000a","role":"authenticated"}';
+select tests.must_count('A voit la réponse, non lue', $q$select * from public.my_conversations() where unread = 1 and last_body = 'Salut Aymen, dis-moi tout.'$q$, 1);
+insert into public.messages (conversation_id, body) select c.id, 'm' || g from public.my_conversations() c, generate_series(1, 29) g;
+select tests.must_fail('A, 30 messages en une minute : le 31e attend', $q$insert into public.messages (conversation_id, body) select id, 'Encore' from public.my_conversations()$q$);
+reset role;
+
+-- Mentor suspendu : la conversation reste lisible, plus personne n'y écrit.
+delete from public.messages where body ~ '^m[0-9]+$';
+update public.mentors set is_active = false where id = '00000000-0000-0000-0000-0000000000e1';
+set local role authenticated;
+set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-00000000000a","role":"authenticated"}';
+select tests.must_count('mentor suspendu : A relit la conversation', 'select * from public.messages', 2);
+select tests.must_fail('mentor suspendu : A ne peut plus écrire', $q$insert into public.messages (conversation_id, body) select id, 'Tu es là ?' from public.my_conversations()$q$);
+set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-00000000000c","role":"authenticated"}';
+select tests.must_fail('mentor suspendu : il ne peut plus écrire', $q$insert into public.messages (conversation_id, body) select id, 'Je reviens' from public.my_conversations()$q$);
+reset role;
+
+-- Blocage : la conversation disparaît pour les deux.
+update public.mentors set is_active = true where id = '00000000-0000-0000-0000-0000000000e1';
+set local role authenticated;
+set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-00000000000a","role":"authenticated"}';
+select public.block_user('00000000-0000-0000-0000-0000000000e1');
+select tests.must_count('A bloque le mentor : plus de conversation', 'select * from public.my_conversations()', 0);
+select tests.must_count('… ni de messages', 'select * from public.messages', 0);
+set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-00000000000c","role":"authenticated"}';
+select tests.must_count('… pour le mentor non plus', 'select * from public.messages', 0);
+select tests.must_fail('le mentor bloqué n''écrit plus', $q$insert into public.messages (conversation_id, body) select id, 'Pourquoi ?' from conv_ids$q$);
+select tests.must_count('le canal temps réel lui est fermé', $q$select 1 from conv_ids where public.is_conversation_topic('conv:' || id)$q$, 0);
+select tests.must_count('la conversation ne se retrouve plus depuis la demande', $q$select 1 where public.conversation_for_booking('00000000-0000-0000-0000-0000000000f1') is not null$q$, 0);
+reset role;
+rollback;
+
 -- ───────────── notifications : les téléphones et le journal des alertes ─────────────
 begin;
 set local role authenticated;
@@ -474,6 +565,26 @@ set local role authenticated;
 set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-00000000000a","role":"authenticated"}';
 insert into public.bookings (student_id, mentor_id, starts_at) values (auth.uid(), '00000000-0000-0000-0000-0000000000e1', now() + interval '2 days');
 select tests.must_count('webhook en panne : la demande est quand même enregistrée', 'select * from public.bookings', 1);
+reset role;
+rollback;
+
+-- Un message prévient le site (le site décide ensuite s'il alerte : une fois par série non lue).
+begin;
+insert into vault.decrypted_secrets values ('notify_webhook_url', 'https://site.test/api/hooks/notify'), ('notify_webhook_secret', 'secret-test');
+insert into public.mentors (id, user_id, first_name, last_name, city, is_active) values
+  ('00000000-0000-0000-0000-0000000000e1', '00000000-0000-0000-0000-00000000000c', 'Yassine', 'Kadiri', 'Lyon', true);
+insert into public.bookings (id, student_id, mentor_id, starts_at, status) values
+  ('00000000-0000-0000-0000-0000000000f1', '00000000-0000-0000-0000-00000000000a', '00000000-0000-0000-0000-0000000000e1', now() + interval '2 days', 'pending');
+set local role authenticated;
+set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-00000000000c","role":"authenticated"}';
+update public.bookings set status = 'confirmed' where id = '00000000-0000-0000-0000-0000000000f1';
+select tests.must_count('le canal temps réel est ouvert aux deux participants',
+  $q$select 1 from (select ('conv:' || id) t from public.my_conversations()) x where public.is_conversation_topic(x.t)$q$, 1);
+select tests.must_count('un canal mal formé est refusé, sans erreur', $q$select 1 where public.is_conversation_topic('conv:pas-un-uuid')$q$, 0);
+set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-00000000000a","role":"authenticated"}';
+insert into public.messages (conversation_id, body) select id, 'Merci !' from public.my_conversations();
+select tests.must_count('nouveau message : la base prévient le site, sans le texte',
+  $q$select * from tests.webhook_calls where body ->> 'event' = 'message_created' and not (body ? 'body')$q$, 1);
 reset role;
 rollback;
 

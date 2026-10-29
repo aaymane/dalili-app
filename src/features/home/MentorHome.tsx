@@ -1,6 +1,6 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
-import { Check, ChevronRight, Eye, Flag, Hourglass, PhoneCall, ShieldCheck, Star, Users, WifiOff } from 'lucide-react-native';
+import { Check, ChevronRight, Eye, Flag, Hourglass, MessageCircle, PhoneCall, ShieldCheck, Star, Users, WifiOff } from 'lucide-react-native';
 import { useState } from 'react';
 import { StyleSheet, Switch, View } from 'react-native';
 import Animated from 'react-native-reanimated';
@@ -19,6 +19,7 @@ import { Text } from '@/components/ui/Text';
 import type { MentorRequest, MyMentor } from '@/features/mentors/api';
 import { Constellation } from '@/features/mentors/components/Constellation';
 import { useAnswerRequest, useMentorRequests, useMyMentor, useSetAvailability } from '@/features/mentors/hooks';
+import { useOpenFromBooking } from '@/features/messages/hooks';
 import { displayName, useProfile } from '@/features/profile/store';
 import { SafetySheet } from '@/features/safety/components/SafetySheet';
 import { daysFromToday, formatDayMonth, formatTime, relativeDays } from '@/lib/date';
@@ -180,6 +181,15 @@ function Requests({ query }: { query: ReturnType<typeof useMentorRequests> }) {
     setReported(r);
     setReporting(true);
   };
+  const open = useOpenFromBooking();
+  const write = (r: MentorRequest) =>
+    open.mutate(
+      { bookingId: r.id, role: 'mentor' },
+      {
+        onSuccess: (id) => (id ? router.push({ pathname: '/(app)/messages/[id]', params: { id } }) : toast('La conversation s’ouvre dans un instant. Réessaie.', 'info')),
+        onError: () => toast('Pas de connexion. Réessaie dans un instant.', 'info'),
+      },
+    );
 
   const reply = (r: MentorRequest, ok: boolean) => {
     if (ok) haptics.success();
@@ -251,6 +261,12 @@ function Requests({ query }: { query: ReturnType<typeof useMentorRequests> }) {
                       Appel confirmé
                     </Text>
                   </Animated.View>
+                  <PressableScale onPress={() => write(r)} disabled={open.isPending} hitSlop={4} style={styles.write} accessibilityLabel={`Écrire à ${r.student ?? 'cet·te étudiant·e'}`}>
+                    <MessageCircle size={15} color={palette.mentor} />
+                    <Text variant="smallStrong" color={palette.mentor}>
+                      Écrire
+                    </Text>
+                  </PressableScale>
                   <ReportButton r={r} onPress={() => report(r)} />
                 </View>
               )}
@@ -382,6 +398,7 @@ const styles = StyleSheet.create({
   accept: { flexDirection: 'row', alignItems: 'center', gap: 6, height: 40, paddingHorizontal: 16, borderRadius: radius.pill, backgroundColor: palette.mentor },
   decline: { height: 40, paddingHorizontal: 14, justifyContent: 'center', borderRadius: radius.pill },
   confirmed: { flexDirection: 'row', alignItems: 'center', gap: 6, minHeight: 44 },
+  write: { flexDirection: 'row', alignItems: 'center', gap: 6, height: 40, paddingHorizontal: 14, borderRadius: radius.pill, backgroundColor: palette.mentorSoft },
   flag: { width: 44, height: 44, marginLeft: 'auto', alignItems: 'center', justifyContent: 'center', borderRadius: radius.pill },
   availRow: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 14 },
 });

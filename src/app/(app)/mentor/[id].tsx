@@ -12,6 +12,7 @@ import { PressableScale } from '@/components/ui/PressableScale';
 import { Text } from '@/components/ui/Text';
 import { useMentor } from '@/data/hooks';
 import { useMyMentor } from '@/features/mentors/hooks';
+import { useConversationWithMentor } from '@/features/messages/hooks';
 import { SafetySheet } from '@/features/safety/components/SafetySheet';
 import { palette, radius, shadow } from '@/theme/tokens';
 import { pop, rise } from '@/theme/motion';
@@ -31,6 +32,8 @@ export default function MentorProfile() {
   // Ta propre fiche n'est pas dans la liste des mentors : tu la vois quand même, en aperçu.
   const { data: mine } = useMyMentor();
   const [reporting, setReporting] = useState(false);
+  // Il a déjà accepté un de tes appels : vous pouvez vous écrire.
+  const conversation = useConversationWithMentor(id);
   const own = !!mine && mine.id === id;
   const m = listed ?? (own ? mine : undefined);
   if (!m) return <View style={{ flex: 1, backgroundColor: palette.bg }} />;
@@ -186,7 +189,18 @@ export default function MentorProfile() {
             C’est ton profil, tel que les étudiants le voient.
           </Text>
         ) : (
-          <Button label="Réserver · gratuit" onPress={() => router.push({ pathname: '/(app)/mentor/reserver', params: { id: m.id } })} />
+          <View style={{ flexDirection: 'row', gap: 10 }}>
+            {conversation ? (
+              <Button
+                label="Écrire"
+                variant="secondary"
+                full={false}
+                style={{ flex: 1 }}
+                onPress={() => router.push({ pathname: '/(app)/messages/[id]', params: { id: conversation.id } })}
+              />
+            ) : null}
+            <Button label="Réserver · gratuit" full={false} style={{ flex: conversation ? 1.4 : 1 }} onPress={() => router.push({ pathname: '/(app)/mentor/reserver', params: { id: m.id } })} />
+          </View>
         )}
       </View>
     </View>
