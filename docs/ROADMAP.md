@@ -47,7 +47,7 @@
 - [ ] **Mode sombre** (tokens déjà centralisés)
 - [ ] **Guides synchronisés avec dalili.study** (les 64 guides via une table `guides` ou le CMS du site)
 - [ ] **Espace Hôte (V2)** : annonces d'hébergement temporaire, vérification d'identité, réservation
-- [x] **Analytics** (PostHog, serveur européen) : après accord, anonyme, 13 événements (29/10) — reste à créer le projet PostHog et mettre sa clé
+- [x] **Analytics** (PostHog, serveur européen) : après accord, anonyme, 13 événements, projet UE configuré (29/10)
 - [x] **Tests** : Jest 30 + jest-expo 58 + Testing Library (29/10) ; 22 tests (parcours, présentation des écoles, chiffres, appels, dates, démo messagerie et sécurité). `npm test`, et `npm run check` = types + lint + tests
 
 ## ⚠️ À valider par l'équipe

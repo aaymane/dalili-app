@@ -6,7 +6,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ScrollContext } from '@/components/motion/scroll';
 
-import { palette } from '@/theme/tokens';
+import { useColors } from '@/theme/scheme';
 
 export const TAB_BAR_SPACE = 110;
 
@@ -26,7 +26,8 @@ type Props = {
 };
 
 /** Gabarit d'écran : dégradé haut, safe-area, scroll, footer collant. */
-export function Screen({ children, top, scroll = true, header, footer, padded = true, tabBar, bg = palette.bg, scrollProps, keyboard }: Props) {
+export function Screen({ children, top, scroll = true, header, footer, padded = true, tabBar, bg, scrollProps, keyboard }: Props) {
+  const c = useColors();
   const insets = useSafeAreaInsets();
   // Position de défilement suivie sur le thread UI : parallaxe et apparitions (`Reveal`) s'y calent.
   const scrollRef = useAnimatedRef<Animated.ScrollView>();
@@ -54,7 +55,7 @@ export function Screen({ children, top, scroll = true, header, footer, padded = 
   );
 
   return (
-    <View style={[styles.root, { backgroundColor: bg }]}>
+    <View style={[styles.root, { backgroundColor: bg ?? c.bg }]}>
       {top ? (
         <LinearGradient colors={top as [string, string, ...string[]]} locations={top.length === 3 ? [0, 0.55, 1] : undefined} style={styles.gradient} />
       ) : null}

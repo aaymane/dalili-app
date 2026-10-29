@@ -1,8 +1,9 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import type { ReactNode } from 'react';
-import { ActivityIndicator, StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
+import { ActivityIndicator, View, type StyleProp, type ViewStyle } from 'react-native';
 
-import { gradients, palette, radius, shadow } from '@/theme/tokens';
+import { makeStyles, useTheme } from '@/theme/scheme';
+import { lightPalette, radius } from '@/theme/tokens';
 
 import { PressableScale } from './PressableScale';
 import { Text } from './Text';
@@ -39,9 +40,11 @@ export function Button({
   style,
   full = true,
 }: Props) {
+  const { c, gradients, shadow } = useTheme();
+  const styles = useStyles();
   const h = heights[size];
-  const textColor =
-    variant === 'secondary' || variant === 'white' ? palette.navy : variant === 'ghost' ? palette.electric : palette.white;
+  // « white » reste un bouton blanc à texte foncé dans les deux thèmes (posé sur une photo ou un fond nuit).
+  const textColor = variant === 'white' ? lightPalette.navy : variant === 'secondary' ? c.navy : variant === 'ghost' ? c.electric : c.onAccent;
 
   const content = (
     <View style={[styles.inner, { height: h, paddingHorizontal: size === 'sm' ? 14 : 22 }]}>
@@ -68,7 +71,7 @@ export function Button({
       style={[full && { alignSelf: 'stretch' }, !full && { alignSelf: 'flex-start' }, style]}>
       {variant === 'primary' || variant === 'danger' ? (
         <LinearGradient
-          colors={variant === 'danger' ? ['#F87171', '#E5484D'] : (accent ?? gradients.electric)}
+          colors={variant === 'danger' ? ['#F87171', c.danger] : (accent ?? gradients.electric)}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
           style={[styles.base, { borderRadius: h / 2 }, !disabled && shadow.glow]}>
@@ -81,7 +84,7 @@ export function Button({
             { borderRadius: h / 2 },
             variant === 'secondary' && styles.secondary,
             variant === 'white' && styles.white,
-            variant === 'dark' && { backgroundColor: palette.navyInk },
+            variant === 'dark' && { backgroundColor: c.navyInk },
             variant === 'glass' && styles.glass,
           ]}>
           {content}
@@ -91,12 +94,12 @@ export function Button({
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles(({ c, shadow }) => ({
   base: { overflow: 'hidden' },
   inner: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
-  secondary: { backgroundColor: palette.white, borderWidth: 1, borderColor: palette.line },
-  white: { backgroundColor: palette.white, ...shadow.sm },
+  secondary: { backgroundColor: c.card, borderWidth: 1, borderColor: c.line },
+  white: { backgroundColor: c.card, ...shadow.sm },
   glass: { backgroundColor: 'rgba(255,255,255,0.12)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.18)' },
-});
+}));
 
 export const radiusPill = radius.pill;

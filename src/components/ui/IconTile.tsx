@@ -3,7 +3,8 @@ import type { LucideIcon } from 'lucide-react-native';
 import type { ReactNode } from 'react';
 import { StyleSheet, View } from 'react-native';
 
-import { tones, type Tone } from '@/theme/tokens';
+import { useTheme } from '@/theme/scheme';
+import { type Tone } from '@/theme/tokens';
 
 type Props = {
   /** Icône lucide dessinée en deux tons (trait foncé, remplissage clair) dans la couleur de `tone`. */
@@ -19,6 +20,7 @@ type Props = {
 
 /** Tuile d'icône : ton doux bicolore (par défaut), dégradé ou aplat. */
 export function IconTile({ icon: Icon, tone = 'blue', children, size = 44, colors, bg, radius }: Props) {
+  const { tones } = useTheme();
   const r = radius ?? size * 0.32;
   const box = { width: size, height: size, borderRadius: r, alignItems: 'center', justifyContent: 'center' } as const;
   if (colors) {

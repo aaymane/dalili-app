@@ -1,9 +1,10 @@
 import type { ReactNode } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { View } from 'react-native';
 import Animated, { useAnimatedStyle, withSpring, withTiming } from 'react-native-reanimated';
 
 import { EASE_OUT } from '@/theme/motion';
-import { motion, palette, radius, shadow } from '@/theme/tokens';
+import { makeStyles, useTheme } from '@/theme/scheme';
+import { motion, radius } from '@/theme/tokens';
 
 import { PressableScale } from './PressableScale';
 import { Text } from './Text';
@@ -21,9 +22,12 @@ type Props = {
 };
 
 /** Carte d'option (questions d'onboarding) avec sélection animée. */
-export function OptionCard({ title, subtitle, icon, selected, onPress, accent = palette.electric, kind = 'radio', right }: Props) {
+export function OptionCard({ title, subtitle, icon, selected, onPress, accent, kind = 'radio', right }: Props) {
+  const { c } = useTheme();
+  const styles = useStyles();
+  accent ??= c.electric;
   const box = useAnimatedStyle(() => ({
-    borderColor: withTiming(selected ? accent : '#EDF0F7', { duration: 160 }),
+    borderColor: withTiming(selected ? accent : c.line, { duration: 160 }),
     transform: [{ scale: withSpring(selected ? 1.01 : 1, motion.spring) }],
   }));
   // La coche se pose (fondu + 0,5 → 1), sans rebond : on choisit souvent, ça doit rester discret.
@@ -33,12 +37,12 @@ export function OptionCard({ title, subtitle, icon, selected, onPress, accent = 
   }));
   return (
     <PressableScale onPress={onPress} haptic="select" scaleTo={0.98}>
-      <Animated.View style={[styles.card, box, selected && { backgroundColor: '#FBFCFF' }]}>
+      <Animated.View style={[styles.card, box, selected && { backgroundColor: c.cardSelected }]}>
         {icon}
         <View style={{ flex: 1 }}>
           <Text variant="bodyStrong">{title}</Text>
           {subtitle ? (
-            <Text variant="small" color={palette.muted}>
+            <Text variant="small" color={c.muted}>
               {subtitle}
             </Text>
           ) : null}
@@ -54,19 +58,19 @@ export function OptionCard({ title, subtitle, icon, selected, onPress, accent = 
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles(({ shadow, c }) => ({
   card: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 14,
     padding: 14,
     borderRadius: radius.lg,
-    backgroundColor: '#fff',
+    backgroundColor: c.card,
     borderWidth: 1.5,
     ...shadow.sm,
   },
-  radio: { width: 22, height: 22, borderRadius: 11, borderWidth: 1.5, borderColor: '#CBD1E1', alignItems: 'center', justifyContent: 'center' },
+  radio: { width: 22, height: 22, borderRadius: 11, borderWidth: 1.5, borderColor: c.lineStrong, alignItems: 'center', justifyContent: 'center' },
   radioIn: { width: 12, height: 12, borderRadius: 6 },
-  checkbox: { width: 22, height: 22, borderRadius: 7, borderWidth: 1.5, borderColor: '#CBD1E1', alignItems: 'center', justifyContent: 'center' },
+  checkbox: { width: 22, height: 22, borderRadius: 7, borderWidth: 1.5, borderColor: c.lineStrong, alignItems: 'center', justifyContent: 'center' },
   checkIn: { width: 14, height: 14, borderRadius: 4 },
-});
+}));

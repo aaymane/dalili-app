@@ -7,7 +7,8 @@ import { scheduleOnRN } from 'react-native-worklets';
 
 import { isSameDay, monthTitle, startOfDay } from '@/lib/date';
 import { pop, slideIn, slideOut } from '@/theme/motion';
-import { palette, radius } from '@/theme/tokens';
+import { makeStyles, useTheme } from '@/theme/scheme';
+import { radius } from '@/theme/tokens';
 
 import { PressableScale } from './PressableScale';
 import { Text } from './Text';
@@ -27,7 +28,10 @@ type Props = {
 const WEEK = ['L', 'M', 'M', 'J', 'V', 'S', 'D'];
 
 /** Calendrier mensuel (semaine commençant le lundi). Flèches ou balayage horizontal pour changer de mois. */
-export function Calendar({ selected, onSelect, marked = [], highlight, initialMonth, minDate, accent = palette.electric }: Props) {
+export function Calendar({ selected, onSelect, marked = [], highlight, initialMonth, minDate, accent }: Props) {
+  const styles = useStyles();
+  const { c } = useTheme();
+  accent ??= c.electric;
   const base = initialMonth ?? selected ?? new Date();
   // `dir` : sens du dernier changement de mois, pour que la grille glisse du bon côté.
   const [cursor, setCursor] = useState({ y: base.getFullYear(), m: base.getMonth(), dir: 1 });
@@ -67,17 +71,17 @@ export function Calendar({ selected, onSelect, marked = [], highlight, initialMo
         </Animated.View>
         <View style={{ flexDirection: 'row', gap: 6 }}>
           <PressableScale onPress={() => move(-1)} style={styles.nav} accessibilityLabel="Mois précédent">
-            <ChevronLeft size={16} color={palette.subtle} />
+            <ChevronLeft size={16} color={c.subtle} />
           </PressableScale>
           <PressableScale onPress={() => move(1)} style={styles.nav} accessibilityLabel="Mois suivant">
-            <ChevronRight size={16} color={palette.subtle} />
+            <ChevronRight size={16} color={c.subtle} />
           </PressableScale>
         </View>
       </View>
       <View style={styles.row}>
         {WEEK.map((d, i) => (
           <View key={i} style={styles.cell}>
-            <Text variant="caption" color={palette.muted}>
+            <Text variant="caption" color={c.muted}>
               {d}
             </Text>
           </View>
@@ -101,7 +105,7 @@ export function Calendar({ selected, onSelect, marked = [], highlight, initialMo
                   style={[styles.day, isHi && { backgroundColor: '#E7DDFF' }, today && !isSel && { borderWidth: 1.5, borderColor: accent }]}>
                   {/* Le jour choisi se pose (au lieu de changer de couleur d'un coup). */}
                   {isSel && <Animated.View entering={pop()} style={[StyleSheet.absoluteFill, { borderRadius: 11, backgroundColor: accent }]} />}
-                  <Text variant="smallStrong" color={isSel ? '#fff' : disabled ? '#C5CAD9' : palette.navy}>
+                  <Text variant="smallStrong" color={isSel ? '#fff' : disabled ? c.lineStrong : c.navy}>
                     {d.getDate()}
                   </Text>
                 </PressableScale>
@@ -115,13 +119,13 @@ export function Calendar({ selected, onSelect, marked = [], highlight, initialMo
   );
 }
 
-const styles = StyleSheet.create({
-  card: { backgroundColor: '#fff', borderRadius: radius.xl, padding: 16, borderWidth: 1, borderColor: '#E6E9F5', overflow: 'hidden' },
+const useStyles = makeStyles(({ c }) => ({
+  card: { backgroundColor: c.card, borderRadius: radius.xl, padding: 16, borderWidth: 1, borderColor: c.line, overflow: 'hidden' },
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 },
-  nav: { width: 30, height: 30, borderRadius: 15, backgroundColor: '#F2F4FA', alignItems: 'center', justifyContent: 'center' },
+  nav: { width: 30, height: 30, borderRadius: 15, backgroundColor: c.fill, alignItems: 'center', justifyContent: 'center' },
   row: { flexDirection: 'row' },
   grid: { flexDirection: 'row', flexWrap: 'wrap' },
   cell: { width: `${100 / 7}%`, alignItems: 'center', paddingVertical: 3, minHeight: 42 },
   day: { width: 34, height: 34, borderRadius: 11, alignItems: 'center', justifyContent: 'center' },
   dot: { width: 4, height: 4, borderRadius: 2, marginTop: 1 },
-});
+}));

@@ -1,16 +1,19 @@
 import { ChevronLeft } from 'lucide-react-native';
-import { StyleSheet, View } from 'react-native';
+import { View } from 'react-native';
 import Animated, { useAnimatedStyle, withSpring } from 'react-native-reanimated';
 
 import { PressableScale } from '@/components/ui/PressableScale';
 import { Text } from '@/components/ui/Text';
-import { motion, palette, shadow } from '@/theme/tokens';
+import { makeStyles, useTheme } from '@/theme/scheme';
+import { motion } from '@/theme/tokens';
 import { rise } from '@/theme/motion';
 
 function Dot({ active, color }: { active: boolean; color: string }) {
+  const { c } = useTheme();
+  const styles = useStyles();
   const s = useAnimatedStyle(() => ({
     width: withSpring(active ? 26 : 6, motion.spring),
-    backgroundColor: active ? color : '#C9CFDF',
+    backgroundColor: active ? color : c.lineStrong,
   }));
   return <Animated.View style={[styles.dot, s]} />;
 }
@@ -28,12 +31,15 @@ type Props = {
 };
 
 /** En-tête des écrans à étapes : retour, « ÉTAPE 1/4 · DALILI », titre, indicateur. */
-export function StepHeader({ overline, title, subtitle, step, total, onBack, accent = palette.electric, animKey }: Props) {
+export function StepHeader({ overline, title, subtitle, step, total, onBack, accent, animKey }: Props) {
+  const { c } = useTheme();
+  const styles = useStyles();
+  accent ??= c.electric;
   return (
     <View style={{ paddingHorizontal: 22 }}>
       {onBack ? (
         <PressableScale onPress={onBack} style={styles.back} accessibilityLabel="Retour">
-          <ChevronLeft size={18} color={palette.navy} />
+          <ChevronLeft size={18} color={c.navy} />
         </PressableScale>
       ) : (
         <View style={{ height: 36 }} />
@@ -46,7 +52,7 @@ export function StepHeader({ overline, title, subtitle, step, total, onBack, acc
           {title}
         </Text>
         {subtitle ? (
-          <Text variant="small" color={palette.subtle} style={{ marginTop: 10, maxWidth: 320 }}>
+          <Text variant="small" color={c.subtle} style={{ marginTop: 10, maxWidth: 320 }}>
             {subtitle}
           </Text>
         ) : null}
@@ -60,8 +66,8 @@ export function StepHeader({ overline, title, subtitle, step, total, onBack, acc
   );
 }
 
-const styles = StyleSheet.create({
-  back: { width: 36, height: 36, borderRadius: 18, backgroundColor: '#fff', alignItems: 'center', justifyContent: 'center', ...shadow.sm },
+const useStyles = makeStyles(({ shadow, c }) => ({
+  back: { width: 36, height: 36, borderRadius: 18, backgroundColor: c.card, alignItems: 'center', justifyContent: 'center', ...shadow.sm },
   dots: { flexDirection: 'row', gap: 6, alignSelf: 'center', marginTop: 22, marginBottom: 18, alignItems: 'center' },
   dot: { height: 6, borderRadius: 3 },
-});
+}));

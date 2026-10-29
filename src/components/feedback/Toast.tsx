@@ -6,7 +6,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { create } from 'zustand';
 
 import { Text } from '@/components/ui/Text';
-import { palette, shadow } from '@/theme/tokens';
+import { makeStyles, useTheme } from '@/theme/scheme';
 import { drop, lift } from '@/theme/motion';
 
 type ToastState = {
@@ -28,6 +28,8 @@ const useToastStore = create<ToastState>((set) => ({
 export const toast = (msg: string, kind: 'success' | 'info' = 'success') => useToastStore.getState().show(msg, kind);
 
 export function ToastHost() {
+  const { c } = useTheme();
+  const styles = useStyles();
   const { msg, kind, id, hide } = useToastStore();
   const insets = useSafeAreaInsets();
   useEffect(() => {
@@ -40,7 +42,7 @@ export function ToastHost() {
       {/* Le conteneur reste monté : le toast peut ainsi jouer sa sortie. */}
       {msg ? (
         <Animated.View key={id} entering={drop()} exiting={lift} style={styles.toast}>
-          {kind === 'success' ? <CheckCircle2 size={18} color={palette.success} /> : <Info size={18} color={palette.electric} />}
+          {kind === 'success' ? <CheckCircle2 size={18} color={c.success} /> : <Info size={18} color={c.electric} />}
           <Text variant="smallStrong" style={{ flexShrink: 1 }}>
             {msg}
           </Text>
@@ -50,16 +52,16 @@ export function ToastHost() {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles(({ shadow, c }) => ({
   toast: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    backgroundColor: '#fff',
+    backgroundColor: c.card,
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderRadius: 999,
     maxWidth: '90%',
     ...shadow.md,
   },
-});
+}));

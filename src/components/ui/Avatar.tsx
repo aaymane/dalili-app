@@ -2,7 +2,7 @@ import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { StyleSheet, View } from 'react-native';
 
-import { palette } from '@/theme/tokens';
+import { makeStyles, useTheme } from '@/theme/scheme';
 
 import { Text } from './Text';
 
@@ -15,7 +15,10 @@ const shade = (hex: string, amt: number) => {
 };
 
 /** Avatar : photo si dispo, sinon initiales sur dégradé. */
-export function Avatar({ name, size = 44, color = palette.electricLight, uri, ring, online }: Props) {
+export function Avatar({ name, size = 44, color, uri, ring, online }: Props) {
+  const { c } = useTheme();
+  const styles = useStyles();
+  color ??= c.electricLight;
   const initials = name
     .split(' ')
     .filter(Boolean)
@@ -46,8 +49,8 @@ export function Avatar({ name, size = 44, color = palette.electricLight, uri, ri
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles(({ c }) => ({
   wrap: { overflow: 'hidden' },
   center: { alignItems: 'center', justifyContent: 'center' },
-  dot: { position: 'absolute', right: 0, bottom: 0, backgroundColor: palette.mentor, borderWidth: 2, borderColor: '#fff' },
-});
+  dot: { position: 'absolute', right: 0, bottom: 0, backgroundColor: c.mentor, borderWidth: 2, borderColor: c.card },
+}));

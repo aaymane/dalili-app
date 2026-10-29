@@ -1,8 +1,9 @@
 import { useState, type ComponentRef, type ReactNode, type Ref } from 'react';
-import { StyleSheet, TextInput, View, type TextInputProps } from 'react-native';
+import { TextInput, View, type TextInputProps } from 'react-native';
 import Animated, { useAnimatedStyle, withTiming } from 'react-native-reanimated';
 
-import { fonts, palette, radius } from '@/theme/tokens';
+import { makeStyles, useTheme } from '@/theme/scheme';
+import { fonts, radius } from '@/theme/tokens';
 
 import { Text } from './Text';
 
@@ -18,9 +19,11 @@ type Props = TextInputProps & {
 
 /** Champ de saisie : label au-dessus de la valeur (style du prototype), bordure animée au focus. */
 export function Input({ label, icon, right, error, dark, multiline, style, onFocus, onBlur, ref, ...rest }: Props) {
+  const { c } = useTheme();
+  const styles = useStyles();
   const [focused, setFocused] = useState(false);
   const border = useAnimatedStyle(() => ({
-    borderColor: withTiming(error ? palette.danger : focused ? palette.electric : dark ? 'transparent' : palette.line, { duration: 180 }),
+    borderColor: withTiming(error ? c.danger : focused ? c.electric : dark ? 'transparent' : c.line, { duration: 180 }),
   }));
   return (
     <View style={{ gap: 6 }}>
@@ -28,13 +31,13 @@ export function Input({ label, icon, right, error, dark, multiline, style, onFoc
         {icon && <View style={[styles.icon, multiline && { marginTop: 2 }]}>{icon}</View>}
         <View style={{ flex: 1 }}>
           {label ? (
-            <Text variant="overline" color={palette.muted} style={{ fontSize: 9, marginBottom: 1 }}>
+            <Text variant="overline" color={c.muted} style={{ fontSize: 9, marginBottom: 1 }}>
               {label}
             </Text>
           ) : null}
           <TextInput
             ref={ref}
-            placeholderTextColor={palette.muted}
+            placeholderTextColor={c.muted}
             multiline={multiline}
             onFocus={(e) => {
               setFocused(true);
@@ -51,7 +54,7 @@ export function Input({ label, icon, right, error, dark, multiline, style, onFoc
         {right}
       </Animated.View>
       {error ? (
-        <Text variant="small" color={palette.danger} style={{ marginLeft: 6 }}>
+        <Text variant="small" color={c.danger} style={{ marginLeft: 6 }}>
           {error}
         </Text>
       ) : null}
@@ -59,7 +62,7 @@ export function Input({ label, icon, right, error, dark, multiline, style, onFoc
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles(({ c }) => ({
   box: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -68,9 +71,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 8,
     borderRadius: radius.lg,
-    backgroundColor: palette.white,
+    backgroundColor: c.card,
     borderWidth: 1.5,
   },
-  icon: { width: 30, height: 30, borderRadius: 9, backgroundColor: palette.electricSoft, alignItems: 'center', justifyContent: 'center' },
-  input: { fontFamily: fonts.body, fontSize: 15, color: palette.navy, paddingVertical: 2, outlineStyle: 'none' } as any,
-});
+  icon: { width: 30, height: 30, borderRadius: 9, backgroundColor: c.electricSoft, alignItems: 'center', justifyContent: 'center' },
+  input: { fontFamily: fonts.body, fontSize: 15, color: c.navy, paddingVertical: 2, outlineStyle: 'none' } as any,
+}));

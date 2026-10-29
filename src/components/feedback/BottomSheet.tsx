@@ -6,7 +6,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { scheduleOnRN } from 'react-native-worklets';
 
 import { EASE_SHEET } from '@/theme/motion';
-import { motion, palette } from '@/theme/tokens';
+import { makeStyles } from '@/theme/scheme';
+import { motion } from '@/theme/tokens';
 
 type Props = {
   visible: boolean;
@@ -27,6 +28,7 @@ const CLOSE = { duration: 260, easing: EASE_SHEET, reduceMotion: ReduceMotion.Sy
  * (glissé ample ou rapide) ou revient en place en ressort.
  */
 export function BottomSheet({ visible, onClose, onClosed, children, scroll, maxHeight = '88%' }: Props) {
+  const styles = useStyles();
   const insets = useSafeAreaInsets();
   const { height: screenH } = useWindowDimensions();
   // `mounted` : modale affichée (jusqu'à la fin de l'animation de sortie).
@@ -165,14 +167,14 @@ export function BottomSheet({ visible, onClose, onClosed, children, scroll, maxH
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles(({ c }) => ({
   backdrop: { flex: 1, backgroundColor: 'rgba(10,13,31,0.45)' },
   sheet: {
     position: 'absolute',
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: palette.white,
+    backgroundColor: c.card,
     borderTopLeftRadius: 30,
     borderTopRightRadius: 30,
     paddingHorizontal: 20,
@@ -180,4 +182,4 @@ const styles = StyleSheet.create({
   },
   handleZone: { height: 30, alignItems: 'center', justifyContent: 'center', marginBottom: 2 },
   handle: { width: 40, height: 5, borderRadius: 3, backgroundColor: '#1F2850', opacity: 0.9 },
-});
+}));
