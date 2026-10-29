@@ -18,6 +18,7 @@ import { openLink, RichText } from '@/features/guides/components/RichText';
 import { StepIcon } from '@/features/journey/components/StepIcon';
 import { useJourney } from '@/features/journey/store';
 import { isInFrance, useProfile } from '@/features/profile/store';
+import { useT } from '@/i18n';
 import { relativeDays } from '@/lib/date';
 import { haptics } from '@/lib/haptics';
 import { makeStyles, useTheme } from '@/theme/scheme';
@@ -42,7 +43,7 @@ export function AnswerText({ text }: { text: string }) {
         const bullet = line.match(/^\s*(?:[-*•]|(\d+)\.)\s+(.*)$/);
         if (bullet)
           return (
-            <View key={i} style={{ flexDirection: 'row', gap: 8, paddingLeft: 2 }}>
+            <View key={i} style={{ flexDirection: 'row', gap: 8, paddingStart: 2 }}>
               <Text variant="body" color={c.aiIndigo}>
                 {bullet[1] ? `${bullet[1]}.` : '•'}
               </Text>
@@ -66,6 +67,7 @@ const openSource = (s: SourceRef) => {
 /** Pastilles « D'après nos guides » : chaque source ouvre le guide dans l'app. */
 export function SourcePills({ sources: all }: { sources: SourceRef[] }) {
   const { c } = useTheme();
+  const t = useT();
   const styles = useStyles();
   // Un guide = une pastille, même si plusieurs extraits en viennent (anciennes versions du site).
   const sources = all.filter((s, i) => all.findIndex((x) => x.url === s.url) === i);
@@ -73,11 +75,11 @@ export function SourcePills({ sources: all }: { sources: SourceRef[] }) {
   return (
     <View style={{ gap: 6 }}>
       <Text variant="overline" color={c.muted} style={{ fontSize: 9.5 }}>
-        D’après nos guides
+        {t('ai.fromGuides')}
       </Text>
       {sources.map((s, i) => (
         <Animated.View key={s.url} entering={rise(i * 60)}>
-          <PressableScale onPress={() => openSource(s)} style={styles.source} accessibilityRole="link" accessibilityLabel={`Lire le guide ${s.title}`}>
+          <PressableScale onPress={() => openSource(s)} style={styles.source} accessibilityRole="link" accessibilityLabel={t('ai.readGuideA11y', { title: s.title })}>
             <BookOpen size={15} color={c.aiIndigo} />
             <Text variant="smallStrong" style={{ flex: 1 }} numberOfLines={2}>
               {s.title}
@@ -95,6 +97,7 @@ export function SourcePills({ sources: all }: { sources: SourceRef[] }) {
  */
 export function StepActions({ actions }: { actions: AssistantAction[] }) {
   const { c, tones } = useTheme();
+  const t = useT();
   const styles = useStyles();
   const j = useJourney();
   const items = actions
@@ -109,13 +112,13 @@ export function StepActions({ actions }: { actions: AssistantAction[] }) {
             onPress={() => router.push({ pathname: '/(app)/etape/[id]', params: { id: item.step.id } })}
             style={styles.action}
             accessibilityRole="button"
-            accessibilityLabel={`Ouvrir l’étape ${item.step.title}${item.done ? ', déjà faite' : ''}`}>
+            accessibilityLabel={item.done ? t('ai.openStepDoneA11y', { title: item.step.title }) : t('ai.openStepA11y', { title: item.step.title })}>
             <IconTile tone={item.done ? 'green' : 'blue'} size={40} radius={13}>
               {item.done ? <Check size={20} color={tones.green.ink} strokeWidth={2.6} /> : <StepIcon name={item.step.icon} size={20} color={tones.blue.ink} />}
             </IconTile>
             <View style={{ flex: 1 }}>
               <Text variant="caption" color={c.muted}>
-                {item.done ? 'Étape déjà faite' : `Ton étape · ${relativeDays(item.date)}`}
+                {item.done ? t('ai.stepDone') : t('ai.yourStep', { when: relativeDays(item.date) })}
               </Text>
               <Text variant="smallStrong" numberOfLines={2}>
                 {item.step.title}
@@ -132,6 +135,7 @@ export function StepActions({ actions }: { actions: AssistantAction[] }) {
 /** Sous une réponse : 🔊 l'écouter, 👎 la signaler. */
 export function AnswerTools({ m, onReport }: { m: ChatMessage; onReport: () => void }) {
   const { c } = useTheme();
+  const t = useT();
   const styles = useStyles();
   const speaking = useSpeech((s) => s.speakingId === m.id);
   return (
@@ -141,24 +145,24 @@ export function AnswerTools({ m, onReport }: { m: ChatMessage; onReport: () => v
         onPress={() => speakAnswer(m.id, m.content, m.lang)}
         hitSlop={4}
         style={[styles.tool, speaking && { backgroundColor: c.aiSoft }]}
-        accessibilityLabel={speaking ? 'Arrêter la lecture' : 'Écouter la réponse'}>
+        accessibilityLabel={speaking ? t('ai.stopA11y') : t('ai.listenA11y')}>
         {speaking ? <Square size={13} color={c.aiIndigo} fill={c.aiIndigo} /> : <Volume2 size={16} color={c.subtle} />}
         <Text variant="caption" color={speaking ? c.aiIndigo : c.subtle}>
-          {speaking ? 'Arrêter' : 'Écouter'}
+          {speaking ? t('ai.stop') : t('ai.listen')}
         </Text>
       </PressableScale>
       {m.queryId && m.reported ? (
         <Animated.View entering={FadeIn} style={styles.tool}>
           <Check size={15} color={c.success} />
           <Text variant="caption" color={c.success}>
-            Merci, on vérifie
+            {t('ai.thanksChecking')}
           </Text>
         </Animated.View>
       ) : m.queryId ? (
-        <PressableScale onPress={onReport} hitSlop={4} style={styles.tool} accessibilityLabel="Signaler : cette réponse est fausse">
+        <PressableScale onPress={onReport} hitSlop={4} style={styles.tool} accessibilityLabel={t('ai.reportA11y')}>
           <ThumbsDown size={15} color={c.subtle} />
           <Text variant="caption" color={c.subtle}>
-            Signaler
+            {t('ai.report')}
           </Text>
         </PressableScale>
       ) : null}
@@ -166,12 +170,7 @@ export function AnswerTools({ m, onReport }: { m: ChatMessage; onReport: () => v
   );
 }
 
-const REASONS: { id: FeedbackReason; label: string }[] = [
-  { id: 'faux', label: 'C’est faux' },
-  { id: 'incomplet', label: 'Il manque quelque chose' },
-  { id: 'pas_clair', label: 'Ce n’est pas clair' },
-  { id: 'autre', label: 'Autre chose' },
-];
+const REASONS: FeedbackReason[] = ['faux', 'incomplet', 'pas_clair', 'autre'];
 
 /** 👎 « Cette réponse est fausse » : un motif, un mot facultatif. Lié à la question, jamais à toi. */
 export function FeedbackSheet({
@@ -184,6 +183,7 @@ export function FeedbackSheet({
   onSend: (reason: FeedbackReason, comment: string) => Promise<'sent' | 'demo' | 'failed'>;
 }) {
   const { c } = useTheme();
+  const t = useT();
   const styles = useStyles();
   const [reason, setReason] = useState<FeedbackReason | null>(null);
   const [comment, setComment] = useState('');
@@ -194,9 +194,9 @@ export function FeedbackSheet({
     setSending(true);
     const result = await onSend(reason, comment);
     setSending(false);
-    if (result === 'failed') return toast('Pas envoyé. Vérifie ta connexion et réessaie.', 'info');
+    if (result === 'failed') return toast(t('ai.notSent'), 'info');
     haptics.success();
-    toast(result === 'demo' ? 'Merci ! En mode démo, rien n’est envoyé.' : 'Merci ! L’équipe va relire cette réponse.');
+    toast(result === 'demo' ? t('ai.thanksDemo') : t('ai.thanksReview'));
     onClose();
   };
 
@@ -211,26 +211,26 @@ export function FeedbackSheet({
       }}>
       <View style={{ gap: 14 }}>
         <View style={{ gap: 4 }}>
-          <Text variant="h2">Qu’est-ce qui ne va pas ?</Text>
+          <Text variant="h2">{t('ai.whatsWrong')}</Text>
           <Text variant="small" color={c.subtle}>
-            L’équipe relit chaque signalement et corrige le guide si besoin. Ton nom n’est jamais envoyé.
+            {t('ai.whatsWrongText')}
           </Text>
         </View>
         <View style={styles.reasons} accessibilityRole="radiogroup">
           {REASONS.map((r) => (
             <PressableScale
-              key={r.id}
+              key={r}
               haptic="select"
-              onPress={() => setReason(r.id)}
+              onPress={() => setReason(r)}
               hitSlop={4}
               accessibilityRole="radio"
-              accessibilityState={{ selected: reason === r.id }}>
-              <Chip label={r.label} active={reason === r.id} />
+              accessibilityState={{ selected: reason === r }}>
+              <Chip label={t(`ai.reason.${r}`)} active={reason === r} />
             </PressableScale>
           ))}
         </View>
-        <Input multiline placeholder="Dis-nous ce qui cloche (facultatif)" value={comment} onChangeText={setComment} maxLength={500} />
-        <Button label="Envoyer" onPress={submit} loading={sending} disabled={!reason} />
+        <Input multiline placeholder={t('ai.commentPlaceholder')} value={comment} onChangeText={setComment} maxLength={500} />
+        <Button label={t('ai.send')} onPress={submit} loading={sending} disabled={!reason} />
       </View>
     </BottomSheet>
   );
@@ -252,24 +252,25 @@ function Option({ icon, label, onPress, done }: { icon: React.ReactNode; label: 
 /** Un refus propose TOUJOURS : le guide le plus proche, un mentor, et « On l'ajoute à nos guides ». */
 export function RefusalOptions({ m, onRequest }: { m: ChatMessage; onRequest: () => Promise<boolean> }) {
   const { c } = useTheme();
+  const t = useT();
   const [sending, setSending] = useState(false);
   const nearest = m.sources?.[0];
   return (
     <Animated.View entering={FadeIn.delay(120)} style={{ gap: 8 }}>
       {nearest ? (
-        <Option icon={<BookOpen size={17} color={c.aiIndigo} />} label={`Le guide le plus proche : ${nearest.title}`} onPress={() => openSource(nearest)} />
+        <Option icon={<BookOpen size={17} color={c.aiIndigo} />} label={t('ai.nearestGuide', { title: nearest.title })} onPress={() => openSource(nearest)} />
       ) : null}
-      <Option icon={<UsersRound size={17} color={c.mentor} />} label="Demander à un mentor" onPress={() => router.navigate('/(app)/(tabs)/explorer')} />
+      <Option icon={<UsersRound size={17} color={c.mentor} />} label={t('ai.askMentor')} onPress={() => router.navigate('/(app)/(tabs)/explorer')} />
       <Option
         icon={m.requested ? <Check size={17} color={c.success} /> : <BookPlus size={17} color={c.electric} />}
-        label={m.requested ? 'Merci ! L’équipe va l’ajouter à ses guides à écrire.' : 'On l’ajoute à nos guides'}
+        label={m.requested ? t('ai.requested') : t('ai.request')}
         done={m.requested}
         onPress={async () => {
           if (sending) return;
           setSending(true);
           const ok = await onRequest();
           setSending(false);
-          if (!ok) toast('Impossible de l’envoyer pour le moment. Réessaie plus tard.', 'info');
+          if (!ok) toast(t('ai.requestFailed'), 'info');
         }}
       />
     </Animated.View>
@@ -279,6 +280,7 @@ export function RefusalOptions({ m, onRequest }: { m: ChatMessage; onRequest: ()
 /** Filets de sécurité sous une réponse, selon les drapeaux du cerveau. */
 export function SafetyNotes({ m }: { m: ChatMessage }) {
   const { c } = useTheme();
+  const t = useT();
   const styles = useStyles();
   const flags = m.flags ?? [];
   const inFrance = useProfile((s) => isInFrance(s.profile));
@@ -290,23 +292,23 @@ export function SafetyNotes({ m }: { m: ChatMessage }) {
           <HeartHandshake size={18} color="#E11D48" />
           <View style={{ flex: 1 }}>
             <Text variant="smallStrong" color="#9F1239">
-              Tu n’es pas seul·e.
+              {t('ai.notAlone')}
             </Text>
             <Text variant="caption" color="#9F1239">
-              Si tu es en danger, appelle tout de suite les urgences de ton pays. Et parle dès maintenant à quelqu’un en qui tu as confiance.
+              {t('ai.dangerAbroad')}
             </Text>
           </View>
         </View>
       ) : null}
       {flags.includes('distress') && inFrance ? (
-        <PressableScale onPress={() => Linking.openURL('tel:3114')} style={[styles.note, { backgroundColor: c.dangerSoft }]} accessibilityLabel="Appeler le 3114">
+        <PressableScale onPress={() => Linking.openURL('tel:3114')} style={[styles.note, { backgroundColor: c.dangerSoft }]} accessibilityLabel={t('ai.call3114A11y')}>
           <HeartHandshake size={18} color="#E11D48" />
           <View style={{ flex: 1 }}>
             <Text variant="smallStrong" color="#9F1239">
-              Tu n’es pas seul·e. Appelle le 3114
+              {t('ai.call3114')}
             </Text>
             <Text variant="caption" color="#9F1239">
-              Gratuit, 24 h/24, des professionnels t’écoutent. En danger immédiat : le 15 ou le 112.
+              {t('ai.call3114Text')}
             </Text>
           </View>
           <Phone size={16} color="#E11D48" />
@@ -316,9 +318,9 @@ export function SafetyNotes({ m }: { m: ChatMessage }) {
         <PressableScale onPress={() => router.navigate(mentors.length ? '/(app)/(tabs)/explorer' : '/(app)/(tabs)/communaute')} style={[styles.note, { backgroundColor: c.mentorSoft }]}>
           <UsersRound size={18} color={c.mentor} />
           <Text variant="small" style={{ flex: 1 }}>
-            {flags.includes('complex') ? 'Ta situation mérite l’avis d’une personne. ' : 'Tu n’es pas seul·e à vivre ça. '}
+            {flags.includes('complex') ? t('ai.complex') : t('ai.stress')}
             <Text variant="smallStrong" color={c.mentor}>
-              {mentors.length ? 'Un étudiant passé par là peut t’appeler gratuitement.' : 'Parles-en avec les étudiants de la communauté.'}
+              {mentors.length ? t('ai.mentorCall') : t('ai.community')}
             </Text>
           </Text>
         </PressableScale>
@@ -327,7 +329,7 @@ export function SafetyNotes({ m }: { m: ChatMessage }) {
         <View style={styles.legal}>
           <Scale size={14} color={c.muted} />
           <Text variant="caption" color={c.muted} style={{ flex: 1 }}>
-            Ce n’est pas un conseil juridique. Pour ton cas précis, vérifie auprès de la préfecture, du consulat ou d’un juriste.
+            {t('ai.legal')}
           </Text>
         </View>
       ) : null}
@@ -337,12 +339,13 @@ export function SafetyNotes({ m }: { m: ChatMessage }) {
 
 export function RetryButton({ onPress }: { onPress: () => void }) {
   const { c } = useTheme();
+  const t = useT();
   const styles = useStyles();
   return (
     <PressableScale onPress={onPress} style={styles.retry}>
       <RotateCcw size={15} color={c.electric} />
       <Text variant="smallStrong" color={c.electric}>
-        Renvoyer ma question
+        {t('ai.retry')}
       </Text>
     </PressableScale>
   );

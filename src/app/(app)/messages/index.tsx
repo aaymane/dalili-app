@@ -10,6 +10,7 @@ import { Text } from '@/components/ui/Text';
 import { ConversationRow } from '@/features/messages/components/ConversationRow';
 import { useConversations } from '@/features/messages/hooks';
 import { useProfile } from '@/features/profile/store';
+import { useT } from '@/i18n';
 import { useRoleTheme } from '@/theme';
 import { enter, rise } from '@/theme/motion';
 import { makeStyles, useTheme } from '@/theme/scheme';
@@ -18,6 +19,7 @@ import { radius } from '@/theme/tokens';
 /** Messages : tes conversations dans le rôle actif (étudiant ou mentor), la plus récente en haut. */
 export default function Messages() {
   const { c } = useTheme();
+  const t = useT();
   const styles = useStyles();
   const role = useProfile((s) => s.profile.activeRole);
   const theme = useRoleTheme();
@@ -28,19 +30,19 @@ export default function Messages() {
     <Screen top={theme.top} padded={false} header={<AppHeader back hideActions />}>
       <View style={{ paddingHorizontal: 20, gap: 14 }}>
         <Animated.View entering={rise()} style={{ gap: 4 }}>
-          <Text variant="hero">Messages</Text>
+          <Text variant="hero">{t('messages.title')}</Text>
           <Text variant="body" color={c.subtle}>
-            {role === 'mentor' ? 'Avec les étudiants que tu accompagnes.' : 'Avec les mentors qui ont accepté ton appel.'}
+            {role === 'mentor' ? t('messages.subMentor') : t('messages.subStudent')}
           </Text>
         </Animated.View>
         {q.isError ? (
           <Animated.View entering={rise()} style={[styles.card, styles.state]}>
             <Text variant="small" color={c.subtle} style={{ flex: 1 }}>
-              Impossible de charger tes messages. Vérifie ta connexion.
+              {t('messages.loadError')}
             </Text>
-            <PressableScale onPress={() => void q.refetch()} hitSlop={6} style={styles.retry} accessibilityLabel="Réessayer">
+            <PressableScale onPress={() => void q.refetch()} hitSlop={6} style={styles.retry} accessibilityLabel={t('common.retry')}>
               <Text variant="smallStrong" color={theme.accent}>
-                Réessayer
+                {t('common.retry')}
               </Text>
             </PressableScale>
           </Animated.View>
@@ -48,12 +50,10 @@ export default function Messages() {
           <Animated.View entering={rise()} style={[styles.card, styles.empty]}>
             <IconTile icon={MessageCircle} tone={role === 'mentor' ? 'green' : 'blue'} size={52} radius={17} />
             <Text variant="h3" align="center">
-              Pas encore de conversation
+              {t('messages.emptyTitle')}
             </Text>
             <Text variant="small" color={c.subtle} align="center">
-              {role === 'mentor'
-                ? 'Quand tu acceptes une demande d’appel, tu peux écrire à l’étudiant ici, avant et après l’appel.'
-                : 'Quand un mentor accepte ton appel, vous pouvez vous écrire ici, avant et après l’appel.'}
+              {role === 'mentor' ? t('messages.emptyMentor') : t('messages.emptyStudent')}
             </Text>
           </Animated.View>
         ) : !list.length ? null : (
@@ -68,7 +68,7 @@ export default function Messages() {
             <Animated.View entering={rise(200)} style={styles.privacy}>
               <Lock size={12} color={c.muted} />
               <Text variant="caption" color={c.muted}>
-                Tes conversations ne sont visibles que par vous deux.
+                {t('messages.private')}
               </Text>
             </Animated.View>
           </>

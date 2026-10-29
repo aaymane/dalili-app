@@ -11,12 +11,13 @@ import { Input } from '@/components/ui/Input';
 import { PressableScale } from '@/components/ui/PressableScale';
 import { Text } from '@/components/ui/Text';
 import { useProfile } from '@/features/profile/store';
+import { useT } from '@/i18n';
 import { haptics } from '@/lib/haptics';
 import { enter } from '@/theme/motion';
 import { makeStyles, useTheme } from '@/theme/scheme';
 import { radius } from '@/theme/tokens';
 
-import { birthYearError, CHARTER } from '../charter';
+import { birthYearError, CHARTER, charterItem } from '../charter';
 import { useCreateMyMentor } from '../hooks';
 
 type Props = {
@@ -34,6 +35,7 @@ type Props = {
  */
 export function CharterScreen({ step, total, hasSheet, onBack, onDone }: Props) {
   const { c: colors, tones, gradients } = useTheme();
+  const t = useT();
   const styles = useStyles();
   const profile = useProfile((s) => s.profile);
   const create = useCreateMyMentor();
@@ -61,8 +63,12 @@ export function CharterScreen({ step, total, hasSheet, onBack, onDone }: Props) 
           haptics.success();
           onDone();
         },
-        // Les refus de la base (âge, charte plus à jour) arrivent avec un message en français.
-        onError: (e) => toast((e as { code?: string }).code === '23514' ? e.message : 'Pas envoyée. Vérifie ta connexion et réessaie.', 'info'),
+        // Les refus de la base (23514) : moins de 18 ans, ou charte plus à jour.
+        onError: (e) =>
+          toast(
+            (e as { code?: string }).code === '23514' ? t(e.message.includes('18') ? 'mentors.charter.tooYoung' : 'mentors.charter.outdated') : t('mentors.charter.notSent'),
+            'info',
+          ),
       },
     );
   };
@@ -75,9 +81,9 @@ export function CharterScreen({ step, total, hasSheet, onBack, onDone }: Props) 
       keyboard
       header={
         <StepHeader
-          overline={total > 1 ? `Étape ${step + 1} / ${total} · DALILI` : 'Charte du mentor · DALILI'}
-          title={'Avant d’aider,\non s’engage'}
-          subtitle="Les étudiants te font confiance. Ces engagements les protègent, et toi aussi."
+          overline={total > 1 ? t('mentors.charter.overlineStep', { step: step + 1, total }) : t('mentors.charter.overline')}
+          title={t('mentors.charter.title')}
+          subtitle={t('mentors.charter.subtitle')}
           step={step}
           total={total}
           accent={colors.mentor}
@@ -86,7 +92,7 @@ export function CharterScreen({ step, total, hasSheet, onBack, onDone }: Props) 
       }
       footer={
         <Button
-          label={hasSheet ? 'J’accepte la charte' : 'J’accepte et j’envoie ma fiche'}
+          label={hasSheet ? t('mentors.charter.accept') : t('mentors.charter.acceptSend')}
           accent={gradients.mentor}
           icon={<ShieldCheck size={18} color="#fff" />}
           loading={create.isPending}
@@ -97,30 +103,31 @@ export function CharterScreen({ step, total, hasSheet, onBack, onDone }: Props) 
       <View style={{ paddingHorizontal: 20, gap: 12 }}>
         <Animated.View entering={enter(0)} style={{ gap: 6 }}>
           <Input
-            label="Année de naissance"
+            label={t('mentors.charter.birthYear')}
             icon={<Calendar size={16} color={colors.mentor} />}
             value={year}
-            onChangeText={(t) => {
-              setYear(t.replace(/\D/g, '').slice(0, 4));
+            onChangeText={(text) => {
+              setYear(text.replace(/\D/g, '').slice(0, 4));
               setShowError(false);
             }}
             onBlur={() => year.length === 4 && setShowError(true)}
             keyboardType="number-pad"
-            placeholder="aaaa"
+            placeholder={t('mentors.charter.yearPlaceholder')}
             maxLength={4}
             error={showError ? yearError : null}
           />
-          <Text variant="caption" color={colors.muted} style={{ marginLeft: 6 }}>
-            Elle reste privée : seule l’équipe DALILI la voit.
+          <Text variant="caption" color={colors.muted} style={{ marginStart: 6 }}>
+            {t('mentors.charter.yearPrivate')}
           </Text>
         </Animated.View>
-        {CHARTER.map((c, i) => {
-          const on = checked.includes(c.id);
+        {CHARTER.map((id, i) => {
+          const on = checked.includes(id);
+          const c = charterItem(id);
           return (
-            <Animated.View key={c.id} entering={enter(i + 1)}>
+            <Animated.View key={id} entering={enter(i + 1)}>
               <PressableScale
                 haptic="select"
-                onPress={() => toggle(c.id)}
+                onPress={() => toggle(id)}
                 accessibilityRole="checkbox"
                 accessibilityState={{ checked: on }}
                 accessibilityLabel={`${c.title}. ${c.body}`}
@@ -140,7 +147,7 @@ export function CharterScreen({ step, total, hasSheet, onBack, onDone }: Props) 
         })}
         <Animated.View entering={enter(CHARTER.length + 1)}>
           <Text variant="caption" color={colors.muted} align="center">
-            Ensuite, l’équipe vérifie ton profil (carte étudiante, LinkedIn ou titre de séjour) avant de montrer ta fiche. On ne garde aucune copie.
+            {t('mentors.charter.verifyNote')}
           </Text>
         </Animated.View>
       </View>

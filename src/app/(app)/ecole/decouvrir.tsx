@@ -15,6 +15,7 @@ import { Text } from '@/components/ui/Text';
 import { CountUp, KenBurns } from '@/features/schools/components/Motion';
 import { useSchool } from '@/features/schools/hooks';
 import { slidesOf, useStoryCta } from '@/features/schools/story';
+import { useT } from '@/i18n';
 import { haptics } from '@/lib/haptics';
 import { pop, rise } from '@/theme/motion';
 import { makeStyles, useTheme } from '@/theme/scheme';
@@ -41,6 +42,7 @@ function Segment({ i, index, progress }: { i: number; index: number; progress: S
  */
 export default function Discover() {
   const { c: colors } = useTheme();
+  const t = useT();
   const styles = useStyles();
   const { slug } = useLocalSearchParams<{ slug: string }>();
   const insets = useSafeAreaInsets();
@@ -115,8 +117,8 @@ export default function Discover() {
       {/* Surface de navigation (pas un bouton) : gauche = précédente, droite = suivante, appui long = pause. */}
       <View style={StyleSheet.absoluteFill}>
         <View style={{ flex: 1, flexDirection: 'row' }}>
-          <Pressable style={{ flex: 3 }} onPress={() => go(index - 1)} onLongPress={pause} onPressOut={resume} delayLongPress={180} accessibilityLabel="Page précédente" />
-          <Pressable style={{ flex: 7 }} onPress={() => go(index + 1)} onLongPress={pause} onPressOut={resume} delayLongPress={180} accessibilityLabel="Page suivante" />
+          <Pressable style={{ flex: 3 }} onPress={() => go(index - 1)} onLongPress={pause} onPressOut={resume} delayLongPress={180} accessibilityLabel={t('schools.story.prev')} />
+          <Pressable style={{ flex: 7 }} onPress={() => go(index + 1)} onLongPress={pause} onPressOut={resume} delayLongPress={180} accessibilityLabel={t('schools.story.next')} />
         </View>
       </View>
 
@@ -136,7 +138,7 @@ export default function Discover() {
               </Text>
             )}
           </View>
-          <PressableScale onPress={() => router.back()} style={styles.close} accessibilityLabel="Fermer la présentation">
+          <PressableScale onPress={() => router.back()} style={styles.close} accessibilityLabel={t('schools.story.close')}>
             <X size={20} color={colors.white} />
           </PressableScale>
         </View>
@@ -181,11 +183,11 @@ export default function Discover() {
           ) : null}
           {slide.cta ? (
             <Animated.View entering={rise(420)} style={{ gap: 10, marginTop: 8 }}>
-              <Button label="Je suis intéressé·e" variant="white" onPress={interested} />
-              <PressableScale onPress={() => go(0)} hitSlop={6} style={styles.replay} accessibilityLabel="Revoir la présentation">
+              <Button label={t('schools.interested')} variant="white" onPress={interested} />
+              <PressableScale onPress={() => go(0)} hitSlop={6} style={styles.replay} accessibilityLabel={t('schools.story.replayA11y')}>
                 <RotateCcw size={14} color="rgba(255,255,255,0.8)" />
                 <Text variant="smallStrong" color="rgba(255,255,255,0.8)">
-                  Revoir
+                  {t('schools.story.replay')}
                 </Text>
               </PressableScale>
             </Animated.View>

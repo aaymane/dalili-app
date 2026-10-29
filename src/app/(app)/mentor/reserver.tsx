@@ -19,7 +19,8 @@ import { remoteCreateBooking } from '@/data/api';
 import { useMentor } from '@/data/hooks';
 import { askNotifications, notifyServer } from '@/features/notifications/push';
 import { useLocalDb } from '@/data/local-db';
-import { formatLong } from '@/lib/date';
+import { useT } from '@/i18n';
+import { formatLong, formatTime } from '@/lib/date';
 import { makeStyles, useTheme } from '@/theme/scheme';
 import { radius } from '@/theme/tokens';
 import { rise } from '@/theme/motion';
@@ -38,6 +39,7 @@ const at = (day: Date, time: string) => {
 /** Demande d'appel à un mentor : un sujet, un jour, une heure. Le mentor accepte ou décline selon son moment. */
 export default function Reserve() {
   const { c, gradients } = useTheme();
+  const t = useT();
   const styles = useStyles();
   const { id } = useLocalSearchParams<{ id: string }>();
   const { data: m } = useMentor(id);
@@ -51,12 +53,12 @@ export default function Reserve() {
 
   // Aujourd'hui, on ne propose pas une heure déjà passée (ni dans moins d'une heure).
   const [opened] = useState(() => Date.now());
-  const past = (t: string) => !!day && at(day, t).getTime() < opened + 3_600_000;
+  const past = (slot: string) => !!day && at(day, slot).getTime() < opened + 3_600_000;
 
   const send = async () => {
     if (!m || !day || !time) return;
     const startsAt = at(day, time).toISOString();
-    const topicText = topic.trim() || 'Question générale';
+    const topicText = topic.trim() || t('mentors.book.defaultTopic');
     setLoading(true);
     try {
       const saved = await remoteCreateBooking({ mentorId: m.id, startsAt, topic: topicText });
@@ -72,7 +74,7 @@ export default function Reserve() {
     } catch (e) {
       // 42501 = la base refuse (mentor passé en pause entre-temps, ou ta propre fiche) ; sinon, le réseau.
       const refused = (e as { code?: string }).code === '42501';
-      toast(refused ? `${m.firstName} ne peut pas recevoir de demande pour le moment. Essaie un autre mentor.` : 'Demande pas envoyée. Vérifie ta connexion et réessaie.', 'info');
+      toast(refused ? t('mentors.book.refused', { name: m.firstName }) : t('mentors.book.notSent'), 'info');
     } finally {
       setLoading(false);
     }
@@ -85,15 +87,15 @@ export default function Reserve() {
       top={gradients.roleTop.student}
       padded={false}
       header={<AppHeader back />}
-      footer={paused ? undefined : <Button label="Envoyer ma demande" disabled={!day || !time} loading={loading} onPress={send} />}>
+      footer={paused ? undefined : <Button label={t('mentors.book.send')} disabled={!day || !time} loading={loading} onPress={send} />}>
       <View style={{ paddingHorizontal: 20, gap: 18 }}>
         <Animated.View entering={rise()} style={styles.who}>
           <Avatar name={`${m.firstName} ${m.lastName}`} color={m.avatarColor} size={52} />
           <View style={{ flex: 1 }}>
             <Text variant="smallStrong" color={c.electric}>
-              Appel gratuit · 30 min
+              {t('mentors.book.freeCall')}
             </Text>
-            <Text variant="h2">Avec {m.firstName}</Text>
+            <Text variant="h2">{t('mentors.book.with', { name: m.firstName })}</Text>
             <Text variant="small" color={c.muted}>
               {m.headline ? `${m.headline} · ` : ''}
               {m.city}
@@ -103,23 +105,23 @@ export default function Reserve() {
 
         {paused ? (
           <Animated.View entering={rise(60)} style={styles.note}>
-            <Text variant="bodyStrong">{m.firstName} est en pause pour le moment</Text>
+            <Text variant="bodyStrong">{t('mentors.book.pausedTitle', { name: m.firstName })}</Text>
             <Text variant="small" color={c.subtle}>
-              Les mentors sont des étudiants bénévoles. Un autre mentor peut sûrement t’aider dès maintenant.
+              {t('mentors.book.pausedText')}
             </Text>
-            <Button label="Voir les autres mentors" variant="secondary" size="md" onPress={() => router.navigate('/(app)/(tabs)/explorer')} />
+            <Button label={t('mentors.book.otherMentors')} variant="secondary" size="md" onPress={() => router.navigate('/(app)/(tabs)/explorer')} />
           </Animated.View>
         ) : (
           <>
             <Animated.View entering={rise(60)} style={styles.note}>
               <Text variant="small" color={c.subtle}>
-                Propose un moment qui t’arrange. {m.firstName} accepte selon ses disponibilités, et tu vois sa réponse sur ton accueil.
+                {t('mentors.book.hint', { name: m.firstName })}
               </Text>
             </Animated.View>
 
             <View style={{ gap: 8 }}>
-              <Text variant="h3">Sujet</Text>
-              <Input placeholder="Ex : mon rendez-vous de visa" value={topic} onChangeText={setTopic} maxLength={80} />
+              <Text variant="h3">{t('mentors.book.topic')}</Text>
+              <Input placeholder={t('mentors.book.topicPlaceholder')} value={topic} onChangeText={setTopic} maxLength={80} />
               <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
                 {m.specialties.map((sp) => (
                   <PressableScale key={sp} haptic="select" onPress={() => setTopic(sp)} style={[styles.suggest, topic === sp && { backgroundColor: c.electric }]}>
@@ -145,23 +147,23 @@ export default function Reserve() {
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
                   <Clock size={16} color={c.electric} />
                   <Text variant="h3" color={c.electric}>
-                    À quelle heure, {formatLong(day)} ?
+                    {t('mentors.book.whatTime', { day: formatLong(day) })}
                   </Text>
                 </View>
                 <View style={styles.times}>
-                  {TIMES.map((t) => {
-                    const off = past(t);
-                    const on = time === t;
+                  {TIMES.map((slot) => {
+                    const off = past(slot);
+                    const on = time === slot;
                     return (
                       <PressableScale
-                        key={t}
+                        key={slot}
                         disabled={off}
                         haptic="select"
-                        onPress={() => setTime(t)}
+                        onPress={() => setTime(slot)}
                         style={[styles.time, on && { backgroundColor: c.electric, borderColor: c.electric }, off && { opacity: 0.35 }]}
                         accessibilityState={{ selected: on, disabled: off }}>
                         <Text variant="bodyStrong" color={on ? c.white : c.navy}>
-                          {t.replace(':', 'h')}
+                          {formatTime(at(day, slot))}
                         </Text>
                       </PressableScale>
                     );
@@ -175,9 +177,9 @@ export default function Reserve() {
 
       <SuccessModal
         visible={done}
-        title="Demande envoyée"
-        message={`${m.firstName} te répond selon ses disponibilités. Tu verras sa réponse sur ton accueil.`}
-        cta="Retour à l’accueil"
+        title={t('mentors.book.successTitle')}
+        message={t('mentors.book.successText', { name: m.firstName })}
+        cta={t('mentors.book.successCta')}
         onCta={() => {
           setDone(false);
           router.dismissTo('/(app)/(tabs)');

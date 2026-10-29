@@ -15,20 +15,17 @@ import { useMentor } from '@/data/hooks';
 import { useMyMentor } from '@/features/mentors/hooks';
 import { useConversationWithMentor } from '@/features/messages/hooks';
 import { SafetySheet } from '@/features/safety/components/SafetySheet';
+import { useT } from '@/i18n';
 import { makeStyles, useTheme } from '@/theme/scheme';
 import { radius } from '@/theme/tokens';
 import { pop, rise } from '@/theme/motion';
 
-const LANG: Record<string, { code: string; label: string }> = {
-  ar: { code: 'AR', label: 'Arabe' },
-  fr: { code: 'FR', label: 'Français' },
-  en: { code: 'EN', label: 'English' },
-  ber: { code: 'ⵣ', label: 'Amazigh' },
-};
+const LANG_CODE: Record<string, string> = { ar: 'AR', fr: 'FR', en: 'EN', ber: 'ⵣ' };
 
 /** Profil public d'un mentor : parcours, spécialités, langues, témoignages. */
 export default function MentorProfile() {
   const { c } = useTheme();
+  const t = useT();
   const styles = useStyles();
   const { id } = useLocalSearchParams<{ id: string }>();
   const insets = useSafeAreaInsets();
@@ -46,7 +43,7 @@ export default function MentorProfile() {
     <View style={{ flex: 1, backgroundColor: c.bg }}>
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 120 + insets.bottom }}>
         <LinearGradient colors={['#5B8BFF', '#1F56F5']} style={[styles.header, { paddingTop: insets.top + 10 }]}>
-          <PressableScale onPress={() => router.back()} style={[styles.back, { top: insets.top + 10 }]} accessibilityLabel="Retour">
+          <PressableScale onPress={() => router.back()} style={[styles.back, { top: insets.top + 10 }]} accessibilityLabel={t('common.back')}>
             <ChevronLeft size={20} color="#fff" />
           </PressableScale>
           <Animated.View entering={pop()}>
@@ -55,7 +52,7 @@ export default function MentorProfile() {
           <Animated.View entering={rise(100)} style={{ alignItems: 'center', gap: 4 }}>
             <View style={styles.certified}>
               <Text variant="caption" color="#fff" style={{ letterSpacing: 0.8, fontSize: 9 }}>
-                MENTOR CERTIFIÉ DALILI
+                {t('mentors.profile.certified')}
               </Text>
             </View>
             <Text variant="hero" color="#fff">
@@ -73,9 +70,9 @@ export default function MentorProfile() {
         <View style={{ paddingHorizontal: 20, gap: 22, marginTop: -30 }}>
           <Animated.View entering={rise(120)} style={styles.stats}>
             {[
-              { v: m.rating.toFixed(1), l: 'NOTE', icon: <Star size={14} color="#F59E0B" fill="#F59E0B" /> },
-              { v: String(m.sessions), l: 'SESSIONS', icon: <Phone size={14} color={c.mentor} /> },
-              { v: `${m.responseHours}h`, l: 'RÉPONSE', icon: <Clock size={14} color={c.electric} /> },
+              { v: m.rating.toFixed(1), l: t('mentors.profile.rating'), icon: <Star size={14} color="#F59E0B" fill="#F59E0B" /> },
+              { v: String(m.sessions), l: t('mentors.profile.sessions'), icon: <Phone size={14} color={c.mentor} /> },
+              { v: `${m.responseHours}h`, l: t('mentors.profile.response'), icon: <Clock size={14} color={c.electric} /> },
             ].map((s, i) => (
               <View key={s.l} style={[styles.stat, i < 2 && styles.statBorder]}>
                 <Text variant="h1">{s.v}</Text>
@@ -96,7 +93,7 @@ export default function MentorProfile() {
 
           <Animated.View entering={rise(200)} style={{ gap: 14 }}>
             <Text variant="overline" color={c.muted}>
-              Son parcours
+              {t('mentors.profile.journey')}
             </Text>
             {m.journey.map((s, i) => (
               <View key={s.year} style={{ flexDirection: 'row', gap: 12 }}>
@@ -121,7 +118,7 @@ export default function MentorProfile() {
 
           <View style={{ gap: 10 }}>
             <Text variant="overline" color={c.muted}>
-              Spécialités
+              {t('mentors.profile.specialties')}
             </Text>
             <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
               {m.specialties.map((s) => (
@@ -136,17 +133,17 @@ export default function MentorProfile() {
 
           <View style={{ gap: 10 }}>
             <Text variant="overline" color={c.muted}>
-              Langues parlées
+              {t('mentors.profile.languages')}
             </Text>
             <View style={{ flexDirection: 'row', gap: 14, flexWrap: 'wrap' }}>
               {m.languages.map((l) => (
                 <View key={l} style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
                   <View style={styles.lang}>
                     <Text variant="caption" color="#fff" style={{ fontSize: 8.5 }}>
-                      {LANG[l].code}
+                      {LANG_CODE[l]}
                     </Text>
                   </View>
-                  <Text variant="small">{LANG[l].label}</Text>
+                  <Text variant="small">{t(`mentors.lang.${l}`)}</Text>
                 </View>
               ))}
             </View>
@@ -154,7 +151,7 @@ export default function MentorProfile() {
 
           <View style={{ gap: 10 }}>
             <Text variant="overline" color={c.muted}>
-              Témoignages récents
+              {t('mentors.profile.reviews')}
             </Text>
             {m.reviews.map((r) => (
               <View key={r.author} style={styles.review}>
@@ -177,10 +174,10 @@ export default function MentorProfile() {
           </View>
 
           {own ? null : (
-            <PressableScale onPress={() => setReporting(true)} hitSlop={6} style={styles.report} accessibilityLabel={`Signaler ou bloquer ${m.firstName}`}>
+            <PressableScale onPress={() => setReporting(true)} hitSlop={6} style={styles.report} accessibilityLabel={t('mentors.profile.reportA11y', { name: m.firstName })}>
               <Flag size={14} color={c.muted} />
               <Text variant="small" color={c.muted}>
-                Un souci avec {m.firstName} ? Signaler ou bloquer
+                {t('mentors.profile.report', { name: m.firstName })}
               </Text>
             </PressableScale>
           )}
@@ -190,20 +187,20 @@ export default function MentorProfile() {
       <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, 16) }]}>
         {own ? (
           <Text variant="small" color={c.subtle} align="center">
-            C’est ton profil, tel que les étudiants le voient.
+            {t('mentors.profile.own')}
           </Text>
         ) : (
           <View style={{ flexDirection: 'row', gap: 10 }}>
             {conversation ? (
               <Button
-                label="Écrire"
+                label={t('mentors.profile.write')}
                 variant="secondary"
                 full={false}
                 style={{ flex: 1 }}
                 onPress={() => router.push({ pathname: '/(app)/messages/[id]', params: { id: conversation.id } })}
               />
             ) : null}
-            <Button label="Réserver · gratuit" full={false} style={{ flex: conversation ? 1.4 : 1 }} onPress={() => router.push({ pathname: '/(app)/mentor/reserver', params: { id: m.id } })} />
+            <Button label={t('mentors.profile.book')} full={false} style={{ flex: conversation ? 1.4 : 1 }} onPress={() => router.push({ pathname: '/(app)/mentor/reserver', params: { id: m.id } })} />
           </View>
         )}
       </View>
@@ -212,12 +209,12 @@ export default function MentorProfile() {
 }
 
 const useStyles = makeStyles(({ c, shadow }) => ({
-  header: { alignItems: 'center', gap: 10, paddingBottom: 54, borderBottomLeftRadius: 34, borderBottomRightRadius: 34 },
-  back: { position: 'absolute', left: 16, top: 54, width: 38, height: 38, borderRadius: 19, backgroundColor: 'rgba(255,255,255,0.18)', alignItems: 'center', justifyContent: 'center', zIndex: 2 },
+  header: { alignItems: 'center', gap: 10, paddingBottom: 54, borderBottomStartRadius: 34, borderBottomEndRadius: 34 },
+  back: { position: 'absolute', start: 16, top: 54, width: 38, height: 38, borderRadius: 19, backgroundColor: 'rgba(255,255,255,0.18)', alignItems: 'center', justifyContent: 'center', zIndex: 2 },
   certified: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 999, backgroundColor: 'rgba(255,255,255,0.18)' },
   stats: { flexDirection: 'row', backgroundColor: c.card, borderRadius: radius.xl, paddingVertical: 14, borderWidth: 2, borderColor: c.electricSoft, ...shadow.md },
   stat: { flex: 1, alignItems: 'center', gap: 2 },
-  statBorder: { borderRightWidth: 1, borderRightColor: c.line },
+  statBorder: { borderEndWidth: 1, borderEndColor: c.line },
   quote: { padding: 18, borderRadius: radius.xl, backgroundColor: c.electricSoft, gap: 8 },
   tlDot: { width: 20, height: 20, borderRadius: 10, borderWidth: 2, borderColor: c.electric, alignItems: 'center', justifyContent: 'center', backgroundColor: c.card },
   tlInner: { width: 8, height: 8, borderRadius: 4, backgroundColor: c.electric },

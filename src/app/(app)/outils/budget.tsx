@@ -1,6 +1,7 @@
 import { Check, Info, TriangleAlert } from 'lucide-react-native';
 import { useMemo, useState } from 'react';
 import { ScrollView, View } from 'react-native';
+import { Trans } from 'react-i18next';
 import Animated, { FadeIn, useAnimatedStyle, withSpring } from 'react-native-reanimated';
 
 import { AppHeader } from '@/components/layout/AppHeader';
@@ -13,6 +14,7 @@ import { computeBudget, type BudgetHousing, type BudgetSituation } from '@/data/
 import { useContent } from '@/data/hooks';
 import { openLink } from '@/features/guides/components/RichText';
 import { useProfile } from '@/features/profile/store';
+import { useT } from '@/i18n';
 import { makeStyles, useTheme } from '@/theme/scheme';
 import { motion, radius } from '@/theme/tokens';
 
@@ -36,13 +38,8 @@ function Bar({ label, value, max, color }: { label: string; value: number; max: 
   );
 }
 
-const SITUATIONS: { value: BudgetSituation; label: string }[] = [
-  { value: 'aucune', label: 'Ni bourse ni job' },
-  { value: 'autre_bourse', label: 'Bourse de mon pays, Eiffel…' },
-  { value: 'bcs', label: 'Boursier CROUS' },
-  { value: 'alternance', label: 'Alternance' },
-  { value: 'salarie', label: 'Salarié·e' },
-];
+const SITUATIONS: BudgetSituation[] = ['aucune', 'autre_bourse', 'bcs', 'alternance', 'salarie'];
+const HOUSINGS: BudgetHousing[] = ['crous', 'coloc', 'studio', 'habitant'];
 
 /**
  * Simulateur de budget mensuel : même formule et mêmes données que dalili.study/simulateur.
@@ -50,20 +47,21 @@ const SITUATIONS: { value: BudgetSituation; label: string }[] = [
  */
 export default function Budget() {
   const { c, gradients } = useTheme();
+  const t = useT();
   const styles = useStyles();
   const profile = useProfile((s) => s.profile);
   const { data: tools } = useContent('tools');
   const { data: figures } = useContent('figures');
-  const t = tools.budget;
-  const [city, setCity] = useState(() => t.cities.find((c) => c.name === profile.destinationCity)?.slug ?? t.cities[0].slug);
+  const cfg = tools.budget;
+  const [city, setCity] = useState(() => cfg.cities.find((c) => c.name === profile.destinationCity)?.slug ?? cfg.cities[0].slug);
   const [housing, setHousing] = useState<BudgetHousing>('crous');
   const [situation, setSituation] = useState<BudgetSituation>('aucune');
   const level = profile.studyLevel === 'master' ? 'master' : profile.studyLevel === 'doctorat' ? 'doctorat' : 'licence';
 
-  const b = useMemo(() => computeBudget({ city, housing, level, monthlyTuition: false, situation }, t), [city, housing, level, situation, t]);
+  const b = useMemo(() => computeBudget({ city, housing, level, monthlyTuition: false, situation }, cfg), [city, housing, level, situation, cfg]);
   const resources = figures.verified.compteBloqueMensuel;
   if (!b) return null;
-  const cityName = t.cities.find((c) => c.slug === city)?.name ?? '';
+  const cityName = cfg.cities.find((c) => c.slug === city)?.name ?? '';
   const max = Math.max(b.housing, b.food, 100);
   const savings = b.gross - b.net;
   const resourcesValue = resources?.current.value ?? 0;
@@ -71,9 +69,9 @@ export default function Budget() {
   return (
     <Screen top={gradients.mint} padded={false} header={<AppHeader back />}>
       <View style={{ paddingHorizontal: 20, gap: 16 }}>
-        <Text variant="hero">Simulateur{'\n'}de budget</Text>
+        <Text variant="hero">{t('tools.budget.title')}</Text>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginHorizontal: -20 }} contentContainerStyle={{ gap: 8, paddingHorizontal: 20 }}>
-          {t.cities.map((x) => (
+          {cfg.cities.map((x) => (
             <PressableScale key={x.slug} haptic="select" onPress={() => setCity(x.slug)}>
               <Chip label={x.name} active={city === x.slug} color={c.success} />
             </PressableScale>
@@ -83,19 +81,14 @@ export default function Budget() {
           kind="track"
           value={housing}
           onChange={setHousing}
-          options={[
-            { value: 'crous', label: 'CROUS' },
-            { value: 'coloc', label: 'Coloc' },
-            { value: 'studio', label: 'Studio' },
-            { value: 'habitant', label: 'Habitant' },
-          ]}
+          options={HOUSINGS.map((value) => ({ value, label: t(`tools.budget.housing.${value}`) }))}
         />
         <View style={{ gap: 8 }}>
-          <Text variant="smallStrong">Ta situation (elle décide de ton droit à l’APL)</Text>
+          <Text variant="smallStrong">{t('tools.budget.situationTitle')}</Text>
           <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
             {SITUATIONS.map((s) => (
-              <PressableScale key={s.value} haptic="select" onPress={() => setSituation(s.value)}>
-                <Chip label={s.label} active={situation === s.value} color={c.success} />
+              <PressableScale key={s} haptic="select" onPress={() => setSituation(s)}>
+                <Chip label={t(`tools.budget.situation.${s}`)} active={situation === s} color={c.success} />
               </PressableScale>
             ))}
           </View>
@@ -103,31 +96,29 @@ export default function Budget() {
 
         <Animated.View key={`${city}-${housing}-${situation}`} entering={FadeIn.duration(250)} style={styles.total}>
           <Text variant="overline" color="rgba(255,255,255,0.65)">
-            Ton budget mensuel à {cityName}
+            {t('tools.budget.monthlyIn', { city: cityName })}
           </Text>
           <Text variant="hero" color="#fff" style={{ fontSize: 44, lineHeight: 50 }}>
             ≈ {b.net} €
           </Text>
           <Text variant="small" color="rgba(255,255,255,0.8)">
-            ≈ {b.gross} € avant les économies étudiantes ({savings} € en moins par mois).
+            {t('tools.budget.beforeSavings', { gross: b.gross, savings })}
           </Text>
         </Animated.View>
 
         <View style={styles.card}>
-          <Bar label="Loyer" value={b.housing} max={max} color="#3D78FF" />
-          <Bar label="Courses & repas" value={b.food} max={max} color="#F97316" />
-          <Bar label="Transport" value={b.transport} max={max} color="#A855F7" />
-          <Bar label="Téléphone, santé, loisirs" value={b.fixed} max={max} color="#0EA5E9" />
-          <Bar label="Repas au resto U, transport réduit, CSS" value={-(savings - b.aplMid)} max={max} color="#16A34A" />
-          {b.aplEligible ? <Bar label="APL (estimation)" value={-b.aplMid} max={max} color="#16A34A" /> : null}
+          <Bar label={t('tools.budget.rent')} value={b.housing} max={max} color="#3D78FF" />
+          <Bar label={t('tools.budget.food')} value={b.food} max={max} color="#F97316" />
+          <Bar label={t('tools.budget.transport')} value={b.transport} max={max} color="#A855F7" />
+          <Bar label={t('tools.budget.fixed')} value={b.fixed} max={max} color="#0EA5E9" />
+          <Bar label={t('tools.budget.savings')} value={-(savings - b.aplMid)} max={max} color="#16A34A" />
+          {b.aplEligible ? <Bar label={t('tools.budget.apl')} value={-b.aplMid} max={max} color="#16A34A" /> : null}
         </View>
 
         <View style={[styles.note, { backgroundColor: b.aplEligible ? c.successSoft : c.warningSoft }]}>
           {b.aplEligible ? <Check size={18} color={c.success} /> : <TriangleAlert size={18} color={c.warningInk} />}
           <Text variant="small" style={{ flex: 1 }} color={b.aplEligible ? c.navy : c.warningInk}>
-            {b.aplEligible
-              ? `Ta situation peut t’ouvrir l’APL : environ ${b.aplMin} à ${b.aplMax} € par mois. Le montant réel se calcule sur caf.fr.`
-              : 'Depuis le 1er juillet 2026, ta situation n’ouvre plus droit à l’APL. Ce budget n’en compte donc aucune.'}
+            {b.aplEligible ? t('tools.budget.aplYes', { min: b.aplMin, max: b.aplMax }) : t('tools.budget.aplNo')}
           </Text>
         </View>
 
@@ -135,10 +126,13 @@ export default function Budget() {
           <View style={[styles.note, { backgroundColor: c.electricSoft }]}>
             <Info size={18} color={c.electric} />
             <Text variant="small" style={{ flex: 1 }}>
-              Pour le visa, tu dois prouver <Text variant="smallStrong">{resources.display}</Text>. Ici, prévois plutôt{' '}
-              <Text variant="smallStrong">≈ {Math.max(Math.round(resourcesValue), b.gross)} €</Text> pour vivre sereinement.{' '}
+              <Trans
+                i18nKey="tools.budget.visa"
+                values={{ amount: resources.display, advice: Math.max(Math.round(resourcesValue), b.gross) }}
+                components={{ strong: <Text variant="smallStrong" /> }}
+              />{' '}
               <Text variant="caption" color={c.electric} onPress={() => openLink(resources.current.source)} accessibilityRole="link">
-                Source : {resources.current.sourceLabel}
+                {t('tools.budget.source', { label: resources.current.sourceLabel })}
               </Text>
             </Text>
           </View>
@@ -147,7 +141,7 @@ export default function Budget() {
         <View style={styles.note}>
           <Info size={16} color={c.muted} />
           <Text variant="caption" color={c.muted} style={{ flex: 1 }}>
-            Même calcul que le simulateur de dalili.study. Frais d’inscription en plus : ≈ {b.tuitionAnnual} € par an + CVEC ≈ {b.cvec} €.
+            {t('tools.budget.sameAsSite', { tuition: b.tuitionAnnual, cvec: b.cvec })}
           </Text>
         </View>
       </View>

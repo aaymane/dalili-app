@@ -17,6 +17,7 @@ import { remoteCreateGroup } from '@/data/api';
 import { useLocalDb } from '@/data/local-db';
 import { Cover } from '@/features/community/components/Cover';
 import { useProfile } from '@/features/profile/store';
+import { useT } from '@/i18n';
 import { useTheme } from '@/theme/scheme';
 
 const COVERS: { colors: [string, string]; emoji: string }[] = [
@@ -31,6 +32,7 @@ const COVERS: { colors: [string, string]; emoji: string }[] = [
 /** Création de groupe : couverture, ville, nom, description, confidentialité. */
 export default function NewGroup() {
   const { c: colors, gradients } = useTheme();
+  const t = useT();
   const profile = useProfile((s) => s.profile);
   const addGroup = useLocalDb((s) => s.addGroup);
   const [cover, setCover] = useState(0);
@@ -42,7 +44,7 @@ export default function NewGroup() {
   const [loading, setLoading] = useState(false);
 
   const create = async () => {
-    if (!name.trim() || !city.trim()) return toast('Nom et ville sont obligatoires.', 'info');
+    if (!name.trim() || !city.trim()) return toast(t('community.newGroup.required'), 'info');
     setLoading(true);
     const base = { name: name.trim(), city: city.trim(), description: desc.trim(), tags: [], privacy, cover: COVERS[cover].colors, emoji: COVERS[cover].emoji };
     try {
@@ -51,35 +53,35 @@ export default function NewGroup() {
       addGroup(g);
       setCreated(g.id);
     } catch {
-      toast('Création impossible. Réessaie.', 'info');
+      toast(t('community.newGroup.failed'), 'info');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <Screen top={gradients.roleTop.student} keyboard padded={false} header={<AppHeader back pill="Créer un groupe" hideActions />} footer={<Button label="Créer" icon={<ArrowRight size={18} color="#fff" />} loading={loading} onPress={create} />}>
+    <Screen top={gradients.roleTop.student} keyboard padded={false} header={<AppHeader back pill={t('community.createGroup')} hideActions />} footer={<Button label={t('community.create')} icon={<ArrowRight size={18} color="#fff" />} loading={loading} onPress={create} />}>
       <View style={{ paddingHorizontal: 20, gap: 16 }}>
-        <Cover colors={COVERS[cover].colors} emoji={COVERS[cover].emoji} height={150} label="GROUPE" />
+        <Cover colors={COVERS[cover].colors} emoji={COVERS[cover].emoji} height={150} label={t('community.groupBadge')} />
         <View style={{ flexDirection: 'row', gap: 8, justifyContent: 'center' }}>
           {COVERS.map((c, i) => (
-            <PressableScale key={i} haptic="select" onPress={() => setCover(i)} style={{ width: 40, height: 40, borderRadius: 12, overflow: 'hidden', borderWidth: 2, borderColor: cover === i ? colors.electric : 'transparent' }}>
+            <PressableScale key={i} haptic="select" onPress={() => setCover(i)} accessibilityLabel={t('community.newGroup.coverA11y', { n: i + 1 })} accessibilityState={{ selected: cover === i }} style={{ width: 40, height: 40, borderRadius: 12, overflow: 'hidden', borderWidth: 2, borderColor: cover === i ? colors.electric : 'transparent' }}>
               <Cover colors={c.colors} emoji={c.emoji} height={36} radius={10} />
             </PressableScale>
           ))}
         </View>
-        <Input label="Nom du groupe" placeholder="Ex : Étudiants marocains à Nantes" value={name} onChangeText={setName} />
-        <Input label="Ville du groupe" placeholder="Paris" value={city} onChangeText={setCity} />
-        <Input label="Description" placeholder="Décris le but et les activités de ton groupe…" value={desc} onChangeText={setDesc} multiline />
-        <Text variant="h3">Confidentialité</Text>
-        <OptionCard title="Public" subtitle="Tout le monde peut voir les membres et les posts." icon={<Globe size={20} color={colors.navy} />} selected={privacy === 'public'} onPress={() => setPrivacy('public')} />
-        <OptionCard title="Privé" subtitle="Seuls les membres peuvent voir les membres et posts." icon={<Lock size={20} color={colors.navy} />} selected={privacy === 'private'} onPress={() => setPrivacy('private')} />
+        <Input label={t('community.newGroup.name')} placeholder={t('community.newGroup.namePlaceholder')} value={name} onChangeText={setName} />
+        <Input label={t('community.newGroup.city')} placeholder={t('community.newGroup.cityPlaceholder')} value={city} onChangeText={setCity} />
+        <Input label={t('community.description')} placeholder={t('community.newGroup.descPlaceholder')} value={desc} onChangeText={setDesc} multiline />
+        <Text variant="h3">{t('community.privacy')}</Text>
+        <OptionCard title={t('community.public')} subtitle={t('community.newGroup.publicSub')} icon={<Globe size={20} color={colors.navy} />} selected={privacy === 'public'} onPress={() => setPrivacy('public')} />
+        <OptionCard title={t('community.private')} subtitle={t('community.newGroup.privateSub')} icon={<Lock size={20} color={colors.navy} />} selected={privacy === 'private'} onPress={() => setPrivacy('private')} />
       </View>
       <SuccessModal
         visible={!!created}
-        title="Groupe créé !"
-        message="Félicitations ! Ton groupe a été créé avec succès. Tu peux maintenant inviter des membres."
-        cta="Voir le groupe"
+        title={t('community.newGroup.successTitle')}
+        message={t('community.newGroup.successText')}
+        cta={t('community.newGroup.successCta')}
         onCta={() => {
           const id = created!;
           setCreated(null);

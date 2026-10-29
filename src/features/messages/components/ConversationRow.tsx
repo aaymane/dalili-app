@@ -4,6 +4,7 @@ import { StyleSheet, View } from 'react-native';
 import { Avatar } from '@/components/ui/Avatar';
 import { PressableScale } from '@/components/ui/PressableScale';
 import { Text } from '@/components/ui/Text';
+import { t, useT } from '@/i18n';
 import { daysFromToday, formatDayMonth, formatTime, relativeDays } from '@/lib/date';
 import { useRoleTheme } from '@/theme';
 import { useTheme } from '@/theme/scheme';
@@ -16,20 +17,21 @@ export const when = (iso: string) => {
   return n === 0 ? formatTime(iso) : n >= -6 ? relativeDays(iso) : formatDayMonth(iso);
 };
 
-export const nameOf = (c: Conversation) => c.otherName ?? (c.asRole === 'mentor' ? 'Un·e étudiant·e' : 'Ton mentor');
+export const nameOf = (c: Conversation) => c.otherName ?? (c.asRole === 'mentor' ? t('messages.aStudent') : t('messages.yourMentor'));
 
 export function ConversationRow({ c }: { c: Conversation }) {
   const { c: colors } = useTheme();
+  const t = useT();
   const theme = useRoleTheme();
   const name = nameOf(c);
   const unread = c.unread > 0;
-  const preview = c.lastBody ? `${c.lastFromMe ? 'Toi : ' : ''}${c.lastBody}` : 'Dis bonjour 👋';
+  const preview = c.lastBody ? (c.lastFromMe ? t('messages.youPrefix', { body: c.lastBody }) : c.lastBody) : t('messages.sayHi');
   return (
     <PressableScale
       onPress={() => router.push({ pathname: '/(app)/messages/[id]', params: { id: c.id } })}
       scaleTo={0.985}
       style={styles.row}
-      accessibilityLabel={`${name}. ${unread ? `${c.unread} message${c.unread > 1 ? 's' : ''} non lu${c.unread > 1 ? 's' : ''}. ` : ''}${preview}`}>
+      accessibilityLabel={[name + '.', unread ? t('messages.unread', { count: c.unread }) : '', preview].filter(Boolean).join(' ')}>
       <Avatar name={name} size={48} color={c.asRole === 'student' ? colors.mentor : colors.electricLight} />
       <View style={{ flex: 1, gap: 2 }}>
         <View style={styles.top}>

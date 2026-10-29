@@ -18,6 +18,7 @@ import { useEvent } from '@/data/hooks';
 import { useLocalDb } from '@/data/local-db';
 import { Cover } from '@/features/community/components/Cover';
 import { useJourneyStore } from '@/features/journey/store';
+import { useT } from '@/i18n';
 import { formatLong, formatTime, toISODate } from '@/lib/date';
 import { makeStyles, useTheme } from '@/theme/scheme';
 import { radius } from '@/theme/tokens';
@@ -26,6 +27,7 @@ import { rise } from '@/theme/motion';
 /** Détail d'un événement + inscription (ajoutée au calendrier du Parcours). */
 export default function EventPage() {
   const { c } = useTheme();
+  const t = useT();
   const styles = useStyles();
   const { id } = useLocalSearchParams<{ id: string }>();
   const { data: e } = useEvent(id);
@@ -41,16 +43,16 @@ export default function EventPage() {
     if (!e.isGoing) {
       addCustom(`${e.title} · ${e.place}`, toISODate(new Date(e.startsAt)));
       setDone(true);
-    } else toast('Inscription annulée.', 'info');
+    } else toast(t('community.event.cancelled'), 'info');
   };
 
   return (
     <Screen
       padded={false}
-      footer={<Button label={e.isGoing ? 'Se désinscrire' : full ? 'Complet' : 'Participer à l’événement'} variant={e.isGoing ? 'secondary' : 'primary'} disabled={full} icon={!e.isGoing ? <ArrowRight size={18} color="#fff" /> : undefined} onPress={participate} />}>
+      footer={<Button label={e.isGoing ? t('community.event.leave') : full ? t('community.event.full') : t('community.event.participate')} variant={e.isGoing ? 'secondary' : 'primary'} disabled={full} icon={!e.isGoing ? <ArrowRight size={18} color="#fff" /> : undefined} onPress={participate} />}>
       <View style={{ paddingHorizontal: 16, paddingTop: 8 }}>
         <Cover colors={e.cover} emoji={e.emoji} height={190} radius={26}>
-          <PressableScale onPress={() => router.back()} style={styles.back} accessibilityLabel="Retour">
+          <PressableScale onPress={() => router.back()} style={styles.back} accessibilityLabel={t('common.back')}>
             <ChevronLeft size={20} color="#fff" />
           </PressableScale>
         </Cover>
@@ -65,7 +67,7 @@ export default function EventPage() {
             </Text>
           </View>
         </Animated.View>
-        <Text variant="h2">À propos</Text>
+        <Text variant="h2">{t('community.group.about')}</Text>
         <View style={styles.card}>
           <Text variant="body">{e.description}</Text>
         </View>
@@ -90,23 +92,23 @@ export default function EventPage() {
         <View style={[styles.card, styles.row]}>
           <View style={{ flexDirection: 'row' }}>
             {['Kalili', 'Zakaria', 'Sara'].map((n, i) => (
-              <View key={n} style={{ marginLeft: i ? -10 : 0 }}>
+              <View key={n} style={{ marginStart: i ? -10 : 0 }}>
                 <Avatar name={n} size={34} ring="#fff" color={['#3D78FF', '#F97316', '#14B8A6'][i]} />
               </View>
             ))}
           </View>
           <Text variant="small" style={{ flex: 1 }}>
-            Rejoint par Kalili, Zakaria et {Math.max(0, e.attendees - 2)} autres
+            {t('community.event.joinedBy', { a: 'Kalili', b: 'Zakaria', count: Math.max(0, e.attendees - 2) })}
           </Text>
         </View>
         <View style={[styles.card, styles.row]}>
           <TagIcon size={18} color={c.electric} />
           <View>
             <Text variant="caption" color={c.muted}>
-              Tarif
+              {t('community.event.price')}
             </Text>
             <Text variant="bodyStrong" color={c.electric}>
-              {e.price === 'free' ? 'Gratuit pour les membres Dalili' : 'Payant — infos sur place'}
+              {e.price === 'free' ? t('community.event.free') : t('community.event.paid')}
             </Text>
           </View>
         </View>
@@ -118,7 +120,7 @@ export default function EventPage() {
             <View style={{ flex: 1 }}>
               <Text variant="bodyStrong">{e.link.replace(/^https?:\/\//, '')}</Text>
               <Text variant="caption" color={c.muted}>
-                Pour plus d’informations
+                {t('community.event.moreInfo')}
               </Text>
             </View>
             <ArrowUpRight size={18} color={c.mentor} />
@@ -127,9 +129,9 @@ export default function EventPage() {
       </View>
       <SuccessModal
         visible={done}
-        title="Tu y es inscrit !"
-        message="Félicitations ! Ta place pour cet événement est réservée avec succès. Retrouve tous les détails et l’adresse dans ton calendrier."
-        cta="Voir mon calendrier"
+        title={t('community.event.successTitle')}
+        message={t('community.event.successText')}
+        cta={t('community.event.successCta')}
         onCta={() => {
           setDone(false);
           router.push({ pathname: '/(app)/parcours', params: { view: 'calendar' } });
@@ -141,7 +143,7 @@ export default function EventPage() {
 }
 
 const useStyles = makeStyles(({ c, shadow }) => ({
-  back: { position: 'absolute', top: 12, left: 12, width: 38, height: 38, borderRadius: 19, backgroundColor: 'rgba(0,0,0,0.25)', alignItems: 'center', justifyContent: 'center' },
+  back: { position: 'absolute', top: 12, start: 12, width: 38, height: 38, borderRadius: 19, backgroundColor: 'rgba(0,0,0,0.25)', alignItems: 'center', justifyContent: 'center' },
   card: { padding: 16, borderRadius: radius.xl, backgroundColor: c.card, ...shadow.sm },
   row: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   map: { height: 110, borderRadius: radius.md, backgroundColor: c.fill, overflow: 'hidden', alignItems: 'center', justifyContent: 'center' },

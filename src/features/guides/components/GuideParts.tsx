@@ -6,6 +6,7 @@ import Animated, { FadeIn } from 'react-native-reanimated';
 import { PressableScale } from '@/components/ui/PressableScale';
 import { Text } from '@/components/ui/Text';
 import type { FigureDisplay, Guide, GuideBlock } from '@/data/content';
+import { useT } from '@/i18n';
 import { formatFullDate } from '@/lib/date';
 import { makeStyles, useTheme } from '@/theme/scheme';
 import { radius } from '@/theme/tokens';
@@ -79,6 +80,7 @@ export function GuideBlockView({ b }: { b: GuideBlock }) {
 /** Chiffres officiels d'une étape, chacun avec sa source, ou « À vérifier ». */
 export function FigureList({ figures }: { figures: FigureDisplay[] }) {
   const { c: colors } = useTheme();
+  const t = useT();
   const styles = useStyles();
   if (!figures.length) return null;
   return (
@@ -95,7 +97,7 @@ export function FigureList({ figures }: { figures: FigureDisplay[] }) {
                 color={colors.muted}
                 onPress={f.sourceUrl ? () => openLink(f.sourceUrl!) : undefined}
                 accessibilityRole={f.sourceUrl ? 'link' : undefined}>
-                Source : {f.source}
+                {t('guide.source', { source: f.source })}
               </Text>
             ) : null}
           </View>
@@ -113,13 +115,14 @@ export function FigureList({ figures }: { figures: FigureDisplay[] }) {
 /** Les points clés vérifiés du guide (bloc KeyFacts du site). */
 export function KeyFactsCard({ guide }: { guide: Guide }) {
   const { c: colors } = useTheme();
+  const t = useT();
   const styles = useStyles();
   if (!guide.keyFacts?.facts.length) return null;
   return (
     <View style={[styles.card, { gap: 10 }]}>
       <View style={styles.cardTitle}>
         <BadgeCheck size={18} color={colors.success} />
-        <Text variant="bodyStrong">Les points clés vérifiés</Text>
+        <Text variant="bodyStrong">{t('guide.keyFacts')}</Text>
       </View>
       {guide.keyFacts.facts.map((f, i) => (
         <View key={i} style={{ flexDirection: 'row', gap: 10 }}>
@@ -131,7 +134,7 @@ export function KeyFactsCard({ guide }: { guide: Guide }) {
       ))}
       {guide.keyFacts.source ? (
         <Text variant="caption" color={colors.muted}>
-          Sources : {guide.keyFacts.source}
+          {t('guide.sources', { source: guide.keyFacts.source })}
         </Text>
       ) : null}
     </View>
@@ -140,13 +143,14 @@ export function KeyFactsCard({ guide }: { guide: Guide }) {
 
 export function DocumentsCard({ documents }: { documents: string[] }) {
   const { c: colors } = useTheme();
+  const t = useT();
   const styles = useStyles();
   if (!documents.length) return null;
   return (
     <View style={[styles.card, { gap: 10 }]}>
       <View style={styles.cardTitle}>
         <FileCheck2 size={18} color={colors.electric} />
-        <Text variant="bodyStrong">Les documents à préparer</Text>
+        <Text variant="bodyStrong">{t('guide.documents')}</Text>
       </View>
       {documents.map((d, i) => (
         <View key={i} style={{ flexDirection: 'row', gap: 10 }}>
@@ -184,10 +188,11 @@ function FaqItem({ q, a }: { q: string; a: string }) {
 }
 
 export function FaqList({ faq, limit }: { faq: Guide['faq']; limit?: number }) {
+  const t = useT();
   if (!faq.length) return null;
   return (
     <View style={{ gap: 8 }}>
-      <Text variant="h3">Les questions qu’on nous pose</Text>
+      <Text variant="h3">{t('guide.faq')}</Text>
       {faq.slice(0, limit ?? faq.length).map((f) => (
         <FaqItem key={f.question} q={f.question} a={f.answer} />
       ))}
@@ -198,16 +203,17 @@ export function FaqList({ faq, limit }: { faq: Guide['faq']; limit?: number }) {
 /** Sources officielles + date de mise à jour : la preuve que l'info est vérifiée. */
 export function SourcesCard({ guide }: { guide: Guide }) {
   const { c: colors } = useTheme();
+  const t = useT();
   const styles = useStyles();
   const links = guide.sources.filter((s) => s.url);
   return (
     <View style={[styles.card, { gap: 10 }]}>
       <View style={styles.cardTitle}>
         <ShieldCheck size={18} color={colors.electric} />
-        <Text variant="bodyStrong">D’où viennent ces infos</Text>
+        <Text variant="bodyStrong">{t('guide.whereFrom')}</Text>
       </View>
       <Text variant="small" color={colors.subtle}>
-        Guide DALILI vérifié, mis à jour le {formatFullDate(guide.updatedDate)}.
+        {t('guide.checked', { date: formatFullDate(guide.updatedDate) })}
       </Text>
       {links.map((s) => (
         <PressableScale key={s.url} onPress={() => openLink(s.url)} style={styles.source} accessibilityRole="link">
@@ -219,7 +225,7 @@ export function SourcesCard({ guide }: { guide: Guide }) {
       ))}
       <PressableScale onPress={() => openLink(guide.url)} style={styles.source} accessibilityRole="link">
         <Text variant="smallStrong" color={colors.electric} style={{ flex: 1 }}>
-          Lire le guide complet sur dalili.study
+          {t('guide.readFull')}
         </Text>
         <ExternalLink size={14} color={colors.electric} />
       </PressableScale>

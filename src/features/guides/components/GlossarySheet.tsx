@@ -80,7 +80,7 @@ export function GlossarySheetHost() {
           />
         </View>
       ) : (
-        <Text variant="body">Terme introuvable.</Text>
+        <Text variant="body">{t('glossary.notFound')}</Text>
       )}
     </BottomSheet>
   );

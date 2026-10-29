@@ -14,11 +14,13 @@ import { remoteCreatePost } from '@/data/api';
 import { useGroup } from '@/data/hooks';
 import { useLocalDb } from '@/data/local-db';
 import { useProfile } from '@/features/profile/store';
+import { useT } from '@/i18n';
 import { useTheme } from '@/theme/scheme';
 
 /** Publier dans un groupe. */
 export default function NewPost() {
   const { c, gradients } = useTheme();
+  const t = useT();
   const { groupId } = useLocalSearchParams<{ groupId: string }>();
   const { data: g } = useGroup(groupId);
   const profile = useProfile((s) => s.profile);
@@ -26,11 +28,11 @@ export default function NewPost() {
   const [body, setBody] = useState('');
 
   const publish = async () => {
-    if (body.trim().length < 3) return toast('Écris au moins quelques mots ✍️', 'info');
+    if (body.trim().length < 3) return toast(t('community.newPost.tooShort'), 'info');
     addPost({
       id: `p-${Date.now()}`,
       groupId,
-      author: `${profile.firstName} ${profile.lastName}`.trim() || 'Moi',
+      author: `${profile.firstName} ${profile.lastName}`.trim() || t('community.newPost.me'),
       authorColor: c.electric,
       createdAt: new Date().toISOString(),
       body: body.trim(),
@@ -38,25 +40,25 @@ export default function NewPost() {
       comments: [],
     });
     remoteCreatePost(groupId, body.trim()).catch(() => {});
-    toast('Publié dans le groupe 🎉');
+    toast(t('community.newPost.published'));
     router.back();
   };
 
   return (
-    <Screen top={gradients.roleTop.student} keyboard padded={false} header={<AppHeader back pill="Créer un post" hideActions />} footer={<Button label="Publier" icon={<ArrowRight size={18} color="#fff" />} onPress={publish} />}>
+    <Screen top={gradients.roleTop.student} keyboard padded={false} header={<AppHeader back pill={t('community.newPost.title')} hideActions />} footer={<Button label={t('community.publish')} icon={<ArrowRight size={18} color="#fff" />} onPress={publish} />}>
       <View style={{ paddingHorizontal: 20, gap: 16 }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
           <Avatar name={`${profile.firstName} ${profile.lastName}`} uri={profile.avatarUri} size={42} />
           <View>
-            <Text variant="bodyStrong">{profile.firstName || 'Toi'}</Text>
+            <Text variant="bodyStrong">{profile.firstName || t('community.newPost.you')}</Text>
             <Text variant="caption" color={c.muted}>
-              dans {g?.name ?? 'le groupe'}
+              {g?.name ? t('community.newPost.inGroup', { name: g.name }) : t('community.newPost.inTheGroup')}
             </Text>
           </View>
         </View>
-        <Input placeholder="Partage une question, un bon plan, une victoire…" value={body} onChangeText={setBody} multiline autoFocus />
+        <Input placeholder={t('community.newPost.placeholder')} value={body} onChangeText={setBody} multiline autoFocus />
         <Text variant="caption" color={c.muted}>
-          Sois bienveillant·e : pas de données personnelles (numéro, adresse) en public.
+          {t('community.newPost.kind')}
         </Text>
       </View>
     </Screen>

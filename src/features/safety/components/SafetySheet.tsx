@@ -14,6 +14,7 @@ import { PressableScale } from '@/components/ui/PressableScale';
 import { Chip } from '@/components/ui/Tag';
 import { Text } from '@/components/ui/Text';
 import { isInFrance, useProfile } from '@/features/profile/store';
+import { useT } from '@/i18n';
 import { haptics } from '@/lib/haptics';
 import { useRoleTheme } from '@/theme';
 import { rise } from '@/theme/motion';
@@ -24,13 +25,7 @@ import { track } from '@/lib/analytics';
 import { SafetyRefused, type ReportReason, type ReportTarget } from '../api';
 import { useBlockUser, useSendReport } from '../hooks';
 
-const REASONS: { id: ReportReason; label: string }[] = [
-  { id: 'harcelement', label: 'Propos ou gestes déplacés' },
-  { id: 'argent', label: 'Me demande de l’argent' },
-  { id: 'donnees', label: 'Veut mon numéro ou mes réseaux' },
-  { id: 'faux_profil', label: 'Faux profil' },
-  { id: 'autre', label: 'Autre chose' },
-];
+const REASONS: ReportReason[] = ['harcelement', 'argent', 'donnees', 'faux_profil', 'autre'];
 
 type Step = 'choose' | 'report' | 'block';
 
@@ -53,6 +48,7 @@ export function SafetySheet({
   onBlocked?: () => void;
 }) {
   const { c } = useTheme();
+  const t = useT();
   const styles = useStyles();
   const theme = useRoleTheme();
   const send = useSendReport();
@@ -61,7 +57,7 @@ export function SafetySheet({
   const [reason, setReason] = useState<ReportReason | null>(null);
   const [comment, setComment] = useState('');
   const ready = !!target && !!reason && (reason !== 'autre' || comment.trim().length > 0);
-  const failed = (e: Error) => toast(e instanceof SafetyRefused ? e.message : 'Pas envoyé. Vérifie ta connexion et réessaie.', 'info');
+  const failed = (e: Error) => toast(e instanceof SafetyRefused ? t(`safety.refused.${e.kind}`) : t('safety.notSent'), 'info');
 
   const report = () => {
     if (!target || !reason || send.isPending) return;
@@ -72,11 +68,7 @@ export function SafetySheet({
           haptics.success();
           if (result === 'sent') track('safety_report_sent');
           toast(
-            result === 'demo'
-              ? 'Merci ! En mode démo, rien n’est envoyé.'
-              : result === 'already'
-                ? 'L’équipe a déjà ton signalement sur cette personne. Elle s’en occupe.'
-                : 'Merci. L’équipe lit ton signalement et revient vers toi si besoin.',
+            result === 'demo' ? t('safety.thanksDemo') : result === 'already' ? t('safety.already') : t('safety.thanks'),
           );
           onClose();
         },
@@ -90,7 +82,7 @@ export function SafetySheet({
     block.mutate(target, {
       onSuccess: (result) => {
         haptics.success();
-        toast(result === 'demo' ? 'En mode démo, rien n’est enregistré.' : `${name} est bloqué·e.`);
+        toast(result === 'demo' ? t('safety.blockedDemo') : t('safety.blocked', { name }));
         onClose();
         if (result === 'blocked') onBlocked?.();
       },
@@ -110,19 +102,19 @@ export function SafetySheet({
       }}>
       {step === 'choose' ? (
         <Animated.View key="choose" entering={rise()} style={styles.body}>
-          <Text variant="h2">Un souci avec {name} ?</Text>
+          <Text variant="h2">{t('safety.title', { name })}</Text>
           <Choice
             icon={Flag}
             tone="amber"
-            title="Signaler à l’équipe"
-            text={`On lit chaque signalement. ${name} n’est pas prévenu·e.`}
+            title={t('safety.reportChoice')}
+            text={t('safety.reportChoiceText', { name })}
             onPress={() => setStep('report')}
           />
           <Choice
             icon={Ban}
             tone="red"
-            title={`Bloquer ${name}`}
-            text="Vous ne vous voyez plus, et vos demandes en cours sont annulées."
+            title={t('safety.blockChoice', { name })}
+            text={t('safety.blockChoiceText')}
             onPress={() => setStep('block')}
           />
           <Danger onClose={onClose} />
@@ -130,43 +122,39 @@ export function SafetySheet({
       ) : step === 'report' ? (
         <Animated.View key="report" entering={rise()} style={styles.body}>
           <View style={{ gap: 4 }}>
-            <Text variant="h2">Signaler {name}</Text>
+            <Text variant="h2">{t('safety.reportTitle', { name })}</Text>
             <Text variant="small" color={c.subtle}>
-              Seule l’équipe DALILI lit ton signalement. {name} n’est pas prévenu·e.
+              {t('safety.reportText', { name })}
             </Text>
           </View>
           <View style={styles.reasons} accessibilityRole="radiogroup">
             {REASONS.map((r) => (
               <PressableScale
-                key={r.id}
+                key={r}
                 haptic="select"
-                onPress={() => setReason(r.id)}
+                onPress={() => setReason(r)}
                 hitSlop={4}
                 accessibilityRole="radio"
-                accessibilityState={{ selected: reason === r.id }}>
-                <Chip label={r.label} active={reason === r.id} color={theme.accent} />
+                accessibilityState={{ selected: reason === r }}>
+                <Chip label={t(`safety.reasons.${r}`)} active={reason === r} color={theme.accent} />
               </PressableScale>
             ))}
           </View>
           <Input
             multiline
-            placeholder={reason === 'autre' ? 'Dis-nous ce qui s’est passé' : 'Ce qui s’est passé (facultatif)'}
+            placeholder={reason === 'autre' ? t('safety.whatHappened') : t('safety.whatHappenedOptional')}
             value={comment}
             onChangeText={setComment}
             maxLength={500}
           />
           <Danger onClose={onClose} />
-          <Button label="Envoyer le signalement" onPress={report} loading={send.isPending} disabled={!ready} accent={theme.gradient} />
+          <Button label={t('safety.send')} onPress={report} loading={send.isPending} disabled={!ready} accent={theme.gradient} />
         </Animated.View>
       ) : (
         <Animated.View key="block" entering={rise()} style={styles.body}>
-          <Text variant="h2">Bloquer {name} ?</Text>
+          <Text variant="h2">{t('safety.blockTitle', { name })}</Text>
           <View style={{ gap: 8 }}>
-            {[
-              'Vous ne vous voyez plus dans DALILI, et aucune demande d’appel ne passe entre vous.',
-              'Vos demandes en cours sont annulées.',
-              `${name} n’est pas prévenu·e. Tu peux débloquer quand tu veux, dans Profil › Personnes bloquées.`,
-            ].map((line) => (
+            {[t('safety.blockLine1'), t('safety.blockLine2'), t('safety.blockLine3', { name })].map((line) => (
               <View key={line} style={styles.line}>
                 <View style={styles.dot} />
                 <Text variant="small" color={c.subtle} style={{ flex: 1 }}>
@@ -175,10 +163,10 @@ export function SafetySheet({
               </View>
             ))}
           </View>
-          <Button label={`Bloquer ${name}`} variant="danger" onPress={confirmBlock} loading={block.isPending} disabled={!target} />
+          <Button label={t('safety.blockChoice', { name })} variant="danger" onPress={confirmBlock} loading={block.isPending} disabled={!target} />
           <PressableScale onPress={() => setStep('report')} hitSlop={6} style={styles.link}>
             <Text variant="smallStrong" color={c.subtle}>
-              Il s’est passé quelque chose ? Signale-le aussi
+              {t('safety.alsoReport')}
             </Text>
           </PressableScale>
         </Animated.View>
@@ -207,6 +195,7 @@ function Choice({ icon, tone, title, text, onPress }: { icon: LucideIcon; tone: 
 /** En France : le 17 et l'écran SOS. Ailleurs, les numéros français ne marchent pas : la police du pays. */
 function Danger({ onClose }: { onClose: () => void }) {
   const { c } = useTheme();
+  const t = useT();
   const styles = useStyles();
   const inFrance = useProfile((s) => isInFrance(s.profile));
   if (!inFrance) {
@@ -214,7 +203,7 @@ function Danger({ onClose }: { onClose: () => void }) {
       <View style={styles.danger}>
         <IconTile icon={ShieldAlert} tone="red" size={36} radius={12} />
         <Text variant="small" style={{ flex: 1 }}>
-          En danger maintenant ? Contacte d’abord la police de ton pays.
+          {t('safety.dangerAbroad')}
         </Text>
       </View>
     );
@@ -226,10 +215,10 @@ function Danger({ onClose }: { onClose: () => void }) {
         router.push('/(app)/outils/sos');
       }}
       style={styles.danger}
-      accessibilityLabel="En danger maintenant ? Ouvrir les numéros d’urgence">
+      accessibilityLabel={t('safety.dangerA11y')}>
       <IconTile icon={ShieldAlert} tone="red" size={36} radius={12} />
       <Text variant="small" style={{ flex: 1 }}>
-        En danger maintenant ? Appelle le 17 (police).
+        {t('safety.danger')}
       </Text>
       <ChevronRight size={18} color={c.muted} />
     </PressableScale>

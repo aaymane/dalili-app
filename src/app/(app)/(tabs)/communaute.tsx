@@ -16,6 +16,7 @@ import { Chip } from '@/components/ui/Tag';
 import { Text } from '@/components/ui/Text';
 import { useEvents, useGroups } from '@/data/hooks';
 import { EventCard, GroupCard } from '@/features/community/components/GroupCard';
+import { useT } from '@/i18n';
 import { useRoleTheme } from '@/theme';
 import { makeStyles, useTheme } from '@/theme/scheme';
 import { pop, rise } from '@/theme/motion';
@@ -23,6 +24,7 @@ import { pop, rise } from '@/theme/motion';
 /** Communautés : groupes par ville + événements proches. */
 export default function Communaute() {
   const { c } = useTheme();
+  const t = useT();
   const styles = useStyles();
   const { top } = useRoleTheme();
   const { data: groups } = useGroups();
@@ -32,9 +34,9 @@ export default function Communaute() {
   const [city, setCity] = useState<string | null>(null);
   const [fab, setFab] = useState(false);
 
-  const t = q.trim().toLowerCase();
-  const gs = useMemo(() => groups.filter((g) => (!city || g.city === city) && (!t || `${g.name} ${g.city}`.toLowerCase().includes(t))), [groups, city, t]);
-  const es = useMemo(() => events.filter((e) => (!city || e.city === city) && (!t || `${e.title} ${e.city}`.toLowerCase().includes(t))), [events, city, t]);
+  const needle = q.trim().toLowerCase();
+  const gs = useMemo(() => groups.filter((g) => (!city || g.city === city) && (!needle || `${g.name} ${g.city}`.toLowerCase().includes(needle))), [groups, city, needle]);
+  const es = useMemo(() => events.filter((e) => (!city || e.city === city) && (!needle || `${e.title} ${e.city}`.toLowerCase().includes(needle))), [events, city, needle]);
   const cityCounts = useMemo(() => {
     const c: Record<string, number> = {};
     groups.forEach((g) => (c[g.city] = (c[g.city] ?? 0) + g.members));
@@ -45,14 +47,16 @@ export default function Communaute() {
     <View style={{ flex: 1 }}>
       <Screen top={top} tabBar padded={false} header={<AppHeader />}>
         <View style={{ paddingHorizontal: 20, gap: 14 }}>
-          <Text variant="hero">Communautés</Text>
+          <Text variant="hero">{t('community.title')}</Text>
           <Input
             icon={<Search size={16} color={c.electric} />}
-            placeholder="Cherche un groupe, événements…"
+            placeholder={t('community.search')}
             value={q}
             onChangeText={setQ}
             right={
-              <PressableScale onPress={() => setMode(mode === 'all' ? 'groups' : 'all')} style={[styles.filter, mode !== 'all' && { backgroundColor: c.electric }]}>
+              <PressableScale onPress={() => setMode(mode === 'all' ? 'groups' : 'all')} style={[styles.filter, mode !== 'all' && { backgroundColor: c.electric }]}
+                accessibilityLabel={t('community.filterA11y')}
+                accessibilityState={{ selected: mode !== 'all' }}>
                 <SlidersHorizontal size={16} color={mode !== 'all' ? '#fff' : c.navy} />
               </PressableScale>
             }
@@ -63,13 +67,13 @@ export default function Communaute() {
                 value={mode === 'events' ? 'events' : 'groups'}
                 onChange={(v) => setMode(v)}
                 options={[
-                  { value: 'groups', label: 'Groupes' },
-                  { value: 'events', label: 'Événements' },
+                  { value: 'groups', label: t('community.groups') },
+                  { value: 'events', label: t('community.events') },
                 ]}
               />
             </Animated.View>
           )}
-          <Text variant="smallStrong">Villes</Text>
+          <Text variant="smallStrong">{t('community.cities')}</Text>
         </View>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8, paddingHorizontal: 20, paddingVertical: 10 }}>
           {cityCounts.map(([c, n]) => (
@@ -82,7 +86,7 @@ export default function Communaute() {
         <View style={{ paddingHorizontal: 20, gap: 26, marginTop: 8 }}>
           {mode !== 'events' && (
             <Animated.View entering={rise()}>
-              <SectionHeader title="Groupes populaires" action="Voir tout" onAction={() => setMode('groups')} />
+              <SectionHeader title={t('community.popularGroups')} action={t('community.seeAll')} onAction={() => setMode('groups')} />
               <View style={{ gap: 14 }}>
                 {(mode === 'groups' ? gs : gs.slice(0, 3)).map((g) => (
                   <GroupCard key={g.id} g={g} />
@@ -92,7 +96,7 @@ export default function Communaute() {
           )}
           {mode !== 'groups' && (
             <Animated.View entering={rise(80)}>
-              <SectionHeader title="Événement proche" action="Voir tout" onAction={() => setMode('events')} />
+              <SectionHeader title={t('community.nearEvents')} action={t('community.seeAll')} onAction={() => setMode('events')} />
               <View style={{ gap: 14 }}>
                 {(mode === 'events' ? es : es.slice(0, 3)).map((e) => (
                   <EventCard key={e.id} e={e} />
@@ -103,17 +107,17 @@ export default function Communaute() {
         </View>
       </Screen>
       <Animated.View entering={pop(300)} style={[styles.fab, { bottom: TAB_BAR_SPACE - 4 }]}>
-        <PressableScale onPress={() => setFab(true)} haptic="press" style={styles.fabBtn} accessibilityLabel="Créer">
+        <PressableScale onPress={() => setFab(true)} haptic="press" style={styles.fabBtn} accessibilityLabel={t('community.create')}>
           <Plus size={24} color={c.navy} />
         </PressableScale>
       </Animated.View>
       <BottomSheet visible={fab} onClose={() => setFab(false)}>
         <Text variant="h2" style={{ marginBottom: 14 }}>
-          Créer quelque chose
+          {t('community.createSomething')}
         </Text>
         <View style={{ gap: 10 }}>
-          <Button label="Créer un groupe" onPress={() => { setFab(false); router.push('/(app)/groupe/nouveau'); }} />
-          <Button label="Créer un événement" variant="secondary" onPress={() => { setFab(false); router.push('/(app)/evenement/nouveau'); }} />
+          <Button label={t('community.createGroup')} onPress={() => { setFab(false); router.push('/(app)/groupe/nouveau'); }} />
+          <Button label={t('community.createEvent')} variant="secondary" onPress={() => { setFab(false); router.push('/(app)/evenement/nouveau'); }} />
         </View>
       </BottomSheet>
     </View>
@@ -122,6 +126,6 @@ export default function Communaute() {
 
 const useStyles = makeStyles(({ c, shadow }) => ({
   filter: { width: 34, height: 34, borderRadius: 10, backgroundColor: c.fill, alignItems: 'center', justifyContent: 'center' },
-  fab: { position: 'absolute', right: 20 },
+  fab: { position: 'absolute', end: 20 },
   fabBtn: { width: 54, height: 54, borderRadius: 27, backgroundColor: c.card, alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: c.electricSoft, ...shadow.md },
 }));

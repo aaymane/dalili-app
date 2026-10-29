@@ -13,8 +13,8 @@ export type CallAccess =
   | ({ kind: 'ready' } & CallInfo)
   /** Trop tôt : la salle s'ouvre 15 minutes avant. */
   | { kind: 'early'; opensAt: string }
-  /** Refus expliqué (terminé, plus confirmé, vidéo pas encore ouverte…) : le message s'affiche tel quel. */
-  | { kind: 'unavailable'; message: string }
+  /** Refus expliqué par le site, en français (terminé, plus confirmé, vidéo pas encore ouverte…). */
+  | { kind: 'unavailable'; message?: string }
   | { kind: 'offline' }
   | { kind: 'demo' };
 
@@ -32,7 +32,7 @@ export async function requestCall(bookingId: string): Promise<CallAccess> {
     const json = await res.json().catch(() => ({}));
     if (res.ok) return { kind: 'ready', ...(json as CallInfo) };
     if (res.status === 425 && json.opensAt) return { kind: 'early', opensAt: json.opensAt };
-    return { kind: 'unavailable', message: json.error ?? 'Appel indisponible pour le moment.' };
+    return { kind: 'unavailable', message: json.error };
   } catch {
     return { kind: 'offline' };
   }

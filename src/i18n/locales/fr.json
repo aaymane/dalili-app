@@ -49,7 +49,10 @@
     "daysAgo_one": "il y a {{count}} jour",
     "daysAgo_other": "il y a {{count}} jours",
     "weekInitials": "L,M,M,J,V,S,D",
-    "inDaysShort": "Dans {{count}} j"
+    "inDaysShort": "Dans {{count}} j",
+    "justNow": "à l’instant",
+    "hoursAgo_one": "il y a {{count}} heure",
+    "hoursAgo_other": "il y a {{count}} heures"
   },
   "calendar": {
     "prev": "Mois précédent",
@@ -646,7 +649,8 @@
     "text": "{{count}} mots de l’administration française, expliqués comme par un ami.",
     "search": "CAF, VLS-TS, caution…",
     "frenchNote": "Les mots et leurs explications sont en français, la langue des démarches.",
-    "openHint": "Ouvre la définition"
+    "openHint": "Ouvre la définition",
+    "notFound": "Terme introuvable."
   },
   "explorer": {
     "titleMentors": "Trouve un mentor",
@@ -741,5 +745,612 @@
     "general1": "Combien d’argent faut-il prouver pour le visa ?",
     "general2": "Comment demander un logement CROUS ?",
     "general3": "C’est quoi la CVEC ?"
+  },
+  "community": {
+    "title": "Communautés",
+    "search": "Cherche un groupe, un événement…",
+    "filterA11y": "Filtrer : groupes ou événements",
+    "groups": "Groupes",
+    "events": "Événements",
+    "cities": "Villes",
+    "popularGroups": "Groupes populaires",
+    "seeAll": "Voir tout",
+    "nearEvents": "Événements proches",
+    "create": "Créer",
+    "createSomething": "Créer quelque chose",
+    "createGroup": "Créer un groupe",
+    "createEvent": "Créer un événement",
+    "groupBadge": "GROUPE",
+    "eventBadge": "ÉVÉNEMENT",
+    "members_one": "{{count}} membre",
+    "members_other": "{{count}} membres",
+    "member": "Membre",
+    "join": "Rejoindre",
+    "going": "Inscrit·e",
+    "people": "{{attendees}}/{{capacity}} personnes",
+    "welcome": "Bienvenue dans « {{name}} » 🎉",
+    "description": "Description",
+    "privacy": "Confidentialité",
+    "public": "Public",
+    "private": "Privé",
+    "publish": "Publier",
+    "group": {
+      "membersCity_one": "{{count}} membre · {{city}}",
+      "membersCity_other": "{{count}} membres · {{city}}",
+      "join": "Rejoindre le groupe",
+      "about": "À propos",
+      "feed": "Fil d’actualité",
+      "members": "Membres",
+      "lockedTitle": "Contenu réservé aux membres",
+      "lockedText": "Rejoins le groupe pour voir les publications, les événements et échanger avec les autres étudiants.",
+      "share": "Partager quelque chose avec le groupe…",
+      "firstPost": "Sois le premier ou la première à publier ✨",
+      "upcoming": "Événements à venir",
+      "newMembers": "Nouveaux membres",
+      "you": "Toi",
+      "youTag": "{{name}} (toi)",
+      "follow": "Suivre",
+      "writeA11y": "Écrire un post"
+    },
+    "post": {
+      "fallbackTitle": "Publication",
+      "comments": "Commentaires",
+      "count_one": "{{count}} commentaire",
+      "count_other": "{{count}} commentaires",
+      "countComment_one": "{{count}} commentaire. Commenter",
+      "countComment_other": "{{count}} commentaires. Commenter",
+      "seeAll": "Voir les {{n}} commentaires",
+      "loadError": "Impossible de charger les commentaires. Vérifie ta connexion.",
+      "empty": "Personne n’a encore répondu. Sois le premier ou la première 🙂",
+      "you": "Toi",
+      "authorTag": "{{name}} (auteur)",
+      "notSentTap": "Pas envoyé · Toucher pour renvoyer",
+      "notSent": "Pas envoyé. Vérifie ta connexion, puis touche le commentaire pour le renvoyer.",
+      "slowDown": "Doucement : attends un peu avant de commenter à nouveau.",
+      "deleteTitle": "Supprimer ton commentaire ?",
+      "deleteText": "Il disparaît pour tout le groupe.",
+      "keep": "Garder",
+      "delete": "Supprimer",
+      "deleteFailed": "Pas supprimé. Vérifie ta connexion et réessaie.",
+      "placeholder": "Écris un commentaire…",
+      "label": "Ton commentaire",
+      "joinToComment": "Rejoindre le groupe pour commenter",
+      "deleteHint": "Appui long pour supprimer",
+      "openA11y": "Ouvrir la publication de {{name}}",
+      "like": "J’aime",
+      "share": "Partager",
+      "shareMessage": "{{author}} sur DALILI : {{body}}"
+    },
+    "newPost": {
+      "title": "Créer un post",
+      "tooShort": "Écris au moins quelques mots ✍️",
+      "published": "Publié dans le groupe 🎉",
+      "me": "Moi",
+      "you": "Toi",
+      "inGroup": "dans {{name}}",
+      "inTheGroup": "dans le groupe",
+      "placeholder": "Partage une question, un bon plan, une victoire…",
+      "kind": "Sois bienveillant·e : pas de données personnelles (numéro, adresse) en public."
+    },
+    "newGroup": {
+      "required": "Le nom et la ville sont obligatoires.",
+      "failed": "Création impossible. Réessaie.",
+      "coverA11y": "Couverture {{n}}",
+      "name": "Nom du groupe",
+      "namePlaceholder": "Ex : Étudiants marocains à Nantes",
+      "city": "Ville du groupe",
+      "cityPlaceholder": "Paris",
+      "descPlaceholder": "Décris le but et les activités de ton groupe…",
+      "publicSub": "Tout le monde peut voir les membres et les posts.",
+      "privateSub": "Seuls les membres peuvent voir les membres et les posts.",
+      "successTitle": "Groupe créé !",
+      "successText": "Bravo ! Ton groupe est créé. Tu peux maintenant inviter des membres.",
+      "successCta": "Voir le groupe"
+    },
+    "event": {
+      "leave": "Se désinscrire",
+      "full": "Complet",
+      "participate": "Participer à l’événement",
+      "cancelled": "Inscription annulée.",
+      "joinedBy_one": "Rejoint par {{a}}, {{b}} et {{count}} autre personne",
+      "joinedBy_other": "Rejoint par {{a}}, {{b}} et {{count}} autres",
+      "price": "Tarif",
+      "free": "Gratuit pour les membres DALILI",
+      "paid": "Payant, infos sur place",
+      "moreInfo": "Pour plus d’informations",
+      "successTitle": "Tu es inscrit·e !",
+      "successText": "Bravo ! Ta place est réservée. Retrouve les détails et l’adresse dans ton calendrier.",
+      "successCta": "Voir mon calendrier"
+    },
+    "newEvent": {
+      "required": "Le nom et le lieu sont obligatoires.",
+      "failed": "Publication impossible. Réessaie.",
+      "name": "Nom de l’événement",
+      "namePlaceholder": "Ex : soirée d’intégration, atelier CAF…",
+      "date": "Date",
+      "hour": "Heure",
+      "place": "Lieu",
+      "placePlaceholder": "Une adresse ou un lieu…",
+      "descPlaceholder": "Décris le but et les activités…",
+      "link": "Lien",
+      "linkPlaceholder": "Site internet, réseaux sociaux…",
+      "publicSub": "Tout le monde peut voir l’événement.",
+      "privateSub": "Seuls les membres du groupe le voient.",
+      "pricing": "Tarif",
+      "pricingQuestion": "L’événement est-il gratuit ou payant ?",
+      "free": "Gratuit",
+      "paid": "Payant",
+      "approval": "Valider les participants",
+      "approvalSub": "Tu acceptes chaque inscription à la main",
+      "successTitle": "Événement publié !",
+      "successText": "Ton événement est en ligne. Il est déjà dans ton calendrier : partage-le à ton groupe.",
+      "successCta": "Voir l’événement"
+    }
+  },
+  "mentors": {
+    "lang": {
+      "ar": "Arabe",
+      "fr": "Français",
+      "en": "Anglais",
+      "ber": "Amazigh"
+    },
+    "profile": {
+      "certified": "MENTOR CERTIFIÉ DALILI",
+      "rating": "NOTE",
+      "sessions": "APPELS",
+      "response": "RÉPONSE",
+      "journey": "Son parcours",
+      "specialties": "Spécialités",
+      "languages": "Langues parlées",
+      "reviews": "Témoignages récents",
+      "reportA11y": "Signaler ou bloquer {{name}}",
+      "report": "Un souci avec {{name}} ? Signaler ou bloquer",
+      "own": "C’est ton profil, tel que les étudiants le voient.",
+      "write": "Écrire",
+      "book": "Réserver · gratuit"
+    },
+    "book": {
+      "defaultTopic": "Question générale",
+      "refused": "{{name}} ne peut pas recevoir de demande pour le moment. Essaie un autre mentor.",
+      "notSent": "Demande pas envoyée. Vérifie ta connexion et réessaie.",
+      "send": "Envoyer ma demande",
+      "freeCall": "Appel gratuit · 30 min",
+      "with": "Avec {{name}}",
+      "pausedTitle": "{{name}} est en pause pour le moment",
+      "pausedText": "Les mentors sont des étudiants bénévoles. Un autre mentor peut sûrement t’aider dès maintenant.",
+      "otherMentors": "Voir les autres mentors",
+      "hint": "Propose un moment qui t’arrange. {{name}} accepte selon ses disponibilités, et tu vois sa réponse sur ton accueil.",
+      "topic": "Sujet",
+      "topicPlaceholder": "Ex : mon rendez-vous de visa",
+      "whatTime": "À quelle heure, {{day}} ?",
+      "successTitle": "Demande envoyée",
+      "successText": "{{name}} te répond selon ses disponibilités. Tu verras sa réponse sur ton accueil.",
+      "successCta": "Retour à l’accueil"
+    },
+    "booking": {
+      "opening": "La conversation s’ouvre dans un instant. Réessaie.",
+      "cancelTitle": "Annuler ta demande ?",
+      "cancelText": "{{name}} ne la verra plus. Tu pourras en refaire une quand tu veux.",
+      "keep": "Garder",
+      "cancelRequest": "Annuler la demande",
+      "cancelFailed": "Pas annulée. Vérifie ta connexion et réessaie.",
+      "pendingA11y": "Demande envoyée à {{name}}, {{when}}. En attente de sa réponse.",
+      "sentTo": "Demande envoyée à {{name}}",
+      "replies": "{{name}} répond selon ses disponibilités. Sa réponse arrive ici.",
+      "callWith": "Appel avec {{name}}",
+      "today": "Aujourd’hui",
+      "confirmed": "Confirmé",
+      "join": "Rejoindre l’appel",
+      "writeTo": "Écrire à {{name}}",
+      "cancelCall": "Annuler le rendez-vous"
+    },
+    "tile": {
+      "available": "Disponible cette semaine",
+      "full": "Complet cette semaine"
+    },
+    "soon": {
+      "title": "Les premiers mentors arrivent bientôt",
+      "text": "Des étudiants passés par là, vérifiés un par un par l’équipe. En attendant, Dalili répond à tes questions.",
+      "ask": "Demander à Dalili"
+    },
+    "constellation": {
+      "helped_one": "Tu aides {{count}} étudiant",
+      "helped_other": "Tu aides {{count}} étudiants",
+      "waiting_one": ", {{count}} attend ta réponse",
+      "waiting_other": ", {{count}} attendent ta réponse"
+    },
+    "charter": {
+      "overlineStep": "Étape {{step}} / {{total}} · DALILI",
+      "overline": "Charte du mentor · DALILI",
+      "title": "Avant d’aider,\non s’engage",
+      "subtitle": "Les étudiants te font confiance. Ces engagements les protègent, et toi aussi.",
+      "accept": "J’accepte la charte",
+      "acceptSend": "J’accepte et j’envoie ma fiche",
+      "birthYear": "Année de naissance",
+      "yearPlaceholder": "aaaa",
+      "yearPrivate": "Elle reste privée : seule l’équipe DALILI la voit.",
+      "verifyNote": "Ensuite, l’équipe vérifie ton profil (carte étudiante, LinkedIn ou titre de séjour) avant de montrer ta fiche. On ne garde aucune copie.",
+      "notSent": "Pas envoyée. Vérifie ta connexion et réessaie.",
+      "outdated": "Cette charte n’est plus à jour : mets l’app à jour.",
+      "yearDigits": "Ton année de naissance, sur 4 chiffres.",
+      "yearWrong": "Cette année ne semble pas correcte.",
+      "tooYoung": "Il faut avoir 18 ans ou plus pour être mentor.",
+      "accepted": "Charte acceptée. Merci !",
+      "sent": "Fiche envoyée. L’équipe la relit.",
+      "items": {
+        "age": {
+          "title": "J’ai 18 ans ou plus",
+          "body": "Le mentorat est réservé aux adultes."
+        },
+        "kind": {
+          "title": "Bienveillance",
+          "body": "J’écoute sans juger, avec respect et patience. Chaque parcours est différent."
+        },
+        "free": {
+          "title": "Gratuité",
+          "body": "J’aide gratuitement. Je ne demande jamais d’argent, de cadeau ni de service en échange."
+        },
+        "documents": {
+          "title": "Aucun document personnel",
+          "body": "Je ne demande jamais de passeport, de titre de séjour, de relevé bancaire ni de mot de passe."
+        },
+        "inApp": {
+          "title": "Je reste dans DALILI au début",
+          "body": "Pendant les 30 premiers jours, pas de numéro, de réseau social ni de rendez-vous en dehors de l’app."
+        },
+        "report": {
+          "title": "Je préviens l’équipe",
+          "body": "Si une situation m’inquiète (détresse, danger, arnaque), je le signale tout de suite."
+        }
+      }
+    }
+  },
+  "messages": {
+    "title": "Messages",
+    "subMentor": "Avec les étudiants que tu accompagnes.",
+    "subStudent": "Avec les mentors qui ont accepté ton appel.",
+    "loadError": "Impossible de charger tes messages. Vérifie ta connexion.",
+    "emptyTitle": "Pas encore de conversation",
+    "emptyMentor": "Quand tu acceptes une demande d’appel, tu peux écrire à l’étudiant ici, avant et après l’appel.",
+    "emptyStudent": "Quand un mentor accepte ton appel, vous pouvez vous écrire ici, avant et après l’appel.",
+    "private": "Tes conversations ne sont visibles que par vous deux.",
+    "aStudent": "Un·e étudiant·e",
+    "yourMentor": "Ton mentor",
+    "student": "Étudiant·e",
+    "youPrefix": "Toi : {{body}}",
+    "sayHi": "Dis bonjour 👋",
+    "unread_one": "{{count}} message non lu.",
+    "unread_other": "{{count}} messages non lus.",
+    "typing": "en train d’écrire…",
+    "typingA11y": "{{name}} est en train d’écrire",
+    "reportA11y": "Signaler ou bloquer {{name}}",
+    "closed": "{{name}} n’est plus disponible comme mentor pour le moment. Tu peux relire vos messages.",
+    "threadError": "Impossible de charger les messages. Vérifie ta connexion.",
+    "first": "Écris le premier message à {{name}}.",
+    "firstNoName": "Écris le premier message.",
+    "notSent": "Pas envoyé. Vérifie ta connexion, puis touche la bulle pour renvoyer.",
+    "slowDown": "Doucement : attends un peu avant d’envoyer d’autres messages.",
+    "notSentA11y": "Pas envoyé. Toucher pour renvoyer",
+    "notSentRetry": "Pas envoyé · Renvoyer",
+    "sending": "Envoi…",
+    "trust": "Conversation privée entre vous deux. Ne partage jamais tes papiers, tes codes ou de l’argent.",
+    "today": "Aujourd’hui",
+    "yesterday": "Hier",
+    "placeholder": "Écris ton message…",
+    "label": "Ton message",
+    "send": "Envoyer"
+  },
+  "call": {
+    "connecting": "Connexion…",
+    "preparing": "On prépare la salle de l’appel.",
+    "demoNote": "Aperçu : en mode démo, l’appel n’est pas réel.",
+    "expoGoNote": "Aperçu : la vidéo marche dans l’app installée, pas dans Expo Go.",
+    "opensAt": "L’appel s’ouvre à {{time}}",
+    "earlyText": "Tu pourras rejoindre 15 minutes avant l’heure. En attendant, tu peux écrire à ton contact.",
+    "offlineTitle": "Pas de connexion",
+    "offlineText": "Vérifie ton réseau, puis réessaie.",
+    "unavailableTitle": "Appel indisponible",
+    "unavailableText": "Cet appel n’est pas disponible pour le moment.",
+    "notYet": "Pas encore en appel",
+    "waiting": "En attente…",
+    "ended": "Appel terminé",
+    "lost": "Connexion perdue",
+    "cutTitle": "La connexion a coupé",
+    "camOff": "{{name}} a coupé sa caméra",
+    "waitingFor": "En attente de {{name}}…",
+    "joining": "Connexion à l’appel…",
+    "startsWhen": "L’appel commence dès que {{name}} arrive.",
+    "topic": "Sujet : {{topic}}",
+    "defaultTopic": "Question générale",
+    "inCall": "En appel avec {{name}}",
+    "calling": "On appelle {{name}}…",
+    "you": "Toi",
+    "yourStudent": "Ton étudiant·e",
+    "yourMentor": "Ton mentor",
+    "reportA11y": "Signaler ou bloquer {{name}}",
+    "micOff": "Couper le micro",
+    "micOn": "Rallumer le micro",
+    "camOffA11y": "Couper la caméra",
+    "camOnA11y": "Rallumer la caméra",
+    "hangUp": "Raccrocher",
+    "flip": "Changer de caméra"
+  },
+  "schools": {
+    "partner": "École partenaire DALILI",
+    "cardA11y": "{{name}}, {{city}}. École partenaire. Ouvrir la fiche",
+    "programs_one": "{{count}} formation",
+    "programs_other": "{{count}} formations",
+    "levelsRange": "{{from}} à {{to}}",
+    "alternance": "Alternance",
+    "discoverA11y": "Découvrir l’école en 30 secondes",
+    "discover": "Découvrir en 30 s",
+    "withdrawTitle": "Retirer ta demande ?",
+    "withdrawText": "L’équipe DALILI ne te recontactera pas pour cette école.",
+    "keep": "Garder",
+    "withdraw": "Retirer",
+    "withdrawA11y": "Retirer ma demande",
+    "withdrawFailed": "Pas retirée. Vérifie ta connexion et réessaie.",
+    "brief": "En bref",
+    "rncp": "RNCP : le répertoire national des certifications. Un titre RNCP est reconnu par l’État.",
+    "photos": "L’école en photos",
+    "programsIn": "Les formations à {{city}}",
+    "programA11y": "{{name}}, {{level}}, {{format}}. Je suis intéressé·e",
+    "campus": "Le campus",
+    "addressA11y": "Adresse : {{address}}. Ouvrir dans Plans",
+    "abroadTitle": "Tu arrives de l’étranger ?",
+    "abroadText": "Campus France, visa, alternance quand on vient du Maghreb : pose ta question dans ta demande, l’équipe DALILI t’aide à y voir clair.",
+    "website": "Voir le site de l’école",
+    "checked": "Infos tirées du site officiel de l’école, vérifiées le {{date}}.",
+    "sentTitle": "Demande envoyée",
+    "sentOn": "Le {{date}} · l’équipe te recontacte par email",
+    "interested": "Je suis intéressé·e",
+    "successText": "L’équipe DALILI a bien reçu ton intérêt pour {{name}}. On te recontacte vite par email.",
+    "successCta": "Super",
+    "sheet": {
+      "title": "{{name}} t’intéresse ?",
+      "text": "Dis-nous ce qui t’attire. L’équipe DALILI te recontacte par email pour t’aider à y voir clair.",
+      "program": "La formation qui t’attire",
+      "notSure": "Je ne sais pas encore",
+      "placeholder": "Ta question (facultatif) : admission, alternance, logement…",
+      "privacy": "Ta demande reste chez DALILI. Rien n’est transmis à l’école sans ton accord, et tu peux la retirer quand tu veux.",
+      "send": "Envoyer ma demande",
+      "notSent": "Pas envoyé. Vérifie ta connexion et réessaie."
+    },
+    "story": {
+      "prev": "Page précédente",
+      "next": "Page suivante",
+      "close": "Fermer la présentation",
+      "replayA11y": "Revoir la présentation",
+      "replay": "Revoir",
+      "welcome": "Bienvenue à",
+      "campus": "Le campus",
+      "figures": "En chiffres",
+      "programs": "Les formations",
+      "andYou": "Et toi ?",
+      "attract": "Cette école t’attire ?",
+      "attractText": "Dis-nous ce qui te plaît : l’équipe DALILI te recontacte pour t’aider à y voir clair."
+    }
+  },
+  "tools": {
+    "budget": {
+      "title": "Simulateur\nde budget",
+      "housing": {
+        "crous": "CROUS",
+        "coloc": "Coloc",
+        "studio": "Studio",
+        "habitant": "Chez l’habitant"
+      },
+      "situationTitle": "Ta situation (elle décide de ton droit à l’APL)",
+      "situation": {
+        "aucune": "Ni bourse ni job",
+        "autre_bourse": "Bourse de mon pays, Eiffel…",
+        "bcs": "Boursier·e CROUS",
+        "alternance": "Alternance",
+        "salarie": "Salarié·e"
+      },
+      "monthlyIn": "Ton budget mensuel à {{city}}",
+      "beforeSavings": "≈ {{gross}} € avant les économies étudiantes ({{savings}} € en moins par mois).",
+      "rent": "Loyer",
+      "food": "Courses & repas",
+      "transport": "Transport",
+      "fixed": "Téléphone, santé, loisirs",
+      "savings": "Repas au resto U, transport réduit, CSS",
+      "apl": "APL (estimation)",
+      "aplYes": "Ta situation peut t’ouvrir l’APL : environ {{min}} à {{max}} € par mois. Le montant réel se calcule sur caf.fr.",
+      "aplNo": "Depuis le 1er juillet 2026, ta situation n’ouvre plus droit à l’APL. Ce budget n’en compte donc aucune.",
+      "visa": "Pour le visa, tu dois prouver <strong>{{amount}}</strong>. Ici, prévois plutôt <strong>≈ {{advice}} €</strong> pour vivre sereinement.",
+      "source": "Source : {{label}}",
+      "sameAsSite": "Même calcul que le simulateur de dalili.study. Frais d’inscription en plus : ≈ {{tuition}} € par an + CVEC ≈ {{cvec}} €."
+    },
+    "documents": {
+      "title": "Mes documents",
+      "ready": "{{done}}/{{total}} prêts",
+      "atLeast": "Au moins {{amount}}",
+      "tip": "Astuce : scanne tous tes papiers dans un dossier en ligne. Le jour où on te les demande, tu es prêt·e en 10 secondes.",
+      "groups": {
+        "identity": "Identité",
+        "studies": "Études",
+        "housing": "Logement",
+        "money": "Argent"
+      },
+      "items": {
+        "passport": "Passeport valide",
+        "photos": "Photos d’identité",
+        "birth": "Acte de naissance",
+        "diplomas": "Diplômes & relevés de notes",
+        "tcf": "Attestation TCF / DELF",
+        "admission": "Attestation d’admission",
+        "cvec": "Attestation CVEC",
+        "lease": "Bail ou attestation d’hébergement",
+        "visale": "Visa Visale (garant)",
+        "homeInsurance": "Attestation d’assurance habitation",
+        "resources": "Justificatif de ressources",
+        "rib": "RIB français"
+      },
+      "hints": {
+        "passport": "Valable pendant tout ton séjour",
+        "photos": "Format officiel, fond clair",
+        "birth": "Copie intégrale + traduction si besoin"
+      }
+    },
+    "sos": {
+      "title": "Urgences & SOS",
+      "intro": "En cas d’urgence, appelle directement. Ces numéros sont gratuits, même sans crédit.",
+      "callA11y": "Appeler le {{number}}, {{name}}",
+      "listen": "Écoute & aide",
+      "consulate": "Perte de passeport, problème administratif grave ? Contacte le consulat de ton pays le plus proche, et préviens ton mentor DALILI : il connaît la marche à suivre.",
+      "n15": {
+        "name": "SAMU",
+        "desc": "Urgence médicale"
+      },
+      "n17": {
+        "name": "Police",
+        "desc": "Danger, agression"
+      },
+      "n18": {
+        "name": "Pompiers",
+        "desc": "Incendie, accident"
+      },
+      "n112": {
+        "name": "Urgence UE",
+        "desc": "Depuis n’importe quel téléphone"
+      },
+      "n114": {
+        "name": "Urgences par SMS",
+        "desc": "Pour les personnes sourdes ou qui ne peuvent pas parler"
+      },
+      "n3114": {
+        "name": "Prévention du suicide",
+        "desc": "24h/24, gratuit et confidentiel"
+      },
+      "n3919": {
+        "name": "Violences Femmes Info",
+        "desc": "Écoute et orientation, anonyme"
+      },
+      "n0800": {
+        "name": "Fil Santé Jeunes",
+        "desc": "Santé, moral, sexualité, anonyme et gratuit"
+      },
+      "n3237": {
+        "name": "Pharmacie de garde",
+        "desc": "Trouver une pharmacie ouverte"
+      }
+    }
+  },
+  "privacy": {
+    "title": "Confidentialité",
+    "introDemo": "En mode démo, tout reste sur ce téléphone. Rien n’est envoyé en ligne.",
+    "intro": "Tes données restent à toi. Voici ce qu’on garde, et pourquoi.",
+    "kept": "Ce qu’on garde",
+    "items": {
+      "profile": {
+        "title": "Ton profil et ton parcours",
+        "text": "Pour reprendre là où tu en étais, même sur un autre téléphone."
+      },
+      "photo": {
+        "title": "Ta photo",
+        "text": "Privée : pour l’instant, toi seul·e la vois. On retire le lieu et les infos cachées avant l’envoi."
+      },
+      "community": {
+        "title": "Tes messages dans la communauté",
+        "text": "Visibles par les membres des groupes que tu rejoins."
+      },
+      "mentor": {
+        "title": "Tes conversations avec un mentor",
+        "text": "Visibles seulement par vous deux. Elles partent avec ton compte."
+      },
+      "ai": {
+        "title": "Tes questions à Dalili IA",
+        "text": "Gardées sans ton nom ni ton email, pour améliorer les guides."
+      },
+      "schools": {
+        "title": "Tes demandes aux écoles partenaires",
+        "text": "Gardées par DALILI pour te recontacter. Jamais transmises à l’école sans ton accord."
+      },
+      "reports": {
+        "title": "Les signalements du mentorat",
+        "text": "Lus seulement par l’équipe. Si un compte est supprimé, le signalement reste, sans le nom, pour protéger les autres."
+      }
+    },
+    "promises": "Nos engagements",
+    "never": {
+      "sold": "Tes données ne sont jamais revendues, et il n’y a pas de pub.",
+      "encrypted": "Ta connexion est chiffrée sur ton téléphone.",
+      "delete": "Tu peux tout supprimer quand tu veux, ici même."
+    },
+    "stats": "Statistiques anonymes",
+    "statsText": "Quels écrans servent, quelles étapes bloquent. Jamais ton nom, ton email, tes messages ni tes questions à Dalili IA.",
+    "statsA11y": "Partager des statistiques anonymes",
+    "policy": "Lire la politique complète",
+    "deleteAccount": "Supprimer mon compte"
+  },
+  "safety": {
+    "reasons": {
+      "harcelement": "Propos ou gestes déplacés",
+      "argent": "Me demande de l’argent",
+      "donnees": "Veut mon numéro ou mes réseaux",
+      "faux_profil": "Faux profil",
+      "autre": "Autre chose"
+    },
+    "notSent": "Pas envoyé. Vérifie ta connexion et réessaie.",
+    "refused": {
+      "tooMany": "Tu as déjà envoyé beaucoup de signalements aujourd’hui. Écris-nous si c’est urgent.",
+      "cantBlock": "Cette personne ne peut pas être bloquée : signale-la plutôt à l’équipe.",
+      "other": "Ce n’est pas possible ici. Écris-nous si besoin."
+    },
+    "thanksDemo": "Merci ! En mode démo, rien n’est envoyé.",
+    "already": "L’équipe a déjà ton signalement sur cette personne. Elle s’en occupe.",
+    "thanks": "Merci. L’équipe lit ton signalement et revient vers toi si besoin.",
+    "blockedDemo": "En mode démo, rien n’est enregistré.",
+    "blocked": "{{name}} est bloqué·e.",
+    "title": "Un souci avec {{name}} ?",
+    "reportChoice": "Signaler à l’équipe",
+    "reportChoiceText": "On lit chaque signalement. {{name}} n’est pas prévenu·e.",
+    "blockChoice": "Bloquer {{name}}",
+    "blockChoiceText": "Vous ne vous voyez plus, et vos demandes en cours sont annulées.",
+    "reportTitle": "Signaler {{name}}",
+    "reportText": "Seule l’équipe DALILI lit ton signalement. {{name}} n’est pas prévenu·e.",
+    "whatHappened": "Dis-nous ce qui s’est passé",
+    "whatHappenedOptional": "Ce qui s’est passé (facultatif)",
+    "send": "Envoyer le signalement",
+    "blockTitle": "Bloquer {{name}} ?",
+    "blockLine1": "Vous ne vous voyez plus dans DALILI, et aucune demande d’appel ne passe entre vous.",
+    "blockLine2": "Vos demandes en cours sont annulées.",
+    "blockLine3": "{{name}} n’est pas prévenu·e. Tu peux débloquer quand tu veux, dans Profil › Personnes bloquées.",
+    "alsoReport": "Il s’est passé quelque chose ? Signale-le aussi",
+    "dangerAbroad": "En danger maintenant ? Contacte d’abord la police de ton pays.",
+    "dangerA11y": "En danger maintenant ? Ouvrir les numéros d’urgence",
+    "danger": "En danger maintenant ? Appelle le 17 (police)."
+  },
+  "blocked": {
+    "title": "Personnes bloquées",
+    "intro": "Vous ne vous voyez plus dans le mentorat, et aucune demande ne passe entre vous. Elles ne savent pas que tu les as bloquées.",
+    "thisPerson": "cette personne",
+    "unblockTitle": "Débloquer {{name}} ?",
+    "unblockText": "Vous pourrez de nouveau vous voir et vous envoyer des demandes. Les demandes annulées ne reviennent pas.",
+    "keep": "Garder bloqué·e",
+    "unblock": "Débloquer",
+    "unblockA11y": "Débloquer {{name}}",
+    "unblocked": "{{name}} est débloqué·e.",
+    "failed": "Pas débloqué. Vérifie ta connexion et réessaie.",
+    "loadError": "Impossible de charger la liste. Vérifie ta connexion.",
+    "emptyDemo": "En mode démo, personne n’est bloqué. Avec un compte, tu bloques depuis la fiche d’un mentor ou une demande reçue.",
+    "empty": "Tu n’as bloqué personne. Si un jour quelqu’un te met mal à l’aise, touche le drapeau sur sa fiche ou sa demande.",
+    "noName": "Sans prénom",
+    "mentorSince": "Mentor · bloqué·e le {{date}}",
+    "studentSince": "Étudiant·e · bloqué·e le {{date}}"
+  },
+  "notifications": {
+    "yourMentor": "ton mentor",
+    "requestSent": "Demande envoyée à {{name}}",
+    "callWith": "Appel avec {{name}}",
+    "waitingAnswer": "en attente de sa réponse",
+    "late_one": "En retard de {{count}} jour",
+    "late_other": "En retard de {{count}} jours",
+    "today": "C’est aujourd’hui",
+    "dueIn_one": "Échéance dans {{count}} jour",
+    "dueIn_other": "Échéance dans {{count}} jours",
+    "welcomeTitle": "Bienvenue sur DALILI 💙",
+    "welcomeText": "Ton parcours est prêt. On avance ensemble, une étape à la fois."
   }
 }

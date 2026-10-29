@@ -10,56 +10,65 @@ import { PressableScale } from '@/components/ui/PressableScale';
 import { Text } from '@/components/ui/Text';
 import { useContent } from '@/data/hooks';
 import { useLocalDb } from '@/data/local-db';
+import { useT } from '@/i18n';
 import { haptics } from '@/lib/haptics';
 import { makeStyles, useTheme } from '@/theme/scheme';
 import { motion, radius } from '@/theme/tokens';
 import { pop, rise } from '@/theme/motion';
 
-const GROUPS: { title: string; emoji: string; items: { id: string; label: string; hint?: string }[] }[] = [
+type DocKey = 'passport' | 'photos' | 'birth' | 'diplomas' | 'tcf' | 'admission' | 'cvec' | 'lease' | 'visale' | 'homeInsurance' | 'resources' | 'rib';
+
+type HintKey = 'passport' | 'photos' | 'birth';
+
+/** `id` : la clé gardée sur le téléphone (ne change pas) ; `key` : le texte dans `tools.documents.items` ; `hint` : la ligne d'aide. */
+const GROUPS: { key: 'identity' | 'studies' | 'housing' | 'money'; emoji: string; items: { id: string; key: DocKey; hint?: HintKey }[] }[] = [
   {
-    title: 'Identité',
+    key: 'identity',
     emoji: '🪪',
     items: [
-      { id: 'passport', label: 'Passeport valide', hint: 'Valable pendant tout ton séjour' },
-      { id: 'photos', label: 'Photos d’identité', hint: 'Format officiel, fond clair' },
-      { id: 'birth', label: 'Acte de naissance', hint: 'Copie intégrale + traduction si besoin' },
+      { id: 'passport', key: 'passport', hint: 'passport' },
+      { id: 'photos', key: 'photos', hint: 'photos' },
+      { id: 'birth', key: 'birth', hint: 'birth' },
     ],
   },
   {
-    title: 'Études',
+    key: 'studies',
     emoji: '🎓',
     items: [
-      { id: 'diplomas', label: 'Diplômes & relevés de notes' },
-      { id: 'tcf', label: 'Attestation TCF / DELF' },
-      { id: 'admission', label: 'Attestation d’admission' },
-      { id: 'cvec', label: 'Attestation CVEC' },
+      { id: 'diplomas', key: 'diplomas' },
+      { id: 'tcf', key: 'tcf' },
+      { id: 'admission', key: 'admission' },
+      { id: 'cvec', key: 'cvec' },
     ],
   },
   {
-    title: 'Logement',
+    key: 'housing',
     emoji: '🏠',
     items: [
-      { id: 'lease', label: 'Bail ou attestation d’hébergement' },
-      { id: 'visale', label: 'Visa Visale (garant)' },
-      { id: 'home-insurance', label: 'Attestation d’assurance habitation' },
+      { id: 'lease', key: 'lease' },
+      { id: 'visale', key: 'visale' },
+      { id: 'home-insurance', key: 'homeInsurance' },
     ],
   },
   {
-    title: 'Argent',
+    key: 'money',
     emoji: '💶',
     items: [
-      { id: 'resources', label: 'Justificatif de ressources' },
-      { id: 'rib', label: 'RIB français' },
+      { id: 'resources', key: 'resources' },
+      { id: 'rib', key: 'rib' },
     ],
   },
 ];
 
-function DocRow({ id, label, hint: staticHint }: { id: string; label: string; hint?: string }) {
+function DocRow({ id, docKey, hintKey }: { id: string; docKey: DocKey; hintKey?: HintKey }) {
   const { c } = useTheme();
+  const t = useT();
+  const label = t(`tools.documents.items.${docKey}`);
+  const staticHint = hintKey ? t(`tools.documents.hints.${hintKey}`) : undefined;
   const styles = useStyles();
   const { data: figures } = useContent('figures');
   // Le montant exigé vient des chiffres officiels du site (il a changé le 1er août 2026).
-  const hint = id === 'resources' && figures.verified.compteBloqueMensuel ? `Au moins ${figures.verified.compteBloqueMensuel.display}` : staticHint;
+  const hint = id === 'resources' && figures.verified.compteBloqueMensuel ? t('tools.documents.atLeast', { amount: figures.verified.compteBloqueMensuel.display }) : staticHint;
   const on = useLocalDb((s) => !!s.documents[id]);
   const toggle = useLocalDb((s) => s.toggleDocument);
   const box = useAnimatedStyle(() => ({ transform: [{ scale: withSpring(on ? 1 : 0.92, motion.springBouncy) }], backgroundColor: on ? c.success : c.fill }));
@@ -96,6 +105,7 @@ function DocRow({ id, label, hint: staticHint }: { id: string; label: string; hi
 /** Checklist « Mes documents » — tout ce qu'il faut avoir sous la main. */
 export default function Documents() {
   const { c, gradients } = useTheme();
+  const t = useT();
   const styles = useStyles();
   const docs = useLocalDb((s) => s.documents);
   const total = GROUPS.reduce((a, g) => a + g.items.length, 0);
@@ -111,11 +121,11 @@ export default function Documents() {
   return (
     <Screen top={gradients.peach} padded={false} header={<AppHeader back />}>
       <View style={{ paddingHorizontal: 20, gap: 16 }}>
-        <Text variant="hero">Mes documents</Text>
+        <Text variant="hero">{t('tools.documents.title')}</Text>
         <View style={styles.progress}>
           <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
             <Text variant="bodyStrong">
-              {done}/{total} prêts
+              {t('tools.documents.ready', { done, total })}
             </Text>
             <Text variant="smallStrong" color={c.success}>
               {Math.round(pct * 100)}%
@@ -126,13 +136,13 @@ export default function Documents() {
           </View>
         </View>
         {GROUPS.map((g, gi) => (
-          <Animated.View key={g.title} entering={rise(gi * 70)} style={{ gap: 8 }}>
+          <Animated.View key={g.key} entering={rise(gi * 70)} style={{ gap: 8 }}>
             <Text variant="h2">
-              {g.emoji} {g.title}
+              {g.emoji} {t(`tools.documents.groups.${g.key}`)}
             </Text>
             <View style={styles.group}>
               {g.items.map((it) => (
-                <DocRow key={it.id} {...it} />
+                <DocRow key={it.id} id={it.id} docKey={it.key} hintKey={it.hint} />
               ))}
             </View>
           </Animated.View>
@@ -140,7 +150,7 @@ export default function Documents() {
         <View style={styles.tip}>
           <Cloud size={18} color={c.electric} />
           <Text variant="small" style={{ flex: 1 }}>
-            Astuce : scanne tous tes papiers dans un dossier en ligne. Le jour où on te les demande, tu es prêt·e en 10 secondes.
+            {t('tools.documents.tip')}
           </Text>
         </View>
       </View>

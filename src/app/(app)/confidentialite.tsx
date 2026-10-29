@@ -11,27 +11,29 @@ import { PressableScale } from '@/components/ui/PressableScale';
 import { Text } from '@/components/ui/Text';
 import { DeleteAccountSheet } from '@/features/auth/components/DeleteAccountSheet';
 import { isDemoMode } from '@/features/auth/store';
+import { useT } from '@/i18n';
 import { analyticsAvailable, useAnalyticsConsent } from '@/lib/analytics';
 import { env } from '@/lib/env';
 import { makeStyles, useTheme } from '@/theme/scheme';
 import { radius } from '@/theme/tokens';
 import { rise } from '@/theme/motion';
 
+// Les textes sont dans `privacy.items` et `privacy.never` (i18n).
 const KEPT = [
-  { icon: Map, title: 'Ton profil et ton parcours', text: 'Pour reprendre là où tu en étais, même sur un autre téléphone.' },
-  { icon: ImageIcon, title: 'Ta photo', text: 'Privée : pour l’instant, toi seul·e la vois. On retire le lieu et les infos cachées avant l’envoi.' },
-  { icon: MessageCircle, title: 'Tes messages dans la communauté', text: 'Visibles par les membres des groupes que tu rejoins.' },
-  { icon: MessageCircle, title: 'Tes conversations avec un mentor', text: 'Visibles seulement par vous deux. Elles partent avec ton compte.' },
-  { icon: Sparkles, title: 'Tes questions à Dalili IA', text: 'Gardées sans ton nom ni ton email, pour améliorer les guides.' },
-  { icon: GraduationCap, title: 'Tes demandes aux écoles partenaires', text: 'Gardées par DALILI pour te recontacter. Jamais transmises à l’école sans ton accord.' },
-  { icon: Flag, title: 'Les signalements du mentorat', text: 'Lus seulement par l’équipe. Si un compte est supprimé, le signalement reste, sans le nom, pour protéger les autres.' },
-];
+  { icon: Map, key: 'profile' },
+  { icon: ImageIcon, key: 'photo' },
+  { icon: MessageCircle, key: 'community' },
+  { icon: MessageCircle, key: 'mentor' },
+  { icon: Sparkles, key: 'ai' },
+  { icon: GraduationCap, key: 'schools' },
+  { icon: Flag, key: 'reports' },
+] as const;
 
 const NEVER = [
-  { icon: BadgeCheck, text: 'Tes données ne sont jamais revendues, et il n’y a pas de pub.' },
-  { icon: Lock, text: 'Ta connexion est chiffrée sur ton téléphone.' },
-  { icon: KeyRound, text: 'Tu peux tout supprimer quand tu veux, ici même.' },
-];
+  { icon: BadgeCheck, key: 'sold' },
+  { icon: Lock, key: 'encrypted' },
+  { icon: KeyRound, key: 'delete' },
+] as const;
 
 function Item({ icon, title, text }: { icon: ReactNode; title?: string; text: string }) {
   const { c } = useTheme();
@@ -52,6 +54,7 @@ function Item({ icon, title, text }: { icon: ReactNode; title?: string; text: st
 /** Confidentialité : ce qu'on garde et pourquoi, nos engagements, et la suppression du compte. */
 export default function Confidentialite() {
   const { c } = useTheme();
+  const t = useT();
   const styles = useStyles();
   const [deleting, setDeleting] = useState(false);
   const consent = useAnalyticsConsent((s) => s.consent);
@@ -60,37 +63,37 @@ export default function Confidentialite() {
   return (
     <Screen padded={false} header={<AppHeader back />}>
       <View style={{ paddingHorizontal: 20, gap: 16 }}>
-        <Text variant="hero">Confidentialité</Text>
+        <Text variant="hero">{t('privacy.title')}</Text>
         <Text variant="body" color={c.subtle}>
-          {isDemoMode ? 'En mode démo, tout reste sur ce téléphone. Rien n’est envoyé en ligne.' : 'Tes données restent à toi. Voici ce qu’on garde, et pourquoi.'}
+          {isDemoMode ? t('privacy.introDemo') : t('privacy.intro')}
         </Text>
 
         {!isDemoMode && (
           <Animated.View entering={rise()} style={styles.card}>
             <Text variant="overline" color={c.muted}>
-              Ce qu’on garde
+              {t('privacy.kept')}
             </Text>
-            {KEPT.map(({ icon: Icon, title, text }) => (
-              <Item key={title} icon={<Icon size={16} color={c.electric} />} title={title} text={text} />
+            {KEPT.map(({ icon: Icon, key }) => (
+              <Item key={key} icon={<Icon size={16} color={c.electric} />} title={t(`privacy.items.${key}.title`)} text={t(`privacy.items.${key}.text`)} />
             ))}
           </Animated.View>
         )}
 
         <Animated.View entering={rise(60)} style={styles.card}>
           <Text variant="overline" color={c.muted}>
-            Nos engagements
+            {t('privacy.promises')}
           </Text>
-          {NEVER.map(({ icon: Icon, text }) => (
-            <Item key={text} icon={<Icon size={16} color={c.electric} />} text={text} />
+          {NEVER.map(({ icon: Icon, key }) => (
+            <Item key={key} icon={<Icon size={16} color={c.electric} />} text={t(`privacy.never.${key}`)} />
           ))}
         </Animated.View>
 
         {analyticsAvailable ? (
           <Animated.View entering={rise(90)} style={[styles.group, styles.stats]}>
             <View style={{ flex: 1, gap: 2 }}>
-              <Text variant="bodyStrong">Statistiques anonymes</Text>
+              <Text variant="bodyStrong">{t('privacy.stats')}</Text>
               <Text variant="caption" color={c.muted}>
-                Quels écrans servent, quelles étapes bloquent. Jamais ton nom, ton email, tes messages ni tes questions à Dalili IA.
+                {t('privacy.statsText')}
               </Text>
             </View>
             <Switch
@@ -98,7 +101,7 @@ export default function Confidentialite() {
               onValueChange={(v) => setConsent(v ? 'yes' : 'no')}
               trackColor={{ true: c.electric, false: c.lineStrong }}
               thumbColor="#fff"
-              accessibilityLabel="Partager des statistiques anonymes"
+              accessibilityLabel={t('privacy.statsA11y')}
             />
           </Animated.View>
         ) : null}
@@ -107,7 +110,7 @@ export default function Confidentialite() {
           <PressableScale onPress={() => WebBrowser.openBrowserAsync(`${env.siteUrl}/confidentialite`)} style={styles.row} accessibilityRole="link">
             <ExternalLink size={18} color={c.navy} />
             <Text variant="bodyStrong" style={{ flex: 1 }}>
-              Lire la politique complète
+              {t('privacy.policy')}
             </Text>
             <ChevronRight size={18} color={c.muted} />
           </PressableScale>
@@ -115,7 +118,7 @@ export default function Confidentialite() {
           <PressableScale haptic="press" onPress={() => setDeleting(true)} style={styles.row} accessibilityRole="button">
             <Trash2 size={18} color={c.danger} />
             <Text variant="bodyStrong" color={c.danger} style={{ flex: 1 }}>
-              Supprimer mon compte
+              {t('privacy.deleteAccount')}
             </Text>
             <ChevronRight size={18} color={c.muted} />
           </PressableScale>
@@ -133,5 +136,5 @@ const useStyles = makeStyles(({ c, shadow }) => ({
   group: { borderRadius: radius.xl, backgroundColor: c.surface, paddingVertical: 4, ...shadow.sm },
   row: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 16, minHeight: 52 },
   stats: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 16, paddingVertical: 14 },
-  divider: { height: StyleSheet.hairlineWidth, backgroundColor: c.line, marginLeft: 46 },
+  divider: { height: StyleSheet.hairlineWidth, backgroundColor: c.line, marginStart: 46 },
 }));

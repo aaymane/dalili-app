@@ -21,7 +21,7 @@ export type Comment = {
   failed?: boolean;
 };
 
-/** Refus expliqué par la base (trop de commentaires d'un coup) : le message s'affiche tel quel. */
+/** Refus de la base (trop de commentaires d'un coup) : l'écran l'explique dans la langue en cours. */
 export class CommentRefused extends Error {}
 
 async function online() {
@@ -81,7 +81,7 @@ export async function sendComment(postId: string, body: string): Promise<Comment
     return { ...c, isPostAuthor: false, mine: true };
   }
   const { data, error } = await db.from('comments').insert({ post_id: postId, body }).select('id').single();
-  if (error) throw error.code === '23514' && error.message.startsWith('Doucement') ? new CommentRefused(error.message) : error;
+  if (error) throw error.code === '23514' && error.message.startsWith('Doucement') ? new CommentRefused() : error;
   const { data: row, error: readError } = await db.from('comments_with_author').select('*').eq('id', data.id).single();
   if (readError) throw readError;
   return toComment(row);

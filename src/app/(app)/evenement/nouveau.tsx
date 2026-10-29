@@ -20,6 +20,7 @@ import { remoteCreateEvent } from '@/data/api';
 import { useLocalDb } from '@/data/local-db';
 import { Cover } from '@/features/community/components/Cover';
 import { useProfile } from '@/features/profile/store';
+import { useT } from '@/i18n';
 import { formatDayMonth } from '@/lib/date';
 import { makeStyles, useTheme } from '@/theme/scheme';
 import { radius } from '@/theme/tokens';
@@ -29,6 +30,7 @@ const HOURS = ['10:00', '13:00', '18:00', '19:30', '20:00', '21:00'];
 /** Création d'événement : nom, date/heure, lieu, description, lien, confidentialité, tarif, approbation. */
 export default function NewEvent() {
   const { c, gradients } = useTheme();
+  const t = useT();
   const styles = useStyles();
   const profile = useProfile((s) => s.profile);
   const addEvent = useLocalDb((s) => s.addEvent);
@@ -45,7 +47,7 @@ export default function NewEvent() {
   const [created, setCreated] = useState<string | null>(null);
 
   const publish = async () => {
-    if (!title.trim() || !place.trim()) return toast('Nom et lieu sont obligatoires.', 'info');
+    if (!title.trim() || !place.trim()) return toast(t('community.newEvent.required'), 'info');
     const [h, m] = hour.split(':').map(Number);
     const d = new Date(date);
     d.setHours(h, m, 0, 0);
@@ -68,22 +70,22 @@ export default function NewEvent() {
       addEvent(e);
       setCreated(e.id);
     } catch {
-      toast('Publication impossible. Réessaie.', 'info');
+      toast(t('community.newEvent.failed'), 'info');
     }
   };
 
   return (
-    <Screen top={gradients.roleTop.student} keyboard padded={false} header={<AppHeader back pill="Créer un événement" hideActions />} footer={<Button label="Publier" icon={<ArrowRight size={18} color="#fff" />} onPress={publish} />}>
+    <Screen top={gradients.roleTop.student} keyboard padded={false} header={<AppHeader back pill={t('community.createEvent')} hideActions />} footer={<Button label={t('community.publish')} icon={<ArrowRight size={18} color="#fff" />} onPress={publish} />}>
       <View style={{ paddingHorizontal: 20, gap: 16 }}>
-        <Cover colors={['#7A5AF8', '#1F2850']} emoji="🎉" height={130} label="ÉVÉNEMENT" labelColor="#7A5AF8" />
-        <Input label="Nom de l’événement" placeholder="Ex : Soirée d’intégration, atelier CAF…" value={title} onChangeText={setTitle} />
+        <Cover colors={['#7A5AF8', '#1F2850']} emoji="🎉" height={130} label={t('community.eventBadge')} labelColor="#7A5AF8" />
+        <Input label={t('community.newEvent.name')} placeholder={t('community.newEvent.namePlaceholder')} value={title} onChangeText={setTitle} />
         <View style={styles.box}>
           <View style={{ flexDirection: 'row', gap: 10 }}>
             <PressableScale onPress={() => setDateOpen(true)} style={styles.pick}>
               <CalendarDays size={16} color={c.electric} />
               <View>
                 <Text variant="caption" color={c.muted}>
-                  Date
+                  {t('community.newEvent.date')}
                 </Text>
                 <Text variant="bodyStrong">{formatDayMonth(date)}</Text>
               </View>
@@ -92,7 +94,7 @@ export default function NewEvent() {
               <Clock size={16} color={c.electric} />
               <View>
                 <Text variant="caption" color={c.muted}>
-                  Heure
+                  {t('community.newEvent.hour')}
                 </Text>
                 <Text variant="bodyStrong">{hour}</Text>
               </View>
@@ -107,28 +109,28 @@ export default function NewEvent() {
               </PressableScale>
             ))}
           </View>
-          <Input label="Lieu" icon={<MapPin size={16} color={c.electric} />} placeholder="Rechercher une adresse ou un lieu…" value={place} onChangeText={setPlace} />
+          <Input label={t('community.newEvent.place')} icon={<MapPin size={16} color={c.electric} />} placeholder={t('community.newEvent.placePlaceholder')} value={place} onChangeText={setPlace} />
         </View>
-        <Input label="Description" placeholder="Décris le but et les activités…" value={desc} onChangeText={setDesc} multiline />
-        <Input label="Lien" placeholder="Site internet, réseaux sociaux…" value={link} onChangeText={setLink} autoCapitalize="none" keyboardType="url" />
-        <Text variant="h3">Confidentialité</Text>
-        <OptionCard title="Public" subtitle="Tout le monde peut voir l’événement." icon={<Globe size={20} color={c.navy} />} selected={privacy === 'public'} onPress={() => setPrivacy('public')} />
-        <OptionCard title="Privé" subtitle="Seuls les membres du groupe le voient." icon={<Lock size={20} color={c.navy} />} selected={privacy === 'private'} onPress={() => setPrivacy('private')} />
+        <Input label={t('community.description')} placeholder={t('community.newEvent.descPlaceholder')} value={desc} onChangeText={setDesc} multiline />
+        <Input label={t('community.newEvent.link')} placeholder={t('community.newEvent.linkPlaceholder')} value={link} onChangeText={setLink} autoCapitalize="none" keyboardType="url" />
+        <Text variant="h3">{t('community.privacy')}</Text>
+        <OptionCard title={t('community.public')} subtitle={t('community.newEvent.publicSub')} icon={<Globe size={20} color={c.navy} />} selected={privacy === 'public'} onPress={() => setPrivacy('public')} />
+        <OptionCard title={t('community.private')} subtitle={t('community.newEvent.privateSub')} icon={<Lock size={20} color={c.navy} />} selected={privacy === 'private'} onPress={() => setPrivacy('private')} />
         <View style={styles.box}>
-          <Text variant="bodyStrong">Tarification</Text>
+          <Text variant="bodyStrong">{t('community.newEvent.pricing')}</Text>
           <Text variant="small" color={c.muted}>
-            L’événement est-il gratuit ou payant ?
+            {t('community.newEvent.pricingQuestion')}
           </Text>
-          <Segmented kind="track" value={price} onChange={setPrice} options={[{ value: 'free', label: 'Gratuit' }, { value: 'paid', label: 'Payant' }]} />
+          <Segmented kind="track" value={price} onChange={setPrice} options={[{ value: 'free', label: t('community.newEvent.free') }, { value: 'paid', label: t('community.newEvent.paid') }]} />
         </View>
         <View style={[styles.box, { flexDirection: 'row', alignItems: 'center' }]}>
           <View style={{ flex: 1 }}>
-            <Text variant="bodyStrong">Approbation des participants</Text>
+            <Text variant="bodyStrong">{t('community.newEvent.approval')}</Text>
             <Text variant="small" color={c.muted}>
-              Valider manuellement les inscriptions
+              {t('community.newEvent.approvalSub')}
             </Text>
           </View>
-          <Switch value={approval} onValueChange={setApproval} trackColor={{ true: c.electric, false: c.lineStrong }} thumbColor="#fff" />
+          <Switch accessibilityLabel={t('community.newEvent.approval')} value={approval} onValueChange={setApproval} trackColor={{ true: c.electric, false: c.lineStrong }} thumbColor="#fff" />
         </View>
       </View>
       <BottomSheet visible={dateOpen} onClose={() => setDateOpen(false)}>
@@ -136,9 +138,9 @@ export default function NewEvent() {
       </BottomSheet>
       <SuccessModal
         visible={!!created}
-        title="Événement publié !"
-        message="Ton événement est en ligne. Il est déjà dans ton calendrier — partage-le à ton groupe."
-        cta="Voir l’événement"
+        title={t('community.newEvent.successTitle')}
+        message={t('community.newEvent.successText')}
+        cta={t('community.newEvent.successCta')}
         onCta={() => {
           const id = created!;
           setCreated(null);

@@ -11,6 +11,7 @@ import { PressableScale } from '@/components/ui/PressableScale';
 import { Text } from '@/components/ui/Text';
 import { useMentors, useMyBookings } from '@/data/hooks';
 import { useJourney } from '@/features/journey/store';
+import { useT } from '@/i18n';
 import { daysFromToday, formatLong, formatTime } from '@/lib/date';
 import { makeStyles, useTheme } from '@/theme/scheme';
 import { radius, type Tone } from '@/theme/tokens';
@@ -21,6 +22,7 @@ type N = { id: string; icon: LucideIcon; tone: Tone; title: string; sub: string;
 /** Centre de notifications : échéances proches, rendez-vous, bienvenue. */
 export default function Notifications() {
   const { c, gradients } = useTheme();
+  const t = useT();
   const styles = useStyles();
   const j = useJourney();
   const [since] = useState(() => Date.now());
@@ -29,13 +31,13 @@ export default function Notifications() {
 
   const items: N[] = [
     ...bookings.map((b) => {
-      const m = mentors.find((x) => x.id === b.mentorId);
+      const name = mentors.find((x) => x.id === b.mentorId)?.firstName ?? t('notifications.yourMentor');
       return {
         id: b.id,
         icon: b.status === 'pending' ? Hourglass : Video,
         tone: b.status === 'pending' ? ('amber' as const) : ('green' as const),
-        title: b.status === 'pending' ? `Demande envoyée à ${m?.firstName ?? 'ton mentor'}` : `Appel avec ${m?.firstName ?? 'ton mentor'}`,
-        sub: `${formatLong(b.startsAt)} · ${formatTime(b.startsAt)} · ${b.status === 'pending' ? 'en attente de sa réponse' : b.topic}`,
+        title: b.status === 'pending' ? t('notifications.requestSent', { name }) : t('notifications.callWith', { name }),
+        sub: `${formatLong(b.startsAt)} · ${formatTime(b.startsAt)} · ${b.status === 'pending' ? t('notifications.waitingAnswer') : b.topic}`,
         onPress: b.status === 'pending' ? () => router.navigate('/(app)/(tabs)') : () => router.push({ pathname: '/(app)/appel/[id]', params: { id: b.id } }),
       };
     }),
@@ -49,16 +51,16 @@ export default function Notifications() {
           icon: CalendarClock,
           tone: d <= 7 ? ('red' as const) : ('blue' as const),
           title: u.kind === 'official' ? u.step.title : u.custom.title,
-          sub: d < 0 ? `En retard de ${-d} j` : d === 0 ? "C'est aujourd'hui" : `Échéance dans ${d} jours`,
+          sub: d < 0 ? t('notifications.late', { count: -d }) : d === 0 ? t('notifications.today') : t('notifications.dueIn', { count: d }),
           urgent: d <= 7,
           onPress: u.kind === 'official' ? () => router.push({ pathname: '/(app)/etape/[id]', params: { id: u.step.id } }) : undefined,
         };
       }),
-    { id: 'welcome', icon: PartyPopper, tone: 'violet', title: 'Bienvenue sur DALILI 💙', sub: 'Ton parcours est prêt. On avance ensemble, une étape à la fois.' },
+    { id: 'welcome', icon: PartyPopper, tone: 'violet', title: t('notifications.welcomeTitle'), sub: t('notifications.welcomeText') },
   ];
 
   return (
-    <Screen top={gradients.roleTop.student} padded={false} header={<AppHeader back title="Notifications" hideActions />}>
+    <Screen top={gradients.roleTop.student} padded={false} header={<AppHeader back title={t('common.notifications')} hideActions />}>
       <View style={{ paddingHorizontal: 20, gap: 10 }}>
         {items.map((n, i) => (
           <Animated.View key={n.id} entering={rise(i * 50)}>

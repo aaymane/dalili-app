@@ -8,6 +8,7 @@ import { LiveCall } from '@/features/call/components/LiveCall';
 import { loadDaily } from '@/features/call/daily';
 import { useCallAccess, useCallPeer } from '@/features/call/hooks';
 import { SafetySheet } from '@/features/safety/components/SafetySheet';
+import { currentLanguage, useT } from '@/i18n';
 import { formatTime } from '@/lib/date';
 
 /**
@@ -16,6 +17,7 @@ import { formatTime } from '@/lib/date';
  */
 export default function Call() {
   const { id } = useLocalSearchParams<{ id: string }>();
+  const t = useT();
   const access = useCallAccess(id);
   const peer = useCallPeer(id);
   const [reporting, setReporting] = useState(false);
@@ -24,7 +26,7 @@ export default function Call() {
 
   let screen;
   if (!a) {
-    screen = <CallWaiting name={peer.name} color={peer.color} title="Connexion…" text="On prépare la salle de l’appel." />;
+    screen = <CallWaiting name={peer.name} color={peer.color} title={t('call.connecting')} text={t('call.preparing')} />;
   } else if (a.kind === 'ready' && loadDaily()) {
     screen = <LiveCall bookingId={id} info={a} color={peer.color} onRetry={retry} />;
   } else if (a.kind === 'ready' || a.kind === 'demo') {
@@ -33,7 +35,7 @@ export default function Call() {
         name={a.kind === 'ready' ? a.otherName : peer.name}
         color={peer.color}
         topic={a.kind === 'ready' ? a.topic : peer.topic}
-        note={a.kind === 'demo' ? 'Aperçu : en mode démo, l’appel n’est pas réel.' : 'Aperçu : la vidéo marche dans l’app installée, pas dans Expo Go.'}
+        note={a.kind === 'demo' ? t('call.demoNote') : t('call.expoGoNote')}
         onFlag={() => setReporting(true)}
       />
     );
@@ -42,14 +44,16 @@ export default function Call() {
       <CallWaiting
         name={peer.name}
         color={peer.color}
-        title={`L’appel s’ouvre à ${formatTime(a.opensAt)}`}
-        text="Tu pourras rejoindre 15 minutes avant l’heure. En attendant, tu peux écrire à ton contact."
+        title={t('call.opensAt', { time: formatTime(a.opensAt) })}
+        text={t('call.earlyText')}
       />
     );
   } else if (a.kind === 'offline') {
-    screen = <CallWaiting name={peer.name} color={peer.color} title="Pas de connexion" text="Vérifie ton réseau, puis réessaie." onRetry={retry} />;
+    screen = <CallWaiting name={peer.name} color={peer.color} title={t('call.offlineTitle')} text={t('call.offlineText')} onRetry={retry} />;
   } else {
-    screen = <CallWaiting name={peer.name} color={peer.color} title="Appel indisponible" text={a.message} />;
+    // Le site explique le refus en français : dans une autre langue, une phrase générale.
+    const text = a.message && currentLanguage() === 'fr' ? a.message : t('call.unavailableText');
+    screen = <CallWaiting name={peer.name} color={peer.color} title={t('call.unavailableTitle')} text={text} />;
   }
 
   return (

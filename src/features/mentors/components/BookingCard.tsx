@@ -11,6 +11,7 @@ import { Text } from '@/components/ui/Text';
 import { useCancelBooking } from '@/data/hooks';
 import { useOpenFromBooking } from '@/features/messages/hooks';
 import type { Booking, Mentor } from '@/data/types';
+import { useT } from '@/i18n';
 import { daysFromToday, formatLong, formatTime } from '@/lib/date';
 import { makeStyles, useTheme } from '@/theme/scheme';
 import { radius } from '@/theme/tokens';
@@ -21,6 +22,7 @@ import { radius } from '@/theme/tokens';
  */
 export function BookingCard({ booking, mentor }: { booking: Booking; mentor: Mentor }) {
   const { c, gradients } = useTheme();
+  const t = useT();
   const styles = useStyles();
   const cancel = useCancelBooking();
   const open = useOpenFromBooking();
@@ -28,40 +30,40 @@ export function BookingCard({ booking, mentor }: { booking: Booking; mentor: Men
     open.mutate(
       { bookingId: booking.id, role: 'student' },
       {
-        onSuccess: (id) => (id ? router.push({ pathname: '/(app)/messages/[id]', params: { id } }) : toast('La conversation s’ouvre dans un instant. Réessaie.', 'info')),
-        onError: () => toast('Pas de connexion. Réessaie dans un instant.', 'info'),
+        onSuccess: (id) => (id ? router.push({ pathname: '/(app)/messages/[id]', params: { id } }) : toast(t('mentors.booking.opening'), 'info')),
+        onError: () => toast(t('common.offlineRetry'), 'info'),
       },
     );
   const when = `${formatLong(booking.startsAt)} · ${formatTime(booking.startsAt)}`;
 
   const askCancel = () =>
-    Alert.alert('Annuler ta demande ?', `${mentor.firstName} ne la verra plus. Tu pourras en refaire une quand tu veux.`, [
-      { text: 'Garder', style: 'cancel' },
+    Alert.alert(t('mentors.booking.cancelTitle'), t('mentors.booking.cancelText', { name: mentor.firstName }), [
+      { text: t('mentors.booking.keep'), style: 'cancel' },
       {
-        text: 'Annuler la demande',
+        text: t('mentors.booking.cancelRequest'),
         style: 'destructive',
-        onPress: () => cancel.mutate(booking.id, { onError: () => toast('Pas annulée. Vérifie ta connexion et réessaie.', 'info') }),
+        onPress: () => cancel.mutate(booking.id, { onError: () => toast(t('mentors.booking.cancelFailed'), 'info') }),
       },
     ]);
 
   if (booking.status === 'pending') {
     return (
-      <View style={styles.pending} accessible accessibilityLabel={`Demande envoyée à ${mentor.firstName} pour le ${when}. En attente de sa réponse.`}>
+      <View style={styles.pending} accessible accessibilityLabel={t('mentors.booking.pendingA11y', { name: mentor.firstName, when })}>
         <View style={styles.row}>
           <IconTile icon={Hourglass} tone="amber" size={46} radius={15} />
           <View style={{ flex: 1 }}>
-            <Text variant="h3">Demande envoyée à {mentor.firstName}</Text>
+            <Text variant="h3">{t('mentors.booking.sentTo', { name: mentor.firstName })}</Text>
             <Text variant="small" color={c.subtle}>
               {when}
             </Text>
           </View>
         </View>
         <Text variant="small" color={c.subtle}>
-          {mentor.firstName} répond selon ses disponibilités. Sa réponse arrive ici.
+          {t('mentors.booking.replies', { name: mentor.firstName })}
         </Text>
-        <PressableScale onPress={askCancel} hitSlop={6} style={{ alignSelf: 'flex-start' }} accessibilityLabel="Annuler la demande">
+        <PressableScale onPress={askCancel} hitSlop={6} style={{ alignSelf: 'flex-start' }} accessibilityLabel={t('mentors.booking.cancelRequest')}>
           <Text variant="smallStrong" color={c.subtle}>
-            Annuler la demande
+            {t('mentors.booking.cancelRequest')}
           </Text>
         </PressableScale>
       </View>
@@ -74,7 +76,7 @@ export function BookingCard({ booking, mentor }: { booking: Booking; mentor: Men
         <Avatar name={`${mentor.firstName} ${mentor.lastName}`} color={mentor.avatarColor} size={46} />
         <View style={{ flex: 1 }}>
           <Text variant="h3" color={c.white}>
-            Appel avec {mentor.firstName}
+            {t('mentors.booking.callWith', { name: mentor.firstName })}
           </Text>
           <Text variant="small" color="rgba(255,255,255,0.65)">
             {when}
@@ -83,25 +85,25 @@ export function BookingCard({ booking, mentor }: { booking: Booking; mentor: Men
         <View style={styles.live}>
           <View style={styles.liveDot} />
           <Text variant="caption" color="#FF8A8A">
-            {daysFromToday(booking.startsAt) === 0 ? 'Aujourd’hui' : 'Confirmé'}
+            {daysFromToday(booking.startsAt) === 0 ? t('mentors.booking.today') : t('mentors.booking.confirmed')}
           </Text>
         </View>
       </View>
       <PressableScale onPress={() => router.push({ pathname: '/(app)/appel/[id]', params: { id: booking.id } })} style={styles.cta}>
         <Video size={15} color={c.white} />
         <Text variant="smallStrong" color={c.white}>
-          Rejoindre l’appel
+          {t('mentors.booking.join')}
         </Text>
       </PressableScale>
-      <PressableScale onPress={write} disabled={open.isPending} style={styles.write} accessibilityLabel={`Écrire à ${mentor.firstName}`}>
+      <PressableScale onPress={write} disabled={open.isPending} style={styles.write} accessibilityLabel={t('mentors.booking.writeTo', { name: mentor.firstName })}>
         <MessageCircle size={15} color={c.white} />
         <Text variant="smallStrong" color={c.white}>
-          Écrire à {mentor.firstName}
+          {t('mentors.booking.writeTo', { name: mentor.firstName })}
         </Text>
       </PressableScale>
-      <PressableScale onPress={askCancel} hitSlop={6} style={{ alignSelf: 'center', marginTop: 10 }} accessibilityLabel="Annuler le rendez-vous">
+      <PressableScale onPress={askCancel} hitSlop={6} style={{ alignSelf: 'center', marginTop: 10 }} accessibilityLabel={t('mentors.booking.cancelCall')}>
         <Text variant="caption" color="rgba(255,255,255,0.6)">
-          Annuler le rendez-vous
+          {t('mentors.booking.cancelCall')}
         </Text>
       </PressableScale>
     </LinearGradient>

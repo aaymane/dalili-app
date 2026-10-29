@@ -31,6 +31,7 @@ import { CountUp } from '@/features/schools/components/Motion';
 import { InterestSheet, PartnerBadge, SchoolCover } from '@/features/schools/components/SchoolParts';
 import { useMyInterest, useSchool, useWithdrawInterest } from '@/features/schools/hooks';
 import { useStoryCta } from '@/features/schools/story';
+import { useT } from '@/i18n';
 import { formatFullDate, formatLong } from '@/lib/date';
 import { enter } from '@/theme/motion';
 import { makeStyles, useTheme } from '@/theme/scheme';
@@ -43,6 +44,7 @@ const PHOTO_W = 260;
 /** « Découvrir en 30 s » : une onde douce l'appelle sans clignoter. */
 function DiscoverButton({ onPress }: { onPress: () => void }) {
   const { c } = useTheme();
+  const t = useT();
   const styles = useStyles();
   const reduced = useReducedMotion();
   const wave = useSharedValue(0);
@@ -51,13 +53,13 @@ function DiscoverButton({ onPress }: { onPress: () => void }) {
   }, [wave, reduced]);
   const ring = useAnimatedStyle(() => ({ opacity: 0.6 * (1 - wave.value), transform: [{ scale: 1 + wave.value * 0.55 }] }));
   return (
-    <PressableScale onPress={onPress} haptic="press" style={styles.discover} accessibilityLabel="Découvrir l’école en 30 secondes">
+    <PressableScale onPress={onPress} haptic="press" style={styles.discover} accessibilityLabel={t('schools.discoverA11y')}>
       <View style={styles.play}>
         <Animated.View style={[styles.playRing, ring]} />
         <Play size={14} color={lightPalette.navy} fill={lightPalette.navy} />
       </View>
       <Text variant="smallStrong" color={c.white}>
-        Découvrir en 30 s
+        {t('schools.discover')}
       </Text>
     </PressableScale>
   );
@@ -68,6 +70,7 @@ const transportIcon = (line: string): LucideIcon => (/tram/i.test(line) ? TramFr
 /** La fiche d'une école partenaire : ce qu'elle propose, où elle est, et « Je suis intéressé·e ». */
 export default function SchoolScreen() {
   const { c } = useTheme();
+  const t = useT();
   const styles = useStyles();
   const { slug } = useLocalSearchParams<{ slug: string }>();
   const insets = useSafeAreaInsets();
@@ -82,8 +85,8 @@ export default function SchoolScreen() {
   useEffect(() => {
     if (!ctaSlug || ctaSlug !== slug) return;
     clearCta();
-    const t = setTimeout(() => setSheet({ program: null }), 350);
-    return () => clearTimeout(t);
+    const timer = setTimeout(() => setSheet({ program: null }), 350);
+    return () => clearTimeout(timer);
   }, [ctaSlug, slug, clearCta]);
 
   // Parallaxe : la couverture glisse moins vite que la page et grandit quand on tire vers le bas ;
@@ -123,9 +126,9 @@ export default function SchoolScreen() {
 
   const askWithdraw = () => {
     if (!interest) return;
-    Alert.alert('Retirer ta demande ?', 'L’équipe DALILI ne te recontactera pas pour cette école.', [
-      { text: 'Garder', style: 'cancel' },
-      { text: 'Retirer', style: 'destructive', onPress: () => withdraw.mutate(interest, { onError: () => toast('Pas retirée. Vérifie ta connexion et réessaie.', 'info') }) },
+    Alert.alert(t('schools.withdrawTitle'), t('schools.withdrawText'), [
+      { text: t('schools.keep'), style: 'cancel' },
+      { text: t('schools.withdraw'), style: 'destructive', onPress: () => withdraw.mutate(interest, { onError: () => toast(t('schools.withdrawFailed'), 'info') }) },
     ]);
   };
 
@@ -172,13 +175,13 @@ export default function SchoolScreen() {
           {school.description ? (
             <Animated.View entering={enter(i++)} style={{ gap: 8 }}>
               <Text variant="overline" color={c.muted}>
-                En bref
+                {t('schools.brief')}
               </Text>
               <Text variant="body" color={c.navy}>
                 {school.description}
               </Text>
               <Text variant="small" color={c.subtle}>
-                RNCP : le répertoire national des certifications. Un titre RNCP est reconnu par l’État.
+                {t('schools.rncp')}
               </Text>
             </Animated.View>
           ) : null}
@@ -186,7 +189,7 @@ export default function SchoolScreen() {
           {school.photos.length ? (
             <Animated.View entering={enter(i++)} style={{ gap: 8 }}>
               <Text variant="overline" color={c.muted}>
-                L’école en photos
+                {t('schools.photos')}
               </Text>
               <ScrollView
                 horizontal
@@ -209,7 +212,7 @@ export default function SchoolScreen() {
 
           <Animated.View entering={enter(i++)} style={{ gap: 10 }}>
             <Text variant="overline" color={c.muted}>
-              Les formations à {school.city}
+              {t('schools.programsIn', { city: school.city })}
             </Text>
             <View style={styles.group}>
               {school.programs.map((p, k) => (
@@ -218,7 +221,7 @@ export default function SchoolScreen() {
                   scaleTo={0.985}
                   onPress={() => setSheet({ program: p.name })}
                   style={[styles.program, k > 0 && styles.sep]}
-                  accessibilityLabel={`${p.name}, ${p.level}, ${p.format}. Je suis intéressé·e`}>
+                  accessibilityLabel={t('schools.programA11y', { name: p.name, level: p.level, format: p.format })}>
                   <View style={styles.level}>
                     <Text variant="caption" color={c.electric}>
                       {p.level}
@@ -239,21 +242,21 @@ export default function SchoolScreen() {
           {school.address ? (
             <Animated.View entering={enter(i++)} style={{ gap: 10 }}>
               <Text variant="overline" color={c.muted}>
-                Le campus
+                {t('schools.campus')}
               </Text>
               <View style={styles.group}>
-                <PressableScale scaleTo={0.985} onPress={openMaps} style={styles.row} accessibilityLabel={`Adresse : ${school.address}. Ouvrir dans Plans`}>
+                <PressableScale scaleTo={0.985} onPress={openMaps} style={styles.row} accessibilityLabel={t('schools.addressA11y', { address: school.address })}>
                   <IconTile icon={MapPin} tone="blue" size={38} radius={12} />
                   <Text variant="small" style={{ flex: 1 }}>
                     {school.address}
                   </Text>
                   <ExternalLink size={16} color={c.muted} />
                 </PressableScale>
-                {school.transport.map((t) => (
-                  <View key={t} style={[styles.row, styles.sep]}>
-                    <IconTile icon={transportIcon(t)} tone="slate" size={38} radius={12} />
+                {school.transport.map((line) => (
+                  <View key={line} style={[styles.row, styles.sep]}>
+                    <IconTile icon={transportIcon(line)} tone="slate" size={38} radius={12} />
                     <Text variant="small" style={{ flex: 1 }}>
-                      {t}
+                      {line}
                     </Text>
                   </View>
                 ))}
@@ -264,9 +267,9 @@ export default function SchoolScreen() {
           <Animated.View entering={enter(i++)} style={styles.intl}>
             <IconTile icon={Globe} tone="violet" size={44} radius={14} />
             <View style={{ flex: 1, gap: 4 }}>
-              <Text variant="h3">Tu arrives de l’étranger ?</Text>
+              <Text variant="h3">{t('schools.abroadTitle')}</Text>
               <Text variant="small" color={c.subtle}>
-                Campus France, visa, alternance quand on vient du Maghreb : pose ta question dans ta demande, l’équipe DALILI t’aide à y voir clair.
+                {t('schools.abroadText')}
               </Text>
             </View>
           </Animated.View>
@@ -275,14 +278,14 @@ export default function SchoolScreen() {
             {school.website ? (
               <PressableScale onPress={() => openLink(school.website!)} hitSlop={6} style={styles.source}>
                 <Text variant="smallStrong" color={c.electric}>
-                  Voir le site de l’école
+                  {t('schools.website')}
                 </Text>
                 <ExternalLink size={14} color={c.electric} />
               </PressableScale>
             ) : null}
             {school.checkedOn ? (
               <Text variant="caption" color={c.muted} align="center">
-                Infos tirées du site officiel de l’école, vérifiées le {formatFullDate(school.checkedOn)}.
+                {t('schools.checked', { date: formatFullDate(school.checkedOn) })}
               </Text>
             ) : null}
           </Animated.View>
@@ -291,11 +294,11 @@ export default function SchoolScreen() {
 
       {/* En-tête compact : il apparaît quand la couverture sort de l'écran. */}
       <Animated.View pointerEvents="none" style={[styles.bar, { paddingTop: insets.top, height: insets.top + 56 }, barStyle]}>
-        <Text variant="h3" numberOfLines={1} style={{ marginLeft: 64, marginRight: 20 }}>
+        <Text variant="h3" numberOfLines={1} style={{ marginStart: 64, marginEnd: 20 }}>
           {school.name}
         </Text>
       </Animated.View>
-      <PressableScale onPress={() => router.back()} style={[styles.back, { top: insets.top + 6 }]} accessibilityLabel="Retour">
+      <PressableScale onPress={() => router.back()} style={[styles.back, { top: insets.top + 6 }]} accessibilityLabel={t('common.back')}>
         <ChevronLeft size={20} color={c.navy} />
       </PressableScale>
 
@@ -307,28 +310,28 @@ export default function SchoolScreen() {
               <Check size={16} color={c.white} strokeWidth={3} />
             </View>
             <View style={{ flex: 1 }}>
-              <Text variant="bodyStrong">Demande envoyée</Text>
+              <Text variant="bodyStrong">{t('schools.sentTitle')}</Text>
               <Text variant="caption" color={c.muted}>
-                Le {formatLong(interest.createdAt)} · l’équipe te recontacte par email
+                {t('schools.sentOn', { date: formatLong(interest.createdAt) })}
               </Text>
             </View>
-            <PressableScale onPress={askWithdraw} hitSlop={8} style={styles.withdraw} accessibilityLabel="Retirer ma demande">
+            <PressableScale onPress={askWithdraw} hitSlop={8} style={styles.withdraw} accessibilityLabel={t('schools.withdrawA11y')}>
               <Text variant="smallStrong" color={c.subtle}>
-                Retirer
+                {t('schools.withdraw')}
               </Text>
             </PressableScale>
           </View>
         ) : (
-          <Button label="Je suis intéressé·e" onPress={() => setSheet({ program: null })} />
+          <Button label={t('schools.interested')} onPress={() => setSheet({ program: null })} />
         )}
       </View>
 
       <InterestSheet school={school} visible={!!sheet} initialProgram={sheet?.program} onClose={() => setSheet(null)} onSent={() => setSent(true)} />
       <SuccessModal
         visible={sent}
-        title="Demande envoyée"
-        message={`L’équipe DALILI a bien reçu ton intérêt pour ${school.name}. On te recontacte vite par email.`}
-        cta="Super"
+        title={t('schools.sentTitle')}
+        message={t('schools.successText', { name: school.name })}
+        cta={t('schools.successCta')}
         onCta={() => setSent(false)}
         onClose={() => setSent(false)}
       />
@@ -341,11 +344,11 @@ const useStyles = makeStyles(({ c, shadow }) => ({
   hero: { position: 'absolute', left: 0, right: 0, top: 0 },
   heroText: { paddingHorizontal: 20, gap: 8, justifyContent: 'flex-end' },
   heroTitle: { textShadowColor: 'rgba(0,0,0,0.35)', textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 12 },
-  sheet: { gap: 26, paddingHorizontal: 20, paddingTop: 24, borderTopLeftRadius: 28, borderTopRightRadius: 28, backgroundColor: c.bg, minHeight: 600 },
+  sheet: { gap: 26, paddingHorizontal: 20, paddingTop: 24, borderTopStartRadius: 28, borderTopEndRadius: 28, backgroundColor: c.bg, minHeight: 600 },
   facts: { flexDirection: 'row', gap: 10 },
   fact: { flex: 1, gap: 4, padding: 14, borderRadius: radius.xl, backgroundColor: c.card, ...shadow.sm },
   photo: { width: PHOTO_W, height: 180, borderRadius: radius.xl, backgroundColor: c.surface },
-  discover: { flexDirection: 'row', alignItems: 'center', gap: 10, alignSelf: 'flex-start', marginTop: 8, paddingLeft: 6, paddingRight: 16, height: 44, borderRadius: radius.pill, backgroundColor: 'rgba(255,255,255,0.16)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.25)' },
+  discover: { flexDirection: 'row', alignItems: 'center', gap: 10, alignSelf: 'flex-start', marginTop: 8, paddingStart: 6, paddingEnd: 16, height: 44, borderRadius: radius.pill, backgroundColor: 'rgba(255,255,255,0.16)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.25)' },
   play: { width: 32, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center', backgroundColor: lightPalette.white },
   playRing: { position: 'absolute', width: 32, height: 32, borderRadius: 16, borderWidth: 2, borderColor: c.white },
   group: { borderRadius: radius.xl, backgroundColor: c.card, overflow: 'hidden', ...shadow.sm },
@@ -356,7 +359,7 @@ const useStyles = makeStyles(({ c, shadow }) => ({
   intl: { flexDirection: 'row', gap: 12, padding: 16, borderRadius: radius.xl, backgroundColor: c.card, ...shadow.sm },
   source: { flexDirection: 'row', alignItems: 'center', gap: 6, minHeight: 44 },
   bar: { position: 'absolute', left: 0, right: 0, top: 0, justifyContent: 'center', backgroundColor: c.bg, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: c.line },
-  back: { position: 'absolute', left: 16, width: 44, height: 44, borderRadius: 22, backgroundColor: c.card, alignItems: 'center', justifyContent: 'center', ...shadow.sm },
+  back: { position: 'absolute', start: 16, width: 44, height: 44, borderRadius: 22, backgroundColor: c.card, alignItems: 'center', justifyContent: 'center', ...shadow.sm },
   footer: { position: 'absolute', left: 0, right: 0, bottom: 0, paddingHorizontal: 20, paddingTop: 12, backgroundColor: c.bg },
   fade: { position: 'absolute', left: 0, right: 0, top: -28, height: 28 },
   sent: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 12, borderRadius: radius.xl, backgroundColor: c.card, ...shadow.sm },

@@ -8,12 +8,14 @@ import { PressableScale } from '@/components/ui/PressableScale';
 import { Tag } from '@/components/ui/Tag';
 import { Text } from '@/components/ui/Text';
 import type { Mentor } from '@/data/types';
+import { useT } from '@/i18n';
 import { makeStyles, useTheme } from '@/theme/scheme';
 import { radius } from '@/theme/tokens';
 
 /** Carte verticale (carrousel « Mentors pour toi »). */
 export function MentorTile({ m }: { m: Mentor }) {
   const { c } = useTheme();
+  const t = useT();
   const styles = useStyles();
   return (
     <PressableScale onPress={() => router.push({ pathname: '/(app)/mentor/[id]', params: { id: m.id } })} style={styles.tile}>
@@ -44,7 +46,7 @@ export function MentorTile({ m }: { m: Mentor }) {
         ))}
       </View>
       <Text variant="caption" color={m.availableThisWeek ? c.mentor : c.muted} style={{ marginTop: 10 }}>
-        {m.availableThisWeek ? 'Disponible cette semaine' : 'Complet cette semaine'}
+        {m.availableThisWeek ? t('mentors.tile.available') : t('mentors.tile.full')}
       </Text>
     </PressableScale>
   );

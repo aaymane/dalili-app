@@ -6,6 +6,7 @@ import Animated, { useAnimatedStyle, useSharedValue, withDelay, withRepeat, with
 
 import { PressableScale } from '@/components/ui/PressableScale';
 import { Text } from '@/components/ui/Text';
+import { useT } from '@/i18n';
 import { daysFromToday, formatLong, formatTime } from '@/lib/date';
 import { useRoleTheme } from '@/theme';
 import { pop, rise } from '@/theme/motion';
@@ -20,6 +21,7 @@ import type { Message } from '../api';
  */
 export function Bubble({ m, fresh, showTime, onRetry }: { m: Message; fresh: boolean; showTime: boolean; onRetry: (m: Message) => void }) {
   const { c } = useTheme();
+  const t = useT();
   const styles = useStyles();
   const theme = useRoleTheme();
   const body = (
@@ -37,15 +39,15 @@ export function Bubble({ m, fresh, showTime, onRetry }: { m: Message; fresh: boo
         <View style={[styles.bubble, styles.theirs]}>{body}</View>
       )}
       {m.failed ? (
-        <PressableScale onPress={() => onRetry(m)} hitSlop={8} style={styles.retry} accessibilityLabel="Pas envoyé. Toucher pour renvoyer">
+        <PressableScale onPress={() => onRetry(m)} hitSlop={8} style={styles.retry} accessibilityLabel={t('messages.notSentA11y')}>
           <RotateCcw size={12} color={c.danger} />
           <Text variant="caption" color={c.danger}>
-            Pas envoyé · Renvoyer
+            {t('messages.notSentRetry')}
           </Text>
         </PressableScale>
       ) : showTime ? (
         <Text variant="caption" color={c.muted} style={styles.time}>
-          {m.pending ? 'Envoi…' : formatTime(m.createdAt)}
+          {m.pending ? t('messages.sending') : formatTime(m.createdAt)}
         </Text>
       ) : null}
     </Animated.View>
@@ -64,9 +66,10 @@ function Dot({ i }: { i: number }) {
 
 /** « … est en train d'écrire » : trois points qui respirent. */
 export function TypingBubble({ name }: { name: string }) {
+  const t = useT();
   const styles = useStyles();
   return (
-    <Animated.View entering={pop()} style={styles.bubbleRow} accessible accessibilityLabel={`${name} est en train d’écrire`}>
+    <Animated.View entering={pop()} style={styles.bubbleRow} accessible accessibilityLabel={t('messages.typingA11y', { name })}>
       <View style={[styles.bubble, styles.theirs, styles.typing]}>
         {[0, 1, 2].map((i) => (
           <Dot key={i} i={i} />
@@ -79,12 +82,13 @@ export function TypingBubble({ name }: { name: string }) {
 /** En tête de conversation : les règles de confiance, en une phrase discrète (comme une messagerie chiffrée). */
 export function TrustNote() {
   const { c } = useTheme();
+  const t = useT();
   const styles = useStyles();
   return (
     <View style={styles.note}>
       <Lock size={12} color={c.muted} />
       <Text variant="caption" color={c.muted} align="center" style={{ flexShrink: 1 }}>
-        Conversation privée entre vous deux. Ne partage jamais tes papiers, tes codes ou de l’argent.
+        {t('messages.trust')}
       </Text>
     </View>
   );
@@ -93,9 +97,10 @@ export function TrustNote() {
 /** « Aujourd'hui », « Hier », puis « mardi 27 octobre » : un repère au changement de jour. */
 export function DaySeparator({ iso }: { iso: string }) {
   const { c } = useTheme();
+  const t = useT();
   const styles = useStyles();
   const n = daysFromToday(iso);
-  const label = n === 0 ? 'Aujourd’hui' : n === -1 ? 'Hier' : formatLong(iso);
+  const label = n === 0 ? t('messages.today') : n === -1 ? t('messages.yesterday') : formatLong(iso);
   return (
     <View style={styles.day}>
       <Text variant="caption" color={c.subtle}>
@@ -110,8 +115,8 @@ export function Composer({
   onSend,
   onTyping,
   disabled,
-  placeholder = 'Écris ton message…',
-  label = 'Ton message',
+  placeholder,
+  label,
 }: {
   onSend: (body: string) => void;
   onTyping?: () => void;
@@ -120,6 +125,7 @@ export function Composer({
   label?: string;
 }) {
   const { c } = useTheme();
+  const t = useT();
   const styles = useStyles();
   const theme = useRoleTheme();
   const [text, setText] = useState('');
@@ -133,19 +139,19 @@ export function Composer({
     <View style={styles.composer}>
       <TextInput
         value={text}
-        onChangeText={(t) => {
-          setText(t);
-          if (t.trim()) onTyping?.();
+        onChangeText={(value) => {
+          setText(value);
+          if (value.trim()) onTyping?.();
         }}
-        placeholder={placeholder}
+        placeholder={placeholder ?? t('messages.placeholder')}
         placeholderTextColor={c.muted}
         style={styles.input}
         multiline
         maxLength={2000}
         editable={!disabled}
-        accessibilityLabel={label}
+        accessibilityLabel={label ?? t('messages.label')}
       />
-      <PressableScale onPress={send} disabled={!ready} haptic="tap" accessibilityLabel="Envoyer">
+      <PressableScale onPress={send} disabled={!ready} haptic="tap" accessibilityLabel={t('messages.send')}>
         <LinearGradient colors={theme.gradient} style={[styles.send, !ready && { opacity: 0.4 }]}>
           <ArrowUp size={18} color={c.white} strokeWidth={2.8} />
         </LinearGradient>
@@ -158,15 +164,15 @@ const useStyles = makeStyles(({ c, scheme }) => ({
   bubbleRow: { alignItems: 'flex-start', gap: 3 },
   mineRow: { alignItems: 'flex-end' },
   bubble: { maxWidth: '82%', paddingHorizontal: 14, paddingVertical: 10, borderRadius: 20 },
-  mine: { borderBottomRightRadius: 6 },
-  theirs: { backgroundColor: c.card, borderBottomLeftRadius: 6, borderWidth: StyleSheet.hairlineWidth, borderColor: c.line },
+  mine: { borderBottomEndRadius: 6 },
+  theirs: { backgroundColor: c.card, borderBottomStartRadius: 6, borderWidth: StyleSheet.hairlineWidth, borderColor: c.line },
   time: { paddingHorizontal: 6 },
   retry: { flexDirection: 'row', alignItems: 'center', gap: 4, minHeight: 28, paddingHorizontal: 6 },
   typing: { flexDirection: 'row', gap: 5, paddingVertical: 14 },
   dot: { width: 7, height: 7, borderRadius: 4, backgroundColor: c.muted },
   note: { alignItems: 'center', gap: 4, alignSelf: 'center', maxWidth: 280, paddingVertical: 6, marginBottom: 6 },
   day: { alignSelf: 'center', paddingHorizontal: 12, paddingVertical: 4, borderRadius: radius.pill, backgroundColor: scheme === 'dark' ? 'rgba(20,27,49,0.85)' : 'rgba(255,255,255,0.7)', marginVertical: 8 },
-  composer: { flexDirection: 'row', alignItems: 'flex-end', gap: 8, paddingLeft: 16, paddingRight: 6, paddingVertical: 6, borderRadius: 26, backgroundColor: c.card, borderWidth: 1, borderColor: c.line },
+  composer: { flexDirection: 'row', alignItems: 'flex-end', gap: 8, paddingStart: 16, paddingEnd: 6, paddingVertical: 6, borderRadius: 26, backgroundColor: c.card, borderWidth: 1, borderColor: c.line },
   input: { flex: 1, fontFamily: fonts.body, fontSize: 15, color: c.navy, maxHeight: 120, paddingVertical: 10, outlineStyle: 'none' } as any,
   send: { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center' },
 }));

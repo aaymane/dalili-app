@@ -7,15 +7,10 @@ import { PressableScale } from '@/components/ui/PressableScale';
 import { Text } from '@/components/ui/Text';
 import type { PostWithState } from '@/data/hooks';
 import { useLocalDb } from '@/data/local-db';
+import { useT } from '@/i18n';
+import { timeAgo } from '@/lib/date';
 import { makeStyles, useTheme } from '@/theme/scheme';
 import { radius } from '@/theme/tokens';
-
-const ago = (iso: string) => {
-  const h = Math.max(0, Math.round((Date.now() - new Date(iso).getTime()) / 3_600_000));
-  if (h < 1) return 'à l’instant';
-  if (h < 24) return `il y a ${h} heure${h > 1 ? 's' : ''}`;
-  return `il y a ${Math.round(h / 24)} j`;
-};
 
 /**
  * Un post du fil. `onOpen` : ouvrir la publication et tous ses commentaires (sur la carte, les 2 derniers).
@@ -23,6 +18,7 @@ const ago = (iso: string) => {
  */
 export function PostCard({ p, city, onOpen, hideComments }: { p: PostWithState; city?: string; onOpen?: () => void; hideComments?: boolean }) {
   const { c: colors } = useTheme();
+  const t = useT();
   const styles = useStyles();
   const toggleLike = useLocalDb((s) => s.toggleLike);
   const scale = useSharedValue(1);
@@ -36,14 +32,14 @@ export function PostCard({ p, city, onOpen, hideComments }: { p: PostWithState; 
             {p.author}
           </Text>
           <Text variant="caption" color={colors.muted}>
-            {ago(p.createdAt)}
+            {timeAgo(p.createdAt)}
             {city ? ` · ${city}` : ''}
           </Text>
         </View>
         <MoreHorizontal size={18} color={colors.muted} />
       </View>
       {onOpen ? (
-        <PressableScale onPress={onOpen} scaleTo={0.99} haptic={false} accessibilityLabel={`Ouvrir la publication de ${p.author}`}>
+        <PressableScale onPress={onOpen} scaleTo={0.99} haptic={false} accessibilityLabel={t('community.post.openA11y', { name: p.author })}>
           <Text variant="body">{p.body}</Text>
         </PressableScale>
       ) : (
@@ -57,7 +53,7 @@ export function PostCard({ p, city, onOpen, hideComments }: { p: PostWithState; 
             toggleLike(p.id);
           }}
           style={styles.action}
-          accessibilityLabel="J'aime">
+          accessibilityLabel={t('community.post.like')}>
           <Animated.View style={heart}>
             <Heart size={18} color={p.liked ? colors.danger : colors.subtle} fill={p.liked ? colors.danger : 'transparent'} />
           </Animated.View>
@@ -70,14 +66,14 @@ export function PostCard({ p, city, onOpen, hideComments }: { p: PostWithState; 
             onPress={onOpen}
             hitSlop={6}
             style={styles.action}
-            accessibilityLabel={`${p.comments.length} commentaire${p.comments.length > 1 ? 's' : ''}. Commenter`}>
+            accessibilityLabel={t('community.post.countComment', { count: p.comments.length })}>
             <MessageCircle size={18} color={colors.subtle} />
             <Text variant="smallStrong" color={colors.subtle}>
               {p.comments.length}
             </Text>
           </PressableScale>
         ) : (
-          <View style={styles.action} accessible accessibilityLabel={`${p.comments.length} commentaire${p.comments.length > 1 ? 's' : ''}`}>
+          <View style={styles.action} accessible accessibilityLabel={t('community.post.count', { count: p.comments.length })}>
             <MessageCircle size={18} color={colors.subtle} />
             <Text variant="smallStrong" color={colors.subtle}>
               {p.comments.length}
@@ -85,17 +81,16 @@ export function PostCard({ p, city, onOpen, hideComments }: { p: PostWithState; 
           </View>
         )}
         <View style={{ flex: 1 }} />
-        <PressableScale onPress={() => Share.share({ message: `${p.author} sur DALILI : ${p.body}` }).catch(() => {})} accessibilityLabel="Partager">
+        <PressableScale onPress={() => Share.share({ message: t('community.post.shareMessage', { author: p.author, body: p.body }) }).catch(() => {})} accessibilityLabel={t('community.post.share')}>
           <Share2 size={18} color={colors.subtle} />
         </PressableScale>
       </View>
       {hideComments ? null : p.comments.slice(-2).map((c, i) => (
-        <View key={i} style={[styles.comment, c.isAuthor && { marginLeft: 28, backgroundColor: colors.electricSoft }]}>
+        <View key={i} style={[styles.comment, c.isAuthor && { marginStart: 28, backgroundColor: colors.electricSoft }]}>
           <Avatar name={c.author} size={26} color="#94A3B8" />
           <View style={{ flex: 1 }}>
             <Text variant="caption" color={colors.electric}>
-              {c.author}
-              {c.isAuthor ? ' (Auteur)' : ''}
+              {c.isAuthor ? t('community.post.authorTag', { name: c.author }) : c.author}
             </Text>
             <Text variant="small">{c.body}</Text>
           </View>
@@ -104,7 +99,7 @@ export function PostCard({ p, city, onOpen, hideComments }: { p: PostWithState; 
       {!hideComments && onOpen && p.comments.length > 2 ? (
         <PressableScale onPress={onOpen} hitSlop={6} style={styles.more}>
           <Text variant="smallStrong" color={colors.electric}>
-            Voir les {p.comments.length} commentaires
+            {t('community.post.seeAll', { n: p.comments.length })}
           </Text>
         </PressableScale>
       ) : null}

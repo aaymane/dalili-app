@@ -18,6 +18,7 @@ import { useJoinGroup } from '@/features/community/components/GroupCard';
 import { PostCard } from '@/features/community/components/PostCard';
 import { commentsKey, useComments, useDeleteComment, useSendComment } from '@/features/community/hooks';
 import { Composer } from '@/features/messages/components/Thread';
+import { useT } from '@/i18n';
 import { haptics } from '@/lib/haptics';
 import { rise } from '@/theme/motion';
 import { makeStyles, useTheme } from '@/theme/scheme';
@@ -26,6 +27,7 @@ import { radius } from '@/theme/tokens';
 /** Une publication en plein écran : le post, tous ses commentaires, et un champ collé au clavier. */
 export default function PostScreen() {
   const { c: colors } = useTheme();
+  const t = useT();
   const styles = useStyles();
   const { id, groupId } = useLocalSearchParams<{ id: string; groupId?: string }>();
   const qc = useQueryClient();
@@ -42,7 +44,7 @@ export default function PostScreen() {
   const post_ = (body: string) =>
     send.mutate(
       { body, author: myName() },
-      { onError: (e) => toast(e instanceof CommentRefused ? e.message : 'Pas envoyé. Vérifie ta connexion, puis touche le commentaire pour le renvoyer.', 'info') },
+      { onError: (e) => toast(e instanceof CommentRefused ? t('community.post.slowDown') : t('community.post.notSent'), 'info') },
     );
 
   const retry = (c: Comment) => {
@@ -52,22 +54,22 @@ export default function PostScreen() {
 
   const askDelete = (c: Comment) => {
     haptics.select();
-    Alert.alert('Supprimer ton commentaire ?', 'Il disparaît pour tout le groupe.', [
-      { text: 'Garder', style: 'cancel' },
-      { text: 'Supprimer', style: 'destructive', onPress: () => remove.mutate(c.id, { onError: () => toast('Pas supprimé. Vérifie ta connexion et réessaie.', 'info') }) },
+    Alert.alert(t('community.post.deleteTitle'), t('community.post.deleteText'), [
+      { text: t('community.post.keep'), style: 'cancel' },
+      { text: t('community.post.delete'), style: 'destructive', onPress: () => remove.mutate(c.id, { onError: () => toast(t('community.post.deleteFailed'), 'info') }) },
     ]);
   };
 
   // Le groupe dit si tu peux commenter (en mode démo, rejoindre le groupe suffit aussi).
   const member = group?.isMember ?? true;
   const footer = member ? (
-    <Composer onSend={post_} placeholder="Écris un commentaire…" label="Ton commentaire" />
+    <Composer onSend={post_} placeholder={t('community.post.placeholder')} label={t('community.post.label')} />
   ) : (
-    <Button label="Rejoindre le groupe pour commenter" variant="secondary" onPress={() => group && join(group)} />
+    <Button label={t('community.post.joinToComment')} variant="secondary" onPress={() => group && join(group)} />
   );
 
   return (
-    <Screen scroll={false} padded={false} keyboard header={<AppHeader back title={group?.name ?? 'Publication'} hideActions />} footer={footer}>
+    <Screen scroll={false} padded={false} keyboard header={<AppHeader back title={group?.name ?? t('community.post.fallbackTitle')} hideActions />} footer={footer}>
       <FlatList
         data={list}
         keyExtractor={(c) => c.id}
@@ -80,7 +82,7 @@ export default function PostScreen() {
             <View style={{ gap: 14, marginBottom: 6 }}>
               <PostCard p={post} city={group?.city} hideComments />
               <Text variant="overline" color={colors.muted}>
-                {list.length ? `${list.length} commentaire${list.length > 1 ? 's' : ''}` : 'Commentaires'}
+                {list.length ? t('community.post.count', { count: list.length }) : t('community.post.comments')}
               </Text>
             </View>
           ) : undefined
@@ -88,7 +90,7 @@ export default function PostScreen() {
         ListEmptyComponent={
           comments.isPending ? undefined : (
             <Text variant="small" color={colors.subtle} align="center" style={{ marginTop: 12 }}>
-              {comments.isError ? 'Impossible de charger les commentaires. Vérifie ta connexion.' : 'Personne n’a encore répondu. Sois le premier ou la première 🙂'}
+              {comments.isError ? t('community.post.loadError') : t('community.post.empty')}
             </Text>
           )
         }
@@ -99,15 +101,14 @@ export default function PostScreen() {
               <Avatar name={c.author} size={30} color="#94A3B8" />
               <View style={{ flex: 1, gap: 2 }}>
                 <Text variant="caption" color={colors.electric}>
-                  {c.mine ? 'Toi' : c.author}
-                  {c.isPostAuthor ? ' (Auteur)' : ''}
+                  {c.isPostAuthor ? t('community.post.authorTag', { name: c.mine ? t('community.post.you') : c.author }) : c.mine ? t('community.post.you') : c.author}
                 </Text>
                 <Text variant="small">{c.body}</Text>
                 {c.failed ? (
                   <View style={styles.failed}>
                     <RotateCcw size={12} color={colors.danger} />
                     <Text variant="caption" color={colors.danger}>
-                      Pas envoyé · Toucher pour renvoyer
+                      {t('community.post.notSentTap')}
                     </Text>
                   </View>
                 ) : null}
@@ -124,7 +125,7 @@ export default function PostScreen() {
                   scaleTo={0.98}
                   haptic={false}
                   style={style}
-                  accessibilityHint="Appui long pour supprimer">
+                  accessibilityHint={t('community.post.deleteHint')}>
                   {body}
                 </PressableScale>
               ) : (

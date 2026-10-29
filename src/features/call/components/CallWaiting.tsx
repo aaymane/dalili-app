@@ -5,6 +5,7 @@ import Animated from 'react-native-reanimated';
 
 import { Button } from '@/components/ui/Button';
 import { Text } from '@/components/ui/Text';
+import { useT } from '@/i18n';
 import { rise } from '@/theme/motion';
 import { useTheme } from '@/theme/scheme';
 
@@ -27,11 +28,12 @@ export function CallWaiting({
   onRetry?: () => void;
 }) {
   const { c } = useTheme();
+  const t = useT();
   const Icon = onRetry ? WifiOff : icon;
   return (
     <View style={styles.root}>
       <CallBackdrop />
-      <CallTop name={name} color={color} status="Pas encore en appel" />
+      <CallTop name={name} color={color} status={t('call.notYet')} />
       <View style={styles.center}>
         <CallAvatar name={name} color={color} waiting={false} />
         <Animated.View entering={rise(80)} style={styles.card}>
@@ -44,8 +46,8 @@ export function CallWaiting({
           </Text>
         </Animated.View>
         <View style={{ gap: 10, width: 240, marginTop: 8 }}>
-          {onRetry ? <Button label="Réessayer" variant="white" onPress={onRetry} /> : null}
-          <Button label="Retour" variant="glass" onPress={() => router.back()} />
+          {onRetry ? <Button label={t('common.retry')} variant="white" onPress={onRetry} /> : null}
+          <Button label={t('common.back')} variant="glass" onPress={() => router.back()} />
         </View>
       </View>
     </View>

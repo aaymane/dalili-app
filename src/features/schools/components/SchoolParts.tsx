@@ -13,6 +13,7 @@ import { Input } from '@/components/ui/Input';
 import { PressableScale } from '@/components/ui/PressableScale';
 import { Chip } from '@/components/ui/Tag';
 import { Text } from '@/components/ui/Text';
+import { useT } from '@/i18n';
 import { makeStyles, useTheme } from '@/theme/scheme';
 import { radius, lightPalette } from '@/theme/tokens';
 import { track } from '@/lib/analytics';
@@ -63,7 +64,7 @@ export function SchoolCover({
               {
                 width: height * 1.3,
                 height: height * 1.3,
-                right: -height * 0.45,
+                end: -height * 0.45,
                 top: -height * 0.55,
               },
             ]}
@@ -74,7 +75,7 @@ export function SchoolCover({
               {
                 width: height * 0.8,
                 height: height * 0.8,
-                left: -height * 0.3,
+                start: -height * 0.3,
                 bottom: -height * 0.45,
                 opacity: 0.07,
               },
@@ -107,12 +108,13 @@ export function SchoolCover({
 /** Le badge de confiance, partout où l'école apparaît. */
 export function PartnerBadge({ dark }: { dark?: boolean }) {
   const { c } = useTheme();
+  const t = useT();
   const styles = useStyles();
   return (
     <View style={[styles.badge, dark && styles.badgeDark]}>
       <BadgeCheck size={13} color={dark ? c.white : c.electric} />
       <Text variant="caption" color={dark ? c.white : c.electric} style={{ letterSpacing: 0.4 }}>
-        École partenaire DALILI
+        {t('schools.partner')}
       </Text>
     </View>
   );
@@ -121,6 +123,7 @@ export function PartnerBadge({ dark }: { dark?: boolean }) {
 /** Dans Explorer : la carte d'une école partenaire. */
 export function SchoolCard({ school }: { school: School }) {
   const { c } = useTheme();
+  const t = useT();
   const styles = useStyles();
   const levels = [...new Set(school.programs.map((p) => p.level))].sort();
   const alternance = school.programs.some((p) => /alternance/i.test(p.format));
@@ -134,7 +137,7 @@ export function SchoolCard({ school }: { school: School }) {
         })
       }
       style={styles.card}
-      accessibilityLabel={`${school.name}, ${school.city}. École partenaire. Ouvrir la fiche`}
+      accessibilityLabel={t('schools.cardA11y', { name: school.name, city: school.city })}
     >
       <SchoolCover school={school} height={168} compact>
         <View style={styles.cardTop}>
@@ -154,8 +157,13 @@ export function SchoolCard({ school }: { school: School }) {
       <View style={styles.cardInfo}>
         <GraduationCap size={16} color={c.electric} />
         <Text variant="smallStrong" style={{ flex: 1 }} numberOfLines={1}>
-          {school.programs.length} formations · {levels.length > 1 ? `${levels[0]} à ${levels[levels.length - 1]}` : levels[0]}
-          {alternance ? ' · Alternance' : ''}
+          {[
+            t('schools.programs', { count: school.programs.length }),
+            levels.length > 1 ? t('schools.levelsRange', { from: levels[0], to: levels[levels.length - 1] }) : levels[0],
+            alternance ? t('schools.alternance') : null,
+          ]
+            .filter(Boolean)
+            .join(' · ')}
         </Text>
         <ChevronRight size={18} color={c.muted} />
       </View>
@@ -181,6 +189,7 @@ export function InterestSheet({
   onSent: () => void;
 }) {
   const { c } = useTheme();
+  const t = useT();
   const styles = useStyles();
   const send = useSendInterest();
   const [program, setProgram] = useState<string | null>(initialProgram ?? null);
@@ -201,7 +210,7 @@ export function InterestSheet({
           onClose();
           onSent();
         },
-        onError: () => toast('Pas envoyé. Vérifie ta connexion et réessaie.', 'info'),
+        onError: () => toast(t('schools.sheet.notSent'), 'info'),
       },
     );
 
@@ -217,18 +226,17 @@ export function InterestSheet({
     >
       <View style={{ gap: 16 }}>
         <View style={{ gap: 4 }}>
-          <Text variant="h2">{school.name} t’intéresse ?</Text>
+          <Text variant="h2">{t('schools.sheet.title', { name: school.name })}</Text>
           <Text variant="small" color={c.subtle}>
-            Dis-nous ce qui t’attire. L’équipe DALILI te recontacte par email pour t’aider à y voir clair.
+            {t('schools.sheet.text')}
           </Text>
         </View>
         <View style={{ gap: 8 }}>
           <Text variant="overline" color={c.muted}>
-            La formation qui t’attire
+            {t('schools.sheet.program')}
           </Text>
           <View style={styles.chips} accessibilityRole="radiogroup">
-            {[...school.programs.map((p) => p.name), 'Je ne sais pas encore'].map((name) => {
-              const value = name === 'Je ne sais pas encore' ? null : name;
+            {[...school.programs.map((p) => ({ name: p.name, value: p.name as string | null })), { name: t('schools.sheet.notSure'), value: null }].map(({ name, value }) => {
               const active = program === value;
               return (
                 <PressableScale key={name} haptic="select" onPress={() => setProgram(value)} hitSlop={4} accessibilityRole="radio" accessibilityState={{ selected: active }}>
@@ -238,14 +246,14 @@ export function InterestSheet({
             })}
           </View>
         </View>
-        <Input multiline placeholder="Ta question (facultatif) : admission, alternance, logement…" value={message} onChangeText={setMessage} maxLength={500} />
+        <Input multiline placeholder={t('schools.sheet.placeholder')} value={message} onChangeText={setMessage} maxLength={500} />
         <View style={styles.privacy}>
           <BadgeCheck size={16} color={c.mentor} />
           <Text variant="caption" color={c.subtle} style={{ flex: 1 }}>
-            Ta demande reste chez DALILI. Rien n’est transmis à l’école sans ton accord, et tu peux la retirer quand tu veux.
+            {t('schools.sheet.privacy')}
           </Text>
         </View>
-        <Button label="Envoyer ma demande" onPress={submit} loading={send.isPending} />
+        <Button label={t('schools.sheet.send')} onPress={submit} loading={send.isPending} />
       </View>
     </BottomSheet>
   );
@@ -297,7 +305,7 @@ const useStyles = makeStyles(({ c, shadow }) => ({
     overflow: 'hidden',
     ...shadow.md,
   },
-  cardTop: { position: 'absolute', top: 14, left: 14 },
+  cardTop: { position: 'absolute', top: 14, start: 14 },
   cardTitle: { padding: 16, gap: 2 },
   cardInfo: {
     flexDirection: 'row',

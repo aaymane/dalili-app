@@ -7,6 +7,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Avatar } from '@/components/ui/Avatar';
 import { Text } from '@/components/ui/Text';
 import { useProfile } from '@/features/profile/store';
+import { useT } from '@/i18n';
 import { haptics } from '@/lib/haptics';
 import { pop } from '@/theme/motion';
 import { useTheme } from '@/theme/scheme';
@@ -19,6 +20,7 @@ import { CallAvatar, CallBackdrop, CallControls, CallTop, duration } from './Cal
  */
 export function CallPreview({ name, color, topic, note, onFlag }: { name: string; color?: string; topic?: string; note: string; onFlag?: () => void }) {
   const { c } = useTheme();
+  const t = useT();
   const insets = useSafeAreaInsets();
   const profile = useProfile((s) => s.profile);
   const [mic, setMic] = useState(true);
@@ -27,36 +29,36 @@ export function CallPreview({ name, color, topic, note, onFlag }: { name: string
   const [connected, setConnected] = useState(false);
 
   useEffect(() => {
-    const c = setTimeout(() => {
+    const timer = setTimeout(() => {
       setConnected(true);
       haptics.success();
     }, 2200);
-    return () => clearTimeout(c);
+    return () => clearTimeout(timer);
   }, []);
   useEffect(() => {
     if (!connected) return;
-    const t = setInterval(() => setSecs((s) => s + 1), 1000);
-    return () => clearInterval(t);
+    const timer = setInterval(() => setSecs((s) => s + 1), 1000);
+    return () => clearInterval(timer);
   }, [connected]);
 
   return (
     <View style={styles.root}>
       <CallBackdrop />
-      <CallTop name={name} color={color} status={connected ? duration(secs) : 'Connexion…'} onFlag={onFlag} />
+      <CallTop name={name} color={color} status={connected ? duration(secs) : t('call.connecting')} onFlag={onFlag} />
       <View style={styles.center}>
         <CallAvatar name={name} color={color} waiting={!connected} />
         <Text variant="h1" color={c.white} style={{ marginTop: 18 }}>
-          {connected ? `En appel avec ${name}` : `On appelle ${name}…`}
+          {connected ? t('call.inCall', { name }) : t('call.calling', { name })}
         </Text>
         <Text variant="small" color="rgba(255,255,255,0.6)">
-          Sujet : {topic ?? 'Question générale'}
+          {t('call.topic', { topic: topic ?? t('call.defaultTopic') })}
         </Text>
       </View>
       {cam ? (
         <Animated.View entering={pop()} style={[styles.self, { top: insets.top + 70 }]}>
           <Avatar name={`${profile.firstName} ${profile.lastName}`} uri={profile.avatarUri} size={70} />
           <Text variant="caption" color={c.white} style={{ marginTop: 6 }}>
-            {profile.firstName || 'Toi'}
+            {profile.firstName || t('call.you')}
           </Text>
         </Animated.View>
       ) : null}
@@ -73,5 +75,5 @@ export function CallPreview({ name, color, topic, note, onFlag }: { name: string
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: '#0A0F2A' },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 4 },
-  self: { position: 'absolute', right: 20, alignItems: 'center', padding: 12, borderRadius: 20, backgroundColor: 'rgba(255,255,255,0.08)' },
+  self: { position: 'absolute', end: 20, alignItems: 'center', padding: 12, borderRadius: 20, backgroundColor: 'rgba(255,255,255,0.08)' },
 });

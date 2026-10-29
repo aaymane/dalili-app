@@ -42,7 +42,7 @@
 
 ## 🌍 Ensuite
 
-- [ ] **Internationalisation FR / العربية / EN** (avec RTL pour l'arabe) — 🟡 étapes 1 et 2/3 faites le 29/10 : moteur, sélecteur, RTL instantané, kit, profil, connexion, onboarding, accueil, parcours, Explorer, guides, Dalili IA
+- [x] **Internationalisation FR / العربية / EN** (avec RTL pour l'arabe) : toute l'app, 3 étapes faites le 29/10 — reste la relecture de l'arabe par un arabophone, et les notifications push du site en 3 langues
   > `/fonctionnalite Internationalisation avec expo-localization + i18next : extraire tous les textes en fichiers fr.json/ar.json/en.json, gérer le RTL pour l'arabe (I18nManager), sélecteur de langue dans le Profil.`
 - [x] **Mode sombre** : thème vivant, bascule instantanée, Profil › Apparence (Auto / Clair / Sombre) (29/10)
 - [ ] **Guides synchronisés avec dalili.study** (les 64 guides via une table `guides` ou le CMS du site)

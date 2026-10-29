@@ -76,6 +76,14 @@ export function relativeDays(d: Date | string) {
   return t('dates.daysAgo', { count: -n });
 }
 
+/** « à l'instant », « il y a 3 heures », « il y a 2 jours ». */
+export function timeAgo(iso: string) {
+  const h = Math.max(0, Math.round((Date.now() - new Date(iso).getTime()) / 3_600_000));
+  if (h < 1) return t('dates.justNow');
+  if (h < 24) return t('dates.hoursAgo', { count: h });
+  return t('dates.daysAgo', { count: Math.round(h / 24) });
+}
+
 export function toISODate(d: Date) {
   const y = d.getFullYear();
   const m = String(d.getMonth() + 1).padStart(2, '0');

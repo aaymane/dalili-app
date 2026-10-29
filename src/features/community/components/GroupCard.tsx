@@ -9,6 +9,7 @@ import { Text } from '@/components/ui/Text';
 import { remoteJoinGroup } from '@/data/api';
 import type { EventWithState, GroupWithState } from '@/data/hooks';
 import { useLocalDb } from '@/data/local-db';
+import { t, useT } from '@/i18n';
 import { formatLong, formatTime } from '@/lib/date';
 import { makeStyles, useTheme } from '@/theme/scheme';
 import { radius } from '@/theme/tokens';
@@ -20,28 +21,29 @@ export function useJoinGroup() {
   return (g: { id: string; name: string; isMember: boolean }) => {
     toggle(g.id);
     remoteJoinGroup(g.id, !g.isMember).catch(() => {});
-    if (!g.isMember) toast(`Bienvenue dans « ${g.name} » 🎉`);
+    if (!g.isMember) toast(t('community.welcome', { name: g.name }));
   };
 }
 
 export function GroupCard({ g }: { g: GroupWithState }) {
   const { c } = useTheme();
+  const t = useT();
   const styles = useStyles();
   const join = useJoinGroup();
   return (
     <PressableScale scaleTo={0.98} onPress={() => router.push({ pathname: '/(app)/groupe/[id]', params: { id: g.id } })} style={styles.card}>
-      <Cover colors={g.cover} emoji={g.emoji} label="GROUPE" height={130} radius={18} />
+      <Cover colors={g.cover} emoji={g.emoji} label={t('community.groupBadge')} height={130} radius={18} />
       <View style={styles.row}>
         <View style={{ flex: 1 }}>
           <Text variant="h3">{g.name}</Text>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
             <Users size={12} color={c.muted} />
             <Text variant="caption" color={c.muted}>
-              {g.members} membres
+              {t('community.members', { count: g.members })}
             </Text>
           </View>
         </View>
-        <Button label={g.isMember ? 'Membre' : 'Rejoindre'} size="sm" full={false} variant={g.isMember ? 'secondary' : 'primary'} onPress={() => join(g)} />
+        <Button label={g.isMember ? t('community.member') : t('community.join')} size="sm" full={false} variant={g.isMember ? 'secondary' : 'primary'} onPress={() => join(g)} />
       </View>
     </PressableScale>
   );
@@ -49,10 +51,11 @@ export function GroupCard({ g }: { g: GroupWithState }) {
 
 export function EventCard({ e }: { e: EventWithState }) {
   const { c } = useTheme();
+  const t = useT();
   const styles = useStyles();
   return (
     <PressableScale scaleTo={0.98} onPress={() => router.push({ pathname: '/(app)/evenement/[id]', params: { id: e.id } })} style={styles.card}>
-      <Cover colors={e.cover} emoji={e.emoji} label="ÉVÉNEMENT" labelColor="#7A5AF8" height={130} radius={18} />
+      <Cover colors={e.cover} emoji={e.emoji} label={t('community.eventBadge')} labelColor="#7A5AF8" height={130} radius={18} />
       <View style={styles.row}>
         <View style={{ flex: 1, gap: 2 }}>
           <Text variant="h3">{e.title}</Text>
@@ -60,11 +63,11 @@ export function EventCard({ e }: { e: EventWithState }) {
             📍 {e.city} · {formatLong(e.startsAt)} · {formatTime(e.startsAt)}
           </Text>
           <Text variant="caption" color={c.muted}>
-            {e.attendees}/{e.capacity} personnes
+            {t('community.people', { attendees: e.attendees, capacity: e.capacity })}
           </Text>
         </View>
         <Button
-          label={e.isGoing ? 'Inscrit' : 'Rejoindre'}
+          label={e.isGoing ? t('community.going') : t('community.join')}
           size="sm"
           full={false}
           variant={e.isGoing ? 'secondary' : 'primary'}

@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/Button';
 import { Text } from '@/components/ui/Text';
 import { useProfile } from '@/features/profile/store';
 import { SafetySheet } from '@/features/safety/components/SafetySheet';
+import { useT } from '@/i18n';
 import { pop, rise } from '@/theme/motion';
 import { useTheme } from '@/theme/scheme';
 import { radius } from '@/theme/tokens';
@@ -21,6 +22,7 @@ import { CallAvatar, CallBackdrop, CallControls, CallTop, duration } from './Cal
 /** Le vrai appel : la vidéo de l'autre en plein écran, la tienne en vignette, les commandes en bas. */
 export function LiveCall({ bookingId, info, color, onRetry }: { bookingId: string; info: CallInfo; color?: string; onRetry: () => void }) {
   const { c } = useTheme();
+  const t = useT();
   const insets = useSafeAreaInsets();
   const profile = useProfile((s) => s.profile);
   const call = useDailyCall(info);
@@ -30,8 +32,8 @@ export function LiveCall({ bookingId, info, color, onRetry }: { bookingId: strin
 
   useEffect(() => {
     if (!call.joinedAt) return;
-    const t = setInterval(() => setNow(Date.now()), 1000);
-    return () => clearInterval(t);
+    const timer = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(timer);
   }, [call.joinedAt]);
 
   const remoteVideo = videoTrack(call.remote);
@@ -39,14 +41,14 @@ export function LiveCall({ bookingId, info, color, onRetry }: { bookingId: strin
   const name = info.otherName;
   const status =
     call.phase === 'joining'
-      ? 'Connexion…'
+      ? t('call.connecting')
       : call.phase === 'joined' && call.joinedAt
         ? call.remote
           ? duration(Math.max(0, Math.floor((now - call.joinedAt) / 1000)))
-          : 'En attente…'
+          : t('call.waiting')
         : call.phase === 'left'
-          ? 'Appel terminé'
-          : 'Connexion perdue';
+          ? t('call.ended')
+          : t('call.lost');
 
   const hangUp = () => {
     call.leave();
@@ -68,22 +70,22 @@ export function LiveCall({ bookingId, info, color, onRetry }: { bookingId: strin
           <Animated.View key={status} entering={rise()} style={{ alignItems: 'center', gap: 4, marginTop: 18 }}>
             <Text variant="h1" color={c.white} align="center">
               {call.phase === 'error'
-                ? 'La connexion a coupé'
+                ? t('call.cutTitle')
                 : call.phase === 'left'
-                  ? 'Appel terminé'
+                  ? t('call.ended')
                   : call.remote
-                    ? `${name} a coupé sa caméra`
+                    ? t('call.camOff', { name })
                     : call.phase === 'joined'
-                      ? `En attente de ${name}…`
-                      : `Connexion à l’appel…`}
+                      ? t('call.waitingFor', { name })
+                      : t('call.joining')}
             </Text>
             <Text variant="small" color="rgba(255,255,255,0.6)" align="center">
-              {call.phase === 'joined' && !call.remote ? `L’appel commence dès que ${name} arrive.` : `Sujet : ${info.topic}`}
+              {call.phase === 'joined' && !call.remote ? t('call.startsWhen', { name }) : t('call.topic', { topic: info.topic })}
             </Text>
           </Animated.View>
           {call.phase === 'error' ? (
             <View style={{ marginTop: 20, width: 220 }}>
-              <Button label="Réessayer" variant="white" onPress={onRetry} />
+              <Button label={t('common.retry')} variant="white" onPress={onRetry} />
             </View>
           ) : null}
         </View>
@@ -113,7 +115,7 @@ export function LiveCall({ bookingId, info, color, onRetry }: { bookingId: strin
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: '#0A0F2A' },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 24 },
-  self: { position: 'absolute', right: 16, borderRadius: radius.lg, overflow: 'hidden', borderWidth: 1, borderColor: 'rgba(255,255,255,0.2)', zIndex: 3 },
+  self: { position: 'absolute', end: 16, borderRadius: radius.lg, overflow: 'hidden', borderWidth: 1, borderColor: 'rgba(255,255,255,0.2)', zIndex: 3 },
   selfVideo: { width: 104, height: 148 },
   selfOff: { alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(255,255,255,0.08)' },
 });

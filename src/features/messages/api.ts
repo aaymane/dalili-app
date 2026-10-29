@@ -35,7 +35,7 @@ export type Message = {
   failed?: boolean;
 };
 
-/** Refus expliqué par la base (trop de messages d'un coup) : le message s'affiche tel quel. */
+/** Refus de la base (trop de messages d'un coup) : l'écran l'explique dans la langue en cours. */
 export class MessageRefused extends Error {}
 
 async function me() {
@@ -116,7 +116,7 @@ export async function sendMessage(conversationId: string, body: string): Promise
     return m;
   }
   const { data, error } = await supabase.from('messages').insert({ conversation_id: conversationId, body }).select('id, conversation_id, sender_id, body, created_at').single();
-  if (error) throw error.code === '23514' && error.message.startsWith('Doucement') ? new MessageRefused(error.message) : error;
+  if (error) throw error.code === '23514' && error.message.startsWith('Doucement') ? new MessageRefused() : error;
   return toMessage(data, uid);
 }
 

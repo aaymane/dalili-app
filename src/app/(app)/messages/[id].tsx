@@ -16,6 +16,7 @@ import { Bubble, Composer, DaySeparator, TrustNote, TypingBubble } from '@/featu
 import { isSameDay } from '@/lib/date';
 import { threadKey, useConversation, useSendMessage, useThread } from '@/features/messages/hooks';
 import { SafetySheet } from '@/features/safety/components/SafetySheet';
+import { useT } from '@/i18n';
 import { useRoleTheme } from '@/theme';
 import { makeStyles, useTheme } from '@/theme/scheme';
 import { radius } from '@/theme/tokens';
@@ -26,6 +27,7 @@ const GAP_MS = 5 * 60_000;
 /** Une conversation : bulles, « en train d'écrire », envoi immédiat, signaler ou bloquer en haut. */
 export default function Thread() {
   const { c: colors } = useTheme();
+  const t = useT();
   const styles = useStyles();
   const { id } = useLocalSearchParams<{ id: string }>();
   const theme = useRoleTheme();
@@ -42,14 +44,14 @@ export default function Thread() {
   const first = name.split(' ')[0] || name;
 
   useEffect(() => {
-    const t = setTimeout(() => list.current?.scrollToEnd({ animated: true }), 60);
-    return () => clearTimeout(t);
+    const timer = setTimeout(() => list.current?.scrollToEnd({ animated: true }), 60);
+    return () => clearTimeout(timer);
   }, [messages.length, thread.typing]);
 
   const post = (body: string) =>
     send.mutate(
       { body, tempId: `temp-${Date.now()}` },
-      { onError: (e) => toast(e instanceof MessageRefused ? e.message : 'Pas envoyé. Vérifie ta connexion, puis touche la bulle pour renvoyer.', 'info') },
+      { onError: (e) => toast(e instanceof MessageRefused ? t('messages.slowDown') : t('messages.notSent'), 'info') },
     );
 
   const retry = (m: Message) => {
@@ -59,7 +61,7 @@ export default function Thread() {
 
   const header = (
     <View style={styles.header}>
-      <PressableScale onPress={() => router.back()} style={styles.round} accessibilityLabel="Retour">
+      <PressableScale onPress={() => router.back()} style={styles.round} accessibilityLabel={t('common.back')}>
         <ChevronLeft size={20} color={colors.navy} />
       </PressableScale>
       <Avatar name={name || '?'} size={38} color={c?.asRole === 'student' ? colors.mentor : colors.electricLight} />
@@ -68,11 +70,11 @@ export default function Thread() {
           {name}
         </Text>
         <Text variant="caption" color={thread.typing ? theme.accent : colors.muted}>
-          {thread.typing ? 'en train d’écrire…' : c?.asRole === 'student' ? 'Ton mentor' : 'Étudiant·e'}
+          {thread.typing ? t('messages.typing') : c?.asRole === 'student' ? t('messages.yourMentor') : t('messages.student')}
         </Text>
       </View>
       {c?.bookingId || c?.asRole === 'student' ? (
-        <PressableScale onPress={() => setSafety(true)} style={styles.round} accessibilityLabel={`Signaler ou bloquer ${first}`}>
+        <PressableScale onPress={() => setSafety(true)} style={styles.round} accessibilityLabel={t('messages.reportA11y', { name: first })}>
           <Flag size={16} color={colors.subtle} />
         </PressableScale>
       ) : null}
@@ -82,7 +84,7 @@ export default function Thread() {
   const footer = c?.canWrite === false ? (
     <View style={styles.closed}>
       <Text variant="small" color={colors.subtle} align="center">
-        {first} n’est plus disponible comme mentor pour le moment. Tu peux relire vos messages.
+        {t('messages.closed', { name: first })}
       </Text>
     </View>
   ) : (
@@ -103,7 +105,7 @@ export default function Thread() {
         ListEmptyComponent={
           thread.isPending ? undefined : (
             <Text variant="small" color={colors.subtle} align="center" style={{ marginTop: 24 }}>
-              {thread.isError ? 'Impossible de charger les messages. Vérifie ta connexion.' : `Écris le premier message à ${first || 'ton contact'}.`}
+              {thread.isError ? t('messages.threadError') : first ? t('messages.first', { name: first }) : t('messages.firstNoName')}
             </Text>
           )
         }

@@ -16,6 +16,7 @@ import { Cover } from '@/features/community/components/Cover';
 import { useJoinGroup } from '@/features/community/components/GroupCard';
 import { PostCard } from '@/features/community/components/PostCard';
 import { useProfile } from '@/features/profile/store';
+import { useT } from '@/i18n';
 import { monthShort } from '@/lib/date';
 import { makeStyles, useTheme } from '@/theme/scheme';
 import { radius } from '@/theme/tokens';
@@ -26,6 +27,7 @@ type Tab = 'feed' | 'events' | 'members';
 /** Page groupe : à propos, fil d'actualité, événements, membres. Contenu réservé aux membres. */
 export default function GroupPage() {
   const { c } = useTheme();
+  const t = useT();
   const styles = useStyles();
   const { id } = useLocalSearchParams<{ id: string }>();
   const insets = useSafeAreaInsets();
@@ -45,7 +47,7 @@ export default function GroupPage() {
         <View style={{ paddingHorizontal: 16, paddingTop: 8 }}>
           <Cover colors={g.cover} emoji={g.emoji} height={180} radius={26}>
             <LinearGradient colors={['transparent', 'rgba(0,0,0,0.45)']} style={StyleSheet.absoluteFill} />
-            <PressableScale onPress={() => router.back()} style={styles.back} accessibilityLabel="Retour">
+            <PressableScale onPress={() => router.back()} style={styles.back} accessibilityLabel={t('common.back')}>
               <ChevronLeft size={20} color="#fff" />
             </PressableScale>
             <View style={{ padding: 16, gap: 4 }}>
@@ -55,13 +57,13 @@ export default function GroupPage() {
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
                 <Users size={13} color="rgba(255,255,255,0.85)" />
                 <Text variant="small" color="rgba(255,255,255,0.85)">
-                  {g.members} membres · {g.city}
+                  {t('community.group.membersCity', { count: g.members, city: g.city })}
                 </Text>
               </View>
               <PressableScale onPress={() => join(g)} haptic="press" style={[styles.joinBtn, g.isMember && { backgroundColor: 'rgba(255,255,255,0.22)' }]}>
                 {g.isMember ? <Check size={15} color="#fff" strokeWidth={3} /> : <Plus size={15} color="#fff" strokeWidth={3} />}
                 <Text variant="smallStrong" color="#fff">
-                  {g.isMember ? 'Membre' : 'Rejoindre le groupe'}
+                  {g.isMember ? t('community.member') : t('community.group.join')}
                 </Text>
               </PressableScale>
             </View>
@@ -71,13 +73,13 @@ export default function GroupPage() {
         <View style={{ paddingHorizontal: 20, gap: 18, marginTop: 18 }}>
           {!g.isMember && (
             <Animated.View entering={rise()} style={{ gap: 10 }}>
-              <Text variant="h2">À propos</Text>
+              <Text variant="h2">{t('community.group.about')}</Text>
               <View style={styles.about}>
                 <Text variant="body">{g.description}</Text>
                 <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 10 }}>
-                  {g.tags.map((t) => (
-                    <View key={t} style={styles.tag}>
-                      <Text variant="caption">{t}</Text>
+                  {g.tags.map((tag) => (
+                    <View key={tag} style={styles.tag}>
+                      <Text variant="caption">{tag}</Text>
                     </View>
                   ))}
                 </View>
@@ -88,9 +90,9 @@ export default function GroupPage() {
           <View style={styles.tabs}>
             {(
               [
-                ['feed', 'Fil d’actualité'],
-                ['events', 'Événements'],
-                ['members', 'Membres'],
+                ['feed', t('community.group.feed')],
+                ['events', t('community.events')],
+                ['members', t('community.group.members')],
               ] as [Tab, string][]
             ).map(([k, l]) => (
               <PressableScale key={k} haptic="select" onPress={() => setTab(k)} style={[styles.tabItem, tab === k && styles.tabOn]}>
@@ -107,15 +109,15 @@ export default function GroupPage() {
                 <Lock size={20} color={c.electric} />
               </View>
               <Text variant="h2" align="center">
-                Contenu réservé aux membres
+                {t('community.group.lockedTitle')}
               </Text>
               <Text variant="small" color={c.subtle} align="center">
-                Rejoins le groupe pour voir les publications, les événements et échanger avec les autres étudiants.
+                {t('community.group.lockedText')}
               </Text>
               <PressableScale onPress={() => join(g)} haptic="press" style={[styles.joinBtn, { alignSelf: 'center' }]}>
                 <Plus size={15} color="#fff" strokeWidth={3} />
                 <Text variant="smallStrong" color="#fff">
-                  Rejoindre le groupe
+                  {t('community.group.join')}
                 </Text>
               </PressableScale>
             </Animated.View>
@@ -125,7 +127,7 @@ export default function GroupPage() {
                 <Avatar name={`${profile.firstName} ${profile.lastName}`} uri={profile.avatarUri} size={38} />
                 <View style={styles.composerInput}>
                   <Text variant="small" color={c.muted}>
-                    Partager quelque chose avec le groupe…
+                    {t('community.group.share')}
                   </Text>
                 </View>
               </PressableScale>
@@ -134,14 +136,14 @@ export default function GroupPage() {
               ))}
               {!posts.length && (
                 <Text variant="small" color={c.muted} align="center">
-                  Sois le premier à publier ✨
+                  {t('community.group.firstPost')}
                 </Text>
               )}
             </Animated.View>
           ) : tab === 'events' ? (
             <Animated.View key="events" entering={FadeIn} style={styles.panel}>
               <Text variant="overline" color={c.muted}>
-                Événements à venir
+                {t('community.group.upcoming')}
               </Text>
               {groupEvents.map((e) => (
                 <PressableScale key={e.id} onPress={() => router.push({ pathname: '/(app)/evenement/[id]', params: { id: e.id } })} style={styles.eventRow}>
@@ -168,18 +170,17 @@ export default function GroupPage() {
           ) : (
             <Animated.View key="members" entering={FadeIn} style={styles.panel}>
               <Text variant="overline" color={c.muted}>
-                Nouveaux membres
+                {t('community.group.newMembers')}
               </Text>
-              {[`${profile.firstName} ${profile.lastName}`.trim() || 'Toi', ...members].map((n, i) => (
+              {[`${profile.firstName} ${profile.lastName}`.trim() || t('community.group.you'), ...members].map((n, i) => (
                 <View key={n} style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
                   <Avatar name={n} size={38} color={i ? '#94A3B8' : c.electric} uri={i ? null : profile.avatarUri} />
                   <Text variant="bodyStrong" style={{ flex: 1 }}>
-                    {n}
-                    {i === 0 ? ' (toi)' : ''}
+                    {i === 0 ? t('community.group.youTag', { name: n }) : n}
                   </Text>
                   {i > 0 && (
                     <Text variant="smallStrong" color={c.electric}>
-                      Suivre
+                      {t('community.group.follow')}
                     </Text>
                   )}
                 </View>
@@ -190,7 +191,7 @@ export default function GroupPage() {
       </Screen>
       {g.isMember && (
         <Animated.View entering={pop()} style={[styles.fab, { bottom: insets.bottom + 24 }]}>
-          <PressableScale onPress={() => router.push({ pathname: '/(app)/post/nouveau', params: { groupId: g.id } })} style={styles.fabBtn} accessibilityLabel="Écrire un post">
+          <PressableScale onPress={() => router.push({ pathname: '/(app)/post/nouveau', params: { groupId: g.id } })} style={styles.fabBtn} accessibilityLabel={t('community.group.writeA11y')}>
             <Pencil size={20} color={c.navy} />
           </PressableScale>
         </Animated.View>
@@ -200,7 +201,7 @@ export default function GroupPage() {
 }
 
 const useStyles = makeStyles(({ c, shadow }) => ({
-  back: { position: 'absolute', top: 12, left: 12, width: 38, height: 38, borderRadius: 19, backgroundColor: 'rgba(0,0,0,0.25)', alignItems: 'center', justifyContent: 'center' },
+  back: { position: 'absolute', top: 12, start: 12, width: 38, height: 38, borderRadius: 19, backgroundColor: 'rgba(0,0,0,0.25)', alignItems: 'center', justifyContent: 'center' },
   joinBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, alignSelf: 'flex-start', backgroundColor: c.electric, paddingHorizontal: 16, height: 38, borderRadius: 999, marginTop: 8 },
   about: { padding: 16, borderRadius: radius.xl, backgroundColor: c.card, ...shadow.sm },
   tag: { paddingHorizontal: 10, paddingVertical: 5, borderRadius: 999, backgroundColor: c.fill },
@@ -214,6 +215,6 @@ const useStyles = makeStyles(({ c, shadow }) => ({
   panel: { gap: 14, padding: 16, borderRadius: radius.xl, backgroundColor: c.card, ...shadow.sm },
   eventRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   dateBox: { width: 50, height: 54, borderRadius: 14, backgroundColor: c.electric, alignItems: 'center', justifyContent: 'center' },
-  fab: { position: 'absolute', right: 20 },
+  fab: { position: 'absolute', end: 20 },
   fabBtn: { width: 54, height: 54, borderRadius: 27, backgroundColor: c.card, alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: c.electricSoft, ...shadow.md },
 }));

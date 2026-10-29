@@ -14,10 +14,17 @@ export type ReportTarget = { mentorId: string; bookingId?: undefined } | { booki
 /** `already` : ton signalement précédent sur cette personne est encore entre les mains de l'équipe. */
 export type ReportResult = 'sent' | 'already' | 'demo';
 
-/** Refus expliqué par la base (trop de signalements aujourd'hui, toi-même…) : le message s'affiche tel quel. */
-export class SafetyRefused extends Error {}
+/** Refus de la base (trop de signalements aujourd'hui, personne qu'on ne peut pas bloquer…) : l'écran l'explique dans la langue en cours. */
+export class SafetyRefused extends Error {
+  constructor(readonly kind: 'tooMany' | 'cantBlock' | 'other') {
+    super(kind);
+  }
+}
 
-const refused = (error: { code?: string; message: string }) => (error.code === '23514' ? new SafetyRefused(error.message) : error);
+// La base répond en français : on reconnaît le motif à son début.
+const refusedKind = (message: string) => (message.startsWith('Tu as déjà envoyé beaucoup') ? 'tooMany' : message.startsWith('Cette personne ne peut pas') ? 'cantBlock' : 'other');
+
+const refused = (error: { code?: string; message: string }) => (error.code === '23514' ? new SafetyRefused(refusedKind(error.message)) : error);
 
 async function online() {
   if (!supabase) return null;

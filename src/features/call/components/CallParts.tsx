@@ -8,6 +8,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Avatar } from '@/components/ui/Avatar';
 import { PressableScale } from '@/components/ui/PressableScale';
 import { Text } from '@/components/ui/Text';
+import { useT } from '@/i18n';
 import { makeStyles, useTheme } from '@/theme/scheme';
 import { lightPalette } from '@/theme/tokens';
 
@@ -19,6 +20,7 @@ export function CallBackdrop() {
 /** En haut : la personne, l'état ou la durée de l'appel, et le drapeau Signaler / Bloquer. */
 export function CallTop({ name, color, status, onFlag }: { name: string; color?: string; status: string; onFlag?: () => void }) {
   const { c } = useTheme();
+  const t = useT();
   const styles = useStyles();
   const insets = useSafeAreaInsets();
   return (
@@ -35,7 +37,7 @@ export function CallTop({ name, color, status, onFlag }: { name: string; color?:
         </View>
       </View>
       {onFlag ? (
-        <PressableScale onPress={onFlag} style={styles.flag} accessibilityLabel={`Signaler ou bloquer ${name}`}>
+        <PressableScale onPress={onFlag} style={styles.flag} accessibilityLabel={t('call.reportA11y', { name })}>
           <Flag size={18} color={c.white} />
         </PressableScale>
       ) : null}
@@ -76,19 +78,20 @@ export function CallControls({
   onFlip: () => void;
 }) {
   const { c } = useTheme();
+  const t = useT();
   const styles = useStyles();
   return (
     <View style={styles.controls}>
-      <PressableScale onPress={onMic} style={[styles.ctrl, !micOn && styles.ctrlOff]} accessibilityLabel={micOn ? 'Couper le micro' : 'Rallumer le micro'}>
+      <PressableScale onPress={onMic} style={[styles.ctrl, !micOn && styles.ctrlOff]} accessibilityLabel={micOn ? t('call.micOff') : t('call.micOn')}>
         {micOn ? <Mic size={22} color={c.white} /> : <MicOff size={22} color={lightPalette.navy} />}
       </PressableScale>
-      <PressableScale onPress={onCam} style={[styles.ctrl, !camOn && styles.ctrlOff]} accessibilityLabel={camOn ? 'Couper la caméra' : 'Rallumer la caméra'}>
+      <PressableScale onPress={onCam} style={[styles.ctrl, !camOn && styles.ctrlOff]} accessibilityLabel={camOn ? t('call.camOffA11y') : t('call.camOnA11y')}>
         {camOn ? <Video size={22} color={c.white} /> : <VideoOff size={22} color={lightPalette.navy} />}
       </PressableScale>
-      <PressableScale haptic="press" onPress={onHangUp} style={[styles.ctrl, styles.hang]} accessibilityLabel="Raccrocher">
+      <PressableScale haptic="press" onPress={onHangUp} style={[styles.ctrl, styles.hang]} accessibilityLabel={t('call.hangUp')}>
         <PhoneOff size={26} color={c.white} />
       </PressableScale>
-      <PressableScale onPress={onFlip} style={styles.ctrl} accessibilityLabel="Changer de caméra">
+      <PressableScale onPress={onFlip} style={styles.ctrl} accessibilityLabel={t('call.flip')}>
         <RefreshCcw size={22} color={c.white} />
       </PressableScale>
     </View>
@@ -101,7 +104,7 @@ export const duration = (secs: number) => `${String(Math.floor(secs / 60)).padSt
 const useStyles = makeStyles(({ c }) => ({
   top: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, zIndex: 2 },
   flag: { width: 44, height: 44, borderRadius: 22, backgroundColor: 'rgba(255,255,255,0.1)', alignItems: 'center', justifyContent: 'center' },
-  pill: { flexDirection: 'row', alignItems: 'center', gap: 10, alignSelf: 'flex-start', padding: 8, paddingRight: 16, borderRadius: 999, backgroundColor: 'rgba(10,15,42,0.55)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.15)' },
+  pill: { flexDirection: 'row', alignItems: 'center', gap: 10, alignSelf: 'flex-start', padding: 8, paddingEnd: 16, borderRadius: 999, backgroundColor: 'rgba(10,15,42,0.55)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.15)' },
   avatar: { alignItems: 'center', justifyContent: 'center' },
   ring: { position: 'absolute', width: 170, height: 170, borderRadius: 85, borderWidth: 3, borderColor: '#7FA6FF' },
   controls: { flexDirection: 'row', alignSelf: 'center', alignItems: 'center', gap: 16, padding: 12, borderRadius: 40, backgroundColor: 'rgba(10,15,42,0.6)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.12)' },

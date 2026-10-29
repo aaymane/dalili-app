@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { View } from 'react-native';
 import { useDerivedValue, useReducedMotion, useSharedValue, withDelay, withTiming } from 'react-native-reanimated';
 
+import { useT } from '@/i18n';
 import { EASE_OUT } from '@/theme/motion';
 import { useTheme } from '@/theme/scheme';
 
@@ -27,6 +28,7 @@ type Props = { helped: number; waiting: number };
  */
 export function Constellation({ helped, waiting }: Props) {
   const { c } = useTheme();
+  const t = useT();
   const reduce = useReducedMotion();
   const [width, setWidth] = useState(0);
   const draw = useSharedValue(reduce ? 1 : 0);
@@ -49,7 +51,7 @@ export function Constellation({ helped, waiting }: Props) {
   // Chaque étoile s'allume quand son trait l'atteint.
   const lit = useDerivedValue(() => Math.min(1, Math.max(0, (draw.get() - 0.55) / 0.45)));
 
-  const label = `Tu aides ${helped} étudiant${helped > 1 ? 's' : ''}${waiting ? `, ${waiting} attend${waiting > 1 ? 'ent' : ''} ta réponse` : ''}`;
+  const label = t('mentors.constellation.helped', { count: helped }) + (waiting ? t('mentors.constellation.waiting', { count: waiting }) : '');
 
   return (
     <View style={{ height: HEIGHT }} onLayout={(e) => setWidth(e.nativeEvent.layout.width)} accessible accessibilityRole="image" accessibilityLabel={label}>
