@@ -83,8 +83,20 @@ export function TrustNote() {
   );
 }
 
-/** Zone de saisie : grandit jusqu'à 5 lignes, envoie avec la flèche. */
-export function Composer({ onSend, onTyping, disabled }: { onSend: (body: string) => void; onTyping: () => void; disabled?: boolean }) {
+/** Zone de saisie : grandit jusqu'à 5 lignes, envoie avec la flèche. Sert aussi aux commentaires. */
+export function Composer({
+  onSend,
+  onTyping,
+  disabled,
+  placeholder = 'Écris ton message…',
+  label = 'Ton message',
+}: {
+  onSend: (body: string) => void;
+  onTyping?: () => void;
+  disabled?: boolean;
+  placeholder?: string;
+  label?: string;
+}) {
   const theme = useRoleTheme();
   const [text, setText] = useState('');
   const ready = !disabled && text.trim().length > 0;
@@ -99,15 +111,15 @@ export function Composer({ onSend, onTyping, disabled }: { onSend: (body: string
         value={text}
         onChangeText={(t) => {
           setText(t);
-          if (t.trim()) onTyping();
+          if (t.trim()) onTyping?.();
         }}
-        placeholder="Écris ton message…"
+        placeholder={placeholder}
         placeholderTextColor={palette.muted}
         style={styles.input}
         multiline
         maxLength={2000}
         editable={!disabled}
-        accessibilityLabel="Ton message"
+        accessibilityLabel={label}
       />
       <PressableScale onPress={send} disabled={!ready} haptic="tap" accessibilityLabel="Envoyer">
         <LinearGradient colors={theme.gradient} style={[styles.send, !ready && { opacity: 0.4 }]}>

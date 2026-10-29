@@ -50,6 +50,9 @@ export type Post = {
   comments: { author: string; body: string; isAuthor?: boolean }[];
 };
 
+/** Un commentaire écrit sur ce téléphone en mode démo. */
+export type LocalComment = { id: string; postId: string; author: string; body: string; createdAt: string };
+
 export type CommunityEvent = {
   id: string;
   groupId?: string;

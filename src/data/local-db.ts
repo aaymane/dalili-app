@@ -3,7 +3,7 @@ import { persist } from 'zustand/middleware';
 
 import { persistStorage } from '@/lib/storage';
 
-import type { Booking, CommunityEvent, Group, Post } from './types';
+import type { Booking, CommunityEvent, Group, LocalComment, Post } from './types';
 
 /**
  * « Base locale » : stocke les actions de l'utilisateur (rejoindre, poster, réserver…).
@@ -14,6 +14,8 @@ type LocalDb = {
   joinedGroups: string[];
   createdGroups: Group[];
   posts: Post[];
+  /** Mode démo : tes commentaires (avec Supabase, la base est la vérité). */
+  comments: LocalComment[];
   likedPosts: string[];
   joinedEvents: string[];
   createdEvents: CommunityEvent[];
@@ -26,6 +28,8 @@ type LocalDb = {
   toggleGroup: (id: string) => void;
   addGroup: (g: Group) => void;
   addPost: (p: Post) => void;
+  addComment: (c: LocalComment) => void;
+  removeComment: (id: string) => void;
   toggleLike: (id: string) => void;
   toggleEvent: (id: string) => void;
   addEvent: (e: CommunityEvent) => void;
@@ -42,6 +46,7 @@ const initial = {
   joinedGroups: [] as string[],
   createdGroups: [] as Group[],
   posts: [] as Post[],
+  comments: [] as LocalComment[],
   likedPosts: [] as string[],
   joinedEvents: [] as string[],
   createdEvents: [] as CommunityEvent[],
@@ -61,6 +66,8 @@ export const useLocalDb = create<LocalDb>()(
       toggleGroup: (id) => set((s) => ({ joinedGroups: toggleIn(s.joinedGroups, id) })),
       addGroup: (g) => set((s) => ({ createdGroups: [g, ...s.createdGroups], joinedGroups: [...s.joinedGroups, g.id] })),
       addPost: (p) => set((s) => ({ posts: [p, ...s.posts] })),
+      addComment: (c) => set((s) => ({ comments: [...s.comments, c] })),
+      removeComment: (id) => set((s) => ({ comments: s.comments.filter((c) => c.id !== id) })),
       toggleLike: (id) => set((s) => ({ likedPosts: toggleIn(s.likedPosts, id) })),
       toggleEvent: (id) => set((s) => ({ joinedEvents: toggleIn(s.joinedEvents, id) })),
       addEvent: (e) => set((s) => ({ createdEvents: [e, ...s.createdEvents], joinedEvents: [...s.joinedEvents, e.id] })),

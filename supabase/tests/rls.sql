@@ -192,6 +192,48 @@ select tests.must_count('B a quitté le groupe : son commentaire reste signé «
   $q$select 1 from public.posts_with_author where comments -> 0 ->> 'author' = 'Membre DALILI'$q$, 1);
 rollback;
 
+-- ───────────── commentaires : membres du groupe, auteur et heure fixés par la base, chacun supprime le sien ─────────────
+begin;
+update public.profiles set first_name = 'Aymen', last_name = 'Amri' where id = '00000000-0000-0000-0000-00000000000a';
+update public.profiles set first_name = 'Salma', last_name = 'Bennani' where id = '00000000-0000-0000-0000-00000000000b';
+insert into public.group_members (group_id, user_id) values
+  ('00000000-0000-0000-0000-0000000000c1', '00000000-0000-0000-0000-00000000000a'),
+  ('00000000-0000-0000-0000-0000000000c1', '00000000-0000-0000-0000-00000000000b');
+insert into public.posts (id, group_id, author_id, body) values
+  ('00000000-0000-0000-0000-0000000000a1', '00000000-0000-0000-0000-0000000000c1', '00000000-0000-0000-0000-00000000000a', 'Qui a fait sa CAF ?');
+set local role anon;
+select tests.must_fail('anon lit les commentaires', 'select * from public.comments_with_author');
+reset role;
+
+set local role authenticated;
+set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-00000000000b","role":"authenticated"}';
+insert into public.comments (post_id, body) values ('00000000-0000-0000-0000-0000000000a1', '  Moi, je t''explique !  ');
+select tests.must_count('B commente : nom affichable, texte nettoyé, c''est le sien',
+  $q$select * from public.comments_with_author where author_name = 'Salma B.' and body = 'Moi, je t''explique !' and is_mine and not is_post_author$q$, 1);
+select tests.must_fail('B commente au nom de A',
+  $q$insert into public.comments (post_id, body, author_id) values ('00000000-0000-0000-0000-0000000000a1', 'Faux', '00000000-0000-0000-0000-00000000000a')$q$);
+select tests.must_fail('B antidate un commentaire',
+  $q$insert into public.comments (post_id, body, created_at) values ('00000000-0000-0000-0000-0000000000a1', 'Hier', now() - interval '1 day')$q$);
+select tests.must_fail('B commente avec des espaces seulement', $q$insert into public.comments (post_id, body) values ('00000000-0000-0000-0000-0000000000a1', '   ')$q$);
+select tests.must_fail('B modifie son commentaire', $q$update public.comments set body = 'Autre chose'$q$);
+
+set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-00000000000a","role":"authenticated"}';
+insert into public.comments (post_id, body) values ('00000000-0000-0000-0000-0000000000a1', 'Merci Salma !');
+select tests.must_count('A voit les deux, le sien marqué « auteur du post »',
+  $q$select * from public.comments_with_author where (author_name = 'Aymen A.' and is_post_author and is_mine) or (author_name = 'Salma B.' and not is_mine)$q$, 2);
+delete from public.comments where body = 'Moi, je t''explique !';
+select tests.must_count('A ne peut pas supprimer le commentaire de B', $q$select * from public.comments_with_author where author_name = 'Salma B.'$q$, 1);
+delete from public.comments where body = 'Merci Salma !';
+select tests.must_count('A supprime le sien', $q$select * from public.comments_with_author where author_name = 'Aymen A.'$q$, 0);
+insert into public.comments (post_id, body) select '00000000-0000-0000-0000-0000000000a1', 'c' || g from generate_series(1, 10) g;
+select tests.must_fail('A, 10 commentaires en une minute : le 11e attend', $q$insert into public.comments (post_id, body) values ('00000000-0000-0000-0000-0000000000a1', 'Encore')$q$);
+
+set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-00000000000c","role":"authenticated"}';
+select tests.must_count('C, hors du groupe, ne voit aucun commentaire', 'select * from public.comments_with_author', 0);
+select tests.must_fail('C commente sans être membre', $q$insert into public.comments (post_id, body) values ('00000000-0000-0000-0000-0000000000a1', 'Coucou')$q$);
+reset role;
+rollback;
+
 -- ───────────── mentorat : une réservation est une demande que le mentor accepte ou décline ─────────────
 begin;
 update public.profiles set first_name = 'Aymen', last_name = 'Amri', origin_city = 'Casablanca', country = 'MA' where id = '00000000-0000-0000-0000-00000000000a';

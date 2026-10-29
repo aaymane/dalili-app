@@ -126,7 +126,7 @@ export default function GroupPage() {
                 </View>
               </PressableScale>
               {posts.map((p) => (
-                <PostCard key={p.id} p={p} city={g.city} />
+                <PostCard key={p.id} p={p} city={g.city} onOpen={() => router.push({ pathname: '/(app)/post/[id]', params: { id: p.id, groupId: g.id } })} />
               ))}
               {!posts.length && (
                 <Text variant="small" color={palette.muted} align="center">

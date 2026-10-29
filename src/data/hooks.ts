@@ -86,10 +86,16 @@ export function usePosts(groupId?: string) {
   const q = useQuery({ queryKey: ['posts', groupId], queryFn: () => fetchPosts(groupId!), enabled: !!groupId });
   const local = useLocalDb((s) => s.posts);
   const liked = useLocalDb((s) => s.likedPosts);
+  const localComments = useLocalDb((s) => s.comments);
   const data = useMemo(() => {
     const all = [...local.filter((p) => p.groupId === groupId), ...(q.data ?? [])];
-    return all.map((p) => ({ ...p, liked: liked.includes(p.id), likes: p.likes + (liked.includes(p.id) ? 1 : 0) }));
-  }, [q.data, local, liked, groupId]);
+    return all.map((p) => ({
+      ...p,
+      comments: [...p.comments, ...localComments.filter((c) => c.postId === p.id).map((c) => ({ author: c.author, body: c.body, isAuthor: false }))],
+      liked: liked.includes(p.id),
+      likes: p.likes + (liked.includes(p.id) ? 1 : 0),
+    }));
+  }, [q.data, local, liked, localComments, groupId]);
   return { ...q, data };
 }
 

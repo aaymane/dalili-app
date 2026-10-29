@@ -16,7 +16,11 @@ const ago = (iso: string) => {
   return `il y a ${Math.round(h / 24)} j`;
 };
 
-export function PostCard({ p, city }: { p: PostWithState; city?: string }) {
+/**
+ * Un post du fil. `onOpen` : ouvrir la publication et tous ses commentaires (sur la carte, les 2 derniers).
+ * `hideComments` : sur l'écran du post, qui les affiche lui-même.
+ */
+export function PostCard({ p, city, onOpen, hideComments }: { p: PostWithState; city?: string; onOpen?: () => void; hideComments?: boolean }) {
   const toggleLike = useLocalDb((s) => s.toggleLike);
   const scale = useSharedValue(1);
   const heart = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }));
@@ -35,7 +39,13 @@ export function PostCard({ p, city }: { p: PostWithState; city?: string }) {
         </View>
         <MoreHorizontal size={18} color={palette.muted} />
       </View>
-      <Text variant="body">{p.body}</Text>
+      {onOpen ? (
+        <PressableScale onPress={onOpen} scaleTo={0.99} haptic={false} accessibilityLabel={`Ouvrir la publication de ${p.author}`}>
+          <Text variant="body">{p.body}</Text>
+        </PressableScale>
+      ) : (
+        <Text variant="body">{p.body}</Text>
+      )}
       <View style={styles.actions}>
         <PressableScale
           haptic="select"
@@ -52,18 +62,23 @@ export function PostCard({ p, city }: { p: PostWithState; city?: string }) {
             {p.likes}
           </Text>
         </PressableScale>
-        <View style={styles.action}>
+        <PressableScale
+          onPress={onOpen}
+          disabled={!onOpen}
+          hitSlop={6}
+          style={styles.action}
+          accessibilityLabel={`${p.comments.length} commentaire${p.comments.length > 1 ? 's' : ''}. Commenter`}>
           <MessageCircle size={18} color={palette.subtle} />
           <Text variant="smallStrong" color={palette.subtle}>
             {p.comments.length}
           </Text>
-        </View>
+        </PressableScale>
         <View style={{ flex: 1 }} />
         <PressableScale onPress={() => Share.share({ message: `${p.author} sur DALILI : ${p.body}` }).catch(() => {})} accessibilityLabel="Partager">
           <Share2 size={18} color={palette.subtle} />
         </PressableScale>
       </View>
-      {p.comments.map((c, i) => (
+      {hideComments ? null : p.comments.slice(-2).map((c, i) => (
         <View key={i} style={[styles.comment, c.isAuthor && { marginLeft: 28, backgroundColor: '#EEF3FF' }]}>
           <Avatar name={c.author} size={26} color="#94A3B8" />
           <View style={{ flex: 1 }}>
@@ -75,6 +90,13 @@ export function PostCard({ p, city }: { p: PostWithState; city?: string }) {
           </View>
         </View>
       ))}
+      {!hideComments && onOpen && p.comments.length > 2 ? (
+        <PressableScale onPress={onOpen} hitSlop={6} style={styles.more}>
+          <Text variant="smallStrong" color={palette.electric}>
+            Voir les {p.comments.length} commentaires
+          </Text>
+        </PressableScale>
+      ) : null}
     </View>
   );
 }
@@ -83,5 +105,6 @@ const styles = StyleSheet.create({
   card: { padding: 16, gap: 12, borderRadius: radius.xl, backgroundColor: '#fff', ...shadow.sm },
   actions: { flexDirection: 'row', alignItems: 'center', gap: 18, borderTopWidth: 1, borderTopColor: palette.line, paddingTop: 12 },
   action: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  more: { minHeight: 36, justifyContent: 'center' },
   comment: { flexDirection: 'row', gap: 8, padding: 10, borderRadius: radius.md, backgroundColor: '#F7F8FC' },
 });

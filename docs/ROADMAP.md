@@ -34,7 +34,7 @@
 - [ ] **Espace mentor complet**
   > `/fonctionnalite Espace mentor : formulaire « Devenir mentor » (ville, parcours, spécialités, langues, citation) qui crée la ligne mentors, gestion des créneaux (table mentor_slots + RLS), demandes reçues lues depuis bookings avec accepter/refuser, statistiques réelles.`
 
-- [ ] **Commentaires sur les posts**
+- [x] **Commentaires sur les posts** : plein écran, champ collé au clavier, supprimer le sien (29/10)
   > `/fonctionnalite Commentaires : ouvrir un post en plein écran, liste des commentaires, champ de saisie collant au clavier, insertion dans la table comments (RLS membres), mise à jour optimiste.`
 
 - [ ] **Écoles partenaires (« Nos partenaires »)**
