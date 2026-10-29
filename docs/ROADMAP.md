@@ -37,7 +37,7 @@
 - [x] **Commentaires sur les posts** : plein écran, champ collé au clavier, supprimer le sien (29/10)
   > `/fonctionnalite Commentaires : ouvrir un post en plein écran, liste des commentaires, champ de saisie collant au clavier, insertion dans la table comments (RLS membres), mise à jour optimiste.`
 
-- [x] **Écoles partenaires (« Nos partenaires »)** : Digital Campus Nantes, demande gardée par DALILI (29/10) — publier après l'accord de l'école
+- [x] **Écoles partenaires (« Nos partenaires »)** : Digital Campus Nantes publiée, présentation « Découvrir en 30 s », demande gardée par DALILI (29/10)
   > `/fonctionnalite Onglet Écoles partenaires dans Explorer : choisir formation, ville et établissement certifié par l'État, fiche école, bouton « Je suis intéressé·e » qui enregistre un lead (table school_leads avec RLS).`
 
 ## 🌍 Ensuite

@@ -122,27 +122,27 @@ export default function SchoolScreen() {
     <View style={styles.root}>
       <StatusBar style={overPhoto ? 'light' : 'dark'} animated />
       <Animated.View style={[styles.hero, heroStyle]}>
-        <SchoolCover school={school} height={HERO} cinematic>
-          <View style={[styles.heroText, { paddingBottom: 44 }]}>
-            <PartnerBadge dark />
-            <Text variant="hero" color={palette.white} style={styles.heroTitle}>
-              {school.name}
-            </Text>
-            {school.tagline ? (
-              <Text variant="body" color="rgba(255,255,255,0.88)" style={styles.heroTitle}>
-                {school.tagline}
-              </Text>
-            ) : null}
-            <DiscoverButton onPress={() => router.push({ pathname: '/(app)/ecole/decouvrir', params: { slug: school.slug } })} />
-          </View>
-        </SchoolCover>
+        <SchoolCover school={school} height={HERO} cinematic />
       </Animated.View>
 
       <Animated.ScrollView
         onScroll={onScroll}
         scrollEventThrottle={16}
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingTop: HERO - 28, paddingBottom: 130 + insets.bottom }}>
+        contentContainerStyle={{ paddingBottom: 130 + insets.bottom }}>
+        {/* Le titre et « Découvrir » défilent avec la page (et restent touchables) ; la photo glisse plus lentement derrière. */}
+        <View style={[styles.heroText, { height: HERO - 28, paddingBottom: 44 }]} pointerEvents="box-none">
+          <PartnerBadge dark />
+          <Text variant="hero" color={palette.white} style={styles.heroTitle}>
+            {school.name}
+          </Text>
+          {school.tagline ? (
+            <Text variant="body" color="rgba(255,255,255,0.88)" style={styles.heroTitle}>
+              {school.tagline}
+            </Text>
+          ) : null}
+          <DiscoverButton onPress={() => router.push({ pathname: '/(app)/ecole/decouvrir', params: { slug: school.slug } })} />
+        </View>
         <View style={styles.sheet}>
           {school.facts.length ? (
             <Animated.View entering={enter(i++)} style={styles.facts}>
@@ -327,7 +327,7 @@ export default function SchoolScreen() {
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: palette.bg },
   hero: { position: 'absolute', left: 0, right: 0, top: 0 },
-  heroText: { paddingHorizontal: 20, gap: 8 },
+  heroText: { paddingHorizontal: 20, gap: 8, justifyContent: 'flex-end' },
   heroTitle: { textShadowColor: 'rgba(0,0,0,0.35)', textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 12 },
   sheet: { gap: 26, paddingHorizontal: 20, paddingTop: 24, borderTopLeftRadius: 28, borderTopRightRadius: 28, backgroundColor: palette.bg, minHeight: 600 },
   facts: { flexDirection: 'row', gap: 10 },
@@ -343,7 +343,7 @@ const styles = StyleSheet.create({
   row: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 14, paddingVertical: 12, minHeight: 56 },
   intl: { flexDirection: 'row', gap: 12, padding: 16, borderRadius: radius.xl, backgroundColor: palette.white, ...shadow.sm },
   source: { flexDirection: 'row', alignItems: 'center', gap: 6, minHeight: 44 },
-  bar: { position: 'absolute', left: 0, right: 0, top: 0, justifyContent: 'center', backgroundColor: 'rgba(245,247,253,0.97)', borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: palette.line },
+  bar: { position: 'absolute', left: 0, right: 0, top: 0, justifyContent: 'center', backgroundColor: palette.bg, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: palette.line },
   back: { position: 'absolute', left: 16, width: 44, height: 44, borderRadius: 22, backgroundColor: palette.white, alignItems: 'center', justifyContent: 'center', ...shadow.sm },
   footer: { position: 'absolute', left: 0, right: 0, bottom: 0, paddingHorizontal: 20, paddingTop: 12, backgroundColor: palette.bg },
   fade: { position: 'absolute', left: 0, right: 0, top: -28, height: 28 },
