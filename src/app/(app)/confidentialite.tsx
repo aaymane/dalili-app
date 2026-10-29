@@ -1,11 +1,12 @@
 import * as WebBrowser from 'expo-web-browser';
-import { BadgeCheck, ChevronRight, ExternalLink, Flag, GraduationCap, Image as ImageIcon, KeyRound, Lock, Map, MessageCircle, Sparkles, Trash2 } from 'lucide-react-native';
+import { BadgeCheck, ExternalLink, Flag, GraduationCap, Image as ImageIcon, KeyRound, Lock, Map, MessageCircle, Sparkles, Trash2 } from 'lucide-react-native';
 import { useState, type ReactNode } from 'react';
 import { StyleSheet, Switch, View } from 'react-native';
 import Animated from 'react-native-reanimated';
 
 import { AppHeader } from '@/components/layout/AppHeader';
 import { Screen } from '@/components/layout/Screen';
+import { ChevronRight } from '@/components/ui/DirIcons';
 import { PressableScale } from '@/components/ui/PressableScale';
 import { Text } from '@/components/ui/Text';
 import { DeleteAccountSheet } from '@/features/auth/components/DeleteAccountSheet';

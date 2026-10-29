@@ -1,6 +1,6 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
-import { ArrowRight, ArrowUpRight, CalendarDays, ChevronLeft, Link2, MapPin, Tag as TagIcon } from 'lucide-react-native';
+import { CalendarDays, Link2, MapPin, Tag as TagIcon } from 'lucide-react-native';
 import { useState } from 'react';
 import { View } from 'react-native';
 import Animated from 'react-native-reanimated';
@@ -10,6 +10,7 @@ import { toast } from '@/components/feedback/Toast';
 import { Screen } from '@/components/layout/Screen';
 import { Avatar } from '@/components/ui/Avatar';
 import { Button } from '@/components/ui/Button';
+import { ArrowRight, ArrowUpRight, ChevronLeft } from '@/components/ui/DirIcons';
 import { PressableScale } from '@/components/ui/PressableScale';
 import { Text } from '@/components/ui/Text';
 import { remoteJoinEvent } from '@/data/api';

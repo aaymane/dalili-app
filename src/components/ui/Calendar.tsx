@@ -1,11 +1,12 @@
-import { ChevronLeft, ChevronRight } from 'lucide-react-native';
 import { useMemo, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, { useSharedValue } from 'react-native-reanimated';
 import { scheduleOnRN } from 'react-native-worklets';
 
-import { isSameDay, monthTitle, startOfDay } from '@/lib/date';
+import { ChevronLeft, ChevronRight } from '@/components/ui/DirIcons';
+import { useIsRTL, useT } from '@/i18n';
+import { isSameDay, monthTitle, startOfDay, weekInitials } from '@/lib/date';
 import { pop, slideIn, slideOut } from '@/theme/motion';
 import { makeStyles, useTheme } from '@/theme/scheme';
 import { radius } from '@/theme/tokens';
@@ -24,8 +25,6 @@ type Props = {
   minDate?: Date;
   accent?: string;
 };
-
-const WEEK = ['L', 'M', 'M', 'J', 'V', 'S', 'D'];
 
 /** Calendrier mensuel (semaine commençant le lundi). Flèches ou balayage horizontal pour changer de mois. */
 export function Calendar({ selected, onSelect, marked = [], highlight, initialMonth, minDate, accent }: Props) {
@@ -46,12 +45,16 @@ export function Calendar({ selected, onSelect, marked = [], highlight, initialMo
     return out;
   }, [cursor]);
 
+  const t = useT();
+  // En arabe, le mois suivant arrive par la gauche : le glissement et le balayage s'inversent.
+  const rtl = useIsRTL();
+  const side = rtl ? -1 : 1;
   const dir = useSharedValue(1);
   const move = (delta: number) => {
-    dir.set(delta);
+    dir.set(delta * side);
     setCursor((c) => {
       const d = new Date(c.y, c.m + delta, 1);
-      return { y: d.getFullYear(), m: d.getMonth(), dir: delta };
+      return { y: d.getFullYear(), m: d.getMonth(), dir: delta * side };
     });
   };
 
@@ -59,8 +62,8 @@ export function Calendar({ selected, onSelect, marked = [], highlight, initialMo
     .activeOffsetX([-20, 20])
     .failOffsetY([-14, 14])
     .onEnd((e) => {
-      if (e.translationX < -40 || e.velocityX < -500) scheduleOnRN(move, 1);
-      else if (e.translationX > 40 || e.velocityX > 500) scheduleOnRN(move, -1);
+      if (e.translationX < -40 || e.velocityX < -500) scheduleOnRN(move, side);
+      else if (e.translationX > 40 || e.velocityX > 500) scheduleOnRN(move, -side);
     });
 
   return (
@@ -70,16 +73,16 @@ export function Calendar({ selected, onSelect, marked = [], highlight, initialMo
           <Text variant="h3">{monthTitle(cursor.y, cursor.m)}</Text>
         </Animated.View>
         <View style={{ flexDirection: 'row', gap: 6 }}>
-          <PressableScale onPress={() => move(-1)} style={styles.nav} accessibilityLabel="Mois précédent">
+          <PressableScale onPress={() => move(-1)} style={styles.nav} accessibilityLabel={t('calendar.prev')}>
             <ChevronLeft size={16} color={c.subtle} />
           </PressableScale>
-          <PressableScale onPress={() => move(1)} style={styles.nav} accessibilityLabel="Mois suivant">
+          <PressableScale onPress={() => move(1)} style={styles.nav} accessibilityLabel={t('calendar.next')}>
             <ChevronRight size={16} color={c.subtle} />
           </PressableScale>
         </View>
       </View>
       <View style={styles.row}>
-        {WEEK.map((d, i) => (
+        {weekInitials().map((d, i) => (
           <View key={i} style={styles.cell}>
             <Text variant="caption" color={c.muted}>
               {d}

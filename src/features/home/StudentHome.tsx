@@ -1,5 +1,5 @@
 import { router } from 'expo-router';
-import { ChevronRight, Map, MessageCircle } from 'lucide-react-native';
+import { Map, MessageCircle } from 'lucide-react-native';
 import { useState } from 'react';
 import { ScrollView, View } from 'react-native';
 import Animated from 'react-native-reanimated';
@@ -7,6 +7,7 @@ import Animated from 'react-native-reanimated';
 import { AppHeader } from '@/components/layout/AppHeader';
 import { Reveal } from '@/components/motion/Reveal';
 import { Screen } from '@/components/layout/Screen';
+import { ChevronRight } from '@/components/ui/DirIcons';
 import { IconTile } from '@/components/ui/IconTile';
 import { PressableScale } from '@/components/ui/PressableScale';
 import { SectionHeader } from '@/components/ui/SectionHeader';

@@ -1,5 +1,5 @@
 import { router, useLocalSearchParams } from 'expo-router';
-import { ArrowRight, Bookmark, ChevronLeft, Clock, ThumbsDown, ThumbsUp, WifiOff } from 'lucide-react-native';
+import { Bookmark, Clock, ThumbsDown, ThumbsUp, WifiOff } from 'lucide-react-native';
 import { useEffect, useState } from 'react';
 import { View, type NativeScrollEvent, type NativeSyntheticEvent } from 'react-native';
 import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
@@ -8,6 +8,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { toast } from '@/components/feedback/Toast';
 import { Screen } from '@/components/layout/Screen';
 import { Button } from '@/components/ui/Button';
+import { ArrowRight, ChevronLeft } from '@/components/ui/DirIcons';
 import { PressableScale } from '@/components/ui/PressableScale';
 import { Text } from '@/components/ui/Text';
 import { readMinutes } from '@/data/content';

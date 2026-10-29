@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/Button';
 import { Text } from '@/components/ui/Text';
 import { haptics } from '@/lib/haptics';
 import { useTheme } from '@/theme/scheme';
+import { useT } from '@/i18n';
 
 import { uploadAvatar } from '../api';
 import { prepareAvatar } from '../avatar';
@@ -18,6 +19,7 @@ import { useProfile } from '../store';
 export function AvatarSheet({ visible, onClose }: { visible: boolean; onClose: () => void }) {
   const { c } = useTheme();
   const update = useProfile((s) => s.update);
+  const t = useT();
   // Choix en attente : la galerie ou l'appareil photo ne s'ouvre qu'une fois la feuille fermée.
   const pending = useRef<'camera' | 'library' | null>(null);
 
@@ -36,40 +38,40 @@ export function AvatarSheet({ visible, onClose }: { visible: boolean; onClose: (
     let uri: string | undefined;
     try {
       // La galerie n'a pas besoin d'autorisation : le sélecteur système ne donne que la photo choisie.
-      if (camera && !(await ImagePicker.requestCameraPermissionsAsync()).granted) return toast('Autorise l’appareil photo dans les réglages.', 'info');
+      if (camera && !(await ImagePicker.requestCameraPermissionsAsync()).granted) return toast(t('avatar.cameraPermission'), 'info');
       const options: ImagePicker.ImagePickerOptions = { mediaTypes: ['images'], allowsEditing: true, aspect: [1, 1], quality: 1 };
       const res = camera ? await ImagePicker.launchCameraAsync(options) : await ImagePicker.launchImageLibraryAsync(options);
       uri = res.canceled ? undefined : res.assets[0]?.uri;
     } catch {
-      return toast('Impossible d’ouvrir la photo.', 'info');
+      return toast(t('avatar.openFailed'), 'info');
     }
     if (!uri) return;
     let saved: Awaited<ReturnType<typeof prepareAvatar>>;
     try {
       saved = await prepareAvatar(uri);
     } catch {
-      return toast('Impossible de préparer la photo. Essaie avec une autre.', 'info');
+      return toast(t('avatar.prepareFailed'), 'info');
     }
     update({ avatarUri: saved.uri });
     haptics.success();
     try {
       await uploadAvatar(saved.uri, saved.name);
-      toast('Belle photo !');
+      toast(t('avatar.nice'));
     } catch {
-      toast('Photo gardée sur ton téléphone, mais pas encore envoyée en ligne. Vérifie ta connexion.', 'info');
+      toast(t('avatar.offline'), 'info');
     }
   };
 
   return (
     <BottomSheet visible={visible} onClose={onClose} onClosed={onClosed}>
       <View style={{ gap: 12 }}>
-        <Text variant="h2">Ta photo de profil</Text>
+        <Text variant="h2">{t('avatar.title')}</Text>
         <Text variant="small" color={c.muted}>
-          Pour l’instant, toi seul·e la vois. Avant l’envoi, on retire le lieu et les infos cachées de la photo.
+          {t('avatar.text')}
         </Text>
-        <Button label="Prendre une photo" variant="secondary" iconLeft={<Camera size={18} color={c.navy} />} onPress={() => choose('camera')} />
-        <Button label="Choisir dans la galerie" variant="secondary" iconLeft={<ImageIcon size={18} color={c.navy} />} onPress={() => choose('library')} />
-        <Button label="Annuler" variant="secondary" onPress={onClose} />
+        <Button label={t('avatar.take')} variant="secondary" iconLeft={<Camera size={18} color={c.navy} />} onPress={() => choose('camera')} />
+        <Button label={t('avatar.choose')} variant="secondary" iconLeft={<ImageIcon size={18} color={c.navy} />} onPress={() => choose('library')} />
+        <Button label={t('common.cancel')} variant="secondary" onPress={onClose} />
       </View>
     </BottomSheet>
   );

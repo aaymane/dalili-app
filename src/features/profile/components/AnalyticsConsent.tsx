@@ -9,6 +9,7 @@ import { IconTile } from '@/components/ui/IconTile';
 import { Text } from '@/components/ui/Text';
 import { countryOf } from '@/features/journey/steps';
 import { useProfile } from '@/features/profile/store';
+import { useT } from '@/i18n';
 import { analyticsAvailable, setAnalyticsContext, trackScreen, useAnalyticsConsent } from '@/lib/analytics';
 import { useTheme } from '@/theme/scheme';
 
@@ -37,6 +38,7 @@ export function AnalyticsConsentSheet() {
   const { c } = useTheme();
   const consent = useAnalyticsConsent((s) => s.consent);
   const setConsent = useAnalyticsConsent((s) => s.setConsent);
+  const t = useT();
   const onboarded = useProfile((s) => s.onboardingDone);
   const [visible, setVisible] = useState(false);
 
@@ -57,17 +59,17 @@ export function AnalyticsConsentSheet() {
       <View style={{ gap: 16 }}>
         <IconTile icon={BarChart3} tone="blue" size={52} radius={17} />
         <View style={{ gap: 6 }}>
-          <Text variant="h2">Tu nous aides à améliorer DALILI ?</Text>
+          <Text variant="h2">{t('consent.title')}</Text>
           <Text variant="body" color={c.subtle}>
-            Des statistiques anonymes : quels écrans servent, quelles étapes bloquent. Jamais ton nom, ton email, tes messages ni tes questions à Dalili IA.
+            {t('consent.text')}
           </Text>
         </View>
         <View style={{ gap: 10 }}>
-          <Button label="Oui, j’aide" onPress={() => answer(true)} />
-          <Button label="Non merci" variant="ghost" onPress={() => answer(false)} />
+          <Button label={t('consent.yes')} onPress={() => answer(true)} />
+          <Button label={t('consent.no')} variant="ghost" onPress={() => answer(false)} />
         </View>
         <Text variant="caption" color={c.muted} align="center">
-          Tu peux changer d’avis quand tu veux, dans Profil › Confidentialité.
+          {t('consent.later')}
         </Text>
       </View>
     </BottomSheet>

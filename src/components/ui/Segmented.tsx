@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { View, type LayoutChangeEvent } from 'react-native';
 import Animated, { useAnimatedStyle, withSpring } from 'react-native-reanimated';
 
+import { useIsRTL } from '@/i18n';
 import { haptics } from '@/lib/haptics';
 import { makeStyles, useTheme } from '@/theme/scheme';
 import { motion, radius } from '@/theme/tokens';
@@ -26,9 +27,11 @@ export function Segmented<T extends string>({ options, value, onChange, accent, 
   const [w, setW] = useState(0);
   const idx = Math.max(0, options.findIndex((o) => o.value === value));
   const seg = w / options.length;
+  // En arabe, la première option est à droite : le curseur part de là.
+  const slot = useIsRTL() ? options.length - 1 - idx : idx;
   const thumb = useAnimatedStyle(() => ({
     width: seg - 8,
-    transform: [{ translateX: withSpring(idx * seg + 4, motion.spring) }],
+    transform: [{ translateX: withSpring(slot * seg + 4, motion.spring) }],
   }));
 
   if (kind === 'pills') {

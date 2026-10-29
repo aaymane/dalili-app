@@ -1,6 +1,6 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
-import { ChevronRight, Globe2, Home } from 'lucide-react-native';
+import { Globe2, Home } from 'lucide-react-native';
 import type { ReactNode } from 'react';
 import { StyleSheet, View } from 'react-native';
 import Animated from 'react-native-reanimated';
@@ -8,9 +8,11 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { LogoOrb } from '@/components/brand/LogoOrb';
 import { NightBackground } from '@/components/layout/NightBackground';
+import { ChevronRight } from '@/components/ui/DirIcons';
 import { PressableScale } from '@/components/ui/PressableScale';
 import { Text } from '@/components/ui/Text';
 import { useProfile } from '@/features/profile/store';
+import { useT } from '@/i18n';
 import { useTheme } from '@/theme/scheme';
 import { rise } from '@/theme/motion';
 
@@ -46,6 +48,7 @@ export default function Situation() {
   const { c } = useTheme();
   const insets = useSafeAreaInsets();
   const update = useProfile((s) => s.update);
+  const t = useT();
   return (
     <View style={{ flex: 1, paddingTop: insets.top, paddingBottom: insets.bottom + 20 }}>
       <NightBackground />
@@ -58,18 +61,18 @@ export default function Situation() {
             DALILI
           </Text>
           <Text variant="hero" color="#fff" align="center">
-            Où vis-tu{'\n'}en ce moment ?
+            {t('onboarding.situation.title')}
           </Text>
           <Text variant="small" color="rgba(255,255,255,0.55)" align="center">
-            On adapte toute l’expérience selon ta situation
+            {t('onboarding.situation.text')}
           </Text>
         </Animated.View>
       </View>
       <View style={{ gap: 14, paddingHorizontal: 20, maxWidth: 520, width: '100%', alignSelf: 'center' }}>
         <SituationCard
-          title="Je vis à l’étranger"
-          text="J’arrive bientôt en France pour mes études"
-          badge="ÉTUDIANT"
+          title={t('onboarding.situation.abroad')}
+          text={t('onboarding.situation.abroadText')}
+          badge={t('onboarding.situation.abroadBadge')}
           colors={['#5B8BFF', '#1F56F5']}
           icon={<Globe2 size={26} color="#fff" />}
           delay={250}
@@ -79,9 +82,9 @@ export default function Situation() {
           }}
         />
         <SituationCard
-          title="Je vis déjà en France"
-          text="Je peux aider les nouveaux arrivants"
-          badge="MENTOR · HÔTE"
+          title={t('onboarding.situation.inFrance')}
+          text={t('onboarding.situation.inFranceText')}
+          badge={t('onboarding.situation.inFranceBadge')}
           colors={['#34D399', c.mentor]}
           icon={<Home size={26} color="#fff" />}
           delay={340}

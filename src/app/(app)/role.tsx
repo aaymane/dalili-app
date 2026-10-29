@@ -8,6 +8,7 @@ import { IconTile } from '@/components/ui/IconTile';
 import { PressableScale } from '@/components/ui/PressableScale';
 import { Text } from '@/components/ui/Text';
 import { useProfile } from '@/features/profile/store';
+import { useT } from '@/i18n';
 import { haptics } from '@/lib/haptics';
 import { makeStyles, useTheme } from '@/theme/scheme';
 import { radius, roleColors, type Role, type Tone } from '@/theme/tokens';
@@ -20,11 +21,12 @@ export default function RoleSwitcher() {
   const active = useProfile((s) => s.profile.activeRole);
   const isMentor = useProfile((s) => s.profile.roles.includes('mentor'));
   const setActiveRole = useProfile((s) => s.setActiveRole);
+  const t = useT();
 
   const choose = (r: Role) => {
     if (r === 'host') {
       haptics.warning();
-      return toast('L’espace Hôte arrive bientôt 🏡', 'info');
+      return toast(t('role.hostSoon'), 'info');
     }
     haptics.success();
     setActiveRole(r);
@@ -32,16 +34,16 @@ export default function RoleSwitcher() {
   };
 
   const rows: { role: Role; text: string; icon: LucideIcon; tone: Tone }[] = [
-    { role: 'student', text: 'Tes démarches, ton parcours, ta ville', icon: Backpack, tone: 'blue' },
-    { role: 'mentor', text: isMentor ? 'Tes demandes d’appel et tes créneaux' : 'Aide les nouveaux arrivants, gratuitement', icon: HeartHandshake, tone: 'green' },
-    { role: 'host', text: 'Accueillir un étudiant à son arrivée', icon: House, tone: 'orange' },
+    { role: 'student', text: t('role.student'), icon: Backpack, tone: 'blue' },
+    { role: 'mentor', text: isMentor ? t('role.mentorActive') : t('role.mentorNew'), icon: HeartHandshake, tone: 'green' },
+    { role: 'host', text: t('role.host'), icon: House, tone: 'orange' },
   ];
 
   return (
     <View style={styles.root}>
-      <Text variant="h1">Comment veux-tu vivre{'\n'}l’app aujourd’hui ?</Text>
+      <Text variant="h1">{t('role.title')}</Text>
       <Text variant="body" color={colors.subtle} style={{ marginTop: 6, marginBottom: 18 }}>
-        Un seul compte : tes données et tes conversations te suivent.
+        {t('role.text')}
       </Text>
       <View style={styles.list}>
         {rows.map((c, i) => {
@@ -55,19 +57,19 @@ export default function RoleSwitcher() {
                 style={[styles.row, i > 0 && styles.sep]}
                 accessibilityRole="radio"
                 accessibilityState={{ selected: on, disabled: soon }}
-                accessibilityLabel={`${roleColors[c.role].label}${soon ? ', bientôt' : ''}`}>
+                accessibilityLabel={soon ? t('role.soonA11y', { role: t(`roles.${c.role}`) }) : t(`roles.${c.role}`)}>
                 <View style={soon && { opacity: 0.55 }}>
                   <IconTile icon={c.icon} tone={c.tone} size={46} radius={15} />
                 </View>
                 <View style={{ flex: 1, gap: 2 }}>
                   <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
                     <Text variant="h3" color={soon ? colors.muted : colors.navy}>
-                      {roleColors[c.role].label}
+                      {t(`roles.${c.role}`)}
                     </Text>
                     {soon ? (
                       <View style={styles.soon}>
                         <Text variant="caption" color={colors.subtle}>
-                          Bientôt
+                          {t('common.soon')}
                         </Text>
                       </View>
                     ) : null}

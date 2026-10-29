@@ -1,5 +1,4 @@
 import { router, useLocalSearchParams } from 'expo-router';
-import { ArrowRight } from 'lucide-react-native';
 import { useState } from 'react';
 import { View } from 'react-native';
 
@@ -8,6 +7,7 @@ import { AppHeader } from '@/components/layout/AppHeader';
 import { Screen } from '@/components/layout/Screen';
 import { Avatar } from '@/components/ui/Avatar';
 import { Button } from '@/components/ui/Button';
+import { ArrowRight } from '@/components/ui/DirIcons';
 import { Input } from '@/components/ui/Input';
 import { Text } from '@/components/ui/Text';
 import { remoteCreatePost } from '@/data/api';

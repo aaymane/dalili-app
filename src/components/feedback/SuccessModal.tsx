@@ -6,6 +6,7 @@ import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
 import { Button } from '@/components/ui/Button';
 import { PressableScale } from '@/components/ui/PressableScale';
 import { Text } from '@/components/ui/Text';
+import { useDirection, useT } from '@/i18n';
 import { haptics } from '@/lib/haptics';
 import { makeStyles, useTheme } from '@/theme/scheme';
 import { cardIn, cardOut, pop } from '@/theme/motion';
@@ -23,8 +24,11 @@ type Props = {
 };
 
 /** Carte de succès (« Rendez-vous confirmé ! », « Groupe créé ! »…) + confettis. */
-export function SuccessModal({ visible, title, message, cta, onCta, onClose, closeLabel = 'Fermer' }: Props) {
+export function SuccessModal({ visible, title, message, cta, onCta, onClose, closeLabel }: Props) {
   const { c } = useTheme();
+  const t = useT();
+  const direction = useDirection();
+  closeLabel ??= t('common.close');
   const styles = useStyles();
   useEffect(() => {
     if (visible) {
@@ -44,7 +48,7 @@ export function SuccessModal({ visible, title, message, cta, onCta, onClose, clo
   return (
     <Modal transparent visible animationType="none" onRequestClose={onClose ?? onCta} statusBarTranslucent>
       {visible && (
-        <Animated.View entering={FadeIn.duration(240)} exiting={FadeOut.duration(200)} style={styles.backdrop}>
+        <Animated.View entering={FadeIn.duration(240)} exiting={FadeOut.duration(200)} style={[styles.backdrop, { direction }]}>
           <Pressable style={StyleSheet.absoluteFill} onPress={onClose} accessibilityRole="button" accessibilityLabel={closeLabel} />
           <Animated.View entering={cardIn} exiting={cardOut} style={styles.card}>
             <Animated.View entering={pop(200)} style={styles.check}>

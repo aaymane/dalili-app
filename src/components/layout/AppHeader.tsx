@@ -1,14 +1,16 @@
 import { router } from 'expo-router';
-import { Bell, ChevronLeft, MessageCircle } from 'lucide-react-native';
+import { Bell, MessageCircle } from 'lucide-react-native';
 import { View } from 'react-native';
 
 import { LogoMark } from '@/components/brand/Logo';
 import { Avatar } from '@/components/ui/Avatar';
+import { ChevronLeft } from '@/components/ui/DirIcons';
 import { PressableScale } from '@/components/ui/PressableScale';
 import { Text } from '@/components/ui/Text';
 import { useUnreadCount } from '@/features/messages/hooks';
 import { RoleSwitch } from '@/features/profile/components/RoleSwitch';
 import { useProfile } from '@/features/profile/store';
+import { useT } from '@/i18n';
 import { makeStyles, useTheme } from '@/theme/scheme';
 
 type Props = {
@@ -26,15 +28,16 @@ export function AppHeader({ back, title, pill, onBack, hideActions, roleSwitch }
   const { c } = useTheme();
   const styles = useStyles();
   const profile = useProfile((s) => s.profile);
+  const t = useT();
   return (
     <View style={styles.row}>
       <View style={styles.left}>
         {back ? (
-          <PressableScale onPress={onBack ?? (() => router.back())} style={styles.round} accessibilityLabel="Retour">
+          <PressableScale onPress={onBack ?? (() => router.back())} style={styles.round} accessibilityLabel={t('common.back')}>
             <ChevronLeft size={20} color={c.navy} />
           </PressableScale>
         ) : (
-          <PressableScale onPress={() => router.navigate('/(app)/(tabs)')} accessibilityLabel="Accueil" haptic={false}>
+          <PressableScale onPress={() => router.navigate('/(app)/(tabs)')} accessibilityLabel={t('common.home')} haptic={false}>
             <LogoMark size={30} />
           </PressableScale>
         )}
@@ -55,11 +58,11 @@ export function AppHeader({ back, title, pill, onBack, hideActions, roleSwitch }
       {!hideActions && (
         <View style={styles.actions}>
           <MessagesButton />
-          <PressableScale onPress={() => router.push('/(app)/notifications')} style={styles.round} accessibilityLabel="Notifications">
+          <PressableScale onPress={() => router.push('/(app)/notifications')} style={styles.round} accessibilityLabel={t('common.notifications')}>
             <Bell size={18} color={c.navy} />
             <View style={styles.badge} />
           </PressableScale>
-          <PressableScale onPress={() => router.navigate('/(app)/(tabs)/profil')} accessibilityLabel="Mon profil">
+          <PressableScale onPress={() => router.navigate('/(app)/(tabs)/profil')} accessibilityLabel={t('common.myProfile')}>
             <Avatar name={`${profile.firstName} ${profile.lastName}`} uri={profile.avatarUri} size={38} ring="#fff" />
           </PressableScale>
         </View>
@@ -73,11 +76,12 @@ function MessagesButton() {
   const { c } = useTheme();
   const styles = useStyles();
   const unread = useUnreadCount();
+  const t = useT();
   return (
     <PressableScale
       onPress={() => router.push('/(app)/messages')}
       style={styles.round}
-      accessibilityLabel={unread ? `Messages, ${unread} non lu${unread > 1 ? 's' : ''}` : 'Messages'}>
+      accessibilityLabel={unread ? t('common.messagesUnread', { count: unread }) : t('common.messages')}>
       <MessageCircle size={18} color={c.navy} />
       {unread ? (
         <View style={styles.count}>

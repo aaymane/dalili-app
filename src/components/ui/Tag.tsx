@@ -1,6 +1,7 @@
 import { Check } from 'lucide-react-native';
 import { View, type StyleProp, type ViewStyle } from 'react-native';
 
+import { useT } from '@/i18n';
 import { makeStyles, useTheme } from '@/theme/scheme';
 import { radius } from '@/theme/tokens';
 
@@ -28,16 +29,17 @@ export function StatusPill({ status, label }: { status: Status; label?: string }
   const { c } = useTheme();
   const styles = useStyles();
   const map = {
-    done: { bg: c.successSoft, fg: c.success, text: 'Fait' },
-    todo: { bg: c.fill, fg: c.muted, text: 'À venir' },
-    current: { bg: c.electric, fg: c.white, text: 'À toi de jouer' },
-    late: { bg: c.dangerSoft, fg: c.danger, text: 'En retard' },
-    soon: { bg: c.dangerSoft, fg: c.danger, text: 'Bientôt' },
+    done: { bg: c.successSoft, fg: c.success },
+    todo: { bg: c.fill, fg: c.muted },
+    current: { bg: c.electric, fg: c.white },
+    late: { bg: c.dangerSoft, fg: c.danger },
+    soon: { bg: c.dangerSoft, fg: c.danger },
   }[status];
+  const t = useT();
   return (
     <View style={[styles.pill, { backgroundColor: map.bg }]}>
       <Text variant="caption" color={map.fg}>
-        {label ?? map.text}
+        {label ?? t(`status.${status}`)}
       </Text>
       {(status === 'done' || status === 'todo') && <Check size={11} color={map.fg} strokeWidth={3} />}
     </View>

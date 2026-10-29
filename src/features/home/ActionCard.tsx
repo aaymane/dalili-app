@@ -1,9 +1,10 @@
 import { router } from 'expo-router';
-import { ArrowRight, Clock, FileText, Phone } from 'lucide-react-native';
+import { Clock, FileText, Phone } from 'lucide-react-native';
 import { View } from 'react-native';
 
 import { Avatar } from '@/components/ui/Avatar';
 import { Button } from '@/components/ui/Button';
+import { ArrowRight } from '@/components/ui/DirIcons';
 import { IconTile } from '@/components/ui/IconTile';
 import { PressableScale } from '@/components/ui/PressableScale';
 import { Text } from '@/components/ui/Text';

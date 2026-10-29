@@ -2,7 +2,7 @@ import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router, useLocalSearchParams } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { Bike, Bus, Check, ChevronLeft, ChevronRight, ExternalLink, Globe, MapPin, Play, TramFront, type LucideIcon } from 'lucide-react-native';
+import { Bike, Bus, Check, ExternalLink, Globe, MapPin, Play, TramFront, type LucideIcon } from 'lucide-react-native';
 import { useEffect, useState } from 'react';
 import { Alert, Linking, Platform, ScrollView, StyleSheet, View } from 'react-native';
 import Animated, {
@@ -22,6 +22,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { SuccessModal } from '@/components/feedback/SuccessModal';
 import { toast } from '@/components/feedback/Toast';
 import { Button } from '@/components/ui/Button';
+import { ChevronLeft, ChevronRight } from '@/components/ui/DirIcons';
 import { IconTile } from '@/components/ui/IconTile';
 import { PressableScale } from '@/components/ui/PressableScale';
 import { Text } from '@/components/ui/Text';

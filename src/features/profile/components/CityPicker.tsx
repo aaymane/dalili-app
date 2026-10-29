@@ -1,8 +1,9 @@
-import { MapPin, Search, Sparkles, ChevronRight } from 'lucide-react-native';
+import { MapPin, Search, Sparkles } from 'lucide-react-native';
 import { useMemo, useState } from 'react';
 import { View } from 'react-native';
 import Animated, { FadeIn, LinearTransition, useAnimatedStyle, withTiming } from 'react-native-reanimated';
 
+import { ChevronRight } from '@/components/ui/DirIcons';
 import { IconTile } from '@/components/ui/IconTile';
 import { Input } from '@/components/ui/Input';
 import { PressableScale } from '@/components/ui/PressableScale';
@@ -11,6 +12,7 @@ import { useContent } from '@/data/hooks';
 import { makeStyles, useTheme } from '@/theme/scheme';
 import { radius } from '@/theme/tokens';
 import { reflow } from '@/theme/motion';
+import { useT } from '@/i18n';
 
 function CityCard({ name, budget, selected, onPress }: { name: string; budget: string; selected: boolean; onPress: () => void }) {
   const { c } = useTheme();
@@ -36,6 +38,7 @@ export function CityPicker({ value, onChange, allowUnknown = true }: { value: st
   const { c } = useTheme();
   const styles = useStyles();
   const [q, setQ] = useState('');
+  const t = useT();
   const { data: cities } = useContent('cities');
   const list = useMemo(() => cities.filter((c) => c.name.toLowerCase().includes(q.trim().toLowerCase())), [q, cities]);
   return (
@@ -47,22 +50,22 @@ export function CityPicker({ value, onChange, allowUnknown = true }: { value: st
           </IconTile>
           <View style={{ flex: 1 }}>
             <Text variant="h3" color="#fff">
-              Je ne sais pas encore
+              {t('cityPicker.unknown')}
             </Text>
             <Text variant="small" color="rgba(255,255,255,0.65)">
-              Dalili te suggère la meilleure ville selon ton profil
+              {t('cityPicker.unknownText')}
             </Text>
           </View>
           <ChevronRight size={18} color="#fff" />
         </PressableScale>
       )}
-      <Input icon={<Search size={16} color={c.electric} />} placeholder="Rechercher une ville…" value={q} onChangeText={setQ} />
+      <Input icon={<Search size={16} color={c.electric} />} placeholder={t('cityPicker.search')} value={q} onChangeText={setQ} />
       <Animated.View layout={reflow} style={styles.grid}>
         {list.map((c) => (
           <Animated.View key={c.id} entering={FadeIn} layout={LinearTransition} style={{ width: '31.5%' }}>
             <CityCard
               name={c.name}
-              budget={`≈ ${c.monthlyBudget.min}–${c.monthlyBudget.max} €/mois`}
+              budget={t('cityPicker.budget', { min: c.monthlyBudget.min, max: c.monthlyBudget.max })}
               selected={value === c.name}
               onPress={() => onChange(c.name)}
             />

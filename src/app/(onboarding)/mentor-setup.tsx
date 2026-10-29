@@ -1,5 +1,5 @@
 import { router } from 'expo-router';
-import { ArrowRight, ChevronRight, GraduationCap, Home, LifeBuoy } from 'lucide-react-native';
+import { GraduationCap, Home, LifeBuoy } from 'lucide-react-native';
 import { useState } from 'react';
 import { View } from 'react-native';
 import Animated from 'react-native-reanimated';
@@ -7,12 +7,14 @@ import Animated from 'react-native-reanimated';
 import { Screen } from '@/components/layout/Screen';
 import { StepHeader } from '@/components/layout/StepHeader';
 import { Button } from '@/components/ui/Button';
+import { ArrowRight, ChevronRight } from '@/components/ui/DirIcons';
 import { IconTile } from '@/components/ui/IconTile';
 import { PressableScale } from '@/components/ui/PressableScale';
 import { Tag } from '@/components/ui/Tag';
 import { Text } from '@/components/ui/Text';
 import { CityPicker } from '@/features/profile/components/CityPicker';
 import { useProfile } from '@/features/profile/store';
+import { useT } from '@/i18n';
 import { makeStyles, useTheme } from '@/theme/scheme';
 import { radius } from '@/theme/tokens';
 import { leave, rise } from '@/theme/motion';
@@ -24,6 +26,7 @@ export default function MentorSetup() {
   const profile = useProfile((s) => s.profile);
   const update = useProfile((s) => s.update);
   const [i, setI] = useState(0);
+  const t = useT();
 
   return (
     <Screen
@@ -33,16 +36,16 @@ export default function MentorSetup() {
       header={
         <StepHeader
           animKey={i}
-          overline={`Étape ${i + 1} / 3 · DALILI`}
-          title={i === 0 ? 'Dans quelle ville\nvis-tu ?' : 'Comment veux-tu\naider ?'}
-          subtitle={i === 0 ? 'On te connecte aux étudiants qui arrivent près de chez toi.' : 'Tu pourras faire les deux plus tard, depuis ton profil.'}
+          overline={t('onboarding.step', { n: i + 1, total: 3 })}
+          title={i === 0 ? t('onboarding.mentor.cityTitle') : t('onboarding.mentor.helpTitle')}
+          subtitle={i === 0 ? t('onboarding.mentor.cityText') : t('onboarding.mentor.helpText')}
           step={i}
           total={3}
           accent={c.mentor}
           onBack={() => (i ? setI(0) : router.back())}
         />
       }
-      footer={i === 0 ? <Button label="Continuer" accent={gradients.mentor} icon={<ArrowRight size={18} color="#fff" />} disabled={!profile.mentorCity} onPress={() => setI(1)} /> : undefined}>
+      footer={i === 0 ? <Button label={t('common.continue')} accent={gradients.mentor} icon={<ArrowRight size={18} color="#fff" />} disabled={!profile.mentorCity} onPress={() => setI(1)} /> : undefined}>
       <Animated.View key={i} entering={rise(80)} exiting={leave} style={{ paddingHorizontal: 20, gap: 14 }}>
         {i === 0 ? (
           <CityPicker allowUnknown={false} value={profile.mentorCity} onChange={(c) => update({ mentorCity: c, destinationCity: c })} />
@@ -60,15 +63,15 @@ export default function MentorSetup() {
                 <IconTile icon={GraduationCap} tone="blue" size={56} radius={18} />
                 <View style={{ flex: 1, gap: 4 }}>
                   <Text variant="h3" color={c.electric}>
-                    Devenir Mentor
+                    {t('onboarding.mentor.become')}
                   </Text>
                   <Text variant="small" color={c.subtle}>
-                    Guide les étudiants : démarches, conseils, ton expérience
+                    {t('onboarding.mentor.becomeText')}
                   </Text>
                   <View style={{ flexDirection: 'row', gap: 6, marginTop: 4 }}>
-                    <Tag label="Visa" />
-                    <Tag label="Logement" />
-                    <Tag label="CV" />
+                    <Tag label={t('onboarding.mentor.tagVisa')} />
+                    <Tag label={t('onboarding.mentor.tagHousing')} />
+                    <Tag label={t('onboarding.mentor.tagCv')} />
                   </View>
                 </View>
                 <ChevronRight size={18} color={c.electric} />
@@ -79,14 +82,14 @@ export default function MentorSetup() {
                 <IconTile icon={Home} tone="orange" size={56} radius={18} />
                 <View style={{ flex: 1, gap: 4 }}>
                   <Text variant="h3" color={c.host}>
-                    Devenir Hôte
+                    {t('onboarding.mentor.host')}
                   </Text>
                   <Text variant="small" color={c.subtle}>
-                    Cette fonctionnalité arrive bientôt
+                    {t('onboarding.mentor.hostSoon')}
                   </Text>
                   <View style={{ flexDirection: 'row', gap: 6, marginTop: 4 }}>
-                    <Tag label="Hébergement" color="#0F7A55" bg="#C9EEDD" />
-                    <Tag label="Accueil" color="#0F7A55" bg="#C9EEDD" />
+                    <Tag label={t('onboarding.mentor.tagStay')} color="#0F7A55" bg="#C9EEDD" />
+                    <Tag label={t('onboarding.mentor.tagWelcome')} color="#0F7A55" bg="#C9EEDD" />
                   </View>
                 </View>
               </View>
@@ -100,7 +103,7 @@ export default function MentorSetup() {
                 style={styles.help}>
                 <LifeBuoy size={18} color={c.electric} />
                 <Text variant="smallStrong" color={c.electric} style={{ flex: 1 }}>
-                  En fait, je viens d’arriver et j’ai besoin d’aide
+                  {t('onboarding.mentor.needHelp')}
                 </Text>
                 <ChevronRight size={16} color={c.electric} />
               </PressableScale>

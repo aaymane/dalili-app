@@ -1,4 +1,5 @@
 import type { CountryCode } from '@/data/content';
+import { t } from '@/i18n';
 import type { Role } from '@/theme/tokens';
 
 /** Les 7 pays couverts par les guides dalili.study, ou « Autre ». */
@@ -59,44 +60,38 @@ export const emptyProfile: Profile = {
   notificationsEnabled: false,
 };
 
-export const countries: { id: Country; label: string; flag: string; city: string }[] = [
-  { id: 'MA', label: 'Maroc', flag: '🇲🇦', city: 'Casablanca' },
-  { id: 'DZ', label: 'Algérie', flag: '🇩🇿', city: 'Alger' },
-  { id: 'TN', label: 'Tunisie', flag: '🇹🇳', city: 'Tunis' },
-  { id: 'SN', label: 'Sénégal', flag: '🇸🇳', city: 'Dakar' },
-  { id: 'CI', label: 'Côte d’Ivoire', flag: '🇨🇮', city: 'Abidjan' },
-  { id: 'CM', label: 'Cameroun', flag: '🇨🇲', city: 'Douala' },
-  { id: 'LB', label: 'Liban', flag: '🇱🇧', city: 'Beyrouth' },
-  { id: 'other', label: 'Autre pays', flag: '🌍', city: 'chez toi' },
+export const countries: { id: Country; flag: string; city: string }[] = [
+  { id: 'MA', flag: '🇲🇦', city: 'Casablanca' },
+  { id: 'DZ', flag: '🇩🇿', city: 'Alger' },
+  { id: 'TN', flag: '🇹🇳', city: 'Tunis' },
+  { id: 'SN', flag: '🇸🇳', city: 'Dakar' },
+  { id: 'CI', flag: '🇨🇮', city: 'Abidjan' },
+  { id: 'CM', flag: '🇨🇲', city: 'Douala' },
+  { id: 'LB', flag: '🇱🇧', city: 'Beyrouth' },
+  { id: 'other', flag: '🌍', city: 'chez toi' },
 ];
 
-export const concernLabels: Record<Concern, { label: string; emoji: string }> = {
-  visa: { label: 'Le visa', emoji: '🛂' },
-  housing: { label: 'Trouver un logement', emoji: '🏠' },
-  money: { label: "L'argent & le budget", emoji: '💶' },
-  loneliness: { label: 'Être seul·e', emoji: '🫂' },
-  health: { label: 'La santé', emoji: '🩺' },
-  admin: { label: 'La paperasse', emoji: '🗂️' },
-  job: { label: 'Trouver un job', emoji: '💼' },
-  language: { label: 'Le français', emoji: '🗣️' },
-};
+// Les libellés sont lus dans la langue en cours, au moment de l'affichage (src/i18n/locales).
+export const countryLabel = (id: Country) => t(`countries.${id}`);
 
-export const studyLevelLabels: Record<StudyLevel, string> = {
-  bac: 'Bac — 1ʳᵉ année',
-  licence: 'Licence (L1 · L2 · L3)',
-  master: 'Master (M1 · M2)',
-  doctorat: 'Doctorat / Recherche',
+export const concernEmoji: Record<Concern, string> = {
+  visa: '🛂',
+  housing: '🏠',
+  money: '💶',
+  loneliness: '🫂',
+  health: '🩺',
+  admin: '🗂️',
+  job: '💼',
+  language: '🗣️',
 };
+export const CONCERNS = Object.keys(concernEmoji) as Concern[];
+export const concernLabel = (c: Concern) => t(`concerns.${c}`);
 
-export const campusStatusLabels: Record<CampusStatus, string> = {
-  not_started: 'Pas encore commencé',
-  in_progress: 'Dossier en cours',
-  accepted: 'Dossier accepté',
-  enrolled: 'Inscrit à l’université',
-};
+export const STUDY_LEVELS: StudyLevel[] = ['bac', 'licence', 'master', 'doctorat'];
+export const studyLevelLabel = (l: StudyLevel) => t(`studyLevels.${l}`);
 
-export const housingLabels: Record<HousingStatus, string> = {
-  none: 'Pas encore cherché',
-  searching: 'Je cherche',
-  found: 'C’est réglé',
-};
+export const CAMPUS_STATUSES: CampusStatus[] = ['not_started', 'in_progress', 'accepted', 'enrolled'];
+export const campusStatusLabel = (s: CampusStatus) => t(`campusStatus.${s}`);
+
+export const HOUSING_STATUSES: HousingStatus[] = ['none', 'searching', 'found'];
+export const housingLabel = (h: HousingStatus) => t(`housingStatus.${h}`);

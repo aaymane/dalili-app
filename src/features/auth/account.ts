@@ -1,3 +1,4 @@
+import { t } from '@/i18n';
 import { useLocalDb } from '@/data/local-db';
 import { env } from '@/lib/env';
 import { supabase } from '@/lib/supabase';
@@ -61,13 +62,13 @@ export async function deleteOnlineAccount(): Promise<string | null> {
   if (!supabase) return null;
   const { data } = await supabase.auth.getSession();
   const token = data.session?.access_token;
-  if (!token) return 'Session expirée. Reconnecte-toi, puis réessaie.';
+  if (!token) return t('auth.errors.sessionExpired');
   try {
     const res = await fetch(`${env.siteUrl}/api/v1/account`, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } });
-    if (res.status === 401) return 'Session expirée. Reconnecte-toi, puis réessaie.';
-    if (!res.ok) return 'Suppression impossible pour le moment. Réessaie dans quelques minutes.';
+    if (res.status === 401) return t('auth.errors.sessionExpired');
+    if (!res.ok) return t('auth.errors.deleteFailed');
     return null;
   } catch {
-    return 'Connexion impossible. Vérifie ta connexion internet.';
+    return t('auth.errors.network');
   }
 }

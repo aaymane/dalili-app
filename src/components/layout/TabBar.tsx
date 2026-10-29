@@ -8,26 +8,28 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { PressableScale } from '@/components/ui/PressableScale';
 import { Text } from '@/components/ui/Text';
+import { useT } from '@/i18n';
 import { useRoleTheme } from '@/theme';
 import { makeStyles, useTheme } from '@/theme/scheme';
 import { motion } from '@/theme/tokens';
 
 const ICONS = { index: House, explorer: Compass, communaute: MessageSquareText, profil: UserRound } as const;
-const LABELS: Record<string, string> = { index: 'Accueil', explorer: 'Explorer', ia: 'Dalili', communaute: 'Communauté', profil: 'Profil' };
 
 function TabItem({ name, focused, onPress, accent }: { name: keyof typeof ICONS; focused: boolean; onPress: () => void; accent: string }) {
   const styles = useStyles();
   const { c } = useTheme();
+  const t = useT();
   const Icon = ICONS[name];
+  const label = t(`tabs.${name}`);
   const s = useAnimatedStyle(() => ({ transform: [{ translateY: withSpring(focused ? -2 : 0, motion.spring) }, { scale: withSpring(focused ? 1.08 : 1, motion.spring) }] }));
   const dot = useAnimatedStyle(() => ({ opacity: withTiming(focused ? 1 : 0, { duration: 180 }), transform: [{ scale: withSpring(focused ? 1 : 0.3, motion.spring) }] }));
   return (
-    <PressableScale onPress={onPress} haptic="select" style={styles.item} accessibilityRole="tab" accessibilityState={{ selected: focused }} accessibilityLabel={LABELS[name]}>
+    <PressableScale onPress={onPress} haptic="select" style={styles.item} accessibilityRole="tab" accessibilityState={{ selected: focused }} accessibilityLabel={label}>
       <Animated.View style={s}>
         <Icon size={22} color={focused ? accent : c.navy} strokeWidth={focused ? 2.4 : 1.9} />
       </Animated.View>
       <Text variant="caption" color={focused ? accent : c.subtle} style={{ fontSize: 10.5 }} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.85}>
-        {LABELS[name]}
+        {label}
       </Text>
       <Animated.View style={[styles.dot, { backgroundColor: accent }, dot]} />
     </PressableScale>
@@ -37,19 +39,20 @@ function TabItem({ name, focused, onPress, accent }: { name: keyof typeof ICONS;
 function AiButton({ focused, onPress }: { focused: boolean; onPress: () => void }) {
   const styles = useStyles();
   const { c, gradients } = useTheme();
+  const t = useT();
   const pulse = useSharedValue(0);
   useEffect(() => {
     pulse.set(withRepeat(withSequence(withTiming(1, { duration: 1400, easing: Easing.out(Easing.quad) }), withTiming(0, { duration: 0 })), -1));
   }, [pulse]);
   const ring = useAnimatedStyle(() => ({ opacity: 0.5 * (1 - pulse.value), transform: [{ scale: 1 + pulse.value * 0.45 }] }));
   return (
-    <PressableScale onPress={onPress} haptic="press" scaleTo={0.9} style={styles.aiWrap} accessibilityLabel="Dalili IA" accessibilityRole="tab" accessibilityState={{ selected: focused }}>
+    <PressableScale onPress={onPress} haptic="press" scaleTo={0.9} style={styles.aiWrap} accessibilityLabel={t('tabs.ai')} accessibilityRole="tab" accessibilityState={{ selected: focused }}>
       {!focused && <Animated.View style={[styles.aiRing, ring]} />}
       <LinearGradient colors={gradients.ai} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={[styles.ai, focused && { borderColor: '#C9C2FF' }]}>
         <Sparkles size={24} color="#fff" fill="#fff" />
       </LinearGradient>
       <Text variant="caption" color={focused ? c.aiIndigo : c.subtle} style={{ fontSize: 10.5, marginTop: 4 }}>
-        Dalili
+        {t('tabs.ia')}
       </Text>
     </PressableScale>
   );

@@ -1,12 +1,13 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
-import { ArrowUpRight, BookOpen, Check, ChevronRight, CircleDot, ShieldAlert, Sparkles, UsersRound } from 'lucide-react-native';
+import { BookOpen, Check, CircleDot, ShieldAlert, Sparkles, UsersRound } from 'lucide-react-native';
 import { ScrollView, View } from 'react-native';
 import Animated from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { celebrate } from '@/components/feedback/Confetti';
 import { Button } from '@/components/ui/Button';
+import { ArrowUpRight, ChevronRight } from '@/components/ui/DirIcons';
 import { IconTile } from '@/components/ui/IconTile';
 import { PressableScale } from '@/components/ui/PressableScale';
 import { StatusPill, Tag } from '@/components/ui/Tag';

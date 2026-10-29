@@ -1,5 +1,5 @@
 import { router } from 'expo-router';
-import { ArrowRight, Globe, Lock } from 'lucide-react-native';
+import { Globe, Lock } from 'lucide-react-native';
 import { useState } from 'react';
 import { View } from 'react-native';
 
@@ -8,6 +8,7 @@ import { toast } from '@/components/feedback/Toast';
 import { AppHeader } from '@/components/layout/AppHeader';
 import { Screen } from '@/components/layout/Screen';
 import { Button } from '@/components/ui/Button';
+import { ArrowRight } from '@/components/ui/DirIcons';
 import { Input } from '@/components/ui/Input';
 import { OptionCard } from '@/components/ui/OptionCard';
 import { PressableScale } from '@/components/ui/PressableScale';

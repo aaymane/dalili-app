@@ -1,6 +1,6 @@
-import { ArrowRight } from 'lucide-react-native';
 import { View } from 'react-native';
 
+import { ArrowRight } from '@/components/ui/DirIcons';
 import { useTheme } from '@/theme/scheme';
 
 import { PressableScale } from './PressableScale';

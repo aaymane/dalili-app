@@ -11,6 +11,7 @@ import { NightBackground } from '@/components/layout/NightBackground';
 import { Text } from '@/components/ui/Text';
 import { syncProfile } from '@/features/profile/api';
 import { useProfile } from '@/features/profile/store';
+import { useT } from '@/i18n';
 import { haptics } from '@/lib/haptics';
 import { useTheme } from '@/theme/scheme';
 import { pop, rise } from '@/theme/motion';
@@ -24,13 +25,14 @@ export default function Loading() {
   const profile = useProfile((s) => s.profile);
   const complete = useProfile((s) => s.completeOnboarding);
   const [done, setDone] = useState(-1);
+  const t = useT();
 
   const city = profile.destinationCity ?? profile.mentorCity;
-  const title = role === 'mentor' ? 'On prépare ton\nespace Mentor' : city ? `Je prépare ton arrivée\nà ${city}…` : 'Je prépare\nton arrivée…';
+  const title = role === 'mentor' ? t('onboarding.loading.titleMentor') : city ? t('onboarding.loading.titleCity', { city }) : t('onboarding.loading.title');
   const items =
     role === 'mentor'
-      ? ['Création de ton profil mentor', `Étudiants qui arrivent à ${city ?? 'ta ville'}`, 'Tes créneaux de disponibilité', 'Construction de ton espace perso']
-      : ['Sélection de mentors adaptés', 'Cartographie de tes démarches', 'Recherche d’hôtes à proximité', 'Construction de ton espace perso'];
+      ? [t('onboarding.loading.mentor1'), t('onboarding.loading.mentor2', { city: city ?? t('onboarding.loading.yourCity') }), t('onboarding.loading.mentor3'), t('onboarding.loading.space')]
+      : [t('onboarding.loading.student1'), t('onboarding.loading.student2'), t('onboarding.loading.student3'), t('onboarding.loading.space')];
 
   useEffect(() => {
     syncProfile(profile).catch(() => {});
@@ -73,7 +75,7 @@ export default function Loading() {
         {items.map((label, k) => {
           const state = k <= done ? 'done' : k === done + 1 ? 'active' : 'idle';
           return (
-            <Animated.View key={label} entering={rise(250 + k * 90)} style={[styles.row, state === 'active' && styles.rowActive]}>
+            <Animated.View key={k} entering={rise(250 + k * 90)} style={[styles.row, state === 'active' && styles.rowActive]}>
               <View style={[styles.bullet, state === 'done' && { backgroundColor: c.success, borderColor: c.success }]}>
                 {state === 'done' ? (
                   <Animated.View entering={pop()}>

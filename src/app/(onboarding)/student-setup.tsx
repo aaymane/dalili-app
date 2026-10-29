@@ -1,20 +1,6 @@
 import * as Notifications from 'expo-notifications';
 import { router } from 'expo-router';
-import {
-  ArrowRight,
-  BellRing,
-  BookOpenCheck,
-  Briefcase,
-  CircleCheckBig,
-  FileClock,
-  GraduationCap,
-  Microscope,
-  Sparkles,
-  Sprout,
-  UserRound,
-  ChevronRight,
-  type LucideIcon,
-} from 'lucide-react-native';
+import { BellRing, BookOpenCheck, Briefcase, CircleCheckBig, FileClock, GraduationCap, Microscope, Sparkles, Sprout, UserRound, type LucideIcon } from 'lucide-react-native';
 import { useState, type ReactNode } from 'react';
 import { Platform, View } from 'react-native';
 import Animated from 'react-native-reanimated';
@@ -23,13 +9,15 @@ import { Screen } from '@/components/layout/Screen';
 import { StepHeader } from '@/components/layout/StepHeader';
 import { Button } from '@/components/ui/Button';
 import { Calendar } from '@/components/ui/Calendar';
+import { ArrowRight, ChevronRight } from '@/components/ui/DirIcons';
 import { IconTile } from '@/components/ui/IconTile';
 import { OptionCard } from '@/components/ui/OptionCard';
 import { PressableScale } from '@/components/ui/PressableScale';
 import { Text } from '@/components/ui/Text';
 import { CityPicker } from '@/features/profile/components/CityPicker';
 import { useProfile } from '@/features/profile/store';
-import { concernLabels, type CampusStatus, type Concern, type HousingStatus, type StudyLevel } from '@/features/profile/types';
+import { concernEmoji, concernLabel, CONCERNS, studyLevelLabel, type CampusStatus, type Concern, type HousingStatus, type StudyLevel } from '@/features/profile/types';
+import { useT } from '@/i18n';
 import { haptics } from '@/lib/haptics';
 import { toISODate } from '@/lib/date';
 import { makeStyles, useTheme } from '@/theme/scheme';
@@ -50,6 +38,7 @@ export default function StudentQuestions() {
   const update = useProfile((s) => s.update);
   const [i, setI] = useState(0);
   const [unknownDate, setUnknownDate] = useState(false);
+  const t = useT();
 
   const next = () => {
     haptics.press();
@@ -69,15 +58,8 @@ export default function StudentQuestions() {
     router.replace({ pathname: '/(onboarding)/loading', params: { role: 'student' } });
   };
 
-  const header: Record<number, { title: string; subtitle: string }> = {
-    0: { title: 'Où en es-tu\ndans tes études ?', subtitle: 'On adapte les démarches, les mentors et les conseils selon ton niveau.' },
-    1: { title: 'Et avec Campus France,\nça en est où ?', subtitle: 'Pas de panique, on t’aide à chaque étape, même si tu n’as rien commencé.' },
-    2: { title: 'Où vas-tu poser\ntes valises ?', subtitle: 'On te connecte aux étudiants et mentors de ta future ville.' },
-    3: { title: 'Quand arrives-tu\nen France ?', subtitle: 'On calcule toutes tes échéances à partir de cette date.' },
-    4: { title: 'As-tu déjà\nun logement ?', subtitle: 'C’est souvent la démarche la plus stressante. On s’en occupe ensemble.' },
-    5: { title: 'Qu’est-ce qui t’inquiète\nle plus ?', subtitle: 'Choisis tout ce qui compte. Dalili mettra l’accent dessus.' },
-    6: { title: 'Ne rate aucune\néchéance.', subtitle: 'On te prévient avant chaque date importante : visa, CAF, CVEC…' },
-  };
+  const q = Math.min(i, QUESTIONS) as 0 | 1 | 2 | 3 | 4 | 5 | 6;
+  const header = { title: t(`onboarding.student.q${q}`), subtitle: t(`onboarding.student.q${q}Text`) };
 
   const canContinue =
     (i === 0 && !!profile.studyLevel) ||
@@ -98,9 +80,9 @@ export default function StudentQuestions() {
       header={
         <StepHeader
           animKey={i}
-          overline={i < QUESTIONS ? `Étape ${i + 1} / ${QUESTIONS} · DALILI` : 'Dernière étape · DALILI'}
-          title={header[i].title}
-          subtitle={header[i].subtitle}
+          overline={i < QUESTIONS ? t('onboarding.step', { n: i + 1, total: QUESTIONS }) : t('onboarding.lastStep')}
+          title={header.title}
+          subtitle={header.subtitle}
           step={Math.min(i, QUESTIONS - 1)}
           total={QUESTIONS}
           onBack={back}
@@ -109,15 +91,15 @@ export default function StudentQuestions() {
       footer={
         i < QUESTIONS ? (
           <Button
-            label={i === QUESTIONS - 1 ? 'Configurer DALILI' : 'Continuer'}
+            label={i === QUESTIONS - 1 ? t('onboarding.student.setup') : t('common.continue')}
             icon={i === QUESTIONS - 1 ? <Sparkles size={18} color="#fff" /> : <ArrowRight size={18} color="#fff" />}
             disabled={!canContinue}
             onPress={next}
           />
         ) : (
           <View style={{ gap: 4 }}>
-            <Button label="Activer les rappels" icon={<BellRing size={18} color="#fff" />} onPress={() => finish(true)} />
-            <Button label="Plus tard" variant="ghost" onPress={() => finish(false)} />
+            <Button label={t('onboarding.student.enableReminders')} icon={<BellRing size={18} color="#fff" />} onPress={() => finish(true)} />
+            <Button label={t('onboarding.student.later')} variant="ghost" onPress={() => finish(false)} />
           </View>
         )
       }>
@@ -125,25 +107,25 @@ export default function StudentQuestions() {
         {i === 0 &&
           (
             [
-              ['bac', 'Je viens d’avoir le BAC', 'Première année en France', tile('amber', Sprout)],
-              ['licence', 'Licence (L1 · L2 · L3)', 'Étudiant·e actuel·le', tile('blue', BookOpenCheck)],
-              ['master', 'Master (M1 · M2)', 'Diplôme + spécialisation', tile('violet', Briefcase)],
-              ['doctorat', 'Doctorat / Recherche', 'PhD, post-doc', tile('green', Microscope)],
+              ['bac', t('onboarding.student.bac'), t('onboarding.student.bacText'), tile('amber', Sprout)],
+              ['licence', studyLevelLabel('licence'), t('onboarding.student.licenceText'), tile('blue', BookOpenCheck)],
+              ['master', studyLevelLabel('master'), t('onboarding.student.masterText'), tile('violet', Briefcase)],
+              ['doctorat', studyLevelLabel('doctorat'), t('onboarding.student.doctoratText'), tile('green', Microscope)],
             ] as [StudyLevel, string, string, ReactNode][]
-          ).map(([v, t, s, icon]) => (
-            <OptionCard key={v} title={t} subtitle={s} icon={icon} selected={profile.studyLevel === v} onPress={() => update({ studyLevel: v })} />
+          ).map(([v, title, s, icon]) => (
+            <OptionCard key={v} title={title} subtitle={s} icon={icon} selected={profile.studyLevel === v} onPress={() => update({ studyLevel: v })} />
           ))}
 
         {i === 1 &&
           (
             [
-              ['not_started', 'J’ai même pas commencé', 'On t’accompagne de A à Z', tile('blue', UserRound)],
-              ['in_progress', 'Dossier en cours', 'On t’aide à finaliser ton dossier', tile('violet', FileClock)],
-              ['accepted', 'Dossier accepté', 'Bravo ! On prépare ton visa', tile('green', Sparkles)],
-              ['enrolled', 'Inscrit·e à l’université', 'On t’installe confortablement', tile('amber', GraduationCap)],
+              ['not_started', t('onboarding.student.notStarted'), t('onboarding.student.notStartedText'), tile('blue', UserRound)],
+              ['in_progress', t('campusStatus.in_progress'), t('onboarding.student.inProgressText'), tile('violet', FileClock)],
+              ['accepted', t('campusStatus.accepted'), t('onboarding.student.acceptedText'), tile('green', Sparkles)],
+              ['enrolled', t('onboarding.student.enrolled'), t('onboarding.student.enrolledText'), tile('amber', GraduationCap)],
             ] as [CampusStatus, string, string, ReactNode][]
-          ).map(([v, t, s, icon]) => (
-            <OptionCard key={v} title={t} subtitle={s} icon={icon} selected={profile.campusStatus === v} onPress={() => update({ campusStatus: v })} />
+          ).map(([v, title, s, icon]) => (
+            <OptionCard key={v} title={title} subtitle={s} icon={icon} selected={profile.campusStatus === v} onPress={() => update({ campusStatus: v })} />
           ))}
 
         {i === 2 && <CityPicker value={profile.destinationCity} onChange={(c) => update({ destinationCity: c })} />}
@@ -162,10 +144,10 @@ export default function StudentQuestions() {
               </IconTile>
               <View style={{ flex: 1 }}>
                 <Text variant="h3" color="#fff">
-                  Je ne sais pas encore
+                  {t('cityPicker.unknown')}
                 </Text>
                 <Text variant="small" color="rgba(255,255,255,0.65)">
-                  Laisse Dalili te guider selon les périodes de rentrée.
+                  {t('onboarding.student.unknownDateText')}
                 </Text>
               </View>
               <ChevronRight size={18} color="#fff" />
@@ -185,23 +167,23 @@ export default function StudentQuestions() {
         {i === 4 &&
           (
             [
-              ['none', 'Pas encore cherché', 'On commence ensemble, étape par étape', tile('amber', Sprout)],
-              ['searching', 'Je cherche', 'CROUS, coloc, résidence… on t’aide à trier', tile('blue', FileClock)],
-              ['found', 'C’est réglé !', 'Bravo, on passe à la suite', tile('green', CircleCheckBig)],
+              ['none', t('housingStatus.none'), t('onboarding.student.noneText'), tile('amber', Sprout)],
+              ['searching', t('housingStatus.searching'), t('onboarding.student.searchingText'), tile('blue', FileClock)],
+              ['found', t('onboarding.student.found'), t('onboarding.student.foundText'), tile('green', CircleCheckBig)],
             ] as [HousingStatus, string, string, ReactNode][]
-          ).map(([v, t, s, icon]) => (
-            <OptionCard key={v} title={t} subtitle={s} icon={icon} selected={profile.housing === v} onPress={() => update({ housing: v })} />
+          ).map(([v, title, s, icon]) => (
+            <OptionCard key={v} title={title} subtitle={s} icon={icon} selected={profile.housing === v} onPress={() => update({ housing: v })} />
           ))}
 
         {i === 5 && (
           <View style={styles.concerns}>
-            {(Object.keys(concernLabels) as Concern[]).map((c) => {
+            {CONCERNS.map((c) => {
               const on = profile.concerns.includes(c);
               return (
                 <PressableScale key={c} onPress={() => toggleConcern(c)} haptic="select" style={[styles.concern, on && styles.concernOn]}>
-                  <Text style={{ fontSize: 22 }}>{concernLabels[c].emoji}</Text>
+                  <Text style={{ fontSize: 22 }}>{concernEmoji[c]}</Text>
                   <Text variant="smallStrong" color={on ? colors.electric : colors.navy} align="center">
-                    {concernLabels[c].label}
+                    {concernLabel(c)}
                   </Text>
                 </PressableScale>
               );
@@ -212,9 +194,9 @@ export default function StudentQuestions() {
         {i === 6 && (
           <View style={styles.notifCard}>
             {[
-              { d: 'Dans 4 j', t: 'Ton autorisation d’entrer en France', s: 'VISA · VLS-TS' },
-              { d: 'Dans 13 j', t: 'Ta cotisation vie étudiante', s: 'CVEC' },
-              { d: 'Dans 18 j', t: 'Ton aide au loyer', s: 'CAF · APL' },
+              { d: t('onboarding.student.notif1Due'), t: t('onboarding.student.notif1'), s: 'VISA · VLS-TS' },
+              { d: t('onboarding.student.notif2Due'), t: t('onboarding.student.notif2'), s: 'CVEC' },
+              { d: t('onboarding.student.notif3Due'), t: t('onboarding.student.notif3'), s: 'CAF · APL' },
             ].map((n, k) => (
               <View key={k} style={styles.notif}>
                 <IconTile icon={BellRing} tone="blue" size={36} radius={11} />

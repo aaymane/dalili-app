@@ -1,6 +1,6 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
-import { Check, ChevronRight, Eye, Flag, Hourglass, MessageCircle, PhoneCall, ShieldCheck, Star, Users, Video, WifiOff } from 'lucide-react-native';
+import { Check, Eye, Flag, Hourglass, MessageCircle, PhoneCall, ShieldCheck, Star, Users, Video, WifiOff } from 'lucide-react-native';
 import { useState } from 'react';
 import { StyleSheet, Switch, View } from 'react-native';
 import Animated from 'react-native-reanimated';
@@ -12,6 +12,7 @@ import { Screen } from '@/components/layout/Screen';
 import { Reveal } from '@/components/motion/Reveal';
 import { Avatar } from '@/components/ui/Avatar';
 import { Button } from '@/components/ui/Button';
+import { ChevronRight } from '@/components/ui/DirIcons';
 import { IconTile } from '@/components/ui/IconTile';
 import { PressableScale } from '@/components/ui/PressableScale';
 import { SectionHeader } from '@/components/ui/SectionHeader';

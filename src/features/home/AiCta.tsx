@@ -1,8 +1,9 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
-import { ArrowRight, Sparkles } from 'lucide-react-native';
+import { Sparkles } from 'lucide-react-native';
 import { View } from 'react-native';
 
+import { ArrowRight } from '@/components/ui/DirIcons';
 import { PressableScale } from '@/components/ui/PressableScale';
 import { Text } from '@/components/ui/Text';
 import { makeStyles, useTheme } from '@/theme/scheme';

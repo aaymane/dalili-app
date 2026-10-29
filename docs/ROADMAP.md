@@ -42,7 +42,7 @@
 
 ## 🌍 Ensuite
 
-- [ ] **Internationalisation FR / العربية / EN** (avec RTL pour l'arabe)
+- [ ] **Internationalisation FR / العربية / EN** (avec RTL pour l'arabe) — 🟡 étape 1/3 faite le 29/10 : moteur, sélecteur, RTL instantané, kit, profil, connexion, onboarding
   > `/fonctionnalite Internationalisation avec expo-localization + i18next : extraire tous les textes en fichiers fr.json/ar.json/en.json, gérer le RTL pour l'arabe (I18nManager), sélecteur de langue dans le Profil.`
 - [x] **Mode sombre** : thème vivant, bascule instantanée, Profil › Apparence (Auto / Clair / Sombre) (29/10)
 - [ ] **Guides synchronisés avec dalili.study** (les 64 guides via une table `guides` ou le CMS du site)

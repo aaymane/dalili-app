@@ -30,7 +30,13 @@
     },
     "plugins": [
       "expo-router",
-      "expo-localization",
+      [
+        "expo-localization",
+        {
+          "supportsRTL": false,
+          "supportedLocales": { "ios": ["fr", "ar", "en"], "android": ["fr", "ar", "en"] }
+        }
+      ],
       [
         "expo-image-picker",
         {

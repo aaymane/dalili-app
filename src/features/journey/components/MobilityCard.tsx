@@ -1,9 +1,10 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
-import { ArrowRight, Pencil } from 'lucide-react-native';
+import { Pencil } from 'lucide-react-native';
 import { View } from 'react-native';
 
 import { StarField } from '@/components/brand/StarField';
+import { ArrowRight } from '@/components/ui/DirIcons';
 import { PressableScale } from '@/components/ui/PressableScale';
 import { ProgressRing } from '@/components/ui/ProgressRing';
 import { Text } from '@/components/ui/Text';

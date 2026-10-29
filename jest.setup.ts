@@ -15,3 +15,9 @@ jest.mock('expo-notifications', () => ({
   clearLastNotificationResponse: jest.fn(),
   addNotificationResponseReceivedListener: jest.fn(() => ({ remove: jest.fn() })),
 }));
+
+// Langue : un téléphone réglé en français (la langue de référence des textes testés).
+jest.mock('expo-localization', () => {
+  const locales = [{ languageCode: 'fr', languageTag: 'fr-FR', textDirection: 'ltr', regionCode: 'FR' }];
+  return { getLocales: () => locales, useLocales: () => locales, getCalendars: () => [{ timeZone: 'Europe/Paris' }] };
+});

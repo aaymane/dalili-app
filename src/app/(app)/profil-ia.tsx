@@ -18,15 +18,17 @@ import { useJourney } from '@/features/journey/store';
 import { CityPicker } from '@/features/profile/components/CityPicker';
 import { useProfile } from '@/features/profile/store';
 import {
-  campusStatusLabels,
-  concernLabels,
-  housingLabels,
-  studyLevelLabels,
-  type CampusStatus,
-  type Concern,
-  type HousingStatus,
-  type StudyLevel,
+  CAMPUS_STATUSES,
+  campusStatusLabel,
+  concernEmoji,
+  concernLabel,
+  CONCERNS,
+  HOUSING_STATUSES,
+  housingLabel,
+  STUDY_LEVELS,
+  studyLevelLabel,
 } from '@/features/profile/types';
+import { useT } from '@/i18n';
 import { formatLong, relativeDays } from '@/lib/date';
 import { makeStyles, useTheme } from '@/theme/scheme';
 import { radius } from '@/theme/tokens';
@@ -63,9 +65,20 @@ export default function ProfilIA() {
   const j = useJourney();
   const [field, setField] = useState<Field>(null);
   const [arrival, setArrival] = useState(false);
+  const t = useT();
 
-  const who = { bac: 'jeune bachelier·e', licence: 'en licence', master: 'en master', doctorat: 'doctorant·e' } as const;
-  const summary = `Tu es ${profile.studyLevel ? who[profile.studyLevel] : 'étudiant·e'}, tu pars de ${profile.originCity || 'chez toi'} pour ${profile.destinationCity ?? 'une ville à choisir'} ${relativeDays(j.arrival)}. ${j.current ? `Ta priorité du moment : « ${j.current.step.title} ».` : 'Toutes tes démarches sont faites !'}${profile.concerns.length ? ` Ce qui t'inquiète le plus : ${profile.concerns.map((c) => concernLabels[c].label.toLowerCase()).join(', ')}.` : ''}`;
+  const summary = [
+    t('aiProfile.summary', {
+      who: t(`aiProfile.who.${profile.studyLevel ?? 'default'}`),
+      from: profile.originCity || t('aiProfile.fromHome'),
+      to: profile.destinationCity ?? t('aiProfile.toUnknown'),
+      when: relativeDays(j.arrival),
+    }),
+    j.current ? t('aiProfile.priority', { step: j.current.step.title }) : t('aiProfile.allDone'),
+    profile.concerns.length ? t('aiProfile.worries', { list: profile.concerns.map((c) => concernLabel(c).toLowerCase()).join(t('common.listSep')) }) : '',
+  ]
+    .filter(Boolean)
+    .join(' ');
 
   return (
     <Screen top={gradients.aiTop} padded={false} header={<AppHeader back />}>
@@ -73,10 +86,10 @@ export default function ProfilIA() {
         <View style={{ alignItems: 'center' }}>
           <LogoOrb size={84} />
           <Text variant="hero" align="center">
-            Ce que Dalili{'\n'}sait de toi
+            {t('aiProfile.title')}
           </Text>
           <Text variant="small" color={colors.subtle} align="center" style={{ marginTop: 6, maxWidth: 320 }}>
-            Ces infos servent uniquement à personnaliser ton parcours, tes mentors et les réponses de l’IA. Touche pour modifier.
+            {t('aiProfile.text')}
           </Text>
         </View>
 
@@ -84,7 +97,7 @@ export default function ProfilIA() {
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
             <BrainCircuit size={18} color="#fff" />
             <Text variant="overline" color="rgba(255,255,255,0.75)">
-              Ton résumé IA
+              {t('aiProfile.summaryTitle')}
             </Text>
           </View>
           <Text variant="body" color="#fff">
@@ -92,21 +105,21 @@ export default function ProfilIA() {
           </Text>
         </Animated.View>
 
-        <Fact delay={40} label="Ville de destination" value={profile.destinationCity ?? 'Je ne sais pas encore'} onEdit={() => setField('city')} />
-        <Fact delay={70} label="Date d’arrivée" value={`${formatLong(j.arrival)} · ${relativeDays(j.arrival)}`} onEdit={() => setArrival(true)} />
-        <Fact delay={100} label="Niveau d’études" value={profile.studyLevel ? studyLevelLabels[profile.studyLevel] : '—'} onEdit={() => setField('level')} />
-        <Fact delay={130} label="Campus France" value={profile.campusStatus ? campusStatusLabels[profile.campusStatus] : '—'} onEdit={() => setField('campus')} />
-        <Fact delay={160} label="Logement" value={profile.housing ? housingLabels[profile.housing] : '—'} onEdit={() => setField('housing')} />
+        <Fact delay={40} label={t('aiProfile.destination')} value={profile.destinationCity ?? t('cityPicker.unknown')} onEdit={() => setField('city')} />
+        <Fact delay={70} label={t('aiProfile.arrival')} value={`${formatLong(j.arrival)} · ${relativeDays(j.arrival)}`} onEdit={() => setArrival(true)} />
+        <Fact delay={100} label={t('aiProfile.level')} value={profile.studyLevel ? studyLevelLabel(profile.studyLevel) : '—'} onEdit={() => setField('level')} />
+        <Fact delay={130} label={t('aiProfile.campus')} value={profile.campusStatus ? campusStatusLabel(profile.campusStatus) : '—'} onEdit={() => setField('campus')} />
+        <Fact delay={160} label={t('aiProfile.housing')} value={profile.housing ? housingLabel(profile.housing) : '—'} onEdit={() => setField('housing')} />
         <Fact
           delay={190}
-          label="Ce qui t’inquiète"
+          label={t('aiProfile.concerns')}
           value={
             <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 2 }}>
               {profile.concerns.length ? (
                 profile.concerns.map((c) => (
                   <View key={c} style={styles.chip}>
                     <Text variant="smallStrong" color={colors.aiIndigo}>
-                      {concernLabels[c].emoji} {concernLabels[c].label}
+                      {concernEmoji[c]} {concernLabel(c)}
                     </Text>
                   </View>
                 ))
@@ -121,39 +134,39 @@ export default function ProfilIA() {
         <View style={styles.privacy}>
           <ShieldCheck size={18} color={colors.success} />
           <Text variant="small" color={colors.subtle} style={{ flex: 1 }}>
-            Dalili ne vend jamais tes données. Quand tu poses une question, seuls ta question, les derniers messages, ton pays et ton étape en cours sont envoyés. Les questions sont gardées sans ton nom ni ton email, pour améliorer nos guides.
+            {t('aiProfile.privacy')}
           </Text>
         </View>
-        <Button label="Poser une question à Dalili" iconLeft={<Sparkles size={18} color="#fff" />} accent={['#4D6BFF', '#7A5AF8']} onPress={() => router.navigate('/(app)/(tabs)/ia')} />
+        <Button label={t('aiProfile.ask')} iconLeft={<Sparkles size={18} color="#fff" />} accent={['#4D6BFF', '#7A5AF8']} onPress={() => router.navigate('/(app)/(tabs)/ia')} />
       </View>
 
       <BottomSheet visible={!!field} onClose={() => setField(null)} scroll>
         <View style={{ gap: 10 }}>
-          {field === 'city' && <CityPicker value={profile.destinationCity} onChange={(c) => { update({ destinationCity: c }); toast('Mis à jour'); setField(null); }} />}
+          {field === 'city' && <CityPicker value={profile.destinationCity} onChange={(c) => { update({ destinationCity: c }); toast(t('common.updated')); setField(null); }} />}
           {field === 'level' &&
-            (Object.keys(studyLevelLabels) as StudyLevel[]).map((k) => (
-              <OptionCard key={k} title={studyLevelLabels[k]} selected={profile.studyLevel === k} onPress={() => { update({ studyLevel: k }); setField(null); }} />
+            STUDY_LEVELS.map((k) => (
+              <OptionCard key={k} title={studyLevelLabel(k)} selected={profile.studyLevel === k} onPress={() => { update({ studyLevel: k }); setField(null); }} />
             ))}
           {field === 'campus' &&
-            (Object.keys(campusStatusLabels) as CampusStatus[]).map((k) => (
-              <OptionCard key={k} title={campusStatusLabels[k]} selected={profile.campusStatus === k} onPress={() => { update({ campusStatus: k }); setField(null); }} />
+            CAMPUS_STATUSES.map((k) => (
+              <OptionCard key={k} title={campusStatusLabel(k)} selected={profile.campusStatus === k} onPress={() => { update({ campusStatus: k }); setField(null); }} />
             ))}
           {field === 'housing' &&
-            (Object.keys(housingLabels) as HousingStatus[]).map((k) => (
-              <OptionCard key={k} title={housingLabels[k]} selected={profile.housing === k} onPress={() => { update({ housing: k }); setField(null); }} />
+            HOUSING_STATUSES.map((k) => (
+              <OptionCard key={k} title={housingLabel(k)} selected={profile.housing === k} onPress={() => { update({ housing: k }); setField(null); }} />
             ))}
           {field === 'concerns' && (
             <>
-              {(Object.keys(concernLabels) as Concern[]).map((k) => (
+              {CONCERNS.map((k) => (
                 <OptionCard
                   key={k}
                   kind="check"
-                  title={`${concernLabels[k].emoji}  ${concernLabels[k].label}`}
+                  title={`${concernEmoji[k]}  ${concernLabel(k)}`}
                   selected={profile.concerns.includes(k)}
                   onPress={() => update({ concerns: profile.concerns.includes(k) ? profile.concerns.filter((c) => c !== k) : [...profile.concerns, k] })}
                 />
               ))}
-              <Button label="Valider" onPress={() => setField(null)} />
+              <Button label={t('common.validate')} onPress={() => setField(null)} />
             </>
           )}
         </View>

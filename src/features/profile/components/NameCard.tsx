@@ -13,6 +13,7 @@ import { haptics } from '@/lib/haptics';
 import { rise } from '@/theme/motion';
 import { makeStyles, useTheme } from '@/theme/scheme';
 import { radius } from '@/theme/tokens';
+import { useT } from '@/i18n';
 
 import { useProfile } from '../store';
 
@@ -28,6 +29,7 @@ export function NameCard() {
   const [first, setFirst] = useState('');
   const [last, setLast] = useState('');
   const [saving, setSaving] = useState(false);
+  const t = useT();
 
   const save = async () => {
     const f = first.trim();
@@ -37,9 +39,9 @@ export function NameCard() {
     try {
       if (isMentor) await setMyMentorName(f, last.trim());
       haptics.success();
-      toast(`Enchanté, ${f} !`);
+      toast(t('nameCard.hello', { name: f }));
     } catch {
-      toast('Prénom gardé sur ton téléphone. Il sera envoyé dès que tu as du réseau.', 'info');
+      toast(t('nameCard.offline'), 'info');
     } finally {
       setSaving(false);
     }
@@ -50,15 +52,15 @@ export function NameCard() {
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
         <IconTile icon={UserRound} tone="blue" size={44} radius={14} />
         <View style={{ flex: 1 }}>
-          <Text variant="h3">Comment tu t’appelles ?</Text>
+          <Text variant="h3">{t('nameCard.title')}</Text>
           <Text variant="small" color={c.subtle}>
-            {isMentor ? 'Les étudiants voient ton prénom sur ta fiche mentor.' : 'Ton prénom s’affiche pour tes mentors et dans la communauté.'}
+            {isMentor ? t('nameCard.mentor') : t('nameCard.student')}
           </Text>
         </View>
       </View>
-      <Input placeholder="Prénom" value={first} onChangeText={setFirst} autoComplete="given-name" textContentType="givenName" maxLength={40} />
-      <Input placeholder="Nom (seule l’initiale s’affiche)" value={last} onChangeText={setLast} autoComplete="family-name" textContentType="familyName" maxLength={40} />
-      <Button label="Enregistrer" size="md" disabled={!first.trim()} loading={saving} onPress={save} />
+      <Input placeholder={t('auth.register.firstName')} value={first} onChangeText={setFirst} autoComplete="given-name" textContentType="givenName" maxLength={40} />
+      <Input placeholder={t('nameCard.lastName')} value={last} onChangeText={setLast} autoComplete="family-name" textContentType="familyName" maxLength={40} />
+      <Button label={t('common.save')} size="md" disabled={!first.trim()} loading={saving} onPress={save} />
     </Animated.View>
   );
 }

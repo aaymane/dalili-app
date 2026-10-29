@@ -16,7 +16,6 @@ export function useRoleTheme(roleOverride?: Role) {
     role,
     accent: rc.main,
     soft: rc.soft,
-    label: rc.label,
     top: gradients.roleTop[role],
     gradient: role === 'mentor' ? gradients.mentor : role === 'host' ? gradients.host : gradients.electric,
     ink: c.navy,

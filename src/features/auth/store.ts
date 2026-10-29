@@ -4,6 +4,7 @@ import { Platform } from 'react-native';
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
+import { t } from '@/i18n';
 import { isSupabaseConfigured } from '@/lib/env';
 import { persistStorage } from '@/lib/storage';
 import { supabase } from '@/lib/supabase';
@@ -37,13 +38,13 @@ type AuthState = {
 };
 
 const frError = (message?: string) => {
-  if (!message) return 'Une erreur est survenue. Réessaie.';
-  if (/invalid login/i.test(message)) return 'Email ou mot de passe incorrect.';
-  if (/already registered|already exists/i.test(message)) return 'Un compte existe déjà avec cet email.';
-  if (/expired|invalid.*otp|token/i.test(message)) return 'Code invalide ou expiré.';
-  if (/rate|too many/i.test(message)) return 'Trop de tentatives. Attends un instant.';
-  if (/fetch|network|timeout/i.test(message)) return 'Connexion impossible. Vérifie ta connexion internet.';
-  if (/not confirmed/i.test(message)) return 'Confirme d’abord ton email avec le code reçu.';
+  if (!message) return t('auth.errors.generic');
+  if (/invalid login/i.test(message)) return t('auth.errors.wrongCredentials');
+  if (/already registered|already exists/i.test(message)) return t('auth.errors.alreadyExists');
+  if (/expired|invalid.*otp|token/i.test(message)) return t('auth.errors.badCode');
+  if (/rate|too many/i.test(message)) return t('auth.errors.tooMany');
+  if (/fetch|network|timeout/i.test(message)) return t('auth.errors.network');
+  if (/not confirmed/i.test(message)) return t('auth.errors.notConfirmed');
   return message;
 };
 
@@ -126,7 +127,7 @@ export const useAuth = create<AuthState>()(
 
       verifyOtp: async (email, token) => {
         if (!supabase) {
-          if (!/^\d{6}$/.test(token)) return { ok: false, error: 'Le code contient 6 chiffres.' };
+          if (!/^\d{6}$/.test(token)) return { ok: false, error: t('auth.errors.codeDigits') };
           const user = { id: demoId(), email };
           set({ demoUser: user, user, status: 'signedIn' });
           return { ok: true };
@@ -155,10 +156,10 @@ export const useAuth = create<AuthState>()(
         if (error) return { ok: false, error: frError(error.message) };
         if (Platform.OS === 'web') return { ok: true };
         const res = await WebBrowser.openAuthSessionAsync(data.url ?? '', redirectTo);
-        if (res.type !== 'success') return { ok: false, error: 'Connexion annulée.' };
+        if (res.type !== 'success') return { ok: false, error: t('auth.errors.cancelled') };
         const { queryParams } = Linking.parse(res.url);
         const code = typeof queryParams?.code === 'string' ? queryParams.code : null;
-        if (!code) return { ok: false, error: 'Connexion impossible. Réessaie.' };
+        if (!code) return { ok: false, error: t('auth.errors.failedRetry') };
         const { error: exErr } = await supabase.auth.exchangeCodeForSession(code);
         return exErr ? { ok: false, error: frError(exErr.message) } : { ok: true };
       },

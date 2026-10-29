@@ -1,5 +1,5 @@
 import { router } from 'expo-router';
-import { Ban, ChevronRight, Flag, ShieldAlert, type LucideIcon } from 'lucide-react-native';
+import { Ban, Flag, ShieldAlert, type LucideIcon } from 'lucide-react-native';
 import { useState } from 'react';
 import { View } from 'react-native';
 import Animated from 'react-native-reanimated';
@@ -7,6 +7,7 @@ import Animated from 'react-native-reanimated';
 import { BottomSheet } from '@/components/feedback/BottomSheet';
 import { toast } from '@/components/feedback/Toast';
 import { Button } from '@/components/ui/Button';
+import { ChevronRight } from '@/components/ui/DirIcons';
 import { IconTile } from '@/components/ui/IconTile';
 import { Input } from '@/components/ui/Input';
 import { PressableScale } from '@/components/ui/PressableScale';

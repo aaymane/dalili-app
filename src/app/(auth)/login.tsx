@@ -1,5 +1,5 @@
 import { router } from 'expo-router';
-import { ArrowRight, ChevronLeft, Lock, Mail } from 'lucide-react-native';
+import { Lock, Mail } from 'lucide-react-native';
 import { useState } from 'react';
 import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, View } from 'react-native';
 import Animated from 'react-native-reanimated';
@@ -9,10 +9,12 @@ import { LogoMark } from '@/components/brand/Logo';
 import { toast } from '@/components/feedback/Toast';
 import { NightBackground } from '@/components/layout/NightBackground';
 import { Button } from '@/components/ui/Button';
+import { ArrowRight, ChevronLeft } from '@/components/ui/DirIcons';
 import { Input } from '@/components/ui/Input';
 import { PressableScale } from '@/components/ui/PressableScale';
 import { Text } from '@/components/ui/Text';
-import { useAuth } from '@/features/auth/store';
+import { useAuth } from '@/features/auth/store';import { useT } from '@/i18n';
+
 import { haptics } from '@/lib/haptics';
 import { supabase } from '@/lib/supabase';
 import { useTheme } from '@/theme/scheme';
@@ -21,6 +23,7 @@ import { rise } from '@/theme/motion';
 export default function Login() {
   const { c } = useTheme();
   const insets = useSafeAreaInsets();
+  const t = useT();
   const signIn = useAuth((s) => s.signIn);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -28,8 +31,8 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
 
   const submit = async () => {
-    if (!/^\S+@\S+\.\S+$/.test(email)) return setError('Entre un email valide.');
-    if (password.length < 6) return setError('Mot de passe trop court.');
+    if (!/^\S+@\S+\.\S+$/.test(email)) return setError(t('auth.errors.invalidEmail'));
+    if (password.length < 6) return setError(t('auth.errors.passwordShort'));
     setError(null);
     setLoading(true);
     const res = await signIn(email.trim(), password);
@@ -41,9 +44,9 @@ export default function Login() {
   };
 
   const forgot = async () => {
-    if (!/^\S+@\S+\.\S+$/.test(email)) return setError('Entre ton email pour recevoir un lien.');
+    if (!/^\S+@\S+\.\S+$/.test(email)) return setError(t('auth.errors.emailForReset'));
     if (supabase) await supabase.auth.resetPasswordForEmail(email.trim());
-    toast('Si un compte existe, un email de réinitialisation est parti.', 'info');
+    toast(t('auth.resetSent'), 'info');
   };
 
   return (
@@ -51,7 +54,7 @@ export default function Login() {
       <NightBackground />
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
         <ScrollView contentContainerStyle={[styles.content, { paddingTop: insets.top + 8, paddingBottom: insets.bottom + 24 }]} keyboardShouldPersistTaps="handled">
-          <PressableScale onPress={() => router.back()} style={styles.back} accessibilityLabel="Retour">
+          <PressableScale onPress={() => router.back()} style={styles.back} accessibilityLabel={t('common.back')}>
             <ChevronLeft size={20} color="#fff" />
           </PressableScale>
           <Animated.View entering={rise()} style={styles.hero}>
@@ -60,23 +63,24 @@ export default function Login() {
               DALILI
             </Text>
             <Text variant="hero" color="#fff" align="center">
-              Bienvenue dans{'\n'}
+              {t('auth.welcomeA')}
+              {'\n'}
               <Text variant="hero" color="#5B8BFF">
-                ton arrivée.
+                {t('auth.welcomeB')}
               </Text>
             </Text>
             <Text variant="small" color="rgba(255,255,255,0.65)" align="center">
-              Content de te revoir. Connecte-toi pour reprendre ton parcours.
+              {t('auth.welcomeBack')}
             </Text>
           </Animated.View>
           <Animated.View entering={rise(150)} style={{ gap: 12 }}>
             <Input
               dark
-              label="Email"
+              label={t('auth.email')}
               icon={<Mail size={16} color={c.electric} />}
               value={email}
               onChangeText={setEmail}
-              placeholder="toi@email.com"
+              placeholder={t('auth.emailPlaceholder')}
               keyboardType="email-address"
               autoCapitalize="none"
               autoComplete="email"
@@ -84,7 +88,7 @@ export default function Login() {
             />
             <Input
               dark
-              label="Mot de passe"
+              label={t('auth.password')}
               icon={<Lock size={16} color={c.electric} />}
               value={password}
               onChangeText={setPassword}
@@ -97,18 +101,18 @@ export default function Login() {
             />
             <PressableScale onPress={forgot} style={{ alignSelf: 'flex-end', padding: 4 }}>
               <Text variant="smallStrong" color="#7FA6FF">
-                Mot de passe oublié ?
+                {t('auth.forgot')}
               </Text>
             </PressableScale>
           </Animated.View>
           <View style={{ flex: 1, minHeight: 32 }} />
           <Animated.View entering={rise(260)} style={{ gap: 6 }}>
-            <Button label="Se connecter" icon={<ArrowRight size={18} color="#fff" />} loading={loading} onPress={submit} />
+            <Button label={t('auth.signIn')} icon={<ArrowRight size={18} color="#fff" />} loading={loading} onPress={submit} />
             <PressableScale onPress={() => router.replace('/(auth)/register')} style={{ alignSelf: 'center', padding: 12 }}>
               <Text variant="small" color="rgba(255,255,255,0.65)">
-                Pas encore de compte ?{' '}
+                {t('auth.noAccount')}{' '}
                 <Text variant="smallStrong" color="#7FA6FF">
-                  S’inscrire
+                  {t('auth.signUp')}
                 </Text>
               </Text>
             </PressableScale>

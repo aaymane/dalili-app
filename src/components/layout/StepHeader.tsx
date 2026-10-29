@@ -1,9 +1,10 @@
-import { ChevronLeft } from 'lucide-react-native';
 import { View } from 'react-native';
 import Animated, { useAnimatedStyle, withSpring } from 'react-native-reanimated';
 
+import { ChevronLeft } from '@/components/ui/DirIcons';
 import { PressableScale } from '@/components/ui/PressableScale';
 import { Text } from '@/components/ui/Text';
+import { useT } from '@/i18n';
 import { makeStyles, useTheme } from '@/theme/scheme';
 import { motion } from '@/theme/tokens';
 import { rise } from '@/theme/motion';
@@ -34,11 +35,12 @@ type Props = {
 export function StepHeader({ overline, title, subtitle, step, total, onBack, accent, animKey }: Props) {
   const { c } = useTheme();
   const styles = useStyles();
+  const t = useT();
   accent ??= c.electric;
   return (
     <View style={{ paddingHorizontal: 22 }}>
       {onBack ? (
-        <PressableScale onPress={onBack} style={styles.back} accessibilityLabel="Retour">
+        <PressableScale onPress={onBack} style={styles.back} accessibilityLabel={t('common.back')}>
           <ChevronLeft size={18} color={c.navy} />
         </PressableScale>
       ) : (

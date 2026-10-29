@@ -1,8 +1,9 @@
 import { router } from 'expo-router';
-import { ChevronRight, Star } from 'lucide-react-native';
+import { Star } from 'lucide-react-native';
 import { View } from 'react-native';
 
 import { Avatar } from '@/components/ui/Avatar';
+import { ChevronRight } from '@/components/ui/DirIcons';
 import { PressableScale } from '@/components/ui/PressableScale';
 import { Tag } from '@/components/ui/Tag';
 import { Text } from '@/components/ui/Text';

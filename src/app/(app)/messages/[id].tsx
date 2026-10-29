@@ -1,5 +1,5 @@
 import { router, useLocalSearchParams } from 'expo-router';
-import { ChevronLeft, Flag } from 'lucide-react-native';
+import { Flag } from 'lucide-react-native';
 import { useEffect, useRef, useState } from 'react';
 import { FlatList, View } from 'react-native';
 import { useQueryClient } from '@tanstack/react-query';
@@ -7,6 +7,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { toast } from '@/components/feedback/Toast';
 import { Screen } from '@/components/layout/Screen';
 import { Avatar } from '@/components/ui/Avatar';
+import { ChevronLeft } from '@/components/ui/DirIcons';
 import { PressableScale } from '@/components/ui/PressableScale';
 import { Text } from '@/components/ui/Text';
 import { MessageRefused, type Message } from '@/features/messages/api';

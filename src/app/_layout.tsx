@@ -7,7 +7,7 @@ import { OpenSans_600SemiBold } from '@expo-google-fonts/open-sans/600SemiBold';
 import { OpenSans_700Bold } from '@expo-google-fonts/open-sans/700Bold';
 import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client';
 import { useFonts } from 'expo-font';
-import { Stack } from 'expo-router';
+import { LocaleProvider, Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
@@ -19,6 +19,7 @@ import { ToastHost } from '@/components/feedback/Toast';
 import { SplashFrame } from '@/features/auth/components/LaunchIntro';
 import { useAuth } from '@/features/auth/store';
 import { GlossarySheetHost } from '@/features/guides/components/GlossarySheet';
+import { useDirection, useLanguageSync } from '@/i18n';
 import { useProfile } from '@/features/profile/store';
 import { persistOptions, queryClient } from '@/lib/query';
 import { useHydrated } from '@/lib/useHydrated';
@@ -28,6 +29,9 @@ SplashScreen.preventAutoHideAsync().catch(() => {});
 
 export default function RootLayout() {
   const { c, scheme } = useTheme();
+  // Le sens de lecture (arabe : de droite à gauche) s'applique à toute l'app, sans redémarrer.
+  const direction = useDirection();
+  useLanguageSync();
   const [fontsLoaded] = useFonts({
     Montserrat_500Medium,
     Montserrat_600SemiBold,
@@ -56,10 +60,11 @@ export default function RootLayout() {
   const signedIn = status === 'signedIn';
 
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
+    <GestureHandlerRootView style={{ flex: 1, direction }}>
       <PersistQueryClientProvider client={queryClient} persistOptions={persistOptions}>
         <SafeAreaProvider>
           <StatusBar style={scheme === 'dark' ? 'light' : 'dark'} />
+          <LocaleProvider direction={direction}>
           <Stack screenOptions={{ headerShown: false, animation: 'fade', contentStyle: { backgroundColor: c.bg } }}>
             <Stack.Protected guard={!signedIn}>
               <Stack.Screen name="(auth)" />
@@ -71,6 +76,7 @@ export default function RootLayout() {
               <Stack.Screen name="(app)" />
             </Stack.Protected>
           </Stack>
+          </LocaleProvider>
           <GlossarySheetHost />
           <ConfettiLayer />
           <ToastHost />

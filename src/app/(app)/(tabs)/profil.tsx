@@ -1,13 +1,13 @@
 import { router, type Href } from 'expo-router';
-import { Ban, Bell, Bookmark, BrainCircuit, CalendarCheck2, Camera, ChevronRight, FolderCheck, Languages, LogOut, type LucideIcon, Map, RefreshCw, Repeat, ShieldCheck, Siren, SunMoon } from 'lucide-react-native';
+import { Ban, Bell, Bookmark, BrainCircuit, CalendarCheck2, Camera, FolderCheck, Languages, LogOut, type LucideIcon, Map, RefreshCw, Repeat, ShieldCheck, Siren, SunMoon } from 'lucide-react-native';
 import { useState, type ReactNode } from 'react';
 import { Alert, Platform, Switch, View } from 'react-native';
 import Animated from 'react-native-reanimated';
 
-import { toast } from '@/components/feedback/Toast';
 import { AppHeader } from '@/components/layout/AppHeader';
 import { Screen } from '@/components/layout/Screen';
 import { Avatar } from '@/components/ui/Avatar';
+import { ChevronRight } from '@/components/ui/DirIcons';
 import { IconTile } from '@/components/ui/IconTile';
 import { PressableScale } from '@/components/ui/PressableScale';
 import { ProgressRing } from '@/components/ui/ProgressRing';
@@ -20,11 +20,13 @@ import { isDemoMode, useAuth } from '@/features/auth/store';
 import { useJourney } from '@/features/journey/store';
 import { askNotifications, unregisterPush } from '@/features/notifications/push';
 import { AvatarSheet } from '@/features/profile/components/AvatarSheet';
+import { LanguageSheet } from '@/features/profile/components/LanguageSheet';
 import { NameCard } from '@/features/profile/components/NameCard';
 import { useProfile } from '@/features/profile/store';
+import { LANGUAGE_NAMES, useCurrentLanguage, useLanguage, useT } from '@/i18n';
 import { useRoleTheme } from '@/theme';
 import { makeStyles, useTheme, useAppearance } from '@/theme/scheme';
-import { radius, roleColors, roleColorsFor, type Tone } from '@/theme/tokens';
+import { radius, roleColorsFor, type Tone } from '@/theme/tokens';
 import { pop, rise } from '@/theme/motion';
 
 function Row({ icon, label, sub, onPress, right, tone }: { icon: LucideIcon; label: string; sub?: string; onPress?: () => void; right?: ReactNode; tone: Tone }) {
@@ -55,6 +57,10 @@ export default function Profil() {
   const profile = useProfile((s) => s.profile);
   const update = useProfile((s) => s.update);
   const [avatarOpen, setAvatarOpen] = useState(false);
+  const [languageOpen, setLanguageOpen] = useState(false);
+  const t = useT();
+  const language = useCurrentLanguage();
+  const languagePreference = useLanguage((s) => s.preference);
   const signOut = useAuth((s) => s.signOut);
   const [since] = useState(() => Date.now());
   const bookings = useMyBookings().data.filter((b) => (b.status === 'pending' || b.status === 'confirmed') && new Date(b.startsAt).getTime() > since);
@@ -67,8 +73,8 @@ export default function Profil() {
   const confirm = (title: string, msg: string, action: () => void) => {
     if (Platform.OS === 'web') return action();
     Alert.alert(title, msg, [
-      { text: 'Annuler', style: 'cancel' },
-      { text: 'Confirmer', style: 'destructive', onPress: action },
+      { text: t('common.cancel'), style: 'cancel' },
+      { text: t('common.confirm'), style: 'destructive', onPress: action },
     ]);
   };
 
@@ -77,7 +83,7 @@ export default function Profil() {
       <View style={{ paddingHorizontal: 20, gap: 18 }}>
         <Animated.View entering={rise()} style={styles.card}>
           <Animated.View entering={pop()}>
-            <PressableScale onPress={() => setAvatarOpen(true)} accessibilityRole="button" accessibilityLabel={profile.avatarUri ? 'Changer ma photo de profil' : 'Ajouter une photo de profil'}>
+            <PressableScale onPress={() => setAvatarOpen(true)} accessibilityRole="button" accessibilityLabel={profile.avatarUri ? t('profile.changePhoto') : t('profile.addPhoto')}>
               <Avatar name={`${profile.firstName} ${profile.lastName}`} uri={profile.avatarUri} size={84} ring={accent} />
               <View style={[styles.camera, { backgroundColor: accent }]}>
                 <Camera size={14} color="#fff" />
@@ -89,13 +95,13 @@ export default function Profil() {
               {profile.firstName} {profile.lastName}
             </Text>
             <Text variant="small" color={c.muted}>
-              {profile.originCity || '—'} → {profile.destinationCity ?? profile.mentorCity ?? 'France'}
+              {profile.originCity || '—'} → {profile.destinationCity ?? profile.mentorCity ?? t('common.france')}
             </Text>
             <View style={{ flexDirection: 'row', gap: 6, marginTop: 4 }}>
               {profile.roles.map((r) => (
                 <View key={r} style={[styles.badge, { backgroundColor: roleColorsFor(c)[r].soft }]}>
                   <Text variant="caption" color={roleColorsFor(c)[r].main}>
-                    {roleColors[r].label}
+                    {t(`roles.${r}`)}
                   </Text>
                 </View>
               ))}
@@ -110,38 +116,38 @@ export default function Profil() {
           <View style={styles.stat}>
             <Text variant="h1">{j.doneCount}</Text>
             <Text variant="caption" color={c.muted}>
-              étapes faites
+              {t('profile.stepsDone')}
             </Text>
           </View>
           <View style={styles.stat}>
             <Text variant="h1">{groups.length}</Text>
             <Text variant="caption" color={c.muted}>
-              groupes
+              {t('profile.groups')}
             </Text>
           </View>
           <View style={styles.stat}>
             <Text variant="h1">{bookings.length}</Text>
             <Text variant="caption" color={c.muted}>
-              rendez-vous
+              {t('profile.appointments')}
             </Text>
           </View>
         </Animated.View>
 
         <Animated.View entering={rise(100)} style={styles.group}>
-          <Row icon={BrainCircuit} tone="violet" label="Profil IA" sub="Ce que Dalili sait de toi" onPress={go('/(app)/profil-ia')} />
-          <Row icon={Map} tone="blue" label="Mon Parcours-quête" sub={`${Math.round(j.progress * 100)}% · ${j.total - j.doneCount} étapes restantes`} onPress={go('/(app)/parcours')} />
-          <Row icon={CalendarCheck2} tone="green" label="Mes rendez-vous" sub={bookings.length ? `${bookings.length} à venir` : 'Aucun pour le moment'} onPress={go('/(app)/parcours?view=calendar')} />
-          <Row icon={Bookmark} tone="orange" label="Guides enregistrés" sub={`${saved.length} guide${saved.length > 1 ? 's' : ''}`} onPress={go('/(app)/(tabs)/explorer?tab=guides')} />
-          <Row icon={FolderCheck} tone="amber" label="Mes documents" sub="La checklist de tes papiers" onPress={go('/(app)/outils/documents')} />
+          <Row icon={BrainCircuit} tone="violet" label={t('profile.aiProfile')} sub={t('profile.aiProfileSub')} onPress={go('/(app)/profil-ia')} />
+          <Row icon={Map} tone="blue" label={t('profile.journey')} sub={t('profile.journeySub', { percent: Math.round(j.progress * 100), count: j.total - j.doneCount })} onPress={go('/(app)/parcours')} />
+          <Row icon={CalendarCheck2} tone="green" label={t('profile.myAppointments')} sub={bookings.length ? t('profile.upcoming', { count: bookings.length }) : t('profile.noAppointments')} onPress={go('/(app)/parcours?view=calendar')} />
+          <Row icon={Bookmark} tone="orange" label={t('profile.savedGuides')} sub={t('profile.guidesCount', { count: saved.length })} onPress={go('/(app)/(tabs)/explorer?tab=guides')} />
+          <Row icon={FolderCheck} tone="amber" label={t('profile.documents')} sub={t('profile.documentsSub')} onPress={go('/(app)/outils/documents')} />
         </Animated.View>
 
         <Animated.View entering={rise(140)} style={styles.group}>
-          <Row icon={Repeat} tone="slate" label="Changer de mode" sub={`Actuellement : ${roleColors[profile.activeRole].label}`} onPress={go('/(app)/role')} />
+          <Row icon={Repeat} tone="slate" label={t('profile.switchMode')} sub={t('profile.currentMode', { role: t(`roles.${profile.activeRole}`) })} onPress={go('/(app)/role')} />
           <Row
             icon={Bell}
             tone="slate"
-            label="Rappels d’échéances"
-            sub="Visa, CAF, CVEC…"
+            label={t('profile.reminders')}
+            sub={t('profile.remindersSub')}
             right={
               <Switch
                 value={profile.notificationsEnabled}
@@ -161,23 +167,29 @@ export default function Profil() {
           <View style={styles.appearance}>
             <IconTile icon={SunMoon} tone="slate" size={38} radius={12} />
             <View style={{ flex: 1, gap: 8 }}>
-              <Text variant="bodyStrong">Apparence</Text>
+              <Text variant="bodyStrong">{t('profile.appearance')}</Text>
               <Segmented
                 kind="track"
                 options={[
-                  { value: 'system', label: 'Auto' },
-                  { value: 'light', label: 'Clair' },
-                  { value: 'dark', label: 'Sombre' },
+                  { value: 'system', label: t('profile.appearanceAuto') },
+                  { value: 'light', label: t('profile.appearanceLight') },
+                  { value: 'dark', label: t('profile.appearanceDark') },
                 ]}
                 value={appearance}
                 onChange={setAppearance}
               />
             </View>
           </View>
-          <Row icon={Languages} tone="slate" label="Langue" sub="Français · العربية et English bientôt" onPress={() => toast('Arabe et anglais arrivent bientôt 🌍', 'info')} />
-          <Row icon={Siren} tone="red" label="Urgences & SOS" sub="Numéros utiles en France" onPress={go('/(app)/outils/sos')} />
-          <Row icon={ShieldCheck} tone="slate" label="Confidentialité" sub="Tes données, supprimer ton compte" onPress={go('/(app)/confidentialite')} />
-          <Row icon={Ban} tone="slate" label="Personnes bloquées" sub="Dans le mentorat" onPress={go('/(app)/bloques')} />
+          <Row
+            icon={Languages}
+            tone="slate"
+            label={t('language.title')}
+            sub={languagePreference === 'system' ? t('language.systemShort', { name: LANGUAGE_NAMES[language] }) : LANGUAGE_NAMES[language]}
+            onPress={() => setLanguageOpen(true)}
+          />
+          <Row icon={Siren} tone="red" label={t('profile.sos')} sub={t('profile.sosSub')} onPress={go('/(app)/outils/sos')} />
+          <Row icon={ShieldCheck} tone="slate" label={t('profile.privacy')} sub={t('profile.privacySub')} onPress={go('/(app)/confidentialite')} />
+          <Row icon={Ban} tone="slate" label={t('profile.blocked')} sub={t('profile.blockedSub')} onPress={go('/(app)/bloques')} />
         </Animated.View>
 
         <Animated.View entering={rise(180)} style={styles.group}>
@@ -185,23 +197,24 @@ export default function Profil() {
             <Row
               icon={RefreshCw}
               tone="amber"
-              label="Réinitialiser la démo"
-              sub="Recommencer l’onboarding"
+              label={t('profile.resetDemo')}
+              sub={t('profile.resetDemoSub')}
               onPress={() =>
-                confirm('Réinitialiser ?', 'Toutes tes données locales seront effacées.', () => {
+                confirm(t('profile.resetTitle'), t('profile.resetText'), () => {
                   resetLocalData();
                   signOut();
                 })
               }
             />
           )}
-          <Row icon={LogOut} tone="red" label="Se déconnecter" onPress={() => confirm('Se déconnecter ?', 'Tu pourras te reconnecter à tout moment.', () => signOut())} />
+          <Row icon={LogOut} tone="red" label={t('profile.signOut')} onPress={() => confirm(t('profile.signOutTitle'), t('profile.signOutText'), () => signOut())} />
         </Animated.View>
         <Text variant="caption" color={c.muted} align="center">
-          DALILI v0.1 · {isDemoMode ? 'Mode démo' : 'Connecté à Supabase'} · Fait avec 💙 par des étudiants, pour des étudiants
+          {t('profile.footer', { mode: isDemoMode ? t('profile.modeDemo') : t('profile.modeOnline') })}
         </Text>
       </View>
       <AvatarSheet visible={avatarOpen} onClose={() => setAvatarOpen(false)} />
+      <LanguageSheet visible={languageOpen} onClose={() => setLanguageOpen(false)} />
     </Screen>
   );
 }
@@ -209,7 +222,7 @@ export default function Profil() {
 const useStyles = makeStyles(({ c, shadow }) => ({
   appearance: { flexDirection: 'row', alignItems: 'flex-start', gap: 12, paddingHorizontal: 14, paddingVertical: 12 },
   card: { flexDirection: 'row', alignItems: 'center', gap: 16, padding: 16, borderRadius: radius.xxl, backgroundColor: c.card, ...shadow.md },
-  camera: { position: 'absolute', right: -2, bottom: -2, width: 30, height: 30, borderRadius: 15, borderWidth: 3, borderColor: c.card, alignItems: 'center', justifyContent: 'center' },
+  camera: { position: 'absolute', end: -2, bottom: -2, width: 30, height: 30, borderRadius: 15, borderWidth: 3, borderColor: c.card, alignItems: 'center', justifyContent: 'center' },
   badge: { paddingHorizontal: 9, paddingVertical: 3, borderRadius: 999 },
   stats: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 16, borderRadius: radius.xl, backgroundColor: c.card, ...shadow.sm },
   stat: { alignItems: 'center' },

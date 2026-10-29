@@ -1,6 +1,7 @@
 import { router } from 'expo-router';
-import { ArrowRight, Calendar as CalIcon, Check, ChevronDown, Globe, IdCard, Lock, Mail, User } from 'lucide-react-native';
+import { Calendar as CalIcon, Check, ChevronDown, Globe, IdCard, Lock, Mail, User } from 'lucide-react-native';
 import { useMemo, useState } from 'react';
+import { Trans } from 'react-i18next';
 import { ScrollView, View } from 'react-native';
 import Animated, { useAnimatedStyle, withTiming } from 'react-native-reanimated';
 
@@ -8,6 +9,7 @@ import { BottomSheet } from '@/components/feedback/BottomSheet';
 import { Screen } from '@/components/layout/Screen';
 import { StepHeader } from '@/components/layout/StepHeader';
 import { Button } from '@/components/ui/Button';
+import { ArrowRight } from '@/components/ui/DirIcons';
 import { Input } from '@/components/ui/Input';
 import { OptionCard } from '@/components/ui/OptionCard';
 import { PressableScale } from '@/components/ui/PressableScale';
@@ -15,7 +17,8 @@ import { Segmented } from '@/components/ui/Segmented';
 import { Text } from '@/components/ui/Text';
 import { useAuth } from '@/features/auth/store';
 import { useProfile } from '@/features/profile/store';
-import { countries, type Country, type Gender } from '@/features/profile/types';
+import { countries, countryLabel, type Country, type Gender } from '@/features/profile/types';
+import { useIsRTL, useT } from '@/i18n';
 import { haptics } from '@/lib/haptics';
 import { useTheme } from '@/theme/scheme';
 import { leave, rise } from '@/theme/motion';
@@ -31,14 +34,16 @@ function strength(pw: string) {
 
 function StrengthBar({ value }: { value: number }) {
   const { c } = useTheme();
+  const t = useT();
+  const rtl = useIsRTL();
   const colors = ['#E5484D', '#F59E0B', '#3D78FF', '#16A34A'];
-  const labels = ['FAIBLE', 'MOYEN', 'BON', 'FORT'];
+  const labels = t('auth.register.strength').split(',');
   return (
     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 4 }}>
       {[0, 1, 2, 3].map((i) => (
         <Seg key={i} on={i < value} color={colors[Math.max(0, value - 1)]} />
       ))}
-      <Text variant="caption" color={c.muted} style={{ width: 44, textAlign: 'right' }}>
+      <Text variant="caption" color={c.muted} style={{ width: 54, textAlign: rtl ? 'left' : 'right' }}>
         {value ? labels[value - 1] : ''}
       </Text>
     </View>
@@ -60,6 +65,7 @@ const formatBirth = (raw: string) => {
 /** Création de compte en 2 étapes (identifiants → identité), puis code OTP. */
 export default function Register() {
   const { c, gradients } = useTheme();
+  const t = useT();
   const signUp = useAuth((s) => s.signUp);
   const update = useProfile((s) => s.update);
   const [step, setStep] = useState(0);
@@ -79,9 +85,9 @@ export default function Register() {
 
   const next = () => {
     const e: Record<string, string> = {};
-    if (!/^\S+@\S+\.\S+$/.test(email)) e.email = 'Entre un email valide.';
-    if (pw.length < 8) e.pw = '8 caractères minimum.';
-    if (pw2 !== pw) e.pw2 = 'Les mots de passe ne correspondent pas.';
+    if (!/^\S+@\S+\.\S+$/.test(email)) e.email = t('auth.errors.invalidEmail');
+    if (pw.length < 8) e.pw = t('auth.register.pwMin');
+    if (pw2 !== pw) e.pw2 = t('auth.register.pwMismatch');
     setErrors(e);
     if (Object.keys(e).length) return haptics.warning();
     setStep(1);
@@ -89,10 +95,10 @@ export default function Register() {
 
   const submit = async () => {
     const e: Record<string, string> = {};
-    if (!first.trim()) e.first = 'Ton prénom ?';
-    if (!country) e.country = 'Choisis ton pays.';
-    if (birth && birth.length !== 10) e.birth = 'Format jj/mm/aaaa.';
-    if (!cgu) e.cgu = 'Accepte les conditions pour continuer.';
+    if (!first.trim()) e.first = t('auth.register.errFirstName');
+    if (!country) e.country = t('auth.register.errCountry');
+    if (birth && birth.length !== 10) e.birth = t('auth.register.errBirth');
+    if (!cgu) e.cgu = t('auth.register.errCgu');
     setErrors(e);
     if (Object.keys(e).length) return haptics.warning();
     const c = countries.find((x) => x.id === country)!;
@@ -123,8 +129,8 @@ export default function Register() {
       padded={false}
       header={
         <StepHeader
-          overline="Création de compte"
-          title={'On commence par\nte connaître.'}
+          overline={t('auth.register.overline')}
+          title={t('auth.register.title')}
           step={step}
           total={2}
           onBack={() => (step ? setStep(0) : router.back())}
@@ -137,41 +143,41 @@ export default function Register() {
               {errors.submit}
             </Text>
           ) : null}
-          <Button label="Continuer" icon={<ArrowRight size={18} color="#fff" />} loading={loading} onPress={step ? submit : next} />
+          <Button label={t('common.continue')} icon={<ArrowRight size={18} color="#fff" />} loading={loading} onPress={step ? submit : next} />
         </View>
       }>
       <View style={{ paddingHorizontal: 22 }}>
         {step === 0 ? (
           <Animated.View key="s0" entering={rise()} exiting={leave} style={{ gap: 12 }}>
-            <Input label="Email" icon={<Mail size={16} color={c.electric} />} value={email} onChangeText={setEmail} keyboardType="email-address" autoCapitalize="none" autoComplete="email" placeholder="toi@email.com" error={errors.email} />
-            <Input label="Mot de passe" icon={<Lock size={16} color={c.electric} />} value={pw} onChangeText={setPw} secureTextEntry placeholder="8 caractères minimum" autoComplete="new-password" error={errors.pw} />
-            <Input label="Confirmer le mot de passe" icon={<Lock size={16} color={c.electric} />} value={pw2} onChangeText={setPw2} secureTextEntry placeholder="••••••••" error={errors.pw2} />
+            <Input label={t('auth.email')} icon={<Mail size={16} color={c.electric} />} value={email} onChangeText={setEmail} keyboardType="email-address" autoCapitalize="none" autoComplete="email" placeholder={t('auth.emailPlaceholder')} error={errors.email} />
+            <Input label={t('auth.password')} icon={<Lock size={16} color={c.electric} />} value={pw} onChangeText={setPw} secureTextEntry placeholder={t('auth.register.pwPlaceholder')} autoComplete="new-password" error={errors.pw} />
+            <Input label={t('auth.register.confirmPw')} icon={<Lock size={16} color={c.electric} />} value={pw2} onChangeText={setPw2} secureTextEntry placeholder="••••••••" error={errors.pw2} />
             <StrengthBar value={pwStrength} />
           </Animated.View>
         ) : (
           <Animated.View key="s1" entering={rise()} exiting={leave} style={{ gap: 12 }}>
             <Text variant="overline" color={c.muted}>
-              Genre
+              {t('auth.register.gender')}
             </Text>
             <Segmented
               kind="track"
               value={gender}
               onChange={setGender}
               options={[
-                { value: 'male', label: 'Homme' },
-                { value: 'female', label: 'Femme' },
-                { value: 'other', label: 'Autre' },
+                { value: 'male', label: t('auth.register.male') },
+                { value: 'female', label: t('auth.register.female') },
+                { value: 'other', label: t('auth.register.other') },
               ]}
             />
-            <Input label="Prénom" icon={<User size={16} color={c.electric} />} value={first} onChangeText={setFirst} autoComplete="given-name" placeholder="Aymen" error={errors.first} />
-            <Input label="Nom" icon={<IdCard size={16} color={c.electric} />} value={last} onChangeText={setLast} autoComplete="family-name" placeholder="Amri" />
+            <Input label={t('auth.register.firstName')} icon={<User size={16} color={c.electric} />} value={first} onChangeText={setFirst} autoComplete="given-name" placeholder={t('auth.register.firstNamePlaceholder')} error={errors.first} />
+            <Input label={t('auth.register.lastName')} icon={<IdCard size={16} color={c.electric} />} value={last} onChangeText={setLast} autoComplete="family-name" placeholder={t('auth.register.lastNamePlaceholder')} />
             <PressableScale onPress={() => setCountryOpen(true)} scaleTo={0.99}>
               <View pointerEvents="none">
                 <Input
-                  label="Pays de résidence"
+                  label={t('auth.register.country')}
                   icon={<Globe size={16} color={c.electric} />}
-                  value={selectedCountry ? `${selectedCountry.flag}  ${selectedCountry.label}` : ''}
-                  placeholder="Sélectionner"
+                  value={selectedCountry ? `${selectedCountry.flag}  ${countryLabel(selectedCountry.id)}` : ''}
+                  placeholder={t('auth.register.select')}
                   editable={false}
                   right={<ChevronDown size={18} color={c.muted} />}
                   error={errors.country}
@@ -179,12 +185,12 @@ export default function Register() {
               </View>
             </PressableScale>
             <Input
-              label="Date de naissance"
+              label={t('auth.register.birth')}
               icon={<CalIcon size={16} color={c.electric} />}
               value={birth}
-              onChangeText={(t) => setBirth(formatBirth(t))}
+              onChangeText={(v) => setBirth(formatBirth(v))}
               keyboardType="number-pad"
-              placeholder="jj/mm/aaaa"
+              placeholder={t('auth.register.birthPlaceholder')}
               error={errors.birth}
             />
             <PressableScale onPress={() => setCgu((v) => !v)} haptic="select" style={{ flexDirection: 'row', gap: 10, alignItems: 'center', marginTop: 8 }}>
@@ -192,8 +198,10 @@ export default function Register() {
                 {cgu && <Check size={14} color="#fff" strokeWidth={3} />}
               </View>
               <Text variant="small" color={c.subtle} style={{ flex: 1 }}>
-                J’accepte les <Text variant="smallStrong" color={c.electric}>conditions d’utilisation</Text> et la{' '}
-                <Text variant="smallStrong" color={c.electric}>politique de confidentialité</Text> de DALILI.
+                <Trans
+                  i18nKey="auth.register.cgu"
+                  components={{ terms: <Text variant="smallStrong" color={c.electric} />, privacy: <Text variant="smallStrong" color={c.electric} /> }}
+                />
               </Text>
             </PressableScale>
             {errors.cgu ? (
@@ -207,13 +215,13 @@ export default function Register() {
 
       <BottomSheet visible={countryOpen} onClose={() => setCountryOpen(false)}>
         <Text variant="h2" style={{ marginBottom: 14 }}>
-          Ton pays de résidence
+          {t('auth.register.countrySheet')}
         </Text>
         <ScrollView style={{ maxHeight: 440 }} contentContainerStyle={{ gap: 10 }} showsVerticalScrollIndicator={false}>
           {countries.map((c) => (
             <OptionCard
               key={c.id}
-              title={`${c.flag}  ${c.label}`}
+              title={`${c.flag}  ${countryLabel(c.id)}`}
               selected={country === c.id}
               onPress={() => {
                 setCountry(c.id);

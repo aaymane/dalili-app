@@ -5,6 +5,7 @@ import Animated, { interpolate, ReduceMotion, useAnimatedStyle, useSharedValue, 
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { scheduleOnRN } from 'react-native-worklets';
 
+import { useDirection, useT } from '@/i18n';
 import { EASE_SHEET } from '@/theme/motion';
 import { makeStyles } from '@/theme/scheme';
 import { motion } from '@/theme/tokens';
@@ -28,6 +29,9 @@ const CLOSE = { duration: 260, easing: EASE_SHEET, reduceMotion: ReduceMotion.Sy
  * (glissé ample ou rapide) ou revient en place en ressort.
  */
 export function BottomSheet({ visible, onClose, onClosed, children, scroll, maxHeight = '88%' }: Props) {
+  const t = useT();
+  // Une feuille s'ouvre dans sa propre fenêtre : elle reprend le sens de lecture de l'app.
+  const direction = useDirection();
   const styles = useStyles();
   const insets = useSafeAreaInsets();
   const { height: screenH } = useWindowDimensions();
@@ -157,9 +161,9 @@ export function BottomSheet({ visible, onClose, onClosed, children, scroll, maxH
       onRequestClose={onClose}
       onDismiss={Platform.OS === 'ios' ? closed : undefined}
       statusBarTranslucent>
-      <GestureHandlerRootView style={{ flex: 1 }}>
+      <GestureHandlerRootView style={{ flex: 1, direction }}>
         <Animated.View style={[StyleSheet.absoluteFill, backdropStyle]}>
-          <Pressable style={styles.backdrop} onPress={onClose} accessibilityRole="button" accessibilityLabel="Fermer" />
+          <Pressable style={styles.backdrop} onPress={onClose} accessibilityRole="button" accessibilityLabel={t('common.close')} />
         </Animated.View>
         {scroll ? sheet : <GestureDetector gesture={pan}>{sheet}</GestureDetector>}
       </GestureHandlerRootView>

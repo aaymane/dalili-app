@@ -1,5 +1,5 @@
 import { router } from 'expo-router';
-import { BookOpen, BookPlus, Check, ChevronRight, HeartHandshake, Phone, RotateCcw, Scale, Square, ThumbsDown, UsersRound, Volume2 } from 'lucide-react-native';
+import { BookOpen, BookPlus, Check, HeartHandshake, Phone, RotateCcw, Scale, Square, ThumbsDown, UsersRound, Volume2 } from 'lucide-react-native';
 import { useState } from 'react';
 import { Linking, View } from 'react-native';
 import Animated, { FadeIn } from 'react-native-reanimated';
@@ -7,6 +7,7 @@ import Animated, { FadeIn } from 'react-native-reanimated';
 import { BottomSheet } from '@/components/feedback/BottomSheet';
 import { toast } from '@/components/feedback/Toast';
 import { Button } from '@/components/ui/Button';
+import { ChevronRight } from '@/components/ui/DirIcons';
 import { Input } from '@/components/ui/Input';
 import { Chip } from '@/components/ui/Tag';
 import { IconTile } from '@/components/ui/IconTile';

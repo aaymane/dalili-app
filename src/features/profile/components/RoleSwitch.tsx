@@ -4,6 +4,7 @@ import { scheduleOnRN } from 'react-native-worklets';
 
 import { PressableScale } from '@/components/ui/PressableScale';
 import { Text } from '@/components/ui/Text';
+import { useIsRTL, useT } from '@/i18n';
 import { EASE_IN_OUT } from '@/theme/motion';
 import { makeStyles, useTheme } from '@/theme/scheme';
 import { motion, radius, roleColors, type Role } from '@/theme/tokens';
@@ -23,10 +24,13 @@ export function RoleSwitch() {
   const roles = useProfile((s) => s.profile.roles);
   const active = useProfile((s) => s.profile.activeRole);
   const setActiveRole = useProfile((s) => s.setActiveRole);
+  const t = useT();
+  // En arabe, « Étudiant » est à droite : le curseur part de là et glisse vers la gauche.
+  const rtl = useIsRTL();
   const progress = useSharedValue(active === 'mentor' ? 1 : 0);
 
   const thumb = useAnimatedStyle(() => ({
-    transform: [{ translateX: progress.get() * SEG }],
+    transform: [{ translateX: (rtl ? 1 - progress.get() : progress.get()) * SEG }],
     backgroundColor: interpolateColor(progress.get(), [0, 1], [roleColors.student.main, roleColors.mentor.main]),
   }));
 
@@ -57,9 +61,9 @@ export function RoleSwitch() {
             style={styles.seg}
             accessibilityRole="tab"
             accessibilityState={{ selected: on }}
-            accessibilityLabel={`Mode ${roleColors[r].label}`}>
+            accessibilityLabel={t('profile.modeA11y', { role: t(`roles.${r}`) })}>
             <Text variant="smallStrong" color={on ? c.white : c.subtle}>
-              {roleColors[r].label}
+              {t(`roles.${r}`)}
             </Text>
           </PressableScale>
         );

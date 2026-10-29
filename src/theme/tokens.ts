@@ -148,10 +148,11 @@ export type Tone = keyof typeof tones;
 
 export type Role = 'student' | 'mentor' | 'host';
 
-export const roleColors: Record<Role, { main: string; soft: string; label: string }> = {
-  student: { main: palette.electric, soft: palette.electricSoft, label: 'Étudiant' },
-  mentor: { main: palette.mentor, soft: palette.mentorSoft, label: 'Mentor' },
-  host: { main: palette.host, soft: palette.hostSoft, label: 'Hôte' },
+// Le nom de chaque rôle se lit dans la langue en cours : t(`roles.${role}`).
+export const roleColors: Record<Role, { main: string; soft: string }> = {
+  student: { main: palette.electric, soft: palette.electricSoft },
+  mentor: { main: palette.mentor, soft: palette.mentorSoft },
+  host: { main: palette.host, soft: palette.hostSoft },
 };
 
 /** Échelle d'espacement (base 4). */
@@ -313,8 +314,8 @@ export const darkGradients = {
 };
 
 /** Couleurs de chaque rôle dans un thème donné. */
-export const roleColorsFor = (c: Palette): Record<Role, { main: string; soft: string; label: string }> => ({
-  student: { main: c.electric, soft: c.electricSoft, label: 'Étudiant' },
-  mentor: { main: c.mentor, soft: c.mentorSoft, label: 'Mentor' },
-  host: { main: c.host, soft: c.hostSoft, label: 'Hôte' },
+export const roleColorsFor = (c: Palette): Record<Role, { main: string; soft: string }> => ({
+  student: { main: c.electric, soft: c.electricSoft },
+  mentor: { main: c.mentor, soft: c.mentorSoft },
+  host: { main: c.host, soft: c.hostSoft },
 });

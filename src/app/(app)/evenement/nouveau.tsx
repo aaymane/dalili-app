@@ -1,5 +1,5 @@
 import { router } from 'expo-router';
-import { ArrowRight, CalendarDays, Clock, Globe, Lock, MapPin } from 'lucide-react-native';
+import { CalendarDays, Clock, Globe, Lock, MapPin } from 'lucide-react-native';
 import { useState } from 'react';
 import { Switch, View } from 'react-native';
 
@@ -10,6 +10,7 @@ import { AppHeader } from '@/components/layout/AppHeader';
 import { Screen } from '@/components/layout/Screen';
 import { Button } from '@/components/ui/Button';
 import { Calendar } from '@/components/ui/Calendar';
+import { ArrowRight } from '@/components/ui/DirIcons';
 import { Input } from '@/components/ui/Input';
 import { OptionCard } from '@/components/ui/OptionCard';
 import { PressableScale } from '@/components/ui/PressableScale';
