@@ -55,7 +55,9 @@ export function useGroups() {
   const created = useLocalDb((s) => s.createdGroups);
   const joined = useLocalDb((s) => s.joinedGroups);
   const data = useMemo(() => {
-    const all = [...created, ...(q.data ?? [])];
+    // Un groupe créé en ligne revient aussi du serveur : on garde la version du serveur, une seule fois.
+    const remote = q.data ?? [];
+    const all = [...created.filter((c) => !remote.some((r) => r.id === c.id)), ...remote];
     return all.map((g) => ({ ...g, isMember: joined.includes(g.id), members: g.members + (joined.includes(g.id) && !created.some((c) => c.id === g.id) ? 1 : 0) }));
   }, [q.data, created, joined]);
   return { ...q, data };
@@ -71,7 +73,8 @@ export function useEvents() {
   const created = useLocalDb((s) => s.createdEvents);
   const joined = useLocalDb((s) => s.joinedEvents);
   const data = useMemo(() => {
-    const all = [...created, ...(q.data ?? [])].sort((a, b) => a.startsAt.localeCompare(b.startsAt));
+    const remote = q.data ?? [];
+    const all = [...created.filter((c) => !remote.some((r) => r.id === c.id)), ...remote].sort((a, b) => a.startsAt.localeCompare(b.startsAt));
     return all.map((e) => ({ ...e, isGoing: joined.includes(e.id), attendees: e.attendees + (joined.includes(e.id) && !created.some((c) => c.id === e.id) ? 1 : 0) }));
   }, [q.data, created, joined]);
   return { ...q, data };
