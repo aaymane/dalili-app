@@ -52,10 +52,14 @@
     "zustand": "^5.0.15"
   },
   "devDependencies": {
+    "@testing-library/react-native": "^14.1.0",
     "@types/aes-js": "^3.1.4",
+    "@types/jest": "30.0.0",
     "@types/react": "~19.3.0",
     "eslint": "^9.39.5",
     "eslint-config-expo": "~58.0.4",
+    "jest": "~30.5.2",
+    "jest-expo": "~58.0.13",
     "typescript": "~6.0.3"
   },
   "scripts": {
@@ -65,11 +69,32 @@
     "web": "expo start --web",
     "lint": "expo lint",
     "typecheck": "tsc --noEmit",
-    "check": "tsc --noEmit && expo lint",
+    "check": "tsc --noEmit && expo lint && jest",
     "doctor": "npx expo-doctor",
     "content:snapshot": "node scripts/snapshot-content.mjs",
     "check:budget": "npx -y tsx scripts/check-budget.ts",
-    "test:migrations": "bash scripts/test-migrations.sh"
+    "test:migrations": "bash scripts/test-migrations.sh",
+    "test": "jest",
+    "test:watch": "jest --watch"
   },
-  "private": true
+  "private": true,
+  "jest": {
+    "preset": "jest-expo",
+    "moduleNameMapper": {
+      "^lucide-react-native$": "<rootDir>/node_modules/lucide-react-native/dist/cjs/lucide-react-native.js",
+      "^@/assets/(.*)$": "<rootDir>/assets/$1",
+      "^@/(.*)$": "<rootDir>/src/$1"
+    },
+    "testPathIgnorePatterns": [
+      "/node_modules/",
+      "/supabase/"
+    ],
+    "setupFiles": [
+      "<rootDir>/jest.setup.ts"
+    ],
+    "resolver": "react-native-reanimated/jest/resolver",
+    "transformIgnorePatterns": [
+      "node_modules/(?!((jest-)?react-native|@react-native(-community)?)|expo(nent)?|@expo(nent)?/.*|@expo-google-fonts/.*|react-navigation|@react-navigation/.*|lucide-react-native|@daily-co/.*|@supabase/.*)"
+    ]
+  }
 }

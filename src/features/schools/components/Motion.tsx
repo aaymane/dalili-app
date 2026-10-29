@@ -6,7 +6,7 @@ import Animated, { Easing, useAnimatedStyle, useReducedMotion, useSharedValue, w
 import { Text } from '@/components/ui/Text';
 
 /** « 92,4 % » → 92.4, 1 décimale, suffixe « % » ; « 1 080 » → 1080. Ce qui ne se lit pas reste tel quel. */
-function parse(value: string) {
+export function parseFigure(value: string) {
   const m = value.match(/^(\d{1,3}(?:[\s ]\d{3})+|\d+)(?:,(\d+))?(.*)$/);
   if (!m) return null;
   const whole = Number(m[1].replace(/[\s ]/g, ''));
@@ -14,7 +14,7 @@ function parse(value: string) {
   return { target: whole + (decimals ? Number(`0.${m[2]}`) : 0), decimals, suffix: m[3] };
 }
 
-const format = (n: number, decimals: number) =>
+export const formatFigure = (n: number, decimals: number) =>
   n.toLocaleString('fr-FR', { minimumFractionDigits: decimals, maximumFractionDigits: decimals }).replace(/ /g, ' ');
 
 /**
@@ -23,8 +23,8 @@ const format = (n: number, decimals: number) =>
  */
 export function CountUp({ value, delay = 0, style, color, variant = 'h1' }: { value: string; delay?: number; style?: StyleProp<TextStyle>; color?: string; variant?: 'hero' | 'h1' }) {
   const reduced = useReducedMotion();
-  const parsed = parse(value);
-  const [shown, setShown] = useState(reduced || !parsed ? value : format(0, parsed.decimals) + parsed.suffix);
+  const parsed = parseFigure(value);
+  const [shown, setShown] = useState(reduced || !parsed ? value : formatFigure(0, parsed.decimals) + parsed.suffix);
 
   useEffect(() => {
     if (reduced || !parsed) return;
@@ -33,7 +33,7 @@ export function CountUp({ value, delay = 0, style, color, variant = 'h1' }: { va
     const tick = () => {
       const t = Math.min(1, Math.max(0, (Date.now() - start) / 1200));
       const eased = 1 - Math.pow(1 - t, 3);
-      setShown(format(parsed.target * eased, parsed.decimals) + parsed.suffix);
+      setShown(formatFigure(parsed.target * eased, parsed.decimals) + parsed.suffix);
       if (t < 1) frame = requestAnimationFrame(tick);
     };
     frame = requestAnimationFrame(tick);
