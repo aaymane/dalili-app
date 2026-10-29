@@ -4,6 +4,7 @@ import { figuresForStep, guidesForStep, snapshot, type CountryCode, type FigureD
 import { useContent } from '@/data/hooks';
 import { useProfile } from '@/features/profile/store';
 import type { Profile } from '@/features/profile/types';
+import { t } from '@/i18n';
 
 /**
  * Démarches du Parcours-quête.
@@ -64,11 +65,13 @@ const logic: Record<string, Pick<Step, 'appliesTo' | 'autoDone'>> = {
   cvec: { autoDone: (p) => p.campusStatus === 'enrolled' },
 };
 
-export const phaseMeta: Record<Phase, { title: string; subtitle: (p: Profile) => string }> = {
-  before: { title: 'Avant le départ', subtitle: (p) => `depuis ${p.originCity || 'chez toi'}` },
-  arrival: { title: "À l'arrivée", subtitle: () => 'tes 2 premières semaines' },
-  first_months: { title: 'Tes premiers mois', subtitle: () => 'installe-toi' },
-};
+export const PHASES: Phase[] = ['before', 'arrival', 'first_months'];
+
+/** Titre et sous-titre d'une phase, dans la langue en cours. */
+export const phaseMeta = (phase: Phase, p: Profile) => ({
+  title: t(`journey.phase.${phase}`),
+  subtitle: phase === 'before' ? t('journey.phase.beforeSub', { city: p.originCity || t('journey.home') }) : t(`journey.phase.${phase}Sub`),
+});
 
 export const countryOf = (p: Profile): CountryCode | null => (p.country && p.country !== 'other' ? p.country : null);
 

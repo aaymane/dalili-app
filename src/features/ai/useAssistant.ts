@@ -4,6 +4,7 @@ import { useLocalDb } from '@/data/local-db';
 import { countryOf } from '@/features/journey/steps';
 import { useJourney } from '@/features/journey/store';
 import { useProfile } from '@/features/profile/store';
+import { t } from '@/i18n';
 import { haptics } from '@/lib/haptics';
 import { track } from '@/lib/analytics';
 
@@ -112,7 +113,7 @@ export function useAssistant() {
       patchLast((m) => (m.status === 'error' ? m : { ...m, status: 'done' }));
       haptics.select();
     } catch (err) {
-      const e = err instanceof AssistantError ? err : new AssistantError('Dalili ne répond pas pour le moment.', 'server');
+      const e = err instanceof AssistantError ? err : new AssistantError(t('ai.errors.noAnswer'), 'server');
       haptics.warning();
       patchLast((m) => ({ ...m, status: 'error', errorKind: e.kind, content: e.message, retry: e.kind === 'offline' || e.kind === 'server' ? question : undefined }));
     } finally {

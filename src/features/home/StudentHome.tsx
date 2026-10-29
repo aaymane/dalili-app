@@ -23,6 +23,7 @@ import { BookingCard } from '@/features/mentors/components/BookingCard';
 import { MentorTile } from '@/features/mentors/components/MentorCard';
 import { MentorsSoon } from '@/features/mentors/components/MentorsSoon';
 import { useProfile } from '@/features/profile/store';
+import { useT } from '@/i18n';
 import { enter, reflow } from '@/theme/motion';
 import { makeStyles, useTheme } from '@/theme/scheme';
 import { radius } from '@/theme/tokens';
@@ -49,6 +50,7 @@ export function StudentHome() {
   const bookings = allBookings.filter((b) => (b.status === 'pending' || b.status === 'confirmed') && new Date(b.startsAt).getTime() > since);
   const [arrivalOpen, setArrivalOpen] = useState(false);
   const ticket = useTicket();
+  const t = useT();
 
   const city = profile.destinationCity;
   const suggested = [...mentors].sort((a, b) => Number(b.city === city) - Number(a.city === city) || b.rating - a.rating).slice(0, 6);
@@ -83,12 +85,12 @@ export function StudentHome() {
             onPress={() => router.push('/(app)/parcours')}
             style={styles.journeyRow}
             accessibilityRole="button"
-            accessibilityLabel={`Voir tout mon parcours-quête, ${j.doneCount} étapes faites sur ${j.total}`}>
+            accessibilityLabel={t('home.journeyA11y', { done: j.doneCount, total: j.total })}>
             <IconTile icon={Map} tone="blue" size={46} radius={23} />
             <View style={{ flex: 1 }}>
-              <Text variant="bodyStrong">Tout mon parcours-quête</Text>
+              <Text variant="bodyStrong">{t('home.journeyRow')}</Text>
               <Text variant="caption" color={c.muted}>
-                {j.doneCount}/{j.total} étapes faites · {Math.round(j.progress * 100)} %
+                {t('home.journeyProgress', { done: j.doneCount, total: j.total, percent: Math.round(j.progress * 100) })}
               </Text>
             </View>
             <ChevronRight size={18} color={c.subtle} />
@@ -109,9 +111,9 @@ export function StudentHome() {
         {/* Pas de `Reveal` : le chemin a sa propre entrée, tracée au défilement. */}
         <View>
           <SectionHeader
-            title="Ton chemin"
-            subtitle={`De ${profile.originCity || 'chez toi'} à ${profile.destinationCity ?? 'la France'}, une étape à la fois`}
-            action="Détails"
+            title={t('home.path')}
+            subtitle={t('home.pathSub', { from: profile.originCity || t('home.fromHome'), to: profile.destinationCity ?? t('home.toFrance') })}
+            action={t('common.details')}
             onAction={() => router.push('/(app)/parcours')}
           />
           <JourneyPath />
@@ -119,9 +121,9 @@ export function StudentHome() {
 
         <Reveal>
           <SectionHeader
-            title="Mentors pour toi"
-            subtitle={city ? `D’abord ceux qui vivent à ${city}` : 'Des étudiants passés par là'}
-            action={suggested.length ? 'Tous' : undefined}
+            title={t('home.mentors')}
+            subtitle={city ? t('home.mentorsCity', { city }) : t('home.mentorsAny')}
+            action={suggested.length ? t('common.all') : undefined}
             onAction={() => router.navigate('/(app)/(tabs)/explorer')}
           />
           {suggested.length ? (
@@ -136,12 +138,12 @@ export function StudentHome() {
         </Reveal>
 
         <Reveal>
-          <SectionHeader title="Ta boîte à outils" subtitle="Tout ce qu’il faut, sans chercher" />
+          <SectionHeader title={t('home.tools')} subtitle={t('home.toolsSub')} />
           <ToolsGrid />
         </Reveal>
 
         <Reveal>
-          <SectionHeader title={`Communautés${city ? ` à ${city}` : ''}`} subtitle="Trouve tes gens." action="Voir" onAction={() => router.navigate('/(app)/(tabs)/communaute')} />
+          <SectionHeader title={city ? t('home.communitiesCity', { city }) : t('home.communities')} subtitle={t('home.communitiesSub')} action={t('common.see')} onAction={() => router.navigate('/(app)/(tabs)/communaute')} />
           <View style={{ gap: 10 }}>
             {cityGroups.map((g) => (
               <PressableScale key={g.id} onPress={() => router.push({ pathname: '/(app)/groupe/[id]', params: { id: g.id } })} style={styles.groupRow}>

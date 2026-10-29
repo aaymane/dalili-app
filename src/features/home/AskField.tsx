@@ -5,6 +5,7 @@ import { ScrollView, View } from 'react-native';
 import { PressableScale } from '@/components/ui/PressableScale';
 import { Text } from '@/components/ui/Text';
 import { useSuggestions } from '@/features/ai/suggestions';
+import { useT } from '@/i18n';
 import { makeStyles, useTheme } from '@/theme/scheme';
 import { radius } from '@/theme/tokens';
 
@@ -15,12 +16,13 @@ export function AskField() {
   const { c } = useTheme();
   const styles = useStyles();
   const suggestions = useSuggestions();
+  const t = useT();
   return (
     <View style={{ gap: 10 }}>
-      <PressableScale onPress={() => ask()} haptic="press" style={styles.field} accessibilityRole="search" accessibilityLabel="Poser une question à Dalili">
+      <PressableScale onPress={() => ask()} haptic="press" style={styles.field} accessibilityRole="search" accessibilityLabel={t('aiProfile.ask')}>
         <Sparkles size={18} color={c.aiIndigo} />
         <Text variant="body" color={c.muted} style={{ flex: 1 }}>
-          Demande-moi n’importe quoi…
+          {t('home.askAnything')}
         </Text>
         <View style={styles.send}>
           <ArrowUp size={16} color="#fff" strokeWidth={2.8} />

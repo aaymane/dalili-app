@@ -4,6 +4,7 @@ import { persist } from 'zustand/middleware';
 
 import { toast } from '@/components/feedback/Toast';
 import { effectiveArrival, useProfile } from '@/features/profile/store';
+import { t } from '@/i18n';
 import { addDays, toISODate } from '@/lib/date';
 import { persistStorage } from '@/lib/storage';
 import { track } from '@/lib/analytics';
@@ -14,7 +15,7 @@ import { useSteps, type Phase, type Step } from './steps';
 export type CustomStep = { id: string; title: string; date: string; done: boolean };
 
 /** L'étape reste cochée sur le téléphone ; on prévient seulement que la base ne l'a pas reçue. */
-const notSaved = () => toast('Étape gardée sur ton téléphone, mais pas encore enregistrée en ligne. Vérifie ta connexion.', 'info');
+const notSaved = () => toast(t('journey.notSaved'), 'info');
 
 type JourneyState = {
   /** Statut forcé par l'utilisateur (prioritaire sur `autoDone`). */

@@ -19,6 +19,7 @@ import { DocumentsCard, FaqList, FigureList, KeyFactsCard, SourcesCard } from '@
 import { StepIcon } from '@/features/journey/components/StepIcon';
 import { useStep } from '@/features/journey/steps';
 import { useJourney, useJourneyStore } from '@/features/journey/store';
+import { useT } from '@/i18n';
 import { formatLong } from '@/lib/date';
 import { haptics } from '@/lib/haptics';
 import { makeStyles, useTheme } from '@/theme/scheme';
@@ -37,6 +38,7 @@ export default function StepSheet() {
   const { data: guide } = useGuide(step?.guides[0]);
   const { data: manifest } = useContent('manifest');
   const { data: journey } = useContent('journey');
+  const t = useT();
   if (!step) return null;
   const item = j.all.find((i) => i.kind === 'official' && i.step.id === id);
   const done = !!item?.done;
@@ -77,21 +79,21 @@ export default function StepSheet() {
       <Animated.View entering={rise(60)} style={styles.reassure}>
         <Text variant="body">
           <Text variant="bodyStrong" color={c.electric}>
-            Pas de panique.{' '}
+            {t('step.reassureA')}{' '}
           </Text>
-          Des milliers d’étudiants sont passés par là avant toi, on t’explique tout, simplement.
+          {t('step.reassureB')}
         </Text>
       </Animated.View>
 
       <Animated.View entering={rise(100)} style={{ gap: 6 }}>
         <Text variant="overline" color={c.muted}>
-          C’est quoi, en 1 phrase ?
+          {t('step.what')}
         </Text>
         <Text variant="body">{step.oneLiner}</Text>
       </Animated.View>
       <Animated.View entering={rise(130)} style={{ gap: 6 }}>
         <Text variant="overline" color={c.muted}>
-          Pourquoi c’est important
+          {t('step.why')}
         </Text>
         <Text variant="body">{step.why}</Text>
       </Animated.View>
@@ -99,12 +101,12 @@ export default function StepSheet() {
       <Animated.View entering={rise(160)} style={{ gap: 10 }}>
         <View style={styles.stat}>
           <Text variant="overline" color={c.muted} style={{ fontSize: 9 }}>
-            Quand
+            {t('step.when')}
           </Text>
           <Text variant="h3">{step.when}</Text>
           {item ? (
             <Text variant="caption" color={c.electric}>
-              Pour toi : {formatLong(item.date)}
+              {t('step.forYou', { date: formatLong(item.date) })}
             </Text>
           ) : null}
         </View>
@@ -113,7 +115,7 @@ export default function StepSheet() {
 
       <Animated.View entering={rise(190)} style={{ gap: 10 }}>
         <Text variant="overline" color={c.muted}>
-          Comment faire, en 3 étapes
+          {t('step.how')}
         </Text>
         {step.howTo.map((h, i) => (
           <View key={h.title} style={styles.how}>
@@ -137,7 +139,7 @@ export default function StepSheet() {
       ) : step.needs?.length ? (
         <Animated.View entering={rise(210)} style={{ gap: 8 }}>
           <Text variant="overline" color={c.muted}>
-            Ce qu’il te faut
+            {t('step.needs')}
           </Text>
           {step.needs.map((n) => (
             <View key={n} style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
@@ -151,13 +153,13 @@ export default function StepSheet() {
       {step.terms?.length ? (
         <Animated.View entering={rise(230)} style={{ gap: 8 }}>
           <Text variant="overline" color={c.muted}>
-            Les mots à connaître
+            {t('step.terms')}
           </Text>
           <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
-            {step.terms.map((t) => (
-              <PressableScale key={t} onPress={() => openTerm(t)} haptic="select" style={styles.term}>
+            {step.terms.map((term) => (
+              <PressableScale key={term} onPress={() => openTerm(term)} haptic="select" style={styles.term}>
                 <Text variant="smallStrong" color={c.electric}>
-                  {t}
+                  {term}
                 </Text>
               </PressableScale>
             ))}
@@ -167,13 +169,13 @@ export default function StepSheet() {
 
       <Animated.View entering={rise(250)} style={styles.action}>
         <Text variant="overline" color="rgba(255,255,255,0.55)" style={{ fontSize: 9.5 }}>
-          Ta seule action maintenant
+          {t('step.action')}
         </Text>
         <Text variant="h3" color="#fff">
           {step.action.label}
         </Text>
         <Button
-          label={step.action.url ? 'Ouvrir le site officiel' : 'Voir comment faire'}
+          label={step.action.url ? t('step.officialSite') : t('step.seeHow')}
           size="md"
           variant="white"
           icon={<ArrowUpRight size={16} color={c.navy} />}
@@ -185,21 +187,21 @@ export default function StepSheet() {
         <View style={{ gap: 14 }}>
           <View style={{ gap: 4 }}>
             <Text variant="overline" color={c.muted}>
-              D’après notre guide
+              {t('step.fromGuide')}
             </Text>
             <PressableScale onPress={() => openGuide(guide.slug)} style={styles.guide} accessibilityRole="link">
               <BookOpen size={18} color={c.electric} />
               <View style={{ flex: 1 }}>
                 <Text variant="smallStrong">{guide.title}</Text>
                 <Text variant="caption" color={c.muted}>
-                  {readMinutes(guide.readTime)} min de lecture
+                  {t('step.readTime', { n: readMinutes(guide.readTime) })}
                 </Text>
               </View>
               <ChevronRight size={16} color={c.muted} />
             </PressableScale>
             {!step.hasCountryGuide ? (
               <Text variant="caption" color={c.subtle}>
-                Notre guide spécifique pour ton pays arrive bientôt. En attendant, voici le guide général.
+                {t('step.countryGuideSoon')}
               </Text>
             ) : null}
           </View>
@@ -212,7 +214,7 @@ export default function StepSheet() {
       {otherGuides.length ? (
         <View style={{ gap: 8 }}>
           <Text variant="overline" color={c.muted}>
-            Pour aller plus loin
+            {t('step.further')}
           </Text>
           {otherGuides.map((g) => (
             <PressableScale key={g.slug} onPress={() => openGuide(g.slug)} style={styles.guide} accessibilityRole="link">
@@ -243,20 +245,20 @@ export default function StepSheet() {
 
       <View style={{ gap: 10 }}>
         <Button
-          label={done ? 'Marquer comme à faire' : 'C’est fait !'}
+          label={done ? t('step.markTodo') : t('step.markDone')}
           variant={done ? 'secondary' : 'primary'}
           icon={!done ? <Check size={18} color="#fff" strokeWidth={3} /> : undefined}
           onPress={markDone}
         />
         <View style={{ flexDirection: 'row', gap: 10 }}>
           <View style={{ flex: 1 }}>
-            <Button label="Un mentor" size="md" variant="secondary" iconLeft={<UsersRound size={16} color={c.navy} />} onPress={() => {
+            <Button label={t('step.aMentor')} size="md" variant="secondary" iconLeft={<UsersRound size={16} color={c.navy} />} onPress={() => {
               router.back();
               setTimeout(() => router.navigate('/(app)/(tabs)/explorer'), 250);
             }} />
           </View>
           <View style={{ flex: 1 }}>
-            <Button label="Dalili IA" size="md" variant="secondary" iconLeft={<Sparkles size={16} color={c.aiIndigo} />} onPress={() => ask(`Explique-moi : ${step.title}`)} />
+            <Button label={t('step.ai')} size="md" variant="secondary" iconLeft={<Sparkles size={16} color={c.aiIndigo} />} onPress={() => ask(t('step.explain', { title: step.title }))} />
           </View>
         </View>
       </View>

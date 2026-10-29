@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/Button';
 import { Calendar } from '@/components/ui/Calendar';
 import { Text } from '@/components/ui/Text';
 import { effectiveArrival, useProfile } from '@/features/profile/store';
+import { useT } from '@/i18n';
 import { formatLong, toISODate } from '@/lib/date';
 import { useTheme } from '@/theme/scheme';
 
@@ -15,22 +16,23 @@ export function ArrivalSheet({ visible, onClose }: { visible: boolean; onClose: 
   const { c } = useTheme();
   const profile = useProfile((s) => s.profile);
   const update = useProfile((s) => s.update);
+  const t = useT();
   const [d, setD] = useState<Date>(effectiveArrival(profile));
   return (
     <BottomSheet visible={visible} onClose={onClose}>
       <View style={{ gap: 14 }}>
         <View>
-          <Text variant="h2">Ta date d’arrivée</Text>
+          <Text variant="h2">{t('journey.arrivalTitle')}</Text>
           <Text variant="small" color={c.muted}>
-            Toutes tes échéances se recalculent automatiquement.
+            {t('journey.arrivalText')}
           </Text>
         </View>
         <Calendar selected={d} onSelect={setD} minDate={new Date()} />
         <Button
-          label={`Valider · ${formatLong(d)}`}
+          label={t('journey.arrivalValidate', { date: formatLong(d) })}
           onPress={() => {
             update({ arrivalDate: toISODate(d) });
-            toast('Échéances recalculées ✨');
+            toast(t('journey.recomputed'));
             onClose();
           }}
         />

@@ -19,6 +19,7 @@ import { TiltingStarField } from '@/components/brand/StarField';
 import { celebrate } from '@/components/feedback/Confetti';
 import { Button } from '@/components/ui/Button';
 import { Text } from '@/components/ui/Text';
+import { useT } from '@/i18n';
 import { haptics } from '@/lib/haptics';
 import { EASE_OUT, rise } from '@/theme/motion';
 import { useTheme } from '@/theme/scheme';
@@ -45,6 +46,7 @@ export function TicketUnlock() {
   const insets = useSafeAreaInsets();
   const reduce = useReducedMotion();
   const ticket = useTicket();
+  const tr = useT();
   const markTicketSeen = useJourneyStore((s) => s.markTicketSeen);
 
   const shown = useSharedValue(reduce ? 1 : 0);
@@ -102,10 +104,10 @@ export function TicketUnlock() {
       <View style={[styles.content, { paddingTop: insets.top + 56, paddingBottom: insets.bottom + 24 }]}>
         <Animated.View entering={rise(0)} style={{ gap: 8 }} accessible accessibilityRole="header">
           <Text variant="smallStrong" color={c.mentorGlow} align="center">
-            Ton visa est validé
+            {tr('ticket.unlockA')}
           </Text>
           <Text variant="hero" color={c.white} align="center">
-            Ton billet est débloqué
+            {tr('ticket.unlockB')}
           </Text>
           <Text variant="body" color="rgba(255,255,255,0.7)" align="center">
             {ticket.data.from} → {ticket.data.to}. Le plus dur est derrière toi.
@@ -118,9 +120,9 @@ export function TicketUnlock() {
 
         <Animated.View entering={rise(900)} style={{ gap: 12 }}>
           <Text variant="small" color="rgba(255,255,255,0.6)" align="center">
-            Il t’attend en haut de ton accueil, jusqu’au jour J.
+            {tr('ticket.unlockText')}
           </Text>
-          <Button label="Garder mon billet" variant="white" onPress={() => router.back()} />
+          <Button label={tr('ticket.keep')} variant="white" onPress={() => router.back()} />
         </Animated.View>
       </View>
     </LinearGradient>

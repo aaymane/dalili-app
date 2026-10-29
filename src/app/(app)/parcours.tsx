@@ -17,9 +17,10 @@ import { AddStepCard } from '@/features/journey/components/AddStepCard';
 import { ArrivalSheet } from '@/features/journey/components/ArrivalSheet';
 import { MobilityCard } from '@/features/journey/components/MobilityCard';
 import { StepRow } from '@/features/journey/components/StepRow';
-import { phaseMeta, type Phase } from '@/features/journey/steps';
+import { PHASES, phaseMeta } from '@/features/journey/steps';
 import { useJourney, type JourneyItem } from '@/features/journey/store';
 import { useProfile } from '@/features/profile/store';
+import { useT } from '@/i18n';
 import { daysFromToday, formatDayMonth, isSameDay, monthShort, relativeDays } from '@/lib/date';
 import { makeStyles, useTheme } from '@/theme/scheme';
 import { radius } from '@/theme/tokens';
@@ -30,7 +31,8 @@ function DeadlineRow({ item }: { item: JourneyItem }) {
   const styles = useStyles();
   const d = daysFromToday(item.date);
   const title = item.kind === 'official' ? item.step.title : item.custom.title;
-  const tag = item.kind === 'official' ? item.step.tags.join(' · ') : 'MA TÂCHE';
+  const t = useT();
+  const tag = item.kind === 'official' ? item.step.tags.join(' · ') : t('journey.myTask');
   return (
     <PressableScale
       onPress={() => item.kind === 'official' && router.push({ pathname: '/(app)/etape/[id]', params: { id: item.step.id } })}
@@ -51,7 +53,7 @@ function DeadlineRow({ item }: { item: JourneyItem }) {
           {tag}
         </Text>
       </View>
-      {item.done ? <StatusPill status="done" /> : d < 0 ? <StatusPill status="late" /> : d <= 20 ? <StatusPill status="soon" label={`Dans ${d} j`} /> : <StatusPill status="todo" label={`Dans ${d} j`} />}
+      {item.done ? <StatusPill status="done" /> : d < 0 ? <StatusPill status="late" /> : d <= 20 ? <StatusPill status="soon" label={t('dates.inDaysShort', { count: d })} /> : <StatusPill status="todo" label={t('dates.inDaysShort', { count: d })} />}
     </PressableScale>
   );
 }
@@ -66,6 +68,7 @@ export default function Parcours() {
   const [arrivalOpen, setArrivalOpen] = useState(false);
   const profile = useProfile((s) => s.profile);
   const j = useJourney();
+  const t = useT();
 
   const marked = useMemo(() => j.all.map((i) => i.date), [j.all]);
   const list = day ? j.all.filter((i) => isSameDay(i.date, day)) : j.all.filter((i) => daysFromToday(i.date) >= -1 || !i.done);
@@ -77,15 +80,16 @@ export default function Parcours() {
           value={view}
           onChange={setView}
           options={[
-            { value: 'steps', label: 'Mes étapes' },
-            { value: 'calendar', label: 'Calendrier' },
+            { value: 'steps', label: t('journey.tabSteps') },
+            { value: 'calendar', label: t('journey.tabCalendar') },
           ]}
         />
 
         {view === 'steps' ? (
           <Animated.View key="steps" entering={FadeIn.duration(220)} exiting={FadeOut.duration(120)} style={{ gap: 22 }}>
             <MobilityCard compact onEditArrival={() => setArrivalOpen(true)} />
-            {(Object.keys(phaseMeta) as Phase[]).map((p, pi) => {
+            {PHASES.map((p, pi) => {
+              const meta = phaseMeta(p, profile);
               const items = j.byPhase[p];
               const prog = j.phaseProgress(p);
               const complete = prog.total > 0 && prog.done === prog.total;
@@ -93,16 +97,16 @@ export default function Parcours() {
                 <Animated.View key={p} entering={rise(pi * 80)}>
                   <View style={{ flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: 12 }}>
                     <View>
-                      <Text variant="h2">{phaseMeta[p].title}</Text>
+                      <Text variant="h2">{meta.title}</Text>
                       <Text variant="small" color={c.muted}>
-                        {phaseMeta[p].subtitle(profile)}
+                        {meta.subtitle}
                       </Text>
                     </View>
                     {complete ? (
                       <View style={styles.badge}>
                         <Trophy size={13} color="#B45309" />
                         <Text variant="caption" color="#B45309">
-                          Phase validée
+                          {t('journey.phaseDone')}
                         </Text>
                       </View>
                     ) : (
@@ -118,7 +122,7 @@ export default function Parcours() {
               );
             })}
             <Text variant="caption" color={c.muted} align="center">
-              Touche le rond pour valider une étape · touche la ligne pour la fiche
+              {t('journey.hint')}
             </Text>
             <AddStepCard />
             <AiCta />
@@ -130,7 +134,7 @@ export default function Parcours() {
               <IconTile icon={CalendarDays} tone="blue" size={42} radius={13} />
               <View style={{ flex: 1 }}>
                 <Text variant="overline" color={c.muted} style={{ fontSize: 9 }}>
-                  Arrivée prévue
+                  {t('journey.plannedArrival')}
                 </Text>
                 <Text variant="bodyStrong">
                   {formatDayMonth(j.arrival)} · <Text variant="small" color={c.subtle}>{relativeDays(j.arrival)}</Text>
@@ -139,12 +143,12 @@ export default function Parcours() {
               <Pencil size={16} color={c.electric} />
             </PressableScale>
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-              <Text variant="h2">{day ? `Le ${formatDayMonth(day)}` : 'Tes prochaines échéances'}</Text>
+              <Text variant="h2">{day ? t('journey.onDay', { date: formatDayMonth(day) }) : t('journey.nextDeadlines')}</Text>
               {day ? (
                 <PressableScale onPress={() => setDay(null)} style={{ flexDirection: 'row', alignItems: 'center', gap: 2 }}>
                   <X size={13} color={c.muted} />
                   <Text variant="smallStrong" color={c.muted}>
-                    Tout afficher
+                    {t('journey.showAll')}
                   </Text>
                 </PressableScale>
               ) : null}
@@ -158,9 +162,9 @@ export default function Parcours() {
             ) : (
               <View style={styles.empty}>
                 <CalendarDays size={22} color={c.muted} />
-                <Text variant="h3">Rien de prévu ce jour</Text>
+                <Text variant="h3">{t('journey.nothingThatDay')}</Text>
                 <Text variant="small" color={c.muted} align="center">
-                  Profite — ou ajoute une tâche ci-dessous, la date est déjà pré-remplie.
+                  {t('journey.nothingThatDayText')}
                 </Text>
               </View>
             )}

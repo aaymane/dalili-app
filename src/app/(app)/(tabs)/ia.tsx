@@ -16,6 +16,7 @@ import { useSuggestions } from '@/features/ai/suggestions';
 import { stopSpeaking } from '@/features/ai/speech';
 import { useAssistant, type ChatMessage } from '@/features/ai/useAssistant';
 import { displayName, useProfile } from '@/features/profile/store';
+import { useT } from '@/i18n';
 import { makeStyles, useTheme } from '@/theme/scheme';
 import { fonts, radius } from '@/theme/tokens';
 import { rise } from '@/theme/motion';
@@ -80,6 +81,7 @@ export default function DaliliIA() {
   // On quitte le chat : la lecture à voix haute s'arrête.
   useFocusEffect(useCallback(() => stopSpeaking, []));
   const suggestions = useSuggestions();
+  const t = useT();
   const [text, setText] = useState('');
   const [keys, setKeys] = useState(0);
   const list = useRef<ComponentRef<typeof FlatList<ChatMessage>>>(null);
@@ -119,13 +121,13 @@ export default function DaliliIA() {
           <View style={styles.status}>
             {empty ? null : <Ame size={44} state={state} signal={signal} surface="light" />}
             <View>
-              <Text variant="smallStrong">Dalili IA</Text>
+              <Text variant="smallStrong">{t('ai.name')}</Text>
               <Text variant="caption" color={c.subtle}>
-                {thinking ? 'Je cherche dans nos guides…' : `D’après nos ${manifest.counts.guides} guides vérifiés`}
+                {thinking ? t('ai.searching') : t('ai.basedOn', { count: manifest.counts.guides })}
               </Text>
             </View>
           </View>
-          <PressableScale onPress={() => router.push('/(app)/profil-ia')} style={styles.profileBtn} accessibilityLabel="Ce que Dalili sait de toi">
+          <PressableScale onPress={() => router.push('/(app)/profil-ia')} style={styles.profileBtn} accessibilityLabel={t('ai.profileA11y')}>
             <UserRoundCog size={18} color={c.aiIndigo} />
           </PressableScale>
         </View>
@@ -142,10 +144,13 @@ export default function DaliliIA() {
               <Animated.View entering={rise()} style={{ alignItems: 'center', gap: 12, marginBottom: 6 }}>
                 <Ame size={132} state={state} signal={signal} surface="light" />
                 <Text variant="h2" align="center">
-                  Salut {displayName(profile)}, je t’écoute.
+                  {t('ai.hello', { name: displayName(profile) })}
                 </Text>
                 <Text variant="small" color={c.subtle} align="center" style={{ maxWidth: 300 }}>
-                  Je réponds uniquement avec les guides DALILI, et je te montre d’où vient chaque info. Si je ne sais pas, je te le dis.
+                  {t('ai.intro')}
+                </Text>
+                <Text variant="caption" color={c.muted} align="center" style={{ maxWidth: 300 }}>
+                  {t('ai.answersLanguage')}
                 </Text>
               </Animated.View>
             ) : undefined
@@ -155,7 +160,7 @@ export default function DaliliIA() {
             empty ? (
               <View style={{ gap: 8, marginTop: 8 }}>
                 <Text variant="overline" color={c.muted}>
-                  Pour ton étape en cours
+                  {t('ai.forStep')}
                 </Text>
                 {suggestions.map((s, i) => (
                   <Animated.View key={s} entering={rise(120 + i * 60)}>
@@ -175,11 +180,11 @@ export default function DaliliIA() {
         <View style={[styles.inputBar, { marginBottom: TAB_BAR_SPACE - 18 }]}>
           <TextInput
             value={text}
-            onChangeText={(t) => {
-              setText(t);
+            onChangeText={(v) => {
+              setText(v);
               setKeys((k) => k + 1);
             }}
-            placeholder="Demande-moi n’importe quoi…"
+            placeholder={t('ai.placeholder')}
             placeholderTextColor={c.muted}
             style={styles.input}
             multiline
@@ -187,9 +192,9 @@ export default function DaliliIA() {
             onSubmitEditing={() => send(text)}
             submitBehavior="blurAndSubmit"
             returnKeyType="send"
-            accessibilityLabel="Ta question pour Dalili"
+            accessibilityLabel={t('ai.inputA11y')}
           />
-          <PressableScale onPress={() => send(text)} disabled={!text.trim() || busy} haptic={false} accessibilityLabel="Envoyer">
+          <PressableScale onPress={() => send(text)} disabled={!text.trim() || busy} haptic={false} accessibilityLabel={t('ai.send')}>
             <LinearGradient colors={gradients.ai} style={[styles.send, (!text.trim() || busy) && { opacity: 0.45 }]}>
               <ArrowUp size={18} color="#fff" strokeWidth={2.8} />
             </LinearGradient>

@@ -1,4 +1,5 @@
 import { useProfile } from '@/features/profile/store';
+import { useT } from '@/i18n';
 import { daysFromToday, formatDayMonth } from '@/lib/date';
 
 import type { TicketData } from './components/Ticket';
@@ -15,14 +16,15 @@ const WELCOME_DAYS = 7;
 export function useTicket() {
   const profile = useProfile((s) => s.profile);
   const j = useJourney();
+  const t = useT();
   const days = daysFromToday(j.arrival);
   const unlocked = visaDone(j.all);
   const data: TicketData = {
-    from: profile.originCity || 'Chez toi',
-    to: profile.destinationCity ?? 'France',
+    from: profile.originCity || t('journey.homeCap'),
+    to: profile.destinationCity ?? t('common.france'),
     days,
     dateKnown: profile.arrivalDate != null,
-    passenger: [profile.firstName, profile.lastName?.charAt(0) ? `${profile.lastName.charAt(0)}.` : ''].filter(Boolean).join(' ') || 'Toi',
+    passenger: [profile.firstName, profile.lastName?.charAt(0) ? `${profile.lastName.charAt(0)}.` : ''].filter(Boolean).join(' ') || t('journey.you'),
     date: formatDayMonth(j.arrival),
   };
   return { unlocked, data, onHome: unlocked && days >= -WELCOME_DAYS };

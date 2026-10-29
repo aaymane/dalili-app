@@ -3,6 +3,7 @@ import { Platform } from 'react-native';
 import { create } from 'zustand';
 
 import { toast } from '@/components/feedback/Toast';
+import { t } from '@/i18n';
 
 /** Langue détectée par le cerveau (événement `meta`) → voix système. */
 const LANGUAGES: Record<string, string> = { fr: 'fr-FR', en: 'en-US', ar: 'ar-SA', darija: 'ar-SA' };
@@ -75,11 +76,11 @@ export async function speakAnswer(id: string, text: string, lang = 'fr') {
   if (useSpeech.getState().speakingId !== id) return;
 
   // La darija n'a pas de voix système : on lit en arabe standard, et on le dit.
-  if (lang === 'darija') toast('Lecture en arabe standard : la darija n’a pas encore de voix.', 'info');
+  if (lang === 'darija') toast(t('ai.darija'), 'info');
   // Seule la voix de base est installée : on explique comment en avoir une plus naturelle (une fois).
   else if (!voice.good && !tipShown && Platform.OS === 'ios') {
     tipShown = true;
-    toast('Voix plus naturelle : Réglages › Accessibilité › Contenu énoncé › Voix, télécharge une voix « Premium ».', 'info');
+    toast(t('ai.voiceTip'), 'info');
   }
 
   const done = () => {

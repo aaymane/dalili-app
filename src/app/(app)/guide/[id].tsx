@@ -1,5 +1,5 @@
 import { router, useLocalSearchParams } from 'expo-router';
-import { Bookmark, Clock, ThumbsDown, ThumbsUp, WifiOff } from 'lucide-react-native';
+import { Bookmark, Clock, Languages, ThumbsDown, ThumbsUp, WifiOff } from 'lucide-react-native';
 import { useEffect, useState } from 'react';
 import { View, type NativeScrollEvent, type NativeSyntheticEvent } from 'react-native';
 import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
@@ -14,9 +14,10 @@ import { Text } from '@/components/ui/Text';
 import { readMinutes } from '@/data/content';
 import { useGuide } from '@/data/hooks';
 import { useLocalDb } from '@/data/local-db';
-import { categories, categoryOf, softOf } from '@/features/guides/categories';
+import { categories, categoryLabel, categoryOf, softOf } from '@/features/guides/categories';
 import { FaqList, GuideBlockView, KeyFactsCard, SourcesCard } from '@/features/guides/components/GuideParts';
 import { useSteps } from '@/features/journey/steps';
+import { useCurrentLanguage, useT } from '@/i18n';
 import { formatFullDate } from '@/lib/date';
 import { makeStyles, useTheme } from '@/theme/scheme';
 import { radius } from '@/theme/tokens';
@@ -35,14 +36,16 @@ export default function GuideReader() {
   const toggleSaved = useLocalDb((s) => s.toggleSavedGuide);
   const markRead = useLocalDb((s) => s.markGuideRead);
   const [feedback, setFeedback] = useState<boolean | null>(null);
+  const t = useT();
+  const language = useCurrentLanguage();
   const p = useSharedValue(0);
   const bar = useAnimatedStyle(() => ({ width: `${p.value * 100}%` }));
   useEffect(() => {
     if (id) track('guide_opened', { slug: id });
   }, [id]);
   useEffect(() => {
-    const t = setTimeout(() => id && markRead(id), 8000);
-    return () => clearTimeout(t);
+    const timer = setTimeout(() => id && markRead(id), 8000);
+    return () => clearTimeout(timer);
   }, [id, markRead]);
 
   if (!g) {
@@ -50,11 +53,11 @@ export default function GuideReader() {
       <Screen>
         <View style={styles.empty}>
           <Text variant="h2" align="center">
-            {isLoading ? 'Ouverture du guide…' : 'Guide introuvable'}
+            {isLoading ? t('guide.opening') : t('guide.notFound')}
           </Text>
           {!isLoading ? (
             <Text variant="body" color={colors.subtle} align="center">
-              Il a peut-être été renommé. Retrouve tous les guides dans l’onglet Explorer.
+              {t('guide.notFoundText')}
             </Text>
           ) : null}
         </View>
@@ -62,7 +65,8 @@ export default function GuideReader() {
     );
   }
 
-  const c = categories[categoryOf(g.category)];
+  const cat = categoryOf(g.category);
+  const c = categories[cat];
   const step = steps.find((s) => s.guides.includes(g.slug));
 
   const onScroll = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
@@ -80,16 +84,16 @@ export default function GuideReader() {
       header={
         <View>
           <View style={styles.header}>
-            <PressableScale onPress={() => router.back()} style={styles.round} accessibilityLabel="Retour">
+            <PressableScale onPress={() => router.back()} style={styles.round} accessibilityLabel={t('common.back')}>
               <ChevronLeft size={20} color={colors.navy} />
             </PressableScale>
             <PressableScale
               onPress={() => {
                 toggleSaved(g.slug);
-                toast(saved ? 'Retiré de tes guides' : 'Guide enregistré');
+                toast(saved ? t('guide.unsaved') : t('guide.saved'));
               }}
               style={styles.round}
-              accessibilityLabel={saved ? 'Retirer des guides enregistrés' : 'Enregistrer le guide'}>
+              accessibilityLabel={saved ? t('guide.unsaveA11y') : t('guide.saveA11y')}>
               <Bookmark size={18} color={saved ? colors.electric : colors.navy} fill={saved ? colors.electric : 'transparent'} />
             </PressableScale>
           </View>
@@ -101,21 +105,29 @@ export default function GuideReader() {
       <View style={[styles.body, { paddingBottom: insets.bottom + 24 }]}>
         <Animated.View entering={rise()} style={{ gap: 8 }}>
           <Text variant="overline" color={c.color}>
-            {c.label}
+            {categoryLabel(cat)}
           </Text>
           <Text variant="h1">{g.title}</Text>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
             <Clock size={13} color={colors.muted} />
             <Text variant="caption" color={colors.muted}>
-              {readMinutes(g.readTime)} min · mis à jour le {formatFullDate(g.updatedDate)}
+              {t('guide.meta', { n: readMinutes(g.readTime), date: formatFullDate(g.updatedDate) })}
             </Text>
           </View>
         </Animated.View>
+        {language !== 'fr' ? (
+          <View style={styles.offline}>
+            <Languages size={16} color={colors.subtle} />
+            <Text variant="caption" color={colors.subtle} style={{ flex: 1 }}>
+              {t('guide.frenchOnly')}
+            </Text>
+          </View>
+        ) : null}
         {isFallback ? (
           <View style={styles.offline}>
             <WifiOff size={16} color={colors.subtle} />
             <Text variant="caption" color={colors.subtle} style={{ flex: 1 }}>
-              Tu lis la version enregistrée dans l’app. On la met à jour dès que dalili.study répond.
+              {t('guide.offline')}
             </Text>
           </View>
         ) : null}
@@ -131,34 +143,34 @@ export default function GuideReader() {
         <FaqList faq={g.faq} />
         <SourcesCard guide={g} />
         <Text variant="caption" color={colors.muted}>
-          Ce guide donne des informations générales. Ce n’est pas un conseil juridique : pour un cas particulier, parle à un mentor ou au service concerné.
+          {t('guide.disclaimer')}
         </Text>
         {step ? (
           <Button
-            label={`Aller à l’étape : ${step.title}`}
+            label={t('guide.goToStep', { title: step.title })}
             icon={<ArrowRight size={18} color="#fff" />}
             onPress={() => router.push({ pathname: '/(app)/etape/[id]', params: { id: step.id } })}
           />
         ) : null}
         <View style={styles.feedback}>
-          <Text variant="bodyStrong">Ce guide t’a aidé ?</Text>
+          <Text variant="bodyStrong">{t('guide.helpful')}</Text>
           <View style={{ flexDirection: 'row', gap: 10 }}>
             <PressableScale
               haptic="select"
-              accessibilityLabel="Oui, il m’a aidé"
+              accessibilityLabel={t('guide.yesA11y')}
               onPress={() => {
                 setFeedback(true);
-                toast('Merci 💙');
+                toast(t('guide.thanks'));
               }}
               style={[styles.thumb, feedback === true && { backgroundColor: colors.successSoft, borderColor: colors.success }]}>
               <ThumbsUp size={18} color={feedback === true ? colors.success : colors.subtle} />
             </PressableScale>
             <PressableScale
               haptic="select"
-              accessibilityLabel="Non, il ne m’a pas aidé"
+              accessibilityLabel={t('guide.noA11y')}
               onPress={() => {
                 setFeedback(false);
-                toast('On va l’améliorer, promis.', 'info');
+                toast(t('guide.improve'), 'info');
               }}
               style={[styles.thumb, feedback === false && { backgroundColor: colors.dangerSoft, borderColor: colors.danger }]}>
               <ThumbsDown size={18} color={feedback === false ? colors.danger : colors.subtle} />

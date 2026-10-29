@@ -4,6 +4,7 @@ import { Fragment } from 'react';
 import { Text as RNText } from 'react-native';
 
 import { Text } from '@/components/ui/Text';
+import { useT } from '@/i18n';
 import { haptics } from '@/lib/haptics';
 import { useTheme } from '@/theme/scheme';
 import { type TypeVariant } from '@/theme/tokens';
@@ -27,6 +28,7 @@ export function openLink(url: string) {
  */
 export function RichText({ text, variant = 'body', color }: { text: string; variant?: TypeVariant; color?: string }) {
   const { c } = useTheme();
+  const t = useT();
   color ??= c.navy;
   const parts = text.split(TOKEN);
   return (
@@ -42,7 +44,7 @@ export function RichText({ text, variant = 'body', color }: { text: string; vari
                 openTerm(term[1]);
               }}
               accessibilityRole="link"
-              accessibilityHint="Ouvre la définition"
+              accessibilityHint={t('glossary.openHint')}
               style={{ color: c.electric, textDecorationLine: 'underline', textDecorationStyle: 'dotted', fontFamily: 'OpenSans_600SemiBold' }}>
               {term[1]}
             </RNText>

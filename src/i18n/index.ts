@@ -118,4 +118,10 @@ export const t = i18n.t.bind(i18n);
 /** La langue en cours, hors d'un composant (dates, nombres). */
 export const currentLanguage = (): Language => (isLanguage(i18n.language) ? i18n.language : 'fr');
 
+/** « 4,8 » en français, « 4.8 » en anglais et en arabe (chiffres occidentaux, comme au Maghreb). */
+export const formatDecimal = (n: number, digits = 1) => {
+  const s = n.toFixed(digits);
+  return currentLanguage() === 'fr' ? s.replace('.', ',') : s;
+};
+
 export { i18n };

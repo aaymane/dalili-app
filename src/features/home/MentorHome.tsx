@@ -24,6 +24,7 @@ import { useAnswerRequest, useMentorRequests, useMyMentor, useSetAvailability } 
 import { useOpenFromBooking } from '@/features/messages/hooks';
 import { displayName, useProfile } from '@/features/profile/store';
 import { SafetySheet } from '@/features/safety/components/SafetySheet';
+import { formatDecimal, useT } from '@/i18n';
 import { daysFromToday, formatDayMonth, formatTime, relativeDays } from '@/lib/date';
 import { haptics } from '@/lib/haptics';
 import { enter, leave, pop, reflow } from '@/theme/motion';
@@ -62,6 +63,7 @@ export function MentorHome() {
   const mine = useMyMentor();
   const requests = useMentorRequests();
   const availability = useSetAvailability();
+  const t = useT();
 
   const mentor = mine.data;
   return (
@@ -72,7 +74,7 @@ export function MentorHome() {
             <OfflineCard onRetry={() => void mine.refetch()} />
           </Animated.View>
         ) : mine.isPending ? (
-          <View style={styles.skeleton} accessibilityLabel="Chargement de ton espace mentor" />
+          <View style={styles.skeleton} accessibilityLabel={t('mentorHome.loadingA11y')} />
         ) : !mentor ? (
           <Animated.View entering={enter(0)}>
             <BecomeMentor />
@@ -102,32 +104,32 @@ export function MentorHome() {
               <Requests query={requests} />
             </Animated.View>
             <Reveal>
-              <SectionHeader title="Ta disponibilité" subtitle="Tu acceptes selon ce que tu fais sur le moment" />
+              <SectionHeader title={t('mentorHome.availability')} subtitle={t('mentorHome.availabilitySub')} />
               <View style={styles.list}>
                 <View style={styles.availRow}>
                   <View style={{ flex: 1 }}>
-                    <Text variant="bodyStrong">{mentor.availableThisWeek ? 'Je prends des demandes' : 'En pause'}</Text>
+                    <Text variant="bodyStrong">{mentor.availableThisWeek ? t('mentorHome.taking') : t('mentorHome.paused')}</Text>
                     <Text variant="small" color={c.subtle}>
                       {mentor.availableThisWeek
-                        ? `Les étudiants de ${mentor.city} peuvent te proposer un appel`
-                        : 'Personne ne peut te demander d’appel pour le moment'}
+                        ? t('mentorHome.takingText', { city: mentor.city })
+                        : t('mentorHome.pausedText')}
                     </Text>
                   </View>
                   <Switch
                     value={mentor.availableThisWeek}
                     onValueChange={(v) => {
                       haptics.select();
-                      availability.mutate(v, { onError: () => toast('Pas enregistré. Vérifie ta connexion et réessaie.', 'info') });
+                      availability.mutate(v, { onError: () => toast(t('common.notSaved'), 'info') });
                     }}
                     trackColor={{ true: c.mentor, false: c.line }}
-                    accessibilityLabel="Je prends des demandes"
+                    accessibilityLabel={t('mentorHome.taking')}
                   />
                 </View>
               </View>
             </Reveal>
             <Reveal>
               <Button
-                label="Voir mon profil public"
+                label={t('mentorHome.publicProfile')}
                 variant="secondary"
                 iconLeft={<Eye size={18} color={c.navy} />}
                 onPress={() => router.push({ pathname: '/(app)/mentor/[id]', params: { id: mentor.id } })}
@@ -145,32 +147,29 @@ function ImpactCard({ name, mentor, requests }: { name: string; mentor: MyMentor
   const styles = useStyles();
   const pending = requests.filter((r) => r.status === 'pending').length;
   const impact = impactOf(requests);
-  const sentence = pending
-    ? `${pending} étudiant${pending > 1 ? 's attendent' : ' attend'} ta réponse.`
-    : impact.acceptedThisMonth
-      ? 'Tout le monde a sa réponse. Merci pour eux.'
-      : 'Pas encore de demande. Ta fiche est en ligne.';
+  const t = useT();
+  const sentence = pending ? t('mentorHome.waiting', { count: pending }) : impact.acceptedThisMonth ? t('mentorHome.allAnswered') : t('mentorHome.noRequest');
   return (
     <LinearGradient colors={gradients.night} style={styles.hero}>
       <StarField variant="card" />
       <Constellation helped={impact.acceptedThisMonth} waiting={pending} />
       <View style={{ gap: 6 }}>
         <Text variant="smallStrong" color="rgba(255,255,255,0.6)">
-          Bonjour {name}
+          {t('mentorHome.hello', { name })}
         </Text>
         <Text variant="h2" color={c.white}>
           {sentence}
         </Text>
       </View>
       <View style={styles.stats}>
-        <Stat icon={<Users size={14} color={c.mentorGlow} />} value={String(impact.acceptedThisMonth)} label="acceptés ce mois" />
+        <Stat icon={<Users size={14} color={c.mentorGlow} />} value={String(impact.acceptedThisMonth)} label={t('mentorHome.acceptedMonth')} />
         <View style={styles.statSep} />
-        <Stat icon={<PhoneCall size={14} color={c.mentorGlow} />} value={String(impact.calls)} label="appels" />
+        <Stat icon={<PhoneCall size={14} color={c.mentorGlow} />} value={String(impact.calls)} label={t('mentorHome.calls')} />
         <View style={styles.statSep} />
         {mentor.sessions > 0 ? (
-          <Stat icon={<Star size={14} color={c.mentorGlow} fill={c.mentorGlow} />} value={mentor.rating.toFixed(1).replace('.', ',')} label="note" />
+          <Stat icon={<Star size={14} color={c.mentorGlow} fill={c.mentorGlow} />} value={formatDecimal(mentor.rating)} label={t('mentorHome.rating')} />
         ) : (
-          <Stat icon={<Star size={14} color={c.mentorGlow} />} value="Nouveau" label="pas encore noté" />
+          <Stat icon={<Star size={14} color={c.mentorGlow} />} value={t('mentorHome.new')} label={t('mentorHome.notRated')} />
         )}
       </View>
     </LinearGradient>
@@ -181,6 +180,8 @@ function Requests({ query }: { query: ReturnType<typeof useMentorRequests> }) {
   const { c } = useTheme();
   const styles = useStyles();
   const answer = useAnswerRequest();
+  const t = useT();
+  const nameOf = (r: MentorRequest) => r.student ?? t('mentorHome.thisStudent');
   const list = visible(query.data ?? []);
   const pending = list.filter((r) => r.status === 'pending').length;
   // La dernière demande signalée reste affichée pendant que la feuille se ferme.
@@ -195,8 +196,8 @@ function Requests({ query }: { query: ReturnType<typeof useMentorRequests> }) {
     open.mutate(
       { bookingId: r.id, role: 'mentor' },
       {
-        onSuccess: (id) => (id ? router.push({ pathname: '/(app)/messages/[id]', params: { id } }) : toast('La conversation s’ouvre dans un instant. Réessaie.', 'info')),
-        onError: () => toast('Pas de connexion. Réessaie dans un instant.', 'info'),
+        onSuccess: (id) => (id ? router.push({ pathname: '/(app)/messages/[id]', params: { id } }) : toast(t('mentorHome.convoSoon'), 'info')),
+        onError: () => toast(t('common.offlineRetry'), 'info'),
       },
     );
 
@@ -205,22 +206,25 @@ function Requests({ query }: { query: ReturnType<typeof useMentorRequests> }) {
     answer.mutate(
       { id: r.id, status: ok ? 'confirmed' : 'cancelled' },
       {
-        onSuccess: () => toast(ok ? 'Accepté. L’étudiant voit ta réponse.' : 'Demande déclinée.', ok ? 'success' : 'info'),
-        onError: () => toast('Pas enregistré. Vérifie ta connexion et réessaie.', 'info'),
+        onSuccess: () => toast(ok ? t('mentorHome.accepted') : t('mentorHome.declined'), ok ? 'success' : 'info'),
+        onError: () => toast(t('common.notSaved'), 'info'),
       },
     );
   };
 
   return (
     <View>
-      <SectionHeader title="Demandes d’appel" subtitle={query.isPending ? 'Chargement…' : pending ? `${pending} en attente` : 'Rien en attente'} />
+      <SectionHeader
+        title={t('mentorHome.requests')}
+        subtitle={query.isPending ? t('common.loading') : pending ? t('mentorHome.pending', { count: pending }) : t('mentorHome.nonePending')}
+      />
       {query.isError ? (
         <OfflineCard onRetry={() => void query.refetch()} />
       ) : !query.isPending && !list.length ? (
         <View style={[styles.list, styles.empty]}>
           <IconTile icon={Hourglass} tone="green" size={44} radius={14} />
           <Text variant="small" color={c.subtle} style={{ flex: 1 }}>
-            Quand un étudiant te propose un appel, sa demande arrive ici. Tu acceptes selon ce que tu fais à ce moment-là.
+            {t('mentorHome.empty')}
           </Text>
         </View>
       ) : (
@@ -228,15 +232,15 @@ function Requests({ query }: { query: ReturnType<typeof useMentorRequests> }) {
           {list.map((r, i) => (
             <Animated.View key={r.id} layout={reflow} exiting={leave} style={[styles.req, i > 0 && styles.sep]}>
               <View style={styles.reqTop}>
-                <Avatar name={r.student ?? 'Étudiant'} size={44} color={avatarTone(r.student ?? r.id)} />
+                <Avatar name={r.student ?? t('mentorHome.student')} size={44} color={avatarTone(r.student ?? r.id)} />
                 <View style={{ flex: 1 }}>
-                  <Text variant="bodyStrong">{r.student ?? 'Un·e étudiant·e'}</Text>
+                  <Text variant="bodyStrong">{r.student ?? t('mentorHome.aStudent')}</Text>
                   <Text variant="small" color={c.subtle} numberOfLines={1}>
                     {r.topic}
                   </Text>
                   {r.city ? (
                     <Text variant="caption" color={c.muted}>
-                      Depuis {r.city}
+                      {t('mentorHome.from', { city: r.city })}
                     </Text>
                   ) : null}
                 </View>
@@ -249,15 +253,15 @@ function Requests({ query }: { query: ReturnType<typeof useMentorRequests> }) {
               </View>
               {r.status === 'pending' ? (
                 <View style={styles.reqActions}>
-                  <PressableScale haptic="press" onPress={() => reply(r, true)} hitSlop={4} style={styles.accept} accessibilityLabel={`Accepter l’appel avec ${r.student ?? 'cet étudiant'}`}>
+                  <PressableScale haptic="press" onPress={() => reply(r, true)} hitSlop={4} style={styles.accept} accessibilityLabel={t('mentorHome.acceptA11y', { name: nameOf(r) })}>
                     <Check size={16} color={c.white} strokeWidth={2.6} />
                     <Text variant="smallStrong" color={c.white}>
-                      Accepter
+                      {t('mentorHome.accept')}
                     </Text>
                   </PressableScale>
-                  <PressableScale onPress={() => reply(r, false)} hitSlop={4} style={styles.decline} accessibilityLabel={`Décliner la demande de ${r.student ?? 'cet étudiant'}`}>
+                  <PressableScale onPress={() => reply(r, false)} hitSlop={4} style={styles.decline} accessibilityLabel={t('mentorHome.declineA11y', { name: nameOf(r) })}>
                     <Text variant="smallStrong" color={c.subtle}>
-                      Décliner
+                      {t('mentorHome.decline')}
                     </Text>
                   </PressableScale>
                   <ReportButton r={r} onPress={() => report(r)} />
@@ -270,24 +274,24 @@ function Requests({ query }: { query: ReturnType<typeof useMentorRequests> }) {
                       onPress={() => router.push({ pathname: '/(app)/appel/[id]', params: { id: r.id } })}
                       hitSlop={4}
                       style={styles.accept}
-                      accessibilityLabel={`Rejoindre l’appel avec ${r.student ?? 'cet·te étudiant·e'}`}>
+                      accessibilityLabel={t('mentorHome.joinA11y', { name: nameOf(r) })}>
                       <Video size={16} color={c.white} />
                       <Text variant="smallStrong" color={c.white}>
-                        Rejoindre
+                        {t('mentorHome.join')}
                       </Text>
                     </PressableScale>
                   ) : (
                     <Animated.View entering={pop()} style={styles.confirmed}>
                       <Check size={14} color={c.mentor} strokeWidth={2.6} />
                       <Text variant="smallStrong" color={c.mentor}>
-                        Appel confirmé
+                        {t('mentorHome.confirmed')}
                       </Text>
                     </Animated.View>
                   )}
-                  <PressableScale onPress={() => write(r)} disabled={open.isPending} hitSlop={4} style={styles.write} accessibilityLabel={`Écrire à ${r.student ?? 'cet·te étudiant·e'}`}>
+                  <PressableScale onPress={() => write(r)} disabled={open.isPending} hitSlop={4} style={styles.write} accessibilityLabel={t('mentorHome.writeA11y', { name: nameOf(r) })}>
                     <MessageCircle size={15} color={c.mentor} />
                     <Text variant="smallStrong" color={c.mentor}>
-                      Écrire
+                      {t('mentorHome.write')}
                     </Text>
                   </PressableScale>
                   <ReportButton r={r} onPress={() => report(r)} />
@@ -301,7 +305,7 @@ function Requests({ query }: { query: ReturnType<typeof useMentorRequests> }) {
         visible={reporting}
         onClose={() => setReporting(false)}
         target={reported ? { bookingId: reported.id } : null}
-        name={reported?.student ?? 'cet·te étudiant·e'}
+        name={reported?.student ?? t('mentorHome.thisStudent')}
       />
     </View>
   );
@@ -309,9 +313,10 @@ function Requests({ query }: { query: ReturnType<typeof useMentorRequests> }) {
 
 function ReportButton({ r, onPress }: { r: MentorRequest; onPress: () => void }) {
   const { c } = useTheme();
+  const t = useT();
   const styles = useStyles();
   return (
-    <PressableScale onPress={onPress} style={styles.flag} accessibilityLabel={`Signaler ou bloquer ${r.student ?? 'cet·te étudiant·e'}`}>
+    <PressableScale onPress={onPress} style={styles.flag} accessibilityLabel={t('mentorHome.reportA11y', { name: r.student ?? t('mentorHome.thisStudent') })}>
       <Flag size={16} color={c.muted} />
     </PressableScale>
   );
@@ -323,23 +328,23 @@ function BecomeMentor() {
   const styles = useStyles();
   const profile = useProfile((s) => s.profile);
   const city = profile.mentorCity ?? profile.destinationCity;
+  const t = useT();
   return (
     <View style={[styles.list, styles.stateCard]}>
       <IconTile icon={Users} tone="green" size={52} radius={17} />
-      <Text variant="h2">Deviens mentor</Text>
+      <Text variant="h2">{t('mentorHome.become')}</Text>
       <Text variant="body" color={c.subtle}>
-        Tu es passé·e par là. Ta fiche permet aux étudiants qui arrivent à {city ?? 'ta ville'} de te demander un appel gratuit. L’équipe la relit avant de la
-        montrer.
+        {t('mentorHome.becomeText', { city: city ?? t('mentorHome.yourCity') })}
       </Text>
       <Button
-        label="Lire la charte et envoyer ma fiche"
+        label={t('mentorHome.becomeCta')}
         accent={gradients.mentor}
         disabled={!city || !profile.firstName.trim()}
         onPress={() => router.push('/(app)/charte-mentor')}
       />
       {!city || !profile.firstName.trim() ? (
         <Text variant="caption" color={c.muted}>
-          {!profile.firstName.trim() ? 'Ajoute d’abord ton prénom dans ton profil : les étudiants le verront.' : 'Choisis d’abord ta ville dans ton profil.'}
+          {!profile.firstName.trim() ? t('mentorHome.needName') : t('mentorHome.needCity')}
         </Text>
       ) : null}
     </View>
@@ -349,14 +354,15 @@ function BecomeMentor() {
 /** Fiche envoyée avant la charte (ou charte qui a changé) : on la fait accepter, sans rien bloquer d'autre. */
 function CharterCard() {
   const { c } = useTheme();
+  const t = useT();
   const styles = useStyles();
   return (
     <PressableScale onPress={() => router.push('/(app)/charte-mentor')} style={[styles.list, styles.charter]} accessibilityRole="button">
       <IconTile icon={ShieldCheck} tone="green" size={44} radius={14} />
       <View style={{ flex: 1, gap: 2 }}>
-        <Text variant="bodyStrong">Accepte la charte du mentor</Text>
+        <Text variant="bodyStrong">{t('mentorHome.charter')}</Text>
         <Text variant="small" color={c.subtle}>
-          6 engagements pour protéger les étudiants, et toi aussi. Une minute.
+          {t('mentorHome.charterText')}
         </Text>
       </View>
       <ChevronRight size={18} color={c.subtle} />
@@ -367,14 +373,14 @@ function CharterCard() {
 /** Fiche envoyée, pas encore validée : on le dit, sans promettre de délai. */
 function PendingCard({ city }: { city: string }) {
   const { c } = useTheme();
+  const t = useT();
   const styles = useStyles();
   return (
     <View style={[styles.list, styles.stateCard]}>
       <IconTile icon={Hourglass} tone="amber" size={52} radius={17} />
-      <Text variant="h2">Ta fiche est en cours de validation</Text>
+      <Text variant="h2">{t('mentorHome.pendingTitle')}</Text>
       <Text variant="body" color={c.subtle}>
-        L’équipe vérifie chaque mentor et relit sa fiche avant de la montrer. Elle peut te contacter par email pour voir ta carte étudiante, ton LinkedIn ou ton
-        titre de séjour. Une fois validée, les étudiants de {city} pourront te proposer un appel, et leurs demandes arriveront ici.
+        {t('mentorHome.pendingText', { city })}
       </Text>
     </View>
   );
@@ -382,16 +388,17 @@ function PendingCard({ city }: { city: string }) {
 
 function OfflineCard({ onRetry }: { onRetry: () => void }) {
   const { c } = useTheme();
+  const t = useT();
   const styles = useStyles();
   return (
     <View style={[styles.list, styles.empty]}>
       <IconTile icon={WifiOff} tone="slate" size={44} radius={14} />
       <Text variant="small" color={c.subtle} style={{ flex: 1 }}>
-        Pas de connexion pour le moment.
+        {t('common.offline')}
       </Text>
-      <PressableScale onPress={onRetry} hitSlop={6} accessibilityLabel="Réessayer">
+      <PressableScale onPress={onRetry} hitSlop={6} accessibilityLabel={t('common.retry')}>
         <Text variant="smallStrong" color={c.mentor}>
-          Réessayer
+          {t('common.retry')}
         </Text>
       </PressableScale>
     </View>

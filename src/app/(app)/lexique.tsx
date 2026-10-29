@@ -10,6 +10,7 @@ import { PressableScale } from '@/components/ui/PressableScale';
 import { Text } from '@/components/ui/Text';
 import { openTerm } from '@/features/guides/components/GlossarySheet';
 import { useGlossary } from '@/features/guides/glossary';
+import { useCurrentLanguage, useT } from '@/i18n';
 import { makeStyles, useTheme } from '@/theme/scheme';
 import { radius } from '@/theme/tokens';
 import { reflow, rise } from '@/theme/motion';
@@ -20,21 +21,28 @@ export default function Lexique() {
   const styles = useStyles();
   const [q, setQ] = useState('');
   const glossary = useGlossary();
+  const t = useT();
+  const language = useCurrentLanguage();
   const list = useMemo(() => {
-    const t = q.trim().toLowerCase();
+    const needle = q.trim().toLowerCase();
     return [...glossary]
       .sort((a, b) => a.term.localeCompare(b.term, 'fr'))
-      .filter((g) => !t || `${g.term} ${g.full ?? ''} ${g.simple}`.toLowerCase().includes(t));
+      .filter((g) => !needle || `${g.term} ${g.full ?? ''} ${g.simple}`.toLowerCase().includes(needle));
   }, [q, glossary]);
   const letters = [...new Set(list.map((g) => g.term[0].toUpperCase()))];
   return (
     <Screen top={gradients.lilacTop} padded={false} header={<AppHeader back />}>
       <View style={{ paddingHorizontal: 20, gap: 14 }}>
-        <Text variant="hero">Le lexique{'\n'}anti-jargon</Text>
+        <Text variant="hero">{t('glossary.title')}</Text>
         <Text variant="body" color={c.subtle}>
-          {glossary.length} mots de l’administration française, expliqués comme par un ami.
+          {t('glossary.text', { count: glossary.length })}
         </Text>
-        <Input icon={<Search size={16} color={c.electric} />} placeholder="CAF, VLS-TS, caution…" value={q} onChangeText={setQ} autoCapitalize="none" />
+        {language !== 'fr' ? (
+          <Text variant="caption" color={c.muted}>
+            {t('glossary.frenchNote')}
+          </Text>
+        ) : null}
+        <Input icon={<Search size={16} color={c.electric} />} placeholder={t('glossary.search')} value={q} onChangeText={setQ} autoCapitalize="none" />
         <Animated.View layout={reflow} style={{ gap: 18 }}>
           {letters.map((l) => (
             <View key={l} style={{ gap: 8 }}>

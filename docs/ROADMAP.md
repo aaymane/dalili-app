@@ -22,7 +22,7 @@
 - [x] **Messagerie mentor ↔ étudiant (temps réel)** : ouverte quand le mentor accepte (29/10)
   > `/fonctionnalite Messagerie privée entre un étudiant et son mentor : liste des conversations, écran de chat avec bulles animées, indicateur « en train d'écrire », temps réel avec Supabase Realtime, tables conversations/messages avec RLS (seuls les 2 participants lisent). Accès depuis le profil mentor (« Écrire ») et depuis l'accueil.`
 
-- [x] **Appels vidéo réels** : Daily, salle privée par rendez-vous, jeton donné par le site (29/10) — reste le compte Daily et le premier build
+- [x] **Appels vidéo réels** : Daily, salle privée par rendez-vous, jeton donné par le site, compte Daily et premier build (29/10) — reste un vrai appel à deux
   > `/fonctionnalite Brancher l'écran src/app/(app)/appel/[id].tsx sur LiveKit (ou Daily) : Edge Function qui génère le token de la salle pour le booking, vérification que l'utilisateur est l'étudiant ou le mentor du rendez-vous. Nécessite un development build (expo-dev-client).`
 
 - [ ] **Notifications push & rappels d'échéances**
@@ -42,7 +42,7 @@
 
 ## 🌍 Ensuite
 
-- [ ] **Internationalisation FR / العربية / EN** (avec RTL pour l'arabe) — 🟡 étape 1/3 faite le 29/10 : moteur, sélecteur, RTL instantané, kit, profil, connexion, onboarding
+- [ ] **Internationalisation FR / العربية / EN** (avec RTL pour l'arabe) — 🟡 étapes 1 et 2/3 faites le 29/10 : moteur, sélecteur, RTL instantané, kit, profil, connexion, onboarding, accueil, parcours, Explorer, guides, Dalili IA
   > `/fonctionnalite Internationalisation avec expo-localization + i18next : extraire tous les textes en fichiers fr.json/ar.json/en.json, gérer le RTL pour l'arabe (I18nManager), sélecteur de langue dans le Profil.`
 - [x] **Mode sombre** : thème vivant, bascule instantanée, Profil › Apparence (Auto / Clair / Sombre) (29/10)
 - [ ] **Guides synchronisés avec dalili.study** (les 64 guides via une table `guides` ou le CMS du site)

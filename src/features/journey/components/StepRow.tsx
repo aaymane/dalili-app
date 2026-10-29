@@ -7,6 +7,7 @@ import { celebrate } from '@/components/feedback/Confetti';
 import { PressableScale } from '@/components/ui/PressableScale';
 import { StatusPill, Tag } from '@/components/ui/Tag';
 import { Text } from '@/components/ui/Text';
+import { useT } from '@/i18n';
 import { daysFromToday, formatDayMonth } from '@/lib/date';
 import { haptics } from '@/lib/haptics';
 import { makeStyles, useTheme } from '@/theme/scheme';
@@ -21,6 +22,7 @@ export function StepRow({ item }: { item: JourneyItem }) {
   const styles = useStyles();
   const toggle = useJourneyStore((s) => s.toggle);
   const toggleCustom = useJourneyStore((s) => s.toggleCustom);
+  const t = useT();
   const done = item.done;
   const isCurrent = item.current;
 
@@ -43,7 +45,7 @@ export function StepRow({ item }: { item: JourneyItem }) {
   };
 
   const title = item.kind === 'official' ? item.step.title : item.custom.title;
-  const tags = item.kind === 'official' ? item.step.tags : ['MA TÂCHE'];
+  const tags = item.kind === 'official' ? item.step.tags : [t('journey.myTask')];
   const sub = item.kind === 'official' ? item.step.window : formatDayMonth(item.date);
   const days = daysFromToday(item.date);
 
@@ -53,7 +55,7 @@ export function StepRow({ item }: { item: JourneyItem }) {
       onPress={() => (item.kind === 'official' ? router.push({ pathname: '/(app)/etape/[id]', params: { id: item.step.id } }) : onCheck())}
       style={{ marginBottom: 10 }}>
       <Animated.View style={[styles.row, box, isCurrent && styles.current]}>
-        <PressableScale onPress={onCheck} haptic={false} hitSlop={8} accessibilityRole="checkbox" accessibilityState={{ checked: done }} accessibilityLabel={`Marquer « ${title} » comme fait`}>
+        <PressableScale onPress={onCheck} haptic={false} hitSlop={8} accessibilityRole="checkbox" accessibilityState={{ checked: done }} accessibilityLabel={t('journey.markDoneA11y', { title })}>
           <Animated.View style={[styles.check, check]}>
             {done ? (
               <Animated.View entering={pop()}>
@@ -80,7 +82,7 @@ export function StepRow({ item }: { item: JourneyItem }) {
         ) : isCurrent ? (
           <StatusPill status="current" />
         ) : days >= 0 && days <= 7 ? (
-          <StatusPill status="soon" label={`Dans ${days} j`} />
+          <StatusPill status="soon" label={t('dates.inDaysShort', { count: days })} />
         ) : (
           <StatusPill status="todo" />
         )}

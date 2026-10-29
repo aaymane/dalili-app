@@ -10,6 +10,7 @@
 import { fetch } from 'expo/fetch';
 
 import type { CountryCode } from '@/data/content';
+import { t } from '@/i18n';
 import { env } from '@/lib/env';
 import { supabase } from '@/lib/supabase';
 
@@ -57,7 +58,7 @@ export async function askAssistant(
   signal?: AbortSignal,
 ): Promise<void> {
   const token = await accessToken();
-  if (supabase && !token) throw new AssistantError('Connecte-toi pour discuter avec Dalili.', 'auth');
+  if (supabase && !token) throw new AssistantError(t('ai.errors.signIn'), 'auth');
 
   const url = token ? `${env.siteUrl}/api/v1/assistant` : `${env.siteUrl}/api/assistant`;
   let res: Awaited<ReturnType<typeof fetch>>;
@@ -70,15 +71,15 @@ export async function askAssistant(
     });
   } catch {
     if (signal?.aborted) return;
-    throw new AssistantError('Pas de réseau. Ta question est gardée : renvoie-la dès que tu as du réseau.', 'offline');
+    throw new AssistantError(t('ai.errors.offline'), 'offline');
   }
 
   if (!res.ok) {
     const body = (await res.json().catch(() => null)) as { error?: string } | null;
-    const message = body?.error ?? 'Dalili ne répond pas pour le moment. Réessaie dans un instant.';
+    const message = body?.error ?? t('ai.errors.server');
     throw new AssistantError(message, res.status === 429 ? 'quota' : res.status === 401 ? 'auth' : 'server');
   }
-  if (!res.body) throw new AssistantError('Réponse vide. Réessaie dans un instant.', 'server');
+  if (!res.body) throw new AssistantError(t('ai.errors.empty'), 'server');
 
   // NDJSON : un objet JSON par ligne, découpé n'importe où par le réseau.
   const reader = res.body.getReader();

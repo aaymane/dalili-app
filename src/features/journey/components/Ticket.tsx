@@ -6,6 +6,7 @@ import { useDerivedValue, useSharedValue, type SharedValue } from 'react-native-
 import { skyEffect, useSkyUniforms } from '@/components/brand/StarField';
 import { PressableScale } from '@/components/ui/PressableScale';
 import { Text } from '@/components/ui/Text';
+import { t, useT } from '@/i18n';
 import { makeStyles, useTheme } from '@/theme/scheme';
 import { radius } from '@/theme/tokens';
 
@@ -132,9 +133,9 @@ function Ghost({ size, spec }: { size: SharedValue<{ width: number; height: numb
 
 /** Phrase lue par le lecteur d'écran, qui ne voit qu'un seul élément. */
 function ticketLabel(d: TicketData) {
-  if (d.days <= 0) return `Ton billet : bienvenue à ${d.to}, arrivé·e le ${d.date}.`;
-  if (!d.dateKnown) return `Ton billet : ${d.from} vers ${d.to}, date d’arrivée à fixer.`;
-  return `Ton billet : ${d.from} vers ${d.to}, J moins ${d.days}, arrivée le ${d.date}.`;
+  if (d.days <= 0) return t('ticket.a11yArrived', { to: d.to, date: d.date });
+  if (!d.dateKnown) return t('ticket.a11yNoDate', { from: d.from, to: d.to });
+  return t('ticket.a11y', { from: d.from, to: d.to, days: d.days, date: d.date });
 }
 
 /**
@@ -143,6 +144,7 @@ function ticketLabel(d: TicketData) {
  */
 export function Ticket({ data, onPress, holo }: { data: TicketData; onPress?: () => void; holo?: Holo }) {
   const { c } = useTheme();
+  const tr = useT();
   const styles = useStyles();
   const arrived = data.days <= 0;
   const content = (
@@ -150,12 +152,12 @@ export function Ticket({ data, onPress, holo }: { data: TicketData; onPress?: ()
       <TicketBackground holo={holo} />
       <View style={styles.main}>
         <Text variant="overline" color="rgba(255,255,255,0.55)" style={{ fontSize: 9 }}>
-          Carte d’embarquement · DALILI
+          {tr('ticket.label')}
         </Text>
         {arrived ? (
           <View>
             <Text variant="small" color="rgba(255,255,255,0.7)">
-              Bienvenue à
+              {tr('ticket.welcome')}
             </Text>
             <Text variant="h1" color="#fff" style={styles.city} numberOfLines={1} adjustsFontSizeToFit>
               {data.to}
@@ -175,7 +177,7 @@ export function Ticket({ data, onPress, holo }: { data: TicketData; onPress?: ()
         <View style={styles.fields}>
           <View style={{ flexShrink: 1 }}>
             <Text variant="caption" color="rgba(255,255,255,0.5)">
-              Passager·e
+              {tr('ticket.passenger')}
             </Text>
             <Text variant="smallStrong" color="#fff" numberOfLines={1}>
               {data.passenger}
@@ -183,18 +185,18 @@ export function Ticket({ data, onPress, holo }: { data: TicketData; onPress?: ()
           </View>
           <View>
             <Text variant="caption" color="rgba(255,255,255,0.5)">
-              {arrived ? 'Arrivé·e le' : 'Arrivée'}
+              {arrived ? tr('ticket.arrivedOn') : tr('ticket.arrival')}
             </Text>
             <Text variant="smallStrong" color="#fff">
-              {data.dateKnown || arrived ? data.date : 'À fixer'}
+              {data.dateKnown || arrived ? data.date : tr('ticket.toSet')}
             </Text>
           </View>
           <View>
             <Text variant="caption" color="rgba(255,255,255,0.5)">
-              Classe
+              {tr('ticket.class')}
             </Text>
             <Text variant="smallStrong" color="#fff">
-              Étudiant
+              {tr('ticket.student')}
             </Text>
           </View>
         </View>
@@ -206,10 +208,10 @@ export function Ticket({ data, onPress, holo }: { data: TicketData; onPress?: ()
         ) : (
           <>
             <Text variant="hero" color="#fff" style={styles.countdown} adjustsFontSizeToFit numberOfLines={1}>
-              {data.dateKnown ? `J-${data.days}` : 'J-?'}
+              {data.dateKnown ? tr('ticket.countdown', { n: data.days }) : tr('ticket.countdownUnknown')}
             </Text>
             <Text variant="caption" color="rgba(255,255,255,0.6)" align="center">
-              {data.dateKnown ? 'avant le départ' : 'fixe ta date'}
+              {data.dateKnown ? tr('ticket.beforeLeaving') : tr('ticket.setDate')}
             </Text>
           </>
         )}
@@ -229,7 +231,7 @@ export function Ticket({ data, onPress, holo }: { data: TicketData; onPress?: ()
     );
   }
   return (
-    <PressableScale onPress={onPress} scaleTo={0.98} style={styles.wrap} accessibilityLabel={ticketLabel(data)} accessibilityHint="Modifier ta date d’arrivée">
+    <PressableScale onPress={onPress} scaleTo={0.98} style={styles.wrap} accessibilityLabel={ticketLabel(data)} accessibilityHint={tr('ticket.hint')}>
       {content}
     </PressableScale>
   );
@@ -238,14 +240,15 @@ export function Ticket({ data, onPress, holo }: { data: TicketData; onPress?: ()
 /** Tampon d'arrivée, posé de travers comme à la douane. */
 function Stamp() {
   const { c } = useTheme();
+  const tr = useT();
   const styles = useStyles();
   return (
     <View style={styles.stamp}>
       <Text variant="overline" color={c.mentorGlow} style={{ fontSize: 9, letterSpacing: 1.4 }}>
-        Arrivé·e
+        {tr('ticket.arrived')}
       </Text>
       <Text variant="caption" color={c.mentorGlow}>
-        France
+        {tr('common.france')}
       </Text>
     </View>
   );
@@ -253,16 +256,17 @@ function Stamp() {
 
 /** Le billet tant que le visa n'est pas validé : flouté, avec un cadenas. */
 export function LockedTicket() {
+  const tr = useT();
   const styles = useStyles();
   return (
-    <View style={[styles.wrap, { minHeight: 150 }]} accessible accessibilityLabel="Ton billet, verrouillé. Il se débloque quand ton visa est validé.">
+    <View style={[styles.wrap, { minHeight: 150 }]} accessible accessibilityLabel={tr('ticket.lockedA11y')}>
       <TicketBackground locked />
       <View style={styles.lockWrap} pointerEvents="none">
         <View style={styles.lock}>
           <Lock size={18} color="#fff" />
         </View>
         <Text variant="smallStrong" color="#fff" align="center">
-          Se débloque quand ton visa est validé
+          {tr('ticket.locked')}
         </Text>
       </View>
     </View>
@@ -271,7 +275,8 @@ export function LockedTicket() {
 
 const useStyles = makeStyles(({ c, shadow }) => ({
   wrap: { ...shadow.md },
-  card: { flexDirection: 'row', minHeight: 150 },
+  // Le dessin du billet (talon, perforation) est fixe : même sens dans toutes les langues.
+  card: { flexDirection: 'row', direction: 'ltr', minHeight: 150 },
   main: { flex: 1, padding: 18, gap: 10 },
   route: { flexDirection: 'row', alignItems: 'center' },
   city: { fontSize: 20, lineHeight: 26, flexShrink: 1 },

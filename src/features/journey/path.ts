@@ -1,4 +1,5 @@
 import type { Profile } from '@/features/profile/types';
+import { t } from '@/i18n';
 
 import type { StepIcon } from './steps';
 import type { JourneyItem } from './store';
@@ -10,14 +11,16 @@ import type { JourneyItem } from './store';
 
 type MilestoneDef = { id: string; icon: StepIcon; title: (p: Profile) => string; steps: string[] };
 
+// Les titres se lisent dans la langue en cours (src/i18n/locales, journey.milestone).
+
 /** Jalons dans l'ordre du voyage. Les étapes absentes du profil sont ignorées ; un jalon sans étape disparaît. */
 const DEFS: MilestoneDef[] = [
-  { id: 'projet', icon: 'graduation', title: () => 'Ton projet d’études', steps: ['bourses', 'tcf', 'ecole'] },
-  { id: 'campus', icon: 'file', title: () => 'Ton dossier Campus France', steps: ['documents', 'campus-france'] },
-  { id: 'visa', icon: 'passport', title: () => 'Ton visa', steps: ['ressources', 'visa'] },
-  { id: 'logement', icon: 'home', title: () => 'Ton logement', steps: ['logement', 'garant', 'cvec'] },
-  { id: 'arrivee', icon: 'plane', title: (p) => `Arrivée à ${p.destinationCity ?? 'destination'}`, steps: ['arrivee', 'assurance', 'sim', 'transport', 'banque', 'validation-visa'] },
-  { id: 'vie', icon: 'heart', title: () => 'Ta nouvelle vie', steps: ['secu', 'caf', 'mutuelle', 'medecin', 'vitale', 'travail'] },
+  { id: 'projet', icon: 'graduation', title: () => t('journey.milestone.projet'), steps: ['bourses', 'tcf', 'ecole'] },
+  { id: 'campus', icon: 'file', title: () => t('journey.milestone.campus'), steps: ['documents', 'campus-france'] },
+  { id: 'visa', icon: 'passport', title: () => t('journey.milestone.visa'), steps: ['ressources', 'visa'] },
+  { id: 'logement', icon: 'home', title: () => t('journey.milestone.logement'), steps: ['logement', 'garant', 'cvec'] },
+  { id: 'arrivee', icon: 'plane', title: (p) => (p.destinationCity ? t('journey.milestone.arrivee', { city: p.destinationCity }) : t('journey.milestone.arriveeAnon')), steps: ['arrivee', 'assurance', 'sim', 'transport', 'banque', 'validation-visa'] },
+  { id: 'vie', icon: 'heart', title: () => t('journey.milestone.vie'), steps: ['secu', 'caf', 'mutuelle', 'medecin', 'vitale', 'travail'] },
 ];
 
 export type MilestoneStatus = 'done' | 'current' | 'todo';
@@ -44,8 +47,8 @@ export function buildMilestones(profile: Profile, items: JourneyItem[]): Milesto
   const start: Milestone = {
     id: 'depart',
     icon: 'start',
-    title: profile.originCity ? `Départ de ${profile.originCity}` : 'Ton départ',
-    detail: 'C’est ici que tout commence',
+    title: profile.originCity ? t('journey.milestone.start', { city: profile.originCity }) : t('journey.milestone.startAnon'),
+    detail: t('journey.milestone.startDetail'),
     status: 'done',
     progress: 1,
   };
@@ -61,7 +64,7 @@ export function buildMilestones(profile: Profile, items: JourneyItem[]): Milesto
       id: def.id,
       icon: def.icon,
       title: def.title(profile),
-      detail: status === 'done' ? 'Fait' : done ? `${done}/${steps.length} étapes faites` : `${steps.length} étape${steps.length > 1 ? 's' : ''}`,
+      detail: status === 'done' ? t('journey.milestone.done') : done ? t('journey.milestone.partial', { done, total: steps.length }) : t('journey.milestone.steps', { count: steps.length }),
       status,
       progress: done / steps.length,
       stepId: (current ?? steps.find((s) => !s.done) ?? steps[0]).step.id,

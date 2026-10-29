@@ -1,5 +1,6 @@
 import { router } from 'expo-router';
 import { Clock, FileText, Phone } from 'lucide-react-native';
+import { Trans } from 'react-i18next';
 import { View } from 'react-native';
 
 import { Avatar } from '@/components/ui/Avatar';
@@ -12,6 +13,7 @@ import { useGuide, useMentors } from '@/data/hooks';
 import { StepIcon } from '@/features/journey/components/StepIcon';
 import type { Step } from '@/features/journey/steps';
 import { useProfile } from '@/features/profile/store';
+import { useT } from '@/i18n';
 import { makeStyles, useTheme } from '@/theme/scheme';
 import { radius } from '@/theme/tokens';
 
@@ -20,6 +22,7 @@ export function ActionCard({ step }: { step: Step }) {
   const { c } = useTheme();
   const styles = useStyles();
   const city = useProfile((s) => s.profile.destinationCity);
+  const t = useT();
   const { data: guide } = useGuide(step.guides[0]);
   const { data: mentors = [] } = useMentors();
   const needs = (step.needs?.length ? step.needs : guide?.documents ?? []).slice(0, 3);
@@ -29,7 +32,7 @@ export function ActionCard({ step }: { step: Step }) {
   return (
     <View style={styles.card}>
       <Text variant="overline" color={c.electric}>
-        Ta seule action aujourd’hui
+        {t('home.todayAction')}
       </Text>
       <View style={{ flexDirection: 'row', gap: 12, alignItems: 'center' }}>
         <IconTile size={48} bg={c.electricSoft}>
@@ -40,7 +43,7 @@ export function ActionCard({ step }: { step: Step }) {
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
             <Clock size={13} color={c.muted} />
             <Text variant="caption" color={c.muted}>
-              ≈ {step.minutes} min · {step.window}
+              {t('common.minutes', { n: step.minutes })} · {step.window}
             </Text>
           </View>
         </View>
@@ -50,7 +53,7 @@ export function ActionCard({ step }: { step: Step }) {
       </Text>
       {needs.length ? (
         <View style={styles.needs}>
-          <Text variant="smallStrong">Il te faut</Text>
+          <Text variant="smallStrong">{t('home.youNeed')}</Text>
           {needs.map((n) => (
             <View key={n} style={{ flexDirection: 'row', gap: 8, alignItems: 'flex-start' }}>
               <FileText size={14} color={c.electric} style={{ marginTop: 3 }} />
@@ -66,18 +69,22 @@ export function ActionCard({ step }: { step: Step }) {
         <PressableScale onPress={() => router.push({ pathname: '/(app)/mentor/[id]', params: { id: helpers[0].id } })} style={styles.mentors}>
           <View style={{ flexDirection: 'row' }}>
             {helpers.map((m, i) => (
-              <View key={m.id} style={{ marginLeft: i ? -10 : 0, borderRadius: 99, borderWidth: 2, borderColor: c.card }}>
+              <View key={m.id} style={{ marginStart: i ? -10 : 0, borderRadius: 99, borderWidth: 2, borderColor: c.card }}>
                 <Avatar name={`${m.firstName} ${m.lastName}`} color={m.avatarColor} size={32} />
               </View>
             ))}
           </View>
           <Text variant="small" style={{ flex: 1 }} numberOfLines={2}>
-            <Text variant="smallStrong">{helpers[0].firstName}</Text> ({helpers[0].origin} → {helpers[0].city}) est passé·e par là.
+            <Trans
+              i18nKey="home.mentorBeenThere"
+              values={{ name: helpers[0].firstName, from: helpers[0].origin, to: helpers[0].city }}
+              components={{ strong: <Text variant="smallStrong" /> }}
+            />
           </Text>
           <View style={styles.call}>
             <Phone size={13} color={c.mentor} />
             <Text variant="caption" color={c.mentor}>
-              Appel gratuit
+              {t('home.freeCall')}
             </Text>
           </View>
         </PressableScale>

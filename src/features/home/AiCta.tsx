@@ -6,6 +6,7 @@ import { View } from 'react-native';
 import { ArrowRight } from '@/components/ui/DirIcons';
 import { PressableScale } from '@/components/ui/PressableScale';
 import { Text } from '@/components/ui/Text';
+import { useT } from '@/i18n';
 import { makeStyles, useTheme } from '@/theme/scheme';
 import { radius } from '@/theme/tokens';
 
@@ -13,6 +14,7 @@ import { radius } from '@/theme/tokens';
 export function AiCta({ prompt }: { prompt?: string }) {
   const { gradients } = useTheme();
   const styles = useStyles();
+  const t = useT();
   return (
     <PressableScale onPress={() => router.navigate({ pathname: '/(app)/(tabs)/ia', params: prompt ? { q: prompt } : {} })} haptic="press">
       <LinearGradient colors={gradients.ai} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.card}>
@@ -21,10 +23,10 @@ export function AiCta({ prompt }: { prompt?: string }) {
         </View>
         <View style={{ flex: 1 }}>
           <Text variant="h3" color="#fff">
-            Demande à l’IA de Dalili
+            {t('home.askAi')}
           </Text>
           <Text variant="small" color="rgba(255,255,255,0.75)" numberOfLines={1}>
-            Visa, CAF, banque — je t’aide en 30 secondes
+            {t('home.askAiSub')}
           </Text>
         </View>
         <ArrowRight size={20} color="#fff" />

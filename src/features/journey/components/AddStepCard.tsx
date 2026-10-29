@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/Button';
 import { Calendar } from '@/components/ui/Calendar';
 import { PressableScale } from '@/components/ui/PressableScale';
 import { Text } from '@/components/ui/Text';
+import { useT } from '@/i18n';
 import { formatDayMonth, toISODate } from '@/lib/date';
 import { haptics } from '@/lib/haptics';
 import { makeStyles, useTheme } from '@/theme/scheme';
@@ -20,6 +21,7 @@ export function AddStepCard({ defaultDate }: { defaultDate?: Date }) {
   const { c } = useTheme();
   const styles = useStyles();
   const add = useJourneyStore((s) => s.addCustom);
+  const t = useT();
   const [title, setTitle] = useState('');
   const [date, setDate] = useState<Date>(() => defaultDate ?? new Date(Date.now() + 7 * 86_400_000));
   const [open, setOpen] = useState(false);
@@ -27,11 +29,11 @@ export function AddStepCard({ defaultDate }: { defaultDate?: Date }) {
   const submit = () => {
     if (!title.trim()) {
       haptics.warning();
-      return toast('Donne un nom à ton étape.', 'info');
+      return toast(t('journey.addNeedName'), 'info');
     }
     add(title, toISODate(date));
     haptics.success();
-    toast('Étape ajoutée avec succès.');
+    toast(t('journey.added'));
     setTitle('');
   };
 
@@ -40,17 +42,17 @@ export function AddStepCard({ defaultDate }: { defaultDate?: Date }) {
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
         <Plus size={18} color={c.electric} strokeWidth={2.6} />
         <Text variant="h3" color={c.electric}>
-          Ajouter ma propre étape
+          {t('journey.addTitle')}
         </Text>
       </View>
       <View style={{ flexDirection: 'row', gap: 8 }}>
-        <TextInput value={title} onChangeText={setTitle} placeholder="Ex : acheter mon billet d’avion" placeholderTextColor={c.muted} style={[styles.field, { flex: 1.4 }]} onSubmitEditing={submit} returnKeyType="done" />
+        <TextInput value={title} onChangeText={setTitle} placeholder={t('journey.addPlaceholder')} placeholderTextColor={c.muted} style={[styles.field, { flex: 1.4 }]} onSubmitEditing={submit} returnKeyType="done" />
         <PressableScale onPress={() => setOpen(true)} style={[styles.field, styles.dateBtn]}>
           <CalendarDays size={14} color={c.electric} />
           <Text variant="smallStrong">{formatDayMonth(date)}</Text>
         </PressableScale>
       </View>
-      <Button label="Ajouter à mes étapes" size="md" onPress={submit} />
+      <Button label={t('journey.addCta')} size="md" onPress={submit} />
       <BottomSheet visible={open} onClose={() => setOpen(false)}>
         <Calendar
           selected={date}

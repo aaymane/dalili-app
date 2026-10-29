@@ -16,7 +16,7 @@ import { Text } from '@/components/ui/Text';
 import { readMinutes } from '@/data/content';
 import { useContent, useMentors } from '@/data/hooks';
 import { useLocalDb } from '@/data/local-db';
-import { categories, categoryOf, type GuideCategory, softOf } from '@/features/guides/categories';
+import { categories, categoryLabel, categoryOf, type GuideCategory, softOf } from '@/features/guides/categories';
 import { countryOf } from '@/features/journey/steps';
 import { ToolsGrid } from '@/features/home/ToolsGrid';
 import { MentorRow } from '@/features/mentors/components/MentorCard';
@@ -24,6 +24,7 @@ import { MentorsSoon } from '@/features/mentors/components/MentorsSoon';
 import { useProfile } from '@/features/profile/store';
 import { SchoolCard } from '@/features/schools/components/SchoolParts';
 import { useSchools } from '@/features/schools/hooks';
+import { useT } from '@/i18n';
 import { makeStyles, useTheme } from '@/theme/scheme';
 import { radius } from '@/theme/tokens';
 import { reflow, rise } from '@/theme/motion';
@@ -51,7 +52,7 @@ export default function Explorer() {
   // L'onglet suit le paramètre d'URL (?tab=guides) tant que l'utilisateur ne change pas d'onglet.
   const [picked, setPicked] = useState<{ from?: string; tab: Tab } | null>(null);
   const tab: Tab = picked && picked.from === params.tab ? picked.tab : (params.tab ?? 'mentors');
-  const setTab = (t: Tab) => setPicked({ from: params.tab, tab: t });
+  const setTab = (next: Tab) => setPicked({ from: params.tab, tab: next });
   const profile = useProfile((s) => s.profile);
   const [q, setQ] = useState('');
   const [city, setCity] = useState<string | null>(profile.destinationCity);
@@ -61,13 +62,14 @@ export default function Explorer() {
   const saved = useLocalDb((s) => s.savedGuides);
   const read = useLocalDb((s) => s.readGuides);
   const toggleSaved = useLocalDb((s) => s.toggleSavedGuide);
+  const t = useT();
 
   const mentorList = useMemo(() => {
-    const t = q.trim().toLowerCase();
+    const needle = q.trim().toLowerCase();
     return mentors.filter(
       (m) =>
         (!city || m.city === city) &&
-        (!t || `${m.firstName} ${m.lastName} ${m.headline} ${m.specialties.join(' ')}`.toLowerCase().includes(t)),
+        (!needle || `${m.firstName} ${m.lastName} ${m.headline} ${m.specialties.join(' ')}`.toLowerCase().includes(needle)),
     );
   }, [mentors, city, q]);
 
@@ -75,11 +77,11 @@ export default function Explorer() {
   const { data: cities } = useContent('cities');
   const country = countryOf(profile);
   const guideList = useMemo(() => {
-    const t = q.trim().toLowerCase();
+    const needle = q.trim().toLowerCase();
     // Les guides de ton pays et les guides communs (tous les pays, ou aucun pays précisé) ; ceux d'autres pays restent sur le site.
     return manifest.guides
       .filter((g) => !country || !g.countries.length || g.countries.includes(country))
-      .filter((g) => (!cat || categoryOf(g.category) === cat) && (!t || `${g.title} ${g.excerpt}`.toLowerCase().includes(t)))
+      .filter((g) => (!cat || categoryOf(g.category) === cat) && (!needle || `${g.title} ${g.excerpt}`.toLowerCase().includes(needle)))
       .sort((a, b) => Number(b.countries.length === 1) - Number(a.countries.length === 1) || b.updatedDate.localeCompare(a.updatedDate));
   }, [cat, q, manifest, country]);
 
@@ -89,7 +91,7 @@ export default function Explorer() {
     return c;
   }, [mentors]);
 
-  const title = tab === 'mentors' ? 'Trouve un mentor' : tab === 'guides' ? 'Guides pratiques' : tab === 'schools' ? 'Nos écoles partenaires' : 'Trouve un hôte';
+  const title = t(tab === 'mentors' ? 'explorer.titleMentors' : tab === 'guides' ? 'explorer.titleGuides' : tab === 'schools' ? 'explorer.titleSchools' : 'explorer.titleHosts');
 
   return (
     <Screen top={tab === 'hosts' ? gradients.roleTop.host : gradients.roleTop.student} tabBar padded={false} header={<AppHeader />}>
@@ -98,22 +100,22 @@ export default function Explorer() {
           <Text variant="hero">{title}</Text>
         </Animated.View>
         {tab === 'schools' ? null : (
-          <Input icon={<Search size={16} color={colors.electric} />} placeholder={tab === 'guides' ? 'Visa, CAF, logement…' : 'Rechercher'} value={q} onChangeText={setQ} />
+          <Input icon={<Search size={16} color={colors.electric} />} placeholder={tab === 'guides' ? t('explorer.searchGuides') : t('explorer.search')} value={q} onChangeText={setQ} />
         )}
       </View>
       {/* Quatre onglets : la rangée défile sur les petits écrans, sans rien couper. */}
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginTop: 14, flexGrow: 0 }} contentContainerStyle={{ gap: 8, paddingHorizontal: 20, paddingVertical: 4 }}>
-        <TabPill label="Mentors" icon={<Sparkles size={14} color={tab === 'mentors' ? '#fff' : colors.navy} />} active={tab === 'mentors'} onPress={() => setTab('mentors')} color={colors.electric} />
-        <TabPill label="Guides" icon={<BookOpen size={14} color={tab === 'guides' ? '#fff' : colors.navy} />} active={tab === 'guides'} onPress={() => setTab('guides')} color={colors.electric} />
-        <TabPill label="Écoles" icon={<GraduationCap size={14} color={tab === 'schools' ? '#fff' : colors.navy} />} active={tab === 'schools'} onPress={() => setTab('schools')} color={colors.electric} />
-        <TabPill label="Hôtes" icon={<House size={14} color={tab === 'hosts' ? '#fff' : colors.navy} />} active={tab === 'hosts'} onPress={() => setTab('hosts')} color={colors.host} />
+        <TabPill label={t('explorer.tabMentors')} icon={<Sparkles size={14} color={tab === 'mentors' ? '#fff' : colors.navy} />} active={tab === 'mentors'} onPress={() => setTab('mentors')} color={colors.electric} />
+        <TabPill label={t('explorer.tabGuides')} icon={<BookOpen size={14} color={tab === 'guides' ? '#fff' : colors.navy} />} active={tab === 'guides'} onPress={() => setTab('guides')} color={colors.electric} />
+        <TabPill label={t('explorer.tabSchools')} icon={<GraduationCap size={14} color={tab === 'schools' ? '#fff' : colors.navy} />} active={tab === 'schools'} onPress={() => setTab('schools')} color={colors.electric} />
+        <TabPill label={t('explorer.tabHosts')} icon={<House size={14} color={tab === 'hosts' ? '#fff' : colors.navy} />} active={tab === 'hosts'} onPress={() => setTab('hosts')} color={colors.host} />
       </ScrollView>
 
       {tab === 'mentors' && (
         <Animated.View entering={FadeIn.duration(200)} style={{ gap: 14, marginTop: 14 }}>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8, paddingHorizontal: 20 }}>
             <PressableScale onPress={() => setCity(null)} haptic="select">
-              <Chip label="Toutes" active={!city} />
+              <Chip label={t('explorer.allCities')} active={!city} />
             </PressableScale>
             {cities
               .filter((c) => cityCounts[c.name])
@@ -134,9 +136,9 @@ export default function Explorer() {
             {!isLoading && !mentors.length ? <MentorsSoon /> : null}
             {!isLoading && mentors.length > 0 && !mentorList.length ? (
               <View style={styles.empty}>
-                <Text variant="h3">Pas encore de mentor ici</Text>
+                <Text variant="h3">{t('explorer.noMentor')}</Text>
                 <Text variant="small" color={colors.muted} align="center">
-                  {city ? `Essaie une autre ville, ou deviens le premier mentor de ${city} 💙` : 'Essaie avec un autre mot.'}
+                  {city ? t('explorer.noMentorCity', { city }) : t('explorer.noMentorWord')}
                 </Text>
               </View>
             ) : null}
@@ -151,10 +153,10 @@ export default function Explorer() {
               <IconTile icon={Languages} tone="violet" size={46} radius={14} />
               <View style={{ flex: 1 }}>
                 <Text variant="h3" color="#fff">
-                  Le lexique anti-jargon
+                  {t('explorer.lexicon')}
                 </Text>
                 <Text variant="small" color="rgba(255,255,255,0.7)">
-                  CAF, CVEC, VLS-TS… enfin compréhensibles.
+                  {t('explorer.lexiconSub')}
                 </Text>
               </View>
               <ArrowRight size={18} color="#fff" />
@@ -163,17 +165,18 @@ export default function Explorer() {
           <ToolsGrid />
           <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginHorizontal: -20 }} contentContainerStyle={{ gap: 8, paddingHorizontal: 20 }}>
             <PressableScale onPress={() => setCat(null)} haptic="select">
-              <Chip label="Tout" active={!cat} />
+              <Chip label={t('explorer.allCategories')} active={!cat} />
             </PressableScale>
             {(Object.keys(categories) as GuideCategory[]).map((c) => (
               <PressableScale key={c} onPress={() => setCat(cat === c ? null : c)} haptic="select">
-                <Chip label={categories[c].label} active={cat === c} color={categories[c].color} />
+                <Chip label={categoryLabel(c)} active={cat === c} color={categories[c].color} />
               </PressableScale>
             ))}
           </ScrollView>
           <Animated.View layout={reflow} style={{ gap: 10 }}>
             {guideList.map((g, i) => {
-              const c = categories[categoryOf(g.category)];
+              const gc = categoryOf(g.category);
+              const c = categories[gc];
               return (
                 <Animated.View key={g.slug} entering={rise(Math.min(i, 6) * 40)} layout={reflow}>
                   <PressableScale onPress={() => router.push({ pathname: '/(app)/guide/[id]', params: { id: g.slug } })} style={styles.guide}>
@@ -182,7 +185,7 @@ export default function Explorer() {
                     </View>
                     <View style={{ flex: 1, gap: 3 }}>
                       <Text variant="caption" color={c.color}>
-                        {c.label.toUpperCase()}
+                        {categoryLabel(gc).toUpperCase()}
                       </Text>
                       <Text variant="bodyStrong" numberOfLines={2}>
                         {g.title}
@@ -190,19 +193,19 @@ export default function Explorer() {
                       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
                         <Clock size={12} color={colors.muted} />
                         <Text variant="caption" color={colors.muted}>
-                          {readMinutes(g.readTime)} min
+                          {t('guide.minutes', { n: readMinutes(g.readTime) })}
                         </Text>
                         {read.includes(g.slug) ? (
                           <>
-                            <CheckCircle2 size={12} color={colors.success} style={{ marginLeft: 6 }} />
+                            <CheckCircle2 size={12} color={colors.success} style={{ marginStart: 6 }} />
                             <Text variant="caption" color={colors.success}>
-                              Lu
+                              {t('guide.read')}
                             </Text>
                           </>
                         ) : null}
                       </View>
                     </View>
-                    <PressableScale onPress={() => toggleSaved(g.slug)} haptic="select" hitSlop={10} accessibilityLabel="Enregistrer le guide">
+                    <PressableScale onPress={() => toggleSaved(g.slug)} haptic="select" hitSlop={10} accessibilityLabel={t('guide.saveA11y')}>
                       <Bookmark size={20} color={saved.includes(g.slug) ? colors.electric : colors.muted} fill={saved.includes(g.slug) ? colors.electric : 'transparent'} />
                     </PressableScale>
                   </PressableScale>
@@ -216,7 +219,7 @@ export default function Explorer() {
       {tab === 'schools' && (
         <Animated.View entering={FadeIn.duration(200)} style={{ gap: 14, marginTop: 14, paddingHorizontal: 20 }}>
           <Text variant="body" color={colors.subtle}>
-            Des écoles qui accueillent les étudiants du Maghreb et travaillent avec DALILI. Dis-nous laquelle t’attire : l’équipe te recontacte.
+            {t('explorer.schoolsText')}
           </Text>
           {schools.isPending
             ? [0, 1].map((k) => <View key={k} style={[styles.skeleton, { height: 230 }]} />)
@@ -228,9 +231,9 @@ export default function Explorer() {
           {!schools.isPending && !schools.data?.length ? (
             <View style={styles.empty}>
               <IconTile icon={GraduationCap} tone="blue" size={48} radius={16} />
-              <Text variant="h3">{schools.isError ? 'Pas de connexion' : 'Nos premières écoles arrivent'}</Text>
+              <Text variant="h3">{schools.isError ? t('explorer.noConnection') : t('explorer.schoolsSoon')}</Text>
               <Text variant="small" color={colors.muted} align="center">
-                {schools.isError ? 'Vérifie ton réseau et réessaie.' : 'On finalise nos premiers partenariats. Elles apparaîtront ici très bientôt.'}
+                {schools.isError ? t('explorer.checkNetwork') : t('explorer.schoolsSoonText')}
               </Text>
             </View>
           ) : null}
@@ -246,22 +249,22 @@ export default function Explorer() {
               </IconTile>
               <View style={styles.soon}>
                 <Text variant="caption" color="#fff">
-                  BIENTÔT
+                  {t('explorer.soon')}
                 </Text>
               </View>
             </View>
             <Text variant="h1" color="#fff" style={{ marginTop: 30 }}>
-              Hôte
+              {t('explorer.host')}
             </Text>
             <Text variant="body" color="rgba(255,255,255,0.85)">
-              Un point de chute chez un étudiant de confiance pour tes premières nuits en France. Cette fonctionnalité arrive bientôt.
+              {t('explorer.hostText')}
             </Text>
             <View style={styles.progress}>
               <View style={[styles.progressFill, { width: '68%' }]} />
             </View>
             <PressableScale onPress={() => router.push('/(app)/role')} style={styles.hostCta}>
               <Text variant="smallStrong" color="#fff" style={{ flex: 1 }}>
-                Devenez un point d’ancrage pour votre communauté
+                {t('explorer.hostCta')}
               </Text>
               <View style={styles.hostArrow}>
                 <ArrowRight size={16} color={colors.host} />

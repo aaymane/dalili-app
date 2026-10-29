@@ -9,6 +9,7 @@ import { PressableScale } from '@/components/ui/PressableScale';
 import { ProgressRing } from '@/components/ui/ProgressRing';
 import { Text } from '@/components/ui/Text';
 import { useProfile } from '@/features/profile/store';
+import { useT } from '@/i18n';
 import { formatDayMonth, relativeDays } from '@/lib/date';
 import { makeStyles, useTheme } from '@/theme/scheme';
 import { radius } from '@/theme/tokens';
@@ -23,20 +24,21 @@ export function MobilityCard({ onEditArrival, compact }: { onEditArrival?: () =>
   const profile = useProfile((s) => s.profile);
   const j = useJourney();
   const pct = Math.round(j.progress * 100);
-  const to = profile.destinationCity ?? 'France';
+  const t = useT();
+  const to = profile.destinationCity ?? t('common.france');
   return (
     <LinearGradient colors={gradients.hero} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.card}>
       <LinearGradient colors={gradients.heroGlow} start={{ x: 1, y: 0 }} end={{ x: 0.2, y: 0.8 }} style={styles.glow} />
       <StarField variant="card" />
       <Text variant="overline" color="rgba(255,255,255,0.6)" style={{ fontSize: 9.5 }}>
-        Ta mobilité · personnalisée pour toi
+        {t('journey.mobility')}
       </Text>
       <RouteArc progress={j.progress} />
       <View style={styles.cities}>
         <Text variant="h1" color="#fff" style={styles.city} numberOfLines={1}>
-          {profile.originCity || 'Chez toi'}
+          {profile.originCity || t('journey.homeCap')}
         </Text>
-        <Text variant="h1" color="#fff" style={[styles.city, { textAlign: 'right' }]} numberOfLines={1} accessibilityLabel={`vers ${to}`}>
+        <Text variant="h1" color="#fff" style={[styles.city, { textAlign: 'right' }]} numberOfLines={1} accessibilityLabel={t('journey.towards', { city: to })}>
           {to}
         </Text>
       </View>
@@ -44,11 +46,11 @@ export function MobilityCard({ onEditArrival, compact }: { onEditArrival?: () =>
         <ProgressRing progress={j.progress} size={compact ? 52 : 58} />
         <View style={{ flex: 1, gap: 6 }}>
           <Text variant="small" color="rgba(255,255,255,0.85)">
-            Tu es prêt·e à {pct}% pour ton départ.
+            {t('journey.ready', { percent: pct })}
           </Text>
           <PressableScale onPress={() => router.push('/(app)/parcours')} style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }} hitSlop={8}>
             <Text variant="smallStrong" color="#7FA6FF">
-              Ouvrir ma checklist
+              {t('journey.openChecklist')}
             </Text>
             <ArrowRight size={14} color="#7FA6FF" />
           </PressableScale>
@@ -58,7 +60,7 @@ export function MobilityCard({ onEditArrival, compact }: { onEditArrival?: () =>
       <View style={{ flexDirection: 'row', alignItems: 'center' }}>
         <View style={{ flex: 1 }}>
           <Text variant="overline" color="rgba(255,255,255,0.5)" style={{ fontSize: 9 }}>
-            Arrivée prévue
+            {t('journey.plannedArrival')}
           </Text>
           <Text variant="bodyStrong" color="#fff">
             {formatDayMonth(j.arrival)}
@@ -66,7 +68,7 @@ export function MobilityCard({ onEditArrival, compact }: { onEditArrival?: () =>
           </Text>
         </View>
         {onEditArrival ? (
-          <PressableScale onPress={onEditArrival} style={styles.edit} accessibilityLabel="Modifier la date d'arrivée">
+          <PressableScale onPress={onEditArrival} style={styles.edit} accessibilityLabel={t('journey.editArrival')}>
             <Pencil size={15} color="#fff" />
           </PressableScale>
         ) : null}
@@ -78,7 +80,8 @@ export function MobilityCard({ onEditArrival, compact }: { onEditArrival?: () =>
 const useStyles = makeStyles(({ shadow }) => ({
   card: { borderRadius: radius.xxl, padding: 18, overflow: 'hidden', ...shadow.md },
   glow: { position: 'absolute', right: -60, top: -60, width: 220, height: 220, borderRadius: 110, opacity: 0.6 },
-  cities: { flexDirection: 'row', justifyContent: 'space-between', gap: 12, marginTop: 2 },
+  // Départ à gauche, arrivée à droite, comme l'arc : même sens dans toutes les langues.
+  cities: { direction: 'ltr', flexDirection: 'row', justifyContent: 'space-between', gap: 12, marginTop: 2 },
   city: { fontSize: 20, lineHeight: 26, flexShrink: 1 },
   progressRow: { flexDirection: 'row', alignItems: 'center', gap: 14, marginTop: 14 },
   divider: { height: 1, backgroundColor: 'rgba(255,255,255,0.1)', marginVertical: 14 },

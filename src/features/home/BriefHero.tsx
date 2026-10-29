@@ -12,6 +12,7 @@ import { PressableScale } from '@/components/ui/PressableScale';
 import { Text } from '@/components/ui/Text';
 import { Ame, type AmeState } from '@/features/ame/Ame';
 import { useJourney } from '@/features/journey/store';
+import { useT } from '@/i18n';
 import { makeStyles, useTheme } from '@/theme/scheme';
 import { depth, radius } from '@/theme/tokens';
 
@@ -50,6 +51,7 @@ export function BriefHero() {
   const { gradients } = useTheme();
   const styles = useStyles();
   const brief = useBrief();
+  const t = useT();
   const j = useJourney();
   const [animate] = useState(() => !revealedOnce);
   const [state, setState] = useState<AmeState>('rest');
@@ -103,10 +105,10 @@ export function BriefHero() {
           onPress={() => router.push({ pathname: '/(app)/guide/[id]', params: { id: brief.source!.slug } })}
           style={styles.source}
           accessibilityRole="link"
-          accessibilityLabel={`D’après notre guide ${brief.source.title}`}>
+          accessibilityLabel={t('home.fromGuideA11y', { title: brief.source.title })}>
           <BookOpen size={14} color="#9DB6FF" />
           <Text variant="caption" color="rgba(255,255,255,0.75)" style={{ flex: 1 }} numberOfLines={1}>
-            D’après notre guide · {brief.source.title}
+            {t('home.fromGuide', { title: brief.source.title })}
           </Text>
         </PressableScale>
       ) : null}
@@ -122,6 +124,7 @@ export function BriefLine() {
   const { c } = useTheme();
   const styles = useStyles();
   const brief = useBrief();
+  const t = useT();
   return (
     <View style={{ gap: 6 }}>
       <Text variant="smallStrong" color={c.subtle}>
@@ -133,10 +136,10 @@ export function BriefLine() {
           onPress={() => router.push({ pathname: '/(app)/guide/[id]', params: { id: brief.source!.slug } })}
           style={styles.sourceLight}
           accessibilityRole="link"
-          accessibilityLabel={`D’après notre guide ${brief.source.title}`}>
+          accessibilityLabel={t('home.fromGuideA11y', { title: brief.source.title })}>
           <BookOpen size={14} color={c.electric} />
           <Text variant="caption" color={c.electric} style={{ flexShrink: 1 }} numberOfLines={1}>
-            D’après notre guide · {brief.source.title}
+            {t('home.fromGuide', { title: brief.source.title })}
           </Text>
         </PressableScale>
       ) : null}

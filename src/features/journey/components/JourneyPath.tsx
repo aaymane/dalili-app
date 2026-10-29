@@ -21,6 +21,7 @@ import { useScrollY } from '@/components/motion/scroll';
 import { PressableScale } from '@/components/ui/PressableScale';
 import { Text } from '@/components/ui/Text';
 import { useProfile } from '@/features/profile/store';
+import { useCurrentLanguage, useT } from '@/i18n';
 import { haptics } from '@/lib/haptics';
 import { EASE_IN_OUT, EASE_OUT } from '@/theme/motion';
 import { makeStyles, useTheme } from '@/theme/scheme';
@@ -48,7 +49,9 @@ export function JourneyPath() {
   const { c } = useTheme();
   const profile = useProfile((s) => s.profile);
   const j = useJourney();
-  const milestones = useMemo(() => buildMilestones(profile, j.all), [profile, j.all]);
+  // La langue fait partie des dépendances : les titres des jalons sont traduits.
+  const language = useCurrentLanguage();
+  const milestones = useMemo(() => buildMilestones(profile, j.all), [profile, j.all, language]); // eslint-disable-line react-hooks/exhaustive-deps
   const [width, setWidth] = useState(0);
   const geo = useMemo(() => (width ? pathGeometry(width, milestones.length, TO_TICKET) : null), [width, milestones.length]);
   const skPath = useMemo(() => (geo ? Skia.Path.MakeFromSVGString(geo.d) : null), [geo]);
@@ -110,8 +113,10 @@ export function JourneyPath() {
   const ticket = useTicket();
 
   return (
+    // Le tracé et les jalons sont placés au pixel près : ils gardent le même sens dans toutes les langues.
     <Animated.View
       ref={ref}
+      style={{ direction: 'ltr' }}
       onLayout={(e) => {
         setWidth(e.nativeEvent.layout.width);
         scheduleOnUI(check);
@@ -166,6 +171,7 @@ function Node({
   const done = m.status === 'done';
   const size = current ? NODE + 6 : NODE;
   const labelW = width * 0.6 - NODE / 2 - 12;
+  const t = useT();
   const open = () => (m.stepId ? router.push({ pathname: '/(app)/etape/[id]', params: { id: m.stepId } }) : router.push('/(app)/parcours'));
 
   return (
@@ -174,7 +180,7 @@ function Node({
         onPress={open}
         style={[styles.row, { flexDirection: left ? 'row' : 'row-reverse' }]}
         accessibilityRole="button"
-        accessibilityLabel={`${m.title}. ${current ? 'Tu es ici. ' : ''}${m.detail}`}>
+        accessibilityLabel={[m.title + '.', current ? t('journey.milestone.hereA11y') : '', m.detail].filter(Boolean).join(' ')}>
         <View style={{ width: size, height: size, alignItems: 'center', justifyContent: 'center' }}>
           {current ? <View style={styles.halo} /> : null}
           <View
@@ -199,7 +205,7 @@ function Node({
           {current ? (
             <View style={styles.here}>
               <Text variant="caption" color="#fff">
-                Tu es ici
+                {t('journey.milestone.here')}
               </Text>
             </View>
           ) : null}
