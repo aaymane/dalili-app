@@ -510,6 +510,26 @@ insert into public.bookings (student_id, mentor_id, starts_at) values (auth.uid(
 select tests.must_count('refusée par le mentor : l''étudiant redemande', $q$select * from public.bookings where status = 'pending'$q$, 1);
 rollback;
 
+-- ───────────── partenaires : seul le serveur du site lit et écrit les demandes ─────────────
+begin;
+set local role anon;
+select tests.must_fail('un visiteur écrit une demande sans passer par le site',
+  $q$insert into public.partner_leads (organization, kind, contact_name, email, message) values ('Banque X', 'banque', 'Sara', 'sara@banque.fr', 'Nous aimerions échanger.')$q$);
+select tests.must_fail('un visiteur lit les demandes', 'select * from public.partner_leads');
+reset role;
+set local role authenticated;
+set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-00000000000a","role":"authenticated"}';
+select tests.must_fail('un compte de l''app lit les demandes', 'select * from public.partner_leads');
+reset role;
+set local role service_role;
+insert into public.partner_leads (organization, kind, contact_name, email, message) values ('Banque X', 'banque', 'Sara', 'sara@banque.fr', 'Nous aimerions échanger.');
+select tests.must_count('le serveur du site écrit et lit les demandes', $q$select * from public.partner_leads where status = 'nouveau'$q$, 1);
+select tests.must_fail('une demande avec un email invalide',
+  $q$insert into public.partner_leads (organization, kind, contact_name, email, message) values ('Banque X', 'banque', 'Sara', 'pas-un-email', 'Nous aimerions échanger.')$q$);
+select tests.must_fail('un type d''organisation inconnu',
+  $q$insert into public.partner_leads (organization, kind, contact_name, email, message) values ('X', 'casino', 'Sara', 'sara@x.fr', 'Nous aimerions échanger.')$q$);
+rollback;
+
 -- ───────────── signaler : seuls les fondateurs lisent, la base retrouve qui est signalé ─────────────
 begin;
 insert into public.mentors (id, user_id, first_name, last_name, city, is_active) values

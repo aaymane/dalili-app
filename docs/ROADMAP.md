@@ -38,7 +38,7 @@
   - [x] **Étape 3 · Le mentor lance l'appel** (30/10) : « Démarrer l'appel » chez le mentor (le site note l'ouverture du salon et prévient l'étudiant : « Yassine t'attend dans le salon ») ; l'étudiant arrivé avant attend dans une salle d'attente qui bascule seule dans l'appel. Migration appliquée en prod le 30/10 ; reste à pousser le site.
   - [x] **Une demande à la fois** (30/10) : un étudiant ne peut pas redemander (même mentor ou autre) tant que sa demande attend une réponse ou que l'appel accepté n'est pas passé ; refusée ou annulée, il redemande tout de suite. La base le garantit ; l'écran de réservation montre la demande en cours (voir, annuler). Migration appliquée en prod le 30/10.
   - [x] **Documents en photo ou PDF** (30/10) : « titre de séjour ou visa » et certificat de scolarité ; le PDF demande un nouveau build de l'app (`expo-document-picker`), la photo marche déjà.
-  - [ ] **Étape 4 · Partenaires (site)** : page « Devenir partenaire » sur dalili.study (banques, écoles, assurances…), formulaire, table protégée, onglet admin.
+  - [x] **Étape 4 · Partenaires (site)** (30/10) : page dalili.study/partenaires (parcours de l'étudiant animé, chiffres réels, pour qui, règles, étapes, formulaire anti-robots limité à 3 envois par heure, FAQ), email à l'équipe, onglet admin « Partenaires » (statut, notes, pastille). Table `partner_leads` sans aucun accès public. Reste : appliquer `partenaires` en prod (feu vert), puis pousser le site.
 
 - [x] **Commentaires sur les posts** : plein écran, champ collé au clavier, supprimer le sien (29/10)
   > `/fonctionnalite Commentaires : ouvrir un post en plein écran, liste des commentaires, champ de saisie collant au clavier, insertion dans la table comments (RLS membres), mise à jour optimiste.`
