@@ -75,14 +75,17 @@ export async function unregisterPush() {
   await supabase.from('push_tokens').delete().eq('token', token);
 }
 
-/** Prévient le serveur qu'il s'est passé quelque chose sur une demande d'appel. Sans attendre, sans bloquer. */
-export async function notifyServer(event: 'booking_created' | 'booking_answered' | 'booking_cancelled', bookingId: string) {
+/**
+ * Prévient le serveur qu'il s'est passé quelque chose sur une demande d'appel, ou qu'on vient d'envoyer un message.
+ * Sans attendre, sans bloquer : la base prévient aussi le site, et le serveur n'alerte qu'une fois.
+ */
+export async function notifyServer(event: 'booking_created' | 'booking_answered' | 'booking_cancelled' | 'message_created', id: string) {
   const s = await session();
   if (!s) return;
   fetch(`${env.siteUrl}/api/v1/notify`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${s.access_token}` },
-    body: JSON.stringify({ event, bookingId }),
+    body: JSON.stringify(event === 'message_created' ? { event, messageId: id } : { event, bookingId: id }),
   }).catch(() => {});
 }
 

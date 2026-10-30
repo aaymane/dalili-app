@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useRef, useState } from 'react';
 
+import { notifyServer } from '@/features/notifications/push';
 import { useProfile } from '@/features/profile/store';
 import { queryClient } from '@/lib/query';
 import { track } from '@/lib/analytics';
@@ -103,6 +104,7 @@ export function useSendMessage(conversationId: string) {
     },
     onSuccess: (m, { tempId }) => {
       track('message_sent', { as_role: useProfile.getState().profile.activeRole === 'mentor' ? 'mentor' : 'student' });
+      if (!m.id.startsWith('local-')) void notifyServer('message_created', m.id);
       qc.setQueryData<Message[]>(key, (list = []) => list.map((x) => (x.id === tempId ? m : x)).filter((x, i, all) => all.findIndex((y) => y.id === x.id) === i));
     },
     onError: (_e, { tempId }) => qc.setQueryData<Message[]>(key, (list = []) => list.map((x) => (x.id === tempId ? { ...x, pending: false, failed: true } : x))),
