@@ -25,7 +25,7 @@
 - [x] **Appels vidéo réels** : Daily, salle privée par rendez-vous, jeton donné par le site, compte Daily et premier build (29/10) — reste un vrai appel à deux
   > `/fonctionnalite Brancher l'écran src/app/(app)/appel/[id].tsx sur LiveKit (ou Daily) : Edge Function qui génère le token de la salle pour le booking, vérification que l'utilisateur est l'étudiant ou le mentor du rendez-vous. Nécessite un development build (expo-dev-client).`
 
-- [ ] **Notifications push & rappels d'échéances**
+- [ ] **Notifications push & rappels d'échéances** — ✅ rappels locaux 7 jours avant et la veille (29/10) ; ✅ push des demandes d'appel (24/10) ; reste : push des nouveaux messages
   > `/fonctionnalite Rappels locaux avec expo-notifications : planifier une notification 7 jours et 1 jour avant chaque échéance du Parcours-quête (visa, CVEC, CAF…) quand profile.notificationsEnabled est vrai ; replanifier quand la date d'arrivée change. Puis push serveur (Expo Push) pour les nouveaux messages et les rendez-vous.`
 
 - [ ] **Synchronisation complète Supabase**

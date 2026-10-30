@@ -6,6 +6,10 @@ jest.mock('@react-native-async-storage/async-storage', () => require('@react-nat
 // Ici, aucune autorisation et aucun jeton : l'app se comporte comme sur un téléphone qui a dit non.
 jest.mock('expo-notifications', () => ({
   AndroidImportance: { HIGH: 4 },
+  SchedulableTriggerInputTypes: { DATE: 'date' },
+  getAllScheduledNotificationsAsync: jest.fn(async () => []),
+  cancelScheduledNotificationAsync: jest.fn(async () => {}),
+  scheduleNotificationAsync: jest.fn(async () => ''),
   setNotificationHandler: jest.fn(),
   setNotificationChannelAsync: jest.fn(async () => null),
   getPermissionsAsync: jest.fn(async () => ({ granted: false, canAskAgain: false })),

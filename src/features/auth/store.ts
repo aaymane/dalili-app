@@ -9,6 +9,7 @@ import { isSupabaseConfigured } from '@/lib/env';
 import { persistStorage } from '@/lib/storage';
 import { supabase } from '@/lib/supabase';
 import { unregisterPush } from '@/features/notifications/push';
+import { cancelReminders } from '@/features/notifications/reminders';
 import { useProfile } from '@/features/profile/store';
 
 import { deleteOnlineAccount, resetLocalData, restoreFromServer, watchProfile } from './account';
@@ -165,8 +166,8 @@ export const useAuth = create<AuthState>()(
       },
 
       signOut: async () => {
-        // Ce téléphone ne doit plus recevoir les alertes de ce compte.
-        await unregisterPush().catch(() => {});
+        // Ce téléphone ne doit plus recevoir les alertes ni les rappels de ce compte.
+        await Promise.all([unregisterPush().catch(() => {}), cancelReminders()]);
         if (supabase) await supabase.auth.signOut();
         set({ demoUser: null, user: null, status: 'signedOut' });
       },

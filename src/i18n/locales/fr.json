@@ -133,7 +133,7 @@
     "switchMode": "Changer de mode",
     "currentMode": "Actuellement : {{role}}",
     "reminders": "Rappels d’échéances",
-    "remindersSub": "Visa, CAF, CVEC…",
+    "remindersSub": "7 jours avant et la veille : visa, CAF, CVEC…",
     "appearance": "Apparence",
     "appearanceAuto": "Auto",
     "appearanceLight": "Clair",
@@ -1352,5 +1352,12 @@
     "dueIn_other": "Échéance dans {{count}} jours",
     "welcomeTitle": "Bienvenue sur DALILI 💙",
     "welcomeText": "Ton parcours est prêt. On avance ensemble, une étape à la fois."
+  },
+  "reminders": {
+    "weekTitle": "Dans 7 jours : {{title}}",
+    "weekBody": "Tu as une semaine. Ouvre l’étape pour voir ce qu’il faut préparer.",
+    "tomorrowTitle": "Demain : {{title}}",
+    "tomorrowBody": "C’est demain. Vérifie que tout est prêt, on est là si tu bloques.",
+    "channel": "Rappels d’échéances"
   }
 }

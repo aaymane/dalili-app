@@ -3,13 +3,14 @@ import { useLocalDb } from '@/data/local-db';
 import { env } from '@/lib/env';
 import { supabase } from '@/lib/supabase';
 import { fetchJourney } from '@/features/journey/api';
+import { cancelReminders } from '@/features/notifications/reminders';
 import { useJourneyStore } from '@/features/journey/store';
 import { fetchProfile, restoreAvatar, syncProfile } from '@/features/profile/api';
 import { clearLocalAvatars } from '@/features/profile/avatar';
 import { useProfile } from '@/features/profile/store';
 
 /**
- * Efface les données gardées sur le téléphone : profil, photo, parcours, communauté locale.
+ * Efface les données gardées sur le téléphone : profil, photo, parcours, communauté locale, rappels planifiés.
  * Appelée quand un AUTRE compte se connecte, pour qu'il n'hérite pas des données du précédent.
  */
 export function resetLocalData() {
@@ -17,6 +18,7 @@ export function resetLocalData() {
   useLocalDb.getState().reset();
   useProfile.getState().reset();
   clearLocalAvatars();
+  void cancelReminders();
 }
 
 /**

@@ -2,10 +2,12 @@ import * as Notifications from 'expo-notifications';
 import { router, Stack } from 'expo-router';
 import { useEffect } from 'react';
 
-import { useJourneyStore } from '@/features/journey/store';
+import { useJourney, useJourneyStore } from '@/features/journey/store';
 import { AnalyticsConsentSheet, useAnalyticsTracking } from '@/features/profile/components/AnalyticsConsent';
 import { openFromNotification, registerPush } from '@/features/notifications/push';
+import { cancelReminders, planReminders, syncReminders } from '@/features/notifications/reminders';
 import { useProfile } from '@/features/profile/store';
+import { useCurrentLanguage } from '@/i18n';
 import { useTheme } from '@/theme/scheme';
 
 /** Le visa vient d'être coché : on ouvre le déblocage du billet une fois la fiche de l'étape refermée. */
@@ -34,10 +36,30 @@ function usePushNotifications() {
   }, []);
 }
 
+/**
+ * Rappels d'échéances (7 jours avant et la veille), replanifiés quand le parcours, la date d'arrivée ou la langue
+ * changent, annulés quand les rappels sont coupés. Seulement pour un compte étudiant : un mentor n'a pas de parcours.
+ */
+function useDeadlineReminders() {
+  const enabled = useProfile((s) => s.profile.notificationsEnabled && s.profile.roles.includes('student'));
+  const { all } = useJourney();
+  const language = useCurrentLanguage();
+  const list = enabled ? planReminders(all) : null;
+  // La liste change de forme à chaque rendu : on suit son contenu, pas l'objet.
+  const key = list ? `${language}|${list.map((r) => `${r.id}@${r.date.getTime()}|${r.title}`).join(';')}` : 'off';
+  useEffect(() => {
+    if (list) void syncReminders(list);
+    else void cancelReminders();
+    // `list` est décrit par `key`.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [key]);
+}
+
 export default function AppLayout() {
   const { c } = useTheme();
   useTicketUnlock();
   usePushNotifications();
+  useDeadlineReminders();
   useAnalyticsTracking();
   return (
     <>

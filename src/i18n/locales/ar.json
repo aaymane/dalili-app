@@ -161,7 +161,7 @@
     "switchMode": "تغيير الوضع",
     "currentMode": "حاليًا: {{role}}",
     "reminders": "تذكير بالمواعيد النهائية",
-    "remindersSub": "التأشيرة، CAF، CVEC…",
+    "remindersSub": "قبل 7 أيام وقبل يوم: التأشيرة، CAF، CVEC…",
     "appearance": "المظهر",
     "appearanceAuto": "تلقائي",
     "appearanceLight": "فاتح",
@@ -1436,5 +1436,12 @@
     "dueIn_other": "الموعد النهائي بعد {{count}} يوم",
     "welcomeTitle": "مرحبًا بك في DALILI 💙",
     "welcomeText": "مسارك جاهز. نتقدّم معًا، خطوة بخطوة."
+  },
+  "reminders": {
+    "weekTitle": "بعد 7 أيام: {{title}}",
+    "weekBody": "أمامك أسبوع. افتح الخطوة لترى ما يجب تحضيره.",
+    "tomorrowTitle": "غدًا: {{title}}",
+    "tomorrowBody": "الموعد غدًا. تأكّد أن كل شيء جاهز، نحن هنا إن تعثّرت.",
+    "channel": "تذكيرات المواعيد"
   }
 }

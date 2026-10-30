@@ -133,7 +133,7 @@
     "switchMode": "Switch mode",
     "currentMode": "Currently: {{role}}",
     "reminders": "Deadline reminders",
-    "remindersSub": "Visa, CAF, CVEC…",
+    "remindersSub": "7 days before and the day before: visa, CAF, CVEC…",
     "appearance": "Appearance",
     "appearanceAuto": "Auto",
     "appearanceLight": "Light",
@@ -1352,5 +1352,12 @@
     "dueIn_other": "Due in {{count}} days",
     "welcomeTitle": "Welcome to DALILI 💙",
     "welcomeText": "Your journey is ready. We move forward together, one step at a time."
+  },
+  "reminders": {
+    "weekTitle": "In 7 days: {{title}}",
+    "weekBody": "You have a week. Open the step to see what to prepare.",
+    "tomorrowTitle": "Tomorrow: {{title}}",
+    "tomorrowBody": "It’s tomorrow. Check that everything is ready, we’re here if you get stuck.",
+    "channel": "Deadline reminders"
   }
 }
