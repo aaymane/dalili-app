@@ -453,6 +453,56 @@ insert into public.group_members (group_id) select id from public.groups where c
 select tests.must_count('un étudiant rejoint le groupe du mentor', 'select * from public.group_members where user_id = auth.uid()', 1);
 rollback;
 
+-- ───────────── le mentor lance l'appel : seul le serveur note que le salon est ouvert ─────────────
+begin;
+insert into public.mentors (id, user_id, first_name, last_name, city, is_active) values
+  ('00000000-0000-0000-0000-0000000000e1', '00000000-0000-0000-0000-00000000000c', 'Yassine', 'Kadiri', 'Lyon', true);
+set local role authenticated;
+set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-00000000000a","role":"authenticated"}';
+insert into public.bookings (id, student_id, mentor_id, starts_at, call_started_at)
+  values ('00000000-0000-0000-0000-0000000000f8', auth.uid(), '00000000-0000-0000-0000-0000000000e1', now() + interval '2 days', now());
+select tests.must_count('une demande naît toujours sans salon ouvert', 'select * from public.bookings where call_started_at is null', 1);
+select tests.must_fail('l''étudiant ouvre le salon lui-même', 'update public.bookings set call_started_at = now()');
+set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-00000000000c","role":"authenticated"}';
+select tests.must_fail('le mentor écrit l''heure à la main (c''est le serveur)', 'update public.bookings set call_started_at = now()');
+reset role;
+update public.bookings set call_started_at = now() where id = '00000000-0000-0000-0000-0000000000f8';
+insert into public.notification_events (subject_id, event) values ('00000000-0000-0000-0000-0000000000f8', 'call_started');
+select tests.must_count('le serveur note le salon ouvert et l''alerte, une seule fois',
+  $q$select 1 from public.bookings where call_started_at is not null union all select 1 from public.notification_events where event = 'call_started'$q$, 2);
+select tests.must_fail('une deuxième alerte pour le même appel', $q$insert into public.notification_events (subject_id, event) values ('00000000-0000-0000-0000-0000000000f8', 'call_started')$q$);
+rollback;
+
+-- ───────────── une demande à la fois : l'étudiant redemande quand la précédente est passée, refusée ou annulée ─────────────
+begin;
+insert into public.mentors (id, user_id, first_name, last_name, city, is_active) values
+  ('00000000-0000-0000-0000-0000000000e1', '00000000-0000-0000-0000-00000000000c', 'Yassine', 'Kadiri', 'Lyon', true),
+  ('00000000-0000-0000-0000-0000000000e2', '00000000-0000-0000-0000-00000000000d', 'Nadia', 'Daoud', 'Lille', true);
+-- Un appel accepté, passé depuis 3 heures : il ne bloque plus rien.
+insert into public.bookings (student_id, mentor_id, starts_at, status) values ('00000000-0000-0000-0000-00000000000a', '00000000-0000-0000-0000-0000000000e2', now() - interval '3 hours', 'confirmed');
+set local role authenticated;
+set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-00000000000a","role":"authenticated"}';
+insert into public.bookings (id, student_id, mentor_id, starts_at) values ('00000000-0000-0000-0000-0000000000f9', auth.uid(), '00000000-0000-0000-0000-0000000000e1', now() + interval '2 days');
+select tests.must_count('un appel passé ne bloque pas une nouvelle demande', $q$select * from public.bookings where status = 'pending'$q$, 1);
+select tests.must_fail('deuxième demande chez un autre mentor pendant la première',
+  $q$insert into public.bookings (student_id, mentor_id, starts_at) values (auth.uid(), '00000000-0000-0000-0000-0000000000e2', now() + interval '3 days')$q$);
+select tests.must_fail('deuxième demande chez le même mentor',
+  $q$insert into public.bookings (student_id, mentor_id, starts_at) values (auth.uid(), '00000000-0000-0000-0000-0000000000e1', now() + interval '4 days')$q$);
+set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-00000000000c","role":"authenticated"}';
+update public.bookings set status = 'confirmed' where id = '00000000-0000-0000-0000-0000000000f9';
+set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-00000000000a","role":"authenticated"}';
+select tests.must_fail('appel accepté à venir : toujours une seule demande',
+  $q$insert into public.bookings (student_id, mentor_id, starts_at) values (auth.uid(), '00000000-0000-0000-0000-0000000000e2', now() + interval '3 days')$q$);
+update public.bookings set status = 'cancelled' where id = '00000000-0000-0000-0000-0000000000f9';
+insert into public.bookings (student_id, mentor_id, starts_at) values (auth.uid(), '00000000-0000-0000-0000-0000000000e2', now() + interval '3 days');
+select tests.must_count('annulée : l''étudiant redemande tout de suite, chez un autre mentor', $q$select * from public.bookings where status = 'pending'$q$, 1);
+set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-00000000000d","role":"authenticated"}';
+update public.bookings set status = 'cancelled' where status = 'pending';
+set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-00000000000a","role":"authenticated"}';
+insert into public.bookings (student_id, mentor_id, starts_at) values (auth.uid(), '00000000-0000-0000-0000-0000000000e1', now() + interval '5 days');
+select tests.must_count('refusée par le mentor : l''étudiant redemande', $q$select * from public.bookings where status = 'pending'$q$, 1);
+rollback;
+
 -- ───────────── signaler : seuls les fondateurs lisent, la base retrouve qui est signalé ─────────────
 begin;
 insert into public.mentors (id, user_id, first_name, last_name, city, is_active) values

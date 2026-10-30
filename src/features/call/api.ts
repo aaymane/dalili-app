@@ -11,6 +11,8 @@ export type CallInfo = { url: string; token: string; role: 'student' | 'mentor';
 
 export type CallAccess =
   | ({ kind: 'ready' } & CallInfo)
+  /** Étudiant arrivé avant son mentor : c'est le mentor qui ouvre le salon, l'app réessaie toute seule. */
+  | { kind: 'waiting' }
   /** Trop tôt : la salle s'ouvre 15 minutes avant. */
   | { kind: 'early'; opensAt: string }
   /** Refus expliqué par le site, en français (terminé, plus confirmé, vidéo pas encore ouverte…). */
@@ -32,6 +34,7 @@ export async function requestCall(bookingId: string): Promise<CallAccess> {
     const json = await res.json().catch(() => ({}));
     if (res.ok) return { kind: 'ready', ...(json as CallInfo) };
     if (res.status === 425 && json.opensAt) return { kind: 'early', opensAt: json.opensAt };
+    if (res.status === 423) return { kind: 'waiting' };
     return { kind: 'unavailable', message: json.error };
   } catch {
     return { kind: 'offline' };

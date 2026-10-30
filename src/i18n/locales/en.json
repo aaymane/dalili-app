@@ -480,8 +480,6 @@
     "acceptA11y": "Accept the call with {{name}}",
     "decline": "Decline",
     "declineA11y": "Decline {{name}}’s request",
-    "join": "Join",
-    "joinA11y": "Join the call with {{name}}",
     "confirmed": "Call confirmed",
     "write": "Message",
     "writeA11y": "Message {{name}}",
@@ -511,7 +509,9 @@
     "slots": "My time slots",
     "slotsCount_one": "{{count}} slot per week",
     "slotsCount_other": "{{count}} slots per week",
-    "slotsNone": "None: students suggest a time"
+    "slotsNone": "None: students suggest a time",
+    "start": "Start the call",
+    "startA11y": "Start the call with {{name}}"
   },
   "journey": {
     "phase": {
@@ -1100,7 +1100,8 @@
     "camOffA11y": "Turn off camera",
     "camOnA11y": "Turn on camera",
     "hangUp": "Hang up",
-    "flip": "Switch camera"
+    "flip": "Switch camera",
+    "mentorOpens": "{{name}} opens the room. Stay here: the call starts on its own, and you get a notification if you leave this screen."
   },
   "schools": {
     "partner": "DALILI partner school",

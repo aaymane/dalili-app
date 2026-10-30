@@ -13,7 +13,8 @@ import { formatTime } from '@/lib/date';
 
 /**
  * Appel vidéo d'un rendez-vous confirmé (`id` = la demande d'appel).
- * Le site ouvre la salle 15 minutes avant l'heure ; en mode démo et dans Expo Go, l'écran reste un aperçu.
+ * Le site ouvre la salle 15 minutes avant l'heure, et c'est le mentor qui lance l'appel : l'étudiant arrivé avant
+ * attend dans la salle d'attente. En mode démo et dans Expo Go, l'écran reste un aperçu.
  */
 export default function Call() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -39,6 +40,9 @@ export default function Call() {
         onFlag={() => setReporting(true)}
       />
     );
+  } else if (a.kind === 'waiting') {
+    // C'est le mentor qui ouvre le salon : l'écran réessaie tout seul, et une notification arrive s'il est fermé.
+    screen = <CallWaiting name={peer.name} color={peer.color} title={t('call.waitingFor', { name: peer.name })} text={t('call.mentorOpens', { name: peer.name })} />;
   } else if (a.kind === 'early') {
     screen = (
       <CallWaiting

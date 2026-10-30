@@ -40,7 +40,7 @@ function LiveDot() {
 /** Émeraude profond : le vert du mentor, assez sombre pour du texte blanc lisible (contraste > 6:1). */
 const DEEP_MENTOR = ['#0F6B4E', '#0A4535'] as const;
 
-/** Le prochain appel accepté : avec qui, quand, et « Rejoindre » dès que la salle s'ouvre (15 min avant). */
+/** Le prochain appel accepté : avec qui, quand, et « Démarrer l'appel » dès que la salle s'ouvre (15 min avant). */
 export function NextCallCard({ r }: { r: MentorRequest }) {
   const { c } = useTheme();
   const t = useT();
@@ -82,10 +82,10 @@ export function NextCallCard({ r }: { r: MentorRequest }) {
         disabled={!live}
         onPress={() => router.push({ pathname: '/(app)/appel/[id]', params: { id: r.id } })}
         style={[styles.cta, !live && { opacity: 0.55 }]}
-        accessibilityLabel={live ? t('mentorHome.joinA11y', { name }) : t('mentorHome.next.opensA11y', { time: formatTime(r.startsAt) })}>
+        accessibilityLabel={live ? t('mentorHome.startA11y', { name }) : t('mentorHome.next.opensA11y', { time: formatTime(r.startsAt) })}>
         <Video size={17} color={c.navy} />
         <Text variant="bodyStrong" color={c.navy}>
-          {live ? t('mentorHome.join') : t('mentorHome.next.opens')}
+          {live ? t('mentorHome.start') : t('mentorHome.next.opens')}
         </Text>
       </PressableScale>
     </LinearGradient>

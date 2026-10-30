@@ -123,10 +123,10 @@ export function RequestCard({ r, first, onReport }: { r: MentorRequest; first?: 
                   haptic="press"
                   onPress={() => router.push({ pathname: '/(app)/appel/[id]', params: { id: r.id } })}
                   style={[styles.btn, solid]}
-                  accessibilityLabel={t('mentorHome.joinA11y', { name: nameA11y })}>
+                  accessibilityLabel={t('mentorHome.startA11y', { name: nameA11y })}>
                   <Video size={16} color={c.bg} />
                   <Text variant="smallStrong" color={c.bg}>
-                    {t('mentorHome.join')}
+                    {t('mentorHome.start')}
                   </Text>
                 </PressableScale>
               ) : (

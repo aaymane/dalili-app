@@ -7,7 +7,10 @@ import { useT } from '@/i18n';
 
 import { requestCall } from './api';
 
-/** L'accès à la salle, demandé une fois à l'ouverture de l'écran (jamais relu en fond : ce serait rejoindre à nouveau). */
+/**
+ * L'accès à la salle, demandé à l'ouverture de l'écran (jamais relu une fois obtenu : ce serait rejoindre à nouveau).
+ * Seule exception : l'étudiant qui attend son mentor redemande toutes les 4 secondes, jusqu'à ce que le salon s'ouvre.
+ */
 export function useCallAccess(bookingId: string) {
   return useQuery({
     queryKey: ['call', bookingId],
@@ -16,6 +19,7 @@ export function useCallAccess(bookingId: string) {
     gcTime: 0,
     retry: false,
     refetchOnWindowFocus: false,
+    refetchInterval: (q) => (q.state.data?.kind === 'waiting' ? 4000 : false),
   });
 }
 

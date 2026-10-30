@@ -480,8 +480,6 @@
     "acceptA11y": "Accepter l’appel avec {{name}}",
     "decline": "Décliner",
     "declineA11y": "Décliner la demande de {{name}}",
-    "join": "Rejoindre",
-    "joinA11y": "Rejoindre l’appel avec {{name}}",
     "confirmed": "Appel confirmé",
     "write": "Écrire",
     "writeA11y": "Écrire à {{name}}",
@@ -511,7 +509,9 @@
     "slots": "Mes créneaux",
     "slotsCount_one": "{{count}} créneau par semaine",
     "slotsCount_other": "{{count}} créneaux par semaine",
-    "slotsNone": "Aucun : les étudiants te proposent une heure"
+    "slotsNone": "Aucun : les étudiants te proposent une heure",
+    "start": "Démarrer l’appel",
+    "startA11y": "Démarrer l’appel avec {{name}}"
   },
   "journey": {
     "phase": {
@@ -1100,7 +1100,8 @@
     "camOffA11y": "Couper la caméra",
     "camOnA11y": "Rallumer la caméra",
     "hangUp": "Raccrocher",
-    "flip": "Changer de caméra"
+    "flip": "Changer de caméra",
+    "mentorOpens": "{{name}} ouvre le salon. Reste ici : l’appel démarre tout seul, et tu reçois une notification si tu quittes l’écran."
   },
   "schools": {
     "partner": "École partenaire DALILI",
