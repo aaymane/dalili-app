@@ -55,9 +55,12 @@ function AiButton({ focused, onPress }: { focused: boolean; onPress: () => void 
   return (
     <PressableScale onPress={onPress} haptic="press" scaleTo={0.9} style={styles.aiWrap} accessibilityLabel={t('tabs.ai')} accessibilityRole="tab" accessibilityState={{ selected: focused }}>
       {!focused && <Animated.View style={[styles.aiRing, ring]} />}
-      <LinearGradient colors={gradients.ai} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={[styles.ai, focused && { borderColor: '#C9C2FF' }]}>
-        <Sparkles size={24} color="#fff" fill="#fff" />
-      </LinearGradient>
+      {/* L'ombre sur l'enveloppe, le dégradé coupé dans le rond (iOS le dessine parfois en carré sans `overflow`). */}
+      <View style={styles.aiShadow}>
+        <LinearGradient colors={gradients.ai} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={[styles.ai, focused && { borderColor: '#C9C2FF' }]}>
+          <Sparkles size={24} color="#fff" fill="#fff" />
+        </LinearGradient>
+      </View>
       <Text variant="caption" color={focused ? c.aiIndigo : c.subtle} style={{ fontSize: 10.5, marginTop: 4 }}>
         {t('tabs.ia')}
       </Text>
@@ -115,6 +118,7 @@ const useStyles = makeStyles(({ c }) => ({
   item: { alignItems: 'center', gap: 4, width: 64, paddingTop: 4 },
   dot: { width: 4, height: 4, borderRadius: 2, marginTop: 1 },
   aiWrap: { alignItems: 'center', width: 70, marginTop: -30 },
-  ai: { width: 58, height: 58, borderRadius: 29, alignItems: 'center', justifyContent: 'center', borderWidth: 3, borderColor: c.card, shadowColor: '#5B5CF0', shadowOpacity: 0.45, shadowRadius: 14, shadowOffset: { width: 0, height: 6 }, elevation: 12 },
+  aiShadow: { width: 58, height: 58, borderRadius: 29, shadowColor: '#5B5CF0', shadowOpacity: 0.45, shadowRadius: 14, shadowOffset: { width: 0, height: 6 }, elevation: 12 },
+  ai: { width: 58, height: 58, borderRadius: 29, overflow: 'hidden', alignItems: 'center', justifyContent: 'center', borderWidth: 3, borderColor: c.card },
   aiRing: { position: 'absolute', top: 0, width: 58, height: 58, borderRadius: 29, backgroundColor: '#7A5AF8' },
 }));

@@ -1,6 +1,7 @@
 import { t } from '@/i18n';
 import { useLocalDb } from '@/data/local-db';
 import { env } from '@/lib/env';
+import { queryClient } from '@/lib/query';
 import { supabase } from '@/lib/supabase';
 import { fetchJourney, syncStep } from '@/features/journey/api';
 import { cancelReminders } from '@/features/notifications/reminders';
@@ -15,7 +16,16 @@ import { mergeJourney, mergeProfile } from './merge';
  * Efface les données gardées sur le téléphone : profil, photo, parcours, communauté locale, rappels planifiés.
  * Appelée quand un AUTRE compte se connecte, pour qu'il n'hérite pas des données du précédent.
  */
+/**
+ * Oublie ce que l'app a lu en ligne pour ce compte (fiche mentor, rendez-vous, messages…) : le compte suivant sur
+ * ce téléphone ne doit jamais le voir, ni basculer en mentor à cause de lui. Le contenu du site reste en cache.
+ */
+export function forgetAccountQueries() {
+  queryClient.removeQueries({ predicate: (q) => q.queryKey[0] !== 'content' });
+}
+
 export function resetLocalData() {
+  forgetAccountQueries();
   useJourneyStore.getState().reset();
   useLocalDb.getState().reset();
   useProfile.getState().reset();

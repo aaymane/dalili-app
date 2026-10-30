@@ -12,7 +12,7 @@ import { unregisterPush } from '@/features/notifications/push';
 import { cancelReminders } from '@/features/notifications/reminders';
 import { useProfile } from '@/features/profile/store';
 
-import { deleteOnlineAccount, refreshFromServer, resetLocalData, restoreFromServer, watchProfile } from './account';
+import { deleteOnlineAccount, forgetAccountQueries, refreshFromServer, resetLocalData, restoreFromServer, watchProfile } from './account';
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -177,6 +177,7 @@ export const useAuth = create<AuthState>()(
         // Ce téléphone ne doit plus recevoir les alertes ni les rappels de ce compte.
         await Promise.all([unregisterPush().catch(() => {}), cancelReminders()]);
         if (supabase) await supabase.auth.signOut();
+        forgetAccountQueries();
         set({ demoUser: null, user: null, status: 'signedOut' });
       },
 

@@ -23,7 +23,8 @@ export function IconTile({ icon: Icon, tone = 'blue', children, size = 44, color
   const styles = useStyles();
   const { tones } = useTheme();
   const r = radius ?? size * 0.32;
-  const box = { width: size, height: size, borderRadius: r, alignItems: 'center', justifyContent: 'center' } as const;
+  // overflow : le dégradé reste dans l'arrondi (iOS le dessine parfois en carré sans lui).
+  const box = { width: size, height: size, borderRadius: r, overflow: 'hidden', alignItems: 'center', justifyContent: 'center' } as const;
   if (colors) {
     return (
       <LinearGradient colors={colors} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={box}>
