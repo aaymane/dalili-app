@@ -10,9 +10,6 @@ Rôles : **Étudiant** (MVP, bleu `#014DF8`), **Mentor** (MVP, vert `#1FB17C`), 
 ## Commandes
 
 ```bash
-npm start                 # serveur de dev (Expo Go / dev build / web)
-npm run typecheck         # tsc --noEmit
-npm run lint              # eslint
 npx expo install <pkg>    # TOUJOURS pour ajouter un paquet natif (versions compatibles SDK)
 npx expo export -p web    # vérifier que tout compile
 ```
