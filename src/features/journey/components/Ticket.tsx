@@ -175,8 +175,9 @@ export function Ticket({ data, onPress, holo }: { data: TicketData; onPress?: ()
           </View>
         )}
         <View style={styles.fields}>
-          <View style={{ flexShrink: 1 }}>
-            <Text variant="caption" color="rgba(255,255,255,0.5)">
+          {/* Le passager prend la place qui reste, sans descendre sous la largeur de son libellé. */}
+          <View style={{ flex: 1, minWidth: 72 }}>
+            <Text variant="caption" color="rgba(255,255,255,0.5)" numberOfLines={1}>
               {tr('ticket.passenger')}
             </Text>
             <Text variant="smallStrong" color="#fff" numberOfLines={1}>
@@ -280,7 +281,7 @@ const useStyles = makeStyles(({ c, shadow }) => ({
   main: { flex: 1, padding: 18, gap: 10 },
   route: { flexDirection: 'row', alignItems: 'center' },
   city: { fontSize: 20, lineHeight: 26, flexShrink: 1 },
-  fields: { flexDirection: 'row', gap: 16, marginTop: 'auto' },
+  fields: { flexDirection: 'row', gap: 14, marginTop: 'auto' },
   perforation: { width: 0, borderLeftWidth: 1.5, borderStyle: 'dashed', borderColor: 'rgba(255,255,255,0.28)', marginVertical: 16 },
   stub: { width: STUB, alignItems: 'center', justifyContent: 'center', paddingVertical: 14, paddingHorizontal: 8, gap: 2 },
   countdown: { fontFamily: 'Montserrat_900Black', fontSize: 28, lineHeight: 34 },

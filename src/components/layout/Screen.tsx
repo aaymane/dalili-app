@@ -40,18 +40,21 @@ export function Screen({ children, top, scroll = true, header, footer, padded = 
       keyboardShouldPersistTaps="handled"
       {...scrollProps}
       contentContainerStyle={[padded && styles.pad, { paddingBottom: bottom }, scrollProps?.contentContainerStyle]}>
-      <ScrollContext value={scrollY}>{children}</ScrollContext>
+      {children}
     </Animated.ScrollView>
   ) : (
     <View style={[{ flex: 1 }, padded && styles.pad]}>{children}</View>
   );
 
+  // L'en-tête lit aussi le défilement (liseré qui apparaît) : le contexte enveloppe tout l'écran.
   const body = (
-    <View style={{ flex: 1, paddingTop: insets.top }}>
-      {header}
-      {content}
-      {footer ? <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, 16) }]}>{footer}</View> : null}
-    </View>
+    <ScrollContext value={scroll ? scrollY : null}>
+      <View style={{ flex: 1, paddingTop: insets.top }}>
+        {header}
+        {content}
+        {footer ? <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, 16) }]}>{footer}</View> : null}
+      </View>
+    </ScrollContext>
   );
 
   return (

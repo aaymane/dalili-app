@@ -1,8 +1,10 @@
 import { router } from 'expo-router';
 import { Bell, MessageCircle } from 'lucide-react-native';
-import { View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
+import Animated, { Extrapolation, interpolate, useAnimatedStyle } from 'react-native-reanimated';
 
 import { LogoMark } from '@/components/brand/Logo';
+import { useScrollY } from '@/components/motion/scroll';
 import { Avatar } from '@/components/ui/Avatar';
 import { ChevronLeft } from '@/components/ui/DirIcons';
 import { PressableScale } from '@/components/ui/PressableScale';
@@ -26,8 +28,12 @@ export function AppHeader({ back, title, pill, onBack, hideActions }: Props) {
   const styles = useStyles();
   const profile = useProfile((s) => s.profile);
   const t = useT();
+  const scrollY = useScrollY();
+  // Dès qu'on défile, un liseré sépare l'en-tête du contenu qui passe dessous (rien en haut de page).
+  const edge = useAnimatedStyle(() => ({ opacity: interpolate(scrollY?.get() ?? 0, [0, 24], [0, 1], Extrapolation.CLAMP) }));
   return (
     <View style={styles.row}>
+      <Animated.View pointerEvents="none" style={[styles.edge, edge]} />
       <View style={styles.left}>
         {back ? (
           <PressableScale onPress={onBack ?? (() => router.back())} style={styles.round} accessibilityLabel={t('common.back')}>
@@ -90,7 +96,8 @@ function MessagesButton() {
 }
 
 const useStyles = makeStyles(({ c, shadow, scheme }) => ({
-  row: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingTop: 8, paddingBottom: 12 },
+  row: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingTop: 8, paddingBottom: 12, zIndex: 1 },
+  edge: { position: 'absolute', left: 0, right: 0, bottom: 0, height: StyleSheet.hairlineWidth, backgroundColor: c.lineStrong },
   left: { flexDirection: 'row', alignItems: 'center', gap: 12, flex: 1 },
   actions: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   round: { width: 38, height: 38, borderRadius: 19, backgroundColor: c.card, alignItems: 'center', justifyContent: 'center', ...shadow.sm },

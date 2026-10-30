@@ -15,6 +15,7 @@ import { Text } from '@/components/ui/Text';
 import { AiCta } from '@/features/home/AiCta';
 import { AddStepCard } from '@/features/journey/components/AddStepCard';
 import { ArrivalSheet } from '@/features/journey/components/ArrivalSheet';
+import { JourneyPath } from '@/features/journey/components/JourneyPath';
 import { MobilityCard } from '@/features/journey/components/MobilityCard';
 import { StepRow } from '@/features/journey/components/StepRow';
 import { PHASES, phaseMeta } from '@/features/journey/steps';
@@ -58,12 +59,12 @@ function DeadlineRow({ item }: { item: JourneyItem }) {
   );
 }
 
-/** Parcours-quête : « Mes étapes » par phase + « Calendrier » des échéances. */
+/** Parcours-quête : « Mes étapes » par phase, le « Chemin » illustré et le « Calendrier » des échéances. */
 export default function Parcours() {
   const { c, gradients } = useTheme();
   const styles = useStyles();
   const params = useLocalSearchParams<{ view?: string }>();
-  const [view, setView] = useState<'steps' | 'calendar'>(params.view === 'calendar' ? 'calendar' : 'steps');
+  const [view, setView] = useState<'steps' | 'path' | 'calendar'>(params.view === 'calendar' ? 'calendar' : params.view === 'path' ? 'path' : 'steps');
   const [day, setDay] = useState<Date | null>(null);
   const [arrivalOpen, setArrivalOpen] = useState(false);
   const profile = useProfile((s) => s.profile);
@@ -81,6 +82,7 @@ export default function Parcours() {
           onChange={setView}
           options={[
             { value: 'steps', label: t('journey.tabSteps') },
+            { value: 'path', label: t('journey.tabPath') },
             { value: 'calendar', label: t('journey.tabCalendar') },
           ]}
         />
@@ -126,6 +128,11 @@ export default function Parcours() {
             </Text>
             <AddStepCard />
             <AiCta />
+          </Animated.View>
+        ) : view === 'path' ? (
+          // Le chemin illustré, de ta ville à ta nouvelle vie, jusqu'au billet (il se trace au défilement).
+          <Animated.View key="path" entering={FadeIn.duration(220)} exiting={FadeOut.duration(120)}>
+            <JourneyPath />
           </Animated.View>
         ) : (
           <Animated.View key="cal" entering={FadeIn.duration(220)} exiting={FadeOut.duration(120)} style={{ gap: 16 }}>

@@ -1,5 +1,5 @@
 import { router } from 'expo-router';
-import { Map, MessageCircle } from 'lucide-react-native';
+import { MessageCircle, Users } from 'lucide-react-native';
 import { useState } from 'react';
 import { ScrollView, View } from 'react-native';
 import Animated from 'react-native-reanimated';
@@ -7,41 +7,36 @@ import Animated from 'react-native-reanimated';
 import { AppHeader } from '@/components/layout/AppHeader';
 import { Reveal } from '@/components/motion/Reveal';
 import { Screen } from '@/components/layout/Screen';
-import { ChevronRight } from '@/components/ui/DirIcons';
 import { IconTile } from '@/components/ui/IconTile';
 import { PressableScale } from '@/components/ui/PressableScale';
 import { SectionHeader } from '@/components/ui/SectionHeader';
 import { Text } from '@/components/ui/Text';
 import { useGroups, useMentors, useMyBookings } from '@/data/hooks';
 import { ArrivalSheet } from '@/features/journey/components/ArrivalSheet';
-import { JourneyPath } from '@/features/journey/components/JourneyPath';
-import { MobilityCard } from '@/features/journey/components/MobilityCard';
 import { Ticket } from '@/features/journey/components/Ticket';
-import { useJourney } from '@/features/journey/store';
 import { useTicket } from '@/features/journey/ticket';
 import { BookingCard } from '@/features/mentors/components/BookingCard';
 import { MentorTile } from '@/features/mentors/components/MentorCard';
 import { MentorsSoon } from '@/features/mentors/components/MentorsSoon';
 import { useProfile } from '@/features/profile/store';
 import { useT } from '@/i18n';
-import { enter, reflow } from '@/theme/motion';
+import { enter } from '@/theme/motion';
 import { makeStyles, useTheme } from '@/theme/scheme';
 import { radius } from '@/theme/tokens';
 
-import { ActionCard } from './ActionCard';
 import { AskField } from './AskField';
-import { BriefHero, BriefLine } from './BriefHero';
+import { Greeting, NextStepCard } from './NextStep';
 import { ToolsGrid } from './ToolsGrid';
 
 /**
- * Accueil Étudiant · « Brief du jour » (docs/VISION.md §4.A), dans l'ordre de lecture :
- * l'Âme et la phrase du jour, ta seule action, le champ pour demander à Dalili, puis le reste.
+ * Accueil Étudiant, léger : le salut (ou le billet quand l'arrivée approche), la prochaine étape en une carte fine,
+ * le champ pour demander à Dalili, puis ton appel, les mentors, les outils et les communautés.
+ * Le chemin illustré et la carte mobilité vivent dans Parcours.
  */
 export function StudentHome() {
   const { c, gradients } = useTheme();
   const styles = useStyles();
   const profile = useProfile((s) => s.profile);
-  const j = useJourney();
   const { data: mentors = [] } = useMentors();
   const { data: groups } = useGroups();
   const [since] = useState(() => Date.now() - 3_600_000);
@@ -62,62 +57,20 @@ export function StudentHome() {
     <Screen top={gradients.roleTop.student} tabBar padded={false} header={<AppHeader />}>
       <View style={{ paddingHorizontal: 20, gap: 16 }}>
         {ticket.onHome ? (
-          <>
-            <Animated.View entering={enter(0)}>
-              <Ticket data={ticket.data} onPress={() => setArrivalOpen(true)} />
-            </Animated.View>
-            <Animated.View entering={enter(1)}>
-              <BriefLine />
-            </Animated.View>
-          </>
-        ) : (
           <Animated.View entering={enter(0)}>
-            <BriefHero />
+            <Ticket data={ticket.data} onPress={() => setArrivalOpen(true)} />
           </Animated.View>
+        ) : (
+          <Greeting />
         )}
-        {j.current ? (
-          <Animated.View entering={enter(2)} layout={reflow}>
-            <ActionCard key={j.current.step.id} step={j.current.step} />
-          </Animated.View>
-        ) : null}
+        <NextStepCard />
         <Animated.View entering={enter(3)}>
-          <PressableScale
-            onPress={() => router.push('/(app)/parcours')}
-            style={styles.journeyRow}
-            accessibilityRole="button"
-            accessibilityLabel={t('home.journeyA11y', { done: j.doneCount, total: j.total })}>
-            <IconTile icon={Map} tone="blue" size={46} radius={23} />
-            <View style={{ flex: 1 }}>
-              <Text variant="bodyStrong">{t('home.journeyRow')}</Text>
-              <Text variant="caption" color={c.muted}>
-                {t('home.journeyProgress', { done: j.doneCount, total: j.total, percent: Math.round(j.progress * 100) })}
-              </Text>
-            </View>
-            <ChevronRight size={18} color={c.subtle} />
-          </PressableScale>
-        </Animated.View>
-        <Animated.View entering={enter(4)}>
           <AskField />
         </Animated.View>
       </View>
 
-      <View style={{ paddingHorizontal: 20, gap: 26, marginTop: 26 }}>
+      <View style={{ paddingHorizontal: 20, gap: 28, marginTop: 28 }}>
         {booking && bookingMentor ? <BookingCard booking={booking} mentor={bookingMentor} /> : null}
-
-        <Reveal>
-          <MobilityCard onEditArrival={() => setArrivalOpen(true)} />
-        </Reveal>
-
-        {/* Pas de `Reveal` : le chemin a sa propre entrée, tracée au défilement. */}
-        <View>
-          <SectionHeader
-            title={t('home.path')}
-            subtitle={t('home.pathSub', { from: profile.originCity || t('home.fromHome'), to: profile.destinationCity ?? t('home.toFrance') })}
-            action={t('common.details')}
-            onAction={() => router.push('/(app)/parcours')}
-          />
-          <JourneyPath />
-        </View>
 
         <Reveal>
           <SectionHeader
@@ -155,7 +108,8 @@ export function StudentHome() {
                   </Text>
                 </View>
                 <View style={styles.count}>
-                  <Text variant="caption" color={c.subtle}>
+                  <Users size={12} color={c.subtle} />
+                  <Text variant="caption" color={c.subtle} accessibilityLabel={t('community.members', { count: g.members })}>
                     {g.members}
                   </Text>
                 </View>
@@ -170,7 +124,6 @@ export function StudentHome() {
 }
 
 const useStyles = makeStyles(({ c, shadow }) => ({
-  journeyRow: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 12, minHeight: 44, borderRadius: radius.xl, backgroundColor: c.card, ...shadow.sm },
   groupRow: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 12, borderRadius: radius.xl, backgroundColor: c.card, ...shadow.sm },
-  count: { paddingHorizontal: 9, paddingVertical: 3, borderRadius: 999, backgroundColor: c.fill },
+  count: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 9, paddingVertical: 4, borderRadius: 999, backgroundColor: c.fill },
 }));
