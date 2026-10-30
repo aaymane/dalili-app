@@ -26,6 +26,7 @@ import {
   updateMyMentor,
   uploadMentorDocument,
   type DocKind,
+  type PickedDocument,
   type MentorRequest,
   type MentorSheetPatch,
   type MyMentor,
@@ -63,7 +64,7 @@ export function useMyApplication() {
 export function useUploadDocument() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({ kind, uri }: { kind: DocKind; uri: string }) => uploadMentorDocument(kind, uri),
+    mutationFn: ({ kind, file }: { kind: DocKind; file: PickedDocument }) => uploadMentorDocument(kind, file),
     onSuccess: () => qc.invalidateQueries({ queryKey: APPLICATION }),
   });
 }

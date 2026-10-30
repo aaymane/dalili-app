@@ -1441,16 +1441,15 @@
     "docsTitle": "Tes deux\ndocuments",
     "docsSubtitle": "L’équipe vérifie que tu vis et étudies en France. C’est ce qui rend DALILI sûr pour tout le monde.",
     "docs": {
-      "titre_sejour": "Titre de séjour",
+      "titre_sejour": "Titre de séjour ou visa",
       "certificat_scolarite": "Certificat de scolarité"
     },
     "docsHint": {
-      "titre_sejour": "VLS-TS validé, carte de séjour ou récépissé",
-      "certificat_scolarite": "De cette année, à ton nom"
+      "titre_sejour": "Visa long séjour (VLS-TS) validé, carte de séjour ou récépissé. Photo ou PDF.",
+      "certificat_scolarite": "De cette année, à ton nom. Photo ou PDF."
     },
     "take": "Prendre en photo",
     "pick": "Choisir",
-    "replace": "Reprendre",
     "added": "ajouté",
     "toAdd": "à ajouter",
     "docA11y": "{{doc}}, {{state}}",
@@ -1471,7 +1470,12 @@
     "rejectedTitle": "Ta candidature est à revoir",
     "rejectedText": "L’équipe dit : « {{reason}} ». Corrige et renvoie quand tu veux.",
     "rejectedNoReason": "L’équipe n’a pas pu la valider. Renvoie des documents lisibles quand tu veux.",
-    "welcome": "Bienvenue dans ton espace mentor"
+    "welcome": "Bienvenue dans ton espace mentor",
+    "photo": "Photo",
+    "gallery": "Galerie",
+    "pdf": "Choisir un PDF",
+    "pdfUpdate": "Pour envoyer un PDF, mets l’app à jour. En attendant, prends-le en photo.",
+    "tooBig": "Ce fichier dépasse 5 Mo. Prends plutôt une photo du document."
   },
   "agenda": {
     "title": "Agenda",

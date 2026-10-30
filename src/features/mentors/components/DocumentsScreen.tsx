@@ -1,5 +1,5 @@
 import * as ImagePicker from 'expo-image-picker';
-import { Camera, Check, GraduationCap, IdCard, Images, Lock, Send, type LucideIcon } from 'lucide-react-native';
+import { Camera, Check, FileText, GraduationCap, IdCard, Images, Lock, Send, type LucideIcon } from 'lucide-react-native';
 import { useState } from 'react';
 import { ActivityIndicator, View } from 'react-native';
 import Animated from 'react-native-reanimated';
@@ -18,7 +18,7 @@ import { enter, pop, reflow } from '@/theme/motion';
 import { makeStyles, useTheme } from '@/theme/scheme';
 import { radius } from '@/theme/tokens';
 
-import { DOC_KINDS, type DocKind } from '../api';
+import { DOC_KINDS, MAX_DOCUMENT_BYTES, type DocKind, type PickedDocument } from '../api';
 import { useCreateMyMentor, useMyApplication, useUploadDocument } from '../hooks';
 
 const DOC_ICON: Record<DocKind, LucideIcon> = { titre_sejour: IdCard, certificat_scolarite: GraduationCap };
@@ -45,20 +45,38 @@ export function DocumentsScreen({ step, total, birthYear, onBack, onSent }: Prop
   const missing = !profile.firstName.trim() ? t('mentorHome.needName') : !city ? t('mentorHome.needCity') : null;
   const ready = DOC_KINDS.every((k) => sent.includes(k)) && !missing;
 
-  const pick = async (kind: DocKind, camera: boolean) => {
-    if (camera && !(await ImagePicker.requestCameraPermissionsAsync()).granted) return toast(t('mentorApply.permission'), 'info');
-    const options: ImagePicker.ImagePickerOptions = { mediaTypes: ['images'], quality: 1 };
-    const res = camera ? await ImagePicker.launchCameraAsync(options) : await ImagePicker.launchImageLibraryAsync(options);
-    if (res.canceled || !res.assets[0]) return;
+  const send = (kind: DocKind, file: PickedDocument) => {
     setBusy(kind);
     upload.mutate(
-      { kind, uri: res.assets[0].uri },
+      { kind, file },
       {
         onSuccess: () => haptics.success(),
         onError: () => toast(t('mentorApply.uploadFailed'), 'info'),
         onSettled: () => setBusy(null),
       },
     );
+  };
+
+  const pickImage = async (kind: DocKind, camera: boolean) => {
+    if (camera && !(await ImagePicker.requestCameraPermissionsAsync()).granted) return toast(t('mentorApply.permission'), 'info');
+    const options: ImagePicker.ImagePickerOptions = { mediaTypes: ['images'], quality: 1 };
+    const res = camera ? await ImagePicker.launchCameraAsync(options) : await ImagePicker.launchImageLibraryAsync(options);
+    if (res.canceled || !res.assets[0]) return;
+    send(kind, { uri: res.assets[0].uri });
+  };
+
+  const pickPdf = async (kind: DocKind) => {
+    // Chargé au moment du choix : un build de l'app d'avant ce module n'a pas le sélecteur de fichiers (mettre l'app à jour).
+    let DocumentPicker: typeof import('expo-document-picker');
+    try {
+      DocumentPicker = await import('expo-document-picker');
+    } catch {
+      return toast(t('mentorApply.pdfUpdate'), 'info');
+    }
+    const res = await DocumentPicker.getDocumentAsync({ type: 'application/pdf', copyToCacheDirectory: true }).catch(() => null);
+    if (!res || res.canceled || !res.assets[0]) return;
+    if ((res.assets[0].size ?? 0) > MAX_DOCUMENT_BYTES) return toast(t('mentorApply.tooBig'), 'info');
+    send(kind, { uri: res.assets[0].uri, pdf: true });
   };
 
   const submit = () =>
@@ -136,16 +154,22 @@ export function DocumentsScreen({ step, total, birthYear, onBack, onSent }: Prop
                 ) : null}
               </View>
               <View style={styles.actions}>
-                <PressableScale onPress={() => pick(kind, true)} disabled={!!busy} style={[styles.action, styles.primary]} accessibilityLabel={`${t('mentorApply.take')} · ${label}`}>
+                <PressableScale onPress={() => pickImage(kind, true)} disabled={!!busy} style={[styles.action, styles.primary]} accessibilityLabel={`${t('mentorApply.take')} · ${label}`}>
                   <Camera size={16} color={ink} />
                   <Text variant="smallStrong" color={ink}>
-                    {done ? t('mentorApply.replace') : t('mentorApply.take')}
+                    {t('mentorApply.photo')}
                   </Text>
                 </PressableScale>
-                <PressableScale onPress={() => pick(kind, false)} disabled={!!busy} style={[styles.action, styles.soft]} accessibilityLabel={`${t('mentorApply.pick')} · ${label}`}>
+                <PressableScale onPress={() => pickImage(kind, false)} disabled={!!busy} style={[styles.action, styles.soft]} accessibilityLabel={`${t('mentorApply.pick')} · ${label}`}>
                   <Images size={16} color={ink} />
                   <Text variant="smallStrong" color={ink}>
-                    {t('mentorApply.pick')}
+                    {t('mentorApply.gallery')}
+                  </Text>
+                </PressableScale>
+                <PressableScale onPress={() => pickPdf(kind)} disabled={!!busy} style={[styles.action, styles.soft]} accessibilityLabel={`${t('mentorApply.pdf')} · ${label}`}>
+                  <FileText size={16} color={ink} />
+                  <Text variant="smallStrong" color={ink}>
+                    PDF
                   </Text>
                 </PressableScale>
               </View>

@@ -140,6 +140,13 @@ reset role;
 set local role anon;
 select tests.must_fail('anon lit les documents', 'select * from public.mentor_documents');
 select tests.must_count('le bucket des documents est privé', $q$select 1 from storage.buckets where id = 'mentor-documents' and not public$q$, 1);
+reset role;
+select tests.must_count('le bucket accepte la photo et le PDF', $q$select 1 from storage.buckets where id = 'mentor-documents' and allowed_mime_types = array['image/jpeg', 'application/pdf']$q$, 1);
+set local role authenticated;
+set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-00000000000a","role":"authenticated"}';
+insert into public.mentor_documents (kind, path) values ('titre_sejour', '00000000-0000-0000-0000-00000000000a/sejour-2.pdf');
+select tests.must_count('A envoie son visa en PDF', $q$select * from public.mentor_documents where path like '%.pdf'$q$, 1);
+select tests.must_fail('A envoie un fichier qui n''est ni photo ni PDF', $q$insert into public.mentor_documents (kind, path) values ('titre_sejour', '00000000-0000-0000-0000-00000000000a/virus01.exe')$q$);
 rollback;
 
 -- ───────────── mentors vérifiés : pas de mise en ligne sans preuve vue ─────────────

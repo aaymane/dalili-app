@@ -105,21 +105,27 @@ export async function fetchMyApplication(): Promise<MentorApplication> {
   return { documents: (docs.data ?? []).map((d) => d.kind as DocKind), status, rejectedReason: trust.data?.rejected_reason ?? null };
 }
 
+/** Un document choisi : une photo (réencodée en JPEG avant l'envoi) ou un PDF (envoyé tel quel). */
+export type PickedDocument = { uri: string; pdf?: boolean };
+
+/** 5 Mo au plus (limite du bucket). */
+export const MAX_DOCUMENT_BYTES = 5 * 1024 * 1024;
+
 /**
  * Envoie un document dans le dossier privé du compte (bucket `mentor-documents`), en remplaçant l'ancien de la même sorte.
  * Seule l'équipe le lit, le temps de la vérification. En démo, rien ne part : on note seulement qu'il est ajouté.
  */
-export async function uploadMentorDocument(kind: DocKind, pickedUri: string) {
-  const uri = await prepareDocument(pickedUri);
+export async function uploadMentorDocument(kind: DocKind, picked: PickedDocument) {
+  const uri = picked.pdf ? picked.uri : await prepareDocument(picked.uri);
   const user = await sessionUser();
   if (!supabase || !user) {
     const demo = useLocalDb.getState().mentorApplication;
     return useLocalDb.getState().setMentorApplication({ documents: [...new Set([...demo.documents, kind])] });
   }
   const bucket = supabase.storage.from('mentor-documents');
-  const path = `${user.id}/${kind === 'titre_sejour' ? 'sejour' : 'scolarite'}-${Date.now().toString(36)}.jpg`;
+  const path = `${user.id}/${kind === 'titre_sejour' ? 'sejour' : 'scolarite'}-${Date.now().toString(36)}.${picked.pdf ? 'pdf' : 'jpg'}`;
   const body = Platform.OS === 'web' ? await (await fetch(uri)).arrayBuffer() : await new File(uri).arrayBuffer();
-  const { error } = await bucket.upload(path, body, { contentType: 'image/jpeg', upsert: false });
+  const { error } = await bucket.upload(path, body, { contentType: picked.pdf ? 'application/pdf' : 'image/jpeg', upsert: false });
   if (error) throw error;
   const { data: old } = await supabase.from('mentor_documents').select('path').eq('user_id', user.id).eq('kind', kind).maybeSingle();
   if (old) {

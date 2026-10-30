@@ -15,9 +15,9 @@ describe('candidature mentor (démo)', () => {
   });
 
   it('documents, envoi, vérification, puis validation', async () => {
-    await uploadMentorDocument('titre_sejour', 'file:///sejour.jpg');
-    await uploadMentorDocument('titre_sejour', 'file:///sejour-2.jpg');
-    await uploadMentorDocument('certificat_scolarite', 'file:///scol.jpg');
+    await uploadMentorDocument('titre_sejour', { uri: 'file:///sejour.jpg' });
+    await uploadMentorDocument('titre_sejour', { uri: 'file:///visa.pdf', pdf: true });
+    await uploadMentorDocument('certificat_scolarite', { uri: 'file:///scol.jpg' });
     expect((await fetchMyApplication()).documents).toEqual(['titre_sejour', 'certificat_scolarite']);
 
     await createMyMentor({ firstName: 'Salma', lastName: 'B.', city: 'Lyon', origin: 'Casablanca', birthYear: 2000 });

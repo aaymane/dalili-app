@@ -1441,16 +1441,15 @@
     "docsTitle": "Your two\ndocuments",
     "docsSubtitle": "The team checks that you live and study in France. That’s what keeps DALILI safe for everyone.",
     "docs": {
-      "titre_sejour": "Residence permit",
+      "titre_sejour": "Residence permit or visa",
       "certificat_scolarite": "Enrolment certificate"
     },
     "docsHint": {
-      "titre_sejour": "Validated VLS-TS, residence card or receipt",
-      "certificat_scolarite": "From this year, in your name"
+      "titre_sejour": "Validated long-stay visa (VLS-TS), residence card or receipt. Photo or PDF.",
+      "certificat_scolarite": "From this year, in your name. Photo or PDF."
     },
     "take": "Take a photo",
     "pick": "Choose",
-    "replace": "Retake",
     "added": "added",
     "toAdd": "to add",
     "docA11y": "{{doc}}, {{state}}",
@@ -1471,7 +1470,12 @@
     "rejectedTitle": "Your application needs changes",
     "rejectedText": "The team says: “{{reason}}”. Fix it and send it again whenever you want.",
     "rejectedNoReason": "The team couldn’t approve it. Send readable documents again whenever you want.",
-    "welcome": "Welcome to your mentor space"
+    "welcome": "Welcome to your mentor space",
+    "photo": "Photo",
+    "gallery": "Gallery",
+    "pdf": "Choose a PDF",
+    "pdfUpdate": "To send a PDF, update the app. Meanwhile, take a photo of it.",
+    "tooBig": "This file is over 5 MB. Take a photo of the document instead."
   },
   "agenda": {
     "title": "Agenda",
