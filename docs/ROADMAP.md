@@ -36,6 +36,7 @@
   - [x] **Étape 2a · Espace mentor** (30/10) : onglets du mentor (Accueil, Agenda, Messages, Profil ; l'étudiant garde les siens), accueil refait (carte nuit + disponibilité, prochain appel avec compte à rebours, 3 demandes à traiter, raccourcis), Agenda (À traiter, À venir, Historique), « Ma fiche publique » modifiable avec aperçu en direct, spécialités traduites dans la langue de l'étudiant.
   - [x] **Étape 2b · Créneaux, avis, communauté** (30/10) : le mentor choisit ses créneaux (heure de Paris), l'étudiant réserve sur un créneau libre à son heure (la base refuse hors créneau et les doublons) ; avis 1 à 5 après un appel passé, note et derniers avis tenus par la base (prénom seulement) ; seuls les mentors validés créent groupes et événements, onglet Communauté pour le mentor ; Profil et notifications propres au mentor. Reste : appliquer `creneaux_avis` et `communaute_mentors` en prod (feu vert).
   - [x] **Étape 3 · Le mentor lance l'appel** (30/10) : « Démarrer l'appel » chez le mentor (le site note l'ouverture du salon et prévient l'étudiant : « Yassine t'attend dans le salon ») ; l'étudiant arrivé avant attend dans une salle d'attente qui bascule seule dans l'appel. Reste : appliquer `appel_lance_par_mentor` en prod, puis pousser le site (dans cet ordre).
+  - [x] **Une demande à la fois** (30/10) : un étudiant ne peut pas redemander (même mentor ou autre) tant que sa demande attend une réponse ou que l'appel accepté n'est pas passé ; refusée ou annulée, il redemande tout de suite. La base le garantit ; l'écran de réservation montre la demande en cours (voir, annuler). Reste : appliquer `une_demande_a_la_fois` en prod.
   - [ ] **Étape 4 · Partenaires (site)** : page « Devenir partenaire » sur dalili.study (banques, écoles, assurances…), formulaire, table protégée, onglet admin.
 
 - [x] **Commentaires sur les posts** : plein écran, champ collé au clavier, supprimer le sien (29/10)
@@ -52,7 +53,7 @@
 - [ ] **Guides synchronisés avec dalili.study** (les 64 guides via une table `guides` ou le CMS du site)
 - [ ] **Espace Hôte (V2)** : annonces d'hébergement temporaire, vérification d'identité, réservation
 - [x] **Analytics** (PostHog, serveur européen) : après accord, anonyme, 13 événements, projet UE configuré (29/10)
-- [x] **Tests** : Jest 30 + jest-expo 58 + Testing Library (29/10) ; 61 tests (parcours, synchronisation, candidature mentor, agenda du mentor, heure de Paris, créneaux et avis, rendez-vous, présentation des écoles, chiffres, appels, dates, rappels, démo messagerie et sécurité). `npm test`, et `npm run check` = types + lint + tests
+- [x] **Tests** : Jest 30 + jest-expo 58 + Testing Library (29/10) ; 62 tests (parcours, synchronisation, candidature mentor, agenda du mentor, heure de Paris, créneaux et avis, rendez-vous, présentation des écoles, chiffres, appels, dates, rappels, démo messagerie et sécurité). `npm test`, et `npm run check` = types + lint + tests
 
 ## ⚠️ À valider par l'équipe
 

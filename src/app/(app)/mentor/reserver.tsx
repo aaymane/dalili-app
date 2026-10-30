@@ -1,6 +1,6 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import { useQueryClient } from '@tanstack/react-query';
-import { Clock } from 'lucide-react-native';
+import { CalendarCheck2, Clock } from 'lucide-react-native';
 import { useState } from 'react';
 import { View } from 'react-native';
 import Animated, { FadeIn } from 'react-native-reanimated';
@@ -16,7 +16,7 @@ import { Input } from '@/components/ui/Input';
 import { PressableScale } from '@/components/ui/PressableScale';
 import { Text } from '@/components/ui/Text';
 import { remoteCreateBooking } from '@/data/api';
-import { useMentor } from '@/data/hooks';
+import { useCancelBooking, useMentor, useMentors, useMyBookings } from '@/data/hooks';
 import { askNotifications, notifyServer } from '@/features/notifications/push';
 import { useLocalDb } from '@/data/local-db';
 import { useT } from '@/i18n';
@@ -25,6 +25,7 @@ import { makeStyles, useTheme } from '@/theme/scheme';
 import { radius } from '@/theme/tokens';
 import { rise } from '@/theme/motion';
 import { track } from '@/lib/analytics';
+import { activeBooking } from '@/features/mentors/appointments';
 import { SlotPicker } from '@/features/mentors/components/SlotPicker';
 import { useBusyTimes, useMentorSlots } from '@/features/mentors/hooks';
 import { specialtyLabel } from '@/features/mentors/specialties';
@@ -59,6 +60,10 @@ export default function Reserve() {
   const busy = useBusyTimes(id);
   const bySlots = (slots.data?.length ?? 0) > 0;
   const chosen = bySlots ? slotAt : day && time ? at(day, time) : null;
+  // Une demande à la fois : tant que la précédente n'est pas passée (ou annulée), on la montre au lieu du formulaire.
+  const active = activeBooking(useMyBookings().data);
+  const activeMentor = useMentors().data?.find((x) => x.id === active?.mentorId);
+  const cancel = useCancelBooking();
   const [loading, setLoading] = useState(false);
   const [done, setDone] = useState(false);
 
@@ -84,9 +89,12 @@ export default function Reserve() {
       setDone(true);
     } catch (e) {
       // 42501 = la base refuse (mentor passé en pause entre-temps, ou ta propre fiche) ;
-      // 23505 / 23514 = ce créneau vient d'être pris, ou n'existe plus ; sinon, le réseau.
+      // 23505 / 23514 = ce créneau vient d'être pris, ou n'existe plus ; DLL01 = une demande déjà en cours ; sinon, le réseau.
       const code = (e as { code?: string }).code;
-      if (code === '23505' || code === '23514') {
+      if (code === 'DLL01') {
+        void qc.invalidateQueries({ queryKey: ['bookings', 'mine'] });
+        toast(t('mentors.book.oneAtATime'), 'info');
+      } else if (code === '23505' || code === '23514') {
         setSlotAt(null);
         void busy.refetch();
         void slots.refetch();
@@ -99,12 +107,13 @@ export default function Reserve() {
 
   if (!m) return null;
   const paused = !m.availableThisWeek;
+  const blocked = !!active && !done;
   return (
     <Screen
       top={gradients.roleTop.student}
       padded={false}
       header={<AppHeader back />}
-      footer={paused ? undefined : <Button label={t('mentors.book.send')} disabled={!chosen} loading={loading} onPress={send} />}>
+      footer={paused || blocked ? undefined : <Button label={t('mentors.book.send')} disabled={!chosen} loading={loading} onPress={send} />}>
       <View style={{ paddingHorizontal: 20, gap: 18 }}>
         <Animated.View entering={rise()} style={styles.who}>
           <Avatar name={`${m.firstName} ${m.lastName}`} color={m.avatarColor} size={52} />
@@ -120,7 +129,35 @@ export default function Reserve() {
           </View>
         </Animated.View>
 
-        {paused ? (
+        {blocked && active ? (
+          <Animated.View entering={rise(60)} style={[styles.note, styles.active]}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+              <CalendarCheck2 size={20} color={c.electric} />
+              <Text variant="h3" style={{ flex: 1 }}>
+                {t('mentors.book.activeTitle')}
+              </Text>
+            </View>
+            <Text variant="body" color={c.subtle}>
+              {t(active.status === 'pending' ? 'mentors.book.activePending' : 'mentors.book.activeConfirmed', {
+                name: activeMentor?.firstName ?? t('appointments.mentor'),
+                when: `${formatLong(active.startsAt)} · ${formatTime(active.startsAt)}`,
+              })}
+            </Text>
+            <Text variant="small" color={c.muted}>
+              {t('mentors.book.activeRule')}
+            </Text>
+            <Button label={t('mentors.book.activeSee')} size="md" onPress={() => router.push('/(app)/rendez-vous')} />
+            {active.status === 'pending' ? (
+              <Button
+                label={t('mentors.booking.cancelRequest')}
+                variant="ghost"
+                size="md"
+                loading={cancel.isPending}
+                onPress={() => cancel.mutate(active.id, { onError: () => toast(t('mentors.booking.cancelFailed'), 'info') })}
+              />
+            ) : null}
+          </Animated.View>
+        ) : paused ? (
           <Animated.View entering={rise(60)} style={styles.note}>
             <Text variant="bodyStrong">{t('mentors.book.pausedTitle', { name: m.firstName })}</Text>
             <Text variant="small" color={c.subtle}>
@@ -215,6 +252,7 @@ export default function Reserve() {
 const useStyles = makeStyles(({ c, shadow }) => ({
   who: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 14, borderRadius: radius.xl, backgroundColor: c.surface, ...shadow.sm },
   note: { gap: 10, padding: 14, borderRadius: radius.lg, backgroundColor: c.surface },
+  active: { padding: 18, borderWidth: 1.5, borderColor: c.electricSoft },
   suggest: { paddingHorizontal: 12, paddingVertical: 7, borderRadius: 999, backgroundColor: c.electricSoft },
   timesCard: { gap: 14, padding: 16, borderRadius: radius.xl, backgroundColor: c.surface, ...shadow.sm },
   times: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },

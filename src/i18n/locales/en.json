@@ -952,7 +952,13 @@
       "dayA11y_other": "{{day}}, {{count}} free slots",
       "slotsCount_one": "{{count}} slot",
       "slotsCount_other": "{{count}} slots",
-      "localTime": "In your phone’s time."
+      "localTime": "In your phone’s time.",
+      "oneAtATime": "You already have a request in progress. It’s shown here.",
+      "activeTitle": "You already have a call in progress",
+      "activePending": "Your request to {{name}} for {{when}} is waiting for an answer.",
+      "activeConfirmed": "Your call with {{name}} is planned {{when}}.",
+      "activeRule": "One request at a time: you can send a new one as soon as this call is over, or if the request is declined or cancelled.",
+      "activeSee": "See my appointments"
     },
     "booking": {
       "opening": "The conversation opens in a moment. Try again.",

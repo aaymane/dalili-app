@@ -40,3 +40,14 @@ export function splitMentorAgenda<T extends Dated>(list: T[], now = Date.now()) 
     history,
   };
 }
+
+/**
+ * La demande qui empêche d'en faire une autre (règle de la base, 20261030210000_une_demande_a_la_fois.sql) :
+ * en attente et pas encore à son heure, ou acceptée et salle pas encore fermée. `undefined` : l'étudiant peut demander.
+ */
+export function activeBooking<T extends Dated>(list: T[], now = Date.now()) {
+  return list.find((b) => {
+    const start = new Date(b.startsAt).getTime();
+    return (b.status === 'pending' && start > now) || (b.status === 'confirmed' && start + CALL_END_MS > now);
+  });
+}

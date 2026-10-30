@@ -1,6 +1,6 @@
 import type { Booking } from '@/data/types';
 
-import { appointmentState, splitAppointments, splitMentorAgenda } from '../appointments';
+import { activeBooking, appointmentState, splitAppointments, splitMentorAgenda } from '../appointments';
 
 const now = new Date('2026-11-10T12:00:00Z').getTime();
 const at = (minutes: number) => new Date(now + minutes * 60_000).toISOString();
@@ -30,5 +30,13 @@ describe('mes rendez-vous', () => {
     expect(toHandle.map((b) => b.id)).toEqual(['demande']);
     expect(upcoming.map((b) => b.id)).toEqual(['appel']);
     expect(history.map((b) => b.id)).toEqual(['vieille', 'fait']);
+  });
+
+  it('une demande à la fois : en attente avant son heure, ou acceptée jusqu’à la fin de l’appel', () => {
+    expect(activeBooking([booking('a', 60, 'pending')], now)?.id).toBe('a');
+    expect(activeBooking([booking('a', -10, 'pending')], now)).toBeUndefined(); // sans réponse, elle a expiré
+    expect(activeBooking([booking('b', -60, 'confirmed')], now)?.id).toBe('b'); // appel en cours
+    expect(activeBooking([booking('b', -180, 'confirmed')], now)).toBeUndefined(); // appel passé
+    expect(activeBooking([booking('c', 60, 'cancelled'), booking('d', -60 * 24, 'done')], now)).toBeUndefined();
   });
 });

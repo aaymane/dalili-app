@@ -783,8 +783,14 @@ insert into public.mentors (id, user_id, first_name, last_name, city, is_active)
 set local role authenticated;
 set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-00000000000a","role":"authenticated"}';
 insert into public.bookings (id, student_id, mentor_id, starts_at, topic) values
-  ('00000000-0000-0000-0000-0000000000f1', auth.uid(), '00000000-0000-0000-0000-0000000000e1', now() + interval '2 days', 'Visa'),
-  ('00000000-0000-0000-0000-0000000000f2', auth.uid(), '00000000-0000-0000-0000-0000000000e1', now() + interval '3 days', 'CAF');
+  ('00000000-0000-0000-0000-0000000000f1', auth.uid(), '00000000-0000-0000-0000-0000000000e1', now() + interval '2 days', 'Visa');
+-- Une demande à la fois par étudiant (30/10) : la seconde est écrite par la base, le webhook part pareil.
+reset role;
+set local request.jwt.claims = '{}';
+insert into public.bookings (id, student_id, mentor_id, starts_at, topic) values
+  ('00000000-0000-0000-0000-0000000000f2', '00000000-0000-0000-0000-00000000000a', '00000000-0000-0000-0000-0000000000e1', now() + interval '3 days', 'CAF');
+set local role authenticated;
+set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-00000000000a","role":"authenticated"}';
 select tests.must_count('nouvelle demande : la base prévient le site, avec le secret',
   $q$select * from tests.webhook_calls where body ->> 'event' = 'booking_created' and headers ->> 'x-webhook-secret' = 'secret-test' and url = 'https://site.test/api/hooks/notify'$q$, 2);
 select tests.must_count('le webhook n''envoie ni nom, ni sujet, ni date : seulement l''événement et l''identifiant',

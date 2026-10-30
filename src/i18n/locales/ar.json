@@ -1036,7 +1036,13 @@
       "slotsCount_few": "{{count}} مواعيد",
       "slotsCount_many": "{{count}} موعدًا",
       "slotsCount_other": "{{count}} موعد",
-      "localTime": "بتوقيت هاتفك."
+      "localTime": "بتوقيت هاتفك.",
+      "oneAtATime": "لديك طلب قيد الانتظار. يظهر هنا.",
+      "activeTitle": "لديك مكالمة قيد الانتظار",
+      "activePending": "طلبك إلى {{name}} ليوم {{when}} ينتظر ردّه.",
+      "activeConfirmed": "مكالمتك مع {{name}} مقررة {{when}}.",
+      "activeRule": "طلب واحد في كل مرة: يمكنك تقديم طلب جديد فور انتهاء هذه المكالمة، أو إن رُفض الطلب أو أُلغي.",
+      "activeSee": "عرض مواعيدي"
     },
     "booking": {
       "opening": "ستُفتح المحادثة بعد لحظة. أعد المحاولة.",

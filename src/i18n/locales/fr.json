@@ -952,7 +952,13 @@
       "dayA11y_other": "{{day}}, {{count}} créneaux libres",
       "slotsCount_one": "{{count}} créneau",
       "slotsCount_other": "{{count}} créneaux",
-      "localTime": "À l’heure de ton téléphone."
+      "localTime": "À l’heure de ton téléphone.",
+      "oneAtATime": "Tu as déjà une demande en cours. Elle s’affiche ici.",
+      "activeTitle": "Tu as déjà un appel en cours",
+      "activePending": "Ta demande à {{name}} pour {{when}} attend sa réponse.",
+      "activeConfirmed": "Ton appel avec {{name}} est prévu {{when}}.",
+      "activeRule": "Une demande à la fois : tu pourras en refaire une dès que cet appel sera passé, ou si la demande est refusée ou annulée.",
+      "activeSee": "Voir mes rendez-vous"
     },
     "booking": {
       "opening": "La conversation s’ouvre dans un instant. Réessaie.",
