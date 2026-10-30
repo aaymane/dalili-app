@@ -154,7 +154,20 @@
     "footer": "DALILI v0.1 · {{mode}} · Made with 💙 by students, for students",
     "modeDemo": "Demo mode",
     "modeOnline": "Connected to Supabase",
-    "modeA11y": "{{role}} mode"
+    "modeA11y": "{{role}} mode",
+    "mentorIn": "Verified mentor in {{city}}",
+    "mentorRating": "rating",
+    "studentsHelped": "students helped",
+    "toHandle_one": "{{count}} request to answer",
+    "toHandle_other": "{{count}} requests to answer",
+    "upcomingCalls_one": "{{count}} upcoming call",
+    "upcomingCalls_other": "{{count}} upcoming calls",
+    "agendaClear": "All caught up",
+    "charter": "Mentor charter",
+    "charterToAccept": "New version to accept",
+    "charterOk": "Accepted, thank you",
+    "notifications": "Notifications",
+    "notificationsMentorSub": "New requests, messages and call reminders"
   },
   "auth": {
     "welcomeA": "Welcome to",
@@ -494,7 +507,11 @@
       "inMinutes_other": "in {{count}} min",
       "opens": "Room opens 15 min before",
       "opensA11y": "The room opens 15 minutes before {{time}}"
-    }
+    },
+    "slots": "My time slots",
+    "slotsCount_one": "{{count}} slot per week",
+    "slotsCount_other": "{{count}} slots per week",
+    "slotsNone": "None: students suggest a time"
   },
   "journey": {
     "phase": {
@@ -883,7 +900,9 @@
       "successTitle": "Event posted!",
       "successText": "Your event is live. It’s already in your calendar: share it with your group.",
       "successCta": "See the event"
-    }
+    },
+    "byMentors": "Groups and events are run by verified mentors.",
+    "mentorIntro": "Create a group or an event for students in your city."
   },
   "mentors": {
     "lang": {
@@ -923,7 +942,17 @@
       "whatTime": "What time on {{day}}?",
       "successTitle": "Request sent",
       "successText": "{{name}} will reply depending on their availability. You’ll see the answer on your home screen.",
-      "successCta": "Back to home"
+      "successCta": "Back to home",
+      "hintSlots": "Pick one of {{name}}’s slots. {{name}} accepts your request, then you get a notification.",
+      "slotTaken": "This slot was just taken. Pick another one.",
+      "noSlotTitle": "No free slot in the next 2 weeks",
+      "noSlotText": "Check back soon, or choose another mentor in Explore.",
+      "pickDay": "Pick a day",
+      "dayA11y_one": "{{day}}, {{count}} free slot",
+      "dayA11y_other": "{{day}}, {{count}} free slots",
+      "slotsCount_one": "{{count}} slot",
+      "slotsCount_other": "{{count}} slots",
+      "localTime": "In your phone’s time."
     },
     "booking": {
       "opening": "The conversation opens in a moment. Try again.",
@@ -1353,7 +1382,10 @@
     "dueIn_one": "Due in {{count}} day",
     "dueIn_other": "Due in {{count}} days",
     "welcomeTitle": "Welcome to DALILI 💙",
-    "welcomeText": "Your journey is ready. We move forward together, one step at a time."
+    "welcomeText": "Your journey is ready. We move forward together, one step at a time.",
+    "newRequest": "New request from {{name}}",
+    "welcomeMentorTitle": "Welcome to your mentor space",
+    "welcomeMentorText": "Add your time slots: students will find you more easily."
   },
   "reminders": {
     "weekTitle": "In 7 days: {{title}}",
@@ -1472,5 +1504,42 @@
     "maxSpecialties": "{{count}} specialties at most: pick the ones where you help best.",
     "save": "Save",
     "saved": "Profile saved. Students now see the new version."
+  },
+  "slots": {
+    "title": "My time slots",
+    "intro": "The times of the week when students can ask you for a call. You still accept each request.",
+    "save_one": "Save · {{count}} slot",
+    "save_other": "Save · {{count}} slots",
+    "saved_one": "{{count}} slot saved.",
+    "saved_other": "{{count}} slots saved.",
+    "presets": {
+      "evenings": "Weekday evenings",
+      "weekend": "Weekend mornings"
+    },
+    "dayA11y_one": "{{day}}, {{count}} slot",
+    "dayA11y_other": "{{day}}, {{count}} slots",
+    "clearDay": "Clear this day",
+    "parisNote": "Paris time. Each student sees them in their own time."
+  },
+  "review": {
+    "title": "Your call with {{name}}",
+    "text": "Your rating helps the next students choose. And it makes {{name}} happy.",
+    "starsA11y_one": "{{count}} star out of 5",
+    "starsA11y_other": "{{count}} stars out of 5",
+    "starA11y_one": "{{count}} star",
+    "starA11y_other": "{{count}} stars",
+    "levels": {
+      "1": "Disappointing",
+      "2": "Could be better",
+      "3": "Good",
+      "4": "Very helpful",
+      "5": "Amazing, thank you!"
+    },
+    "placeholder": "A few words for other students (optional)",
+    "public": "Your review shows on their profile with your first name only.",
+    "send": "Send my review",
+    "thanks": "Thank you! {{name}} will be happy.",
+    "cta": "Rate the call",
+    "done": "Call rated"
   }
 }

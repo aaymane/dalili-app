@@ -1,4 +1,4 @@
-import { router } from 'expo-router';
+import { Redirect, router } from 'expo-router';
 import { CalendarDays, Clock, Globe, Lock, MapPin } from 'lucide-react-native';
 import { useState } from 'react';
 import { Switch, View } from 'react-native';
@@ -28,7 +28,14 @@ import { radius } from '@/theme/tokens';
 const HOURS = ['10:00', '13:00', '18:00', '19:30', '20:00', '21:00'];
 
 /** Création d'événement : nom, date/heure, lieu, description, lien, confidentialité, tarif, approbation. */
-export default function NewEvent() {
+/** Seuls les mentors validés créent les événements (la base le garantit aussi) : un étudiant revient à la Communauté. */
+export default function NewEventRoute() {
+  const isMentor = useProfile((s) => s.profile.activeRole === 'mentor');
+  if (!isMentor) return <Redirect href="/(app)/(tabs)/communaute" />;
+  return <NewEvent />;
+}
+
+function NewEvent() {
   const { c, gradients } = useTheme();
   const t = useT();
   const styles = useStyles();

@@ -1,5 +1,5 @@
 import { router, type Href } from 'expo-router';
-import { Ban, Bell, Bookmark, BrainCircuit, CalendarCheck2, Camera, FolderCheck, HeartHandshake, Languages, LogOut, type LucideIcon, Map, RefreshCw, ShieldCheck, Siren, SunMoon } from 'lucide-react-native';
+import { BadgeCheck, Ban, Bell, Bookmark, BrainCircuit, CalendarCheck2, CalendarClock, Camera, Eye, FolderCheck, HandHeart, HeartHandshake, Languages, LogOut, type LucideIcon, Map, PenLine, PhoneCall, RefreshCw, ShieldCheck, Siren, Star, SunMoon, Users } from 'lucide-react-native';
 import { useState, type ReactNode } from 'react';
 import { Alert, Platform, Switch, View } from 'react-native';
 import Animated from 'react-native-reanimated';
@@ -22,9 +22,10 @@ import { askNotifications, unregisterPush } from '@/features/notifications/push'
 import { AvatarSheet } from '@/features/profile/components/AvatarSheet';
 import { LanguageSheet } from '@/features/profile/components/LanguageSheet';
 import { NameCard } from '@/features/profile/components/NameCard';
-import { useMyApplication } from '@/features/mentors/hooks';
+import { splitMentorAgenda } from '@/features/mentors/appointments';
+import { useMentorRequests, useMentorSlots, useMyApplication, useMyMentor } from '@/features/mentors/hooks';
 import { isInFrance, useProfile } from '@/features/profile/store';
-import { LANGUAGE_NAMES, useCurrentLanguage, useLanguage, useT } from '@/i18n';
+import { formatDecimal, LANGUAGE_NAMES, useCurrentLanguage, useLanguage, useT } from '@/i18n';
 import { useRoleTheme } from '@/theme';
 import { makeStyles, useTheme, useAppearance } from '@/theme/scheme';
 import { radius, roleColorsFor, type Tone } from '@/theme/tokens';
@@ -70,6 +71,13 @@ export default function Profil() {
   const j = useJourney();
   const application = useMyApplication().data;
   const isMentor = profile.activeRole === 'mentor';
+  // Espace mentor : sa fiche, ses demandes, ses créneaux (rien n'est demandé côté étudiant).
+  const mentor = useMyMentor().data;
+  const requests = useMentorRequests({ enabled: isMentor }).data ?? [];
+  const slots = useMentorSlots(isMentor ? mentor?.id : undefined).data ?? [];
+  const agenda = splitMentorAgenda(requests);
+  const helped = new Set(requests.filter((r) => r.status === 'confirmed' || r.status === 'done').map((r) => r.student ?? r.id)).size;
+  const calls = requests.filter((r) => r.status === 'done' || (r.status === 'confirmed' && new Date(r.startsAt).getTime() < since)).length;
   const { top, accent } = useRoleTheme();
   const go = (h: Href) => () => router.push(h);
 
@@ -97,9 +105,18 @@ export default function Profil() {
             <Text variant="h1">
               {profile.firstName} {profile.lastName}
             </Text>
-            <Text variant="small" color={c.muted}>
-              {profile.originCity || '—'} → {profile.destinationCity ?? profile.mentorCity ?? t('common.france')}
-            </Text>
+            {isMentor ? (
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                <BadgeCheck size={14} color={accent} />
+                <Text variant="small" color={c.muted}>
+                  {t('profile.mentorIn', { city: mentor?.city ?? profile.mentorCity ?? t('common.france') })}
+                </Text>
+              </View>
+            ) : (
+              <Text variant="small" color={c.muted}>
+                {profile.originCity || '—'} → {profile.destinationCity ?? profile.mentorCity ?? t('common.france')}
+              </Text>
+            )}
             <View style={{ flexDirection: 'row', gap: 6, marginTop: 4 }}>
               {profile.roles.map((r) => (
                 <View key={r} style={[styles.badge, { backgroundColor: roleColorsFor(c)[r].soft }]}>
@@ -114,35 +131,83 @@ export default function Profil() {
 
         {!profile.firstName.trim() ? <NameCard /> : null}
 
-        <Animated.View entering={rise(60)} style={styles.stats}>
-          <ProgressRing progress={j.progress} size={64} track="#E6EBF7" textColor={c.navy} />
-          <View style={styles.stat}>
-            <Text variant="h1">{j.doneCount}</Text>
-            <Text variant="caption" color={c.muted}>
-              {t('profile.stepsDone')}
-            </Text>
-          </View>
-          <View style={styles.stat}>
-            <Text variant="h1">{groups.length}</Text>
-            <Text variant="caption" color={c.muted}>
-              {t('profile.groups')}
-            </Text>
-          </View>
-          <View style={styles.stat}>
-            <Text variant="h1">{bookings.length}</Text>
-            <Text variant="caption" color={c.muted}>
-              {t('profile.appointments')}
-            </Text>
-          </View>
-        </Animated.View>
+        {isMentor ? (
+          <Animated.View entering={rise(60)} style={styles.stats}>
+            <View style={styles.stat}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                <Star size={16} color="#F59E0B" fill="#F59E0B" />
+                <Text variant="h1">{mentor && mentor.sessions > 0 ? formatDecimal(mentor.rating) : '—'}</Text>
+              </View>
+              <Text variant="caption" color={c.muted}>
+                {mentor && mentor.sessions > 0 ? t('profile.mentorRating') : t('mentorHome.notRated')}
+              </Text>
+            </View>
+            <View style={styles.stat}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                <PhoneCall size={16} color={accent} />
+                <Text variant="h1">{calls}</Text>
+              </View>
+              <Text variant="caption" color={c.muted}>
+                {t('mentorHome.calls')}
+              </Text>
+            </View>
+            <View style={styles.stat}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                <Users size={16} color={accent} />
+                <Text variant="h1">{helped}</Text>
+              </View>
+              <Text variant="caption" color={c.muted}>
+                {t('profile.studentsHelped')}
+              </Text>
+            </View>
+          </Animated.View>
+        ) : (
+          <Animated.View entering={rise(60)} style={styles.stats}>
+            <ProgressRing progress={j.progress} size={64} track="#E6EBF7" textColor={c.navy} />
+            <View style={styles.stat}>
+              <Text variant="h1">{j.doneCount}</Text>
+              <Text variant="caption" color={c.muted}>
+                {t('profile.stepsDone')}
+              </Text>
+            </View>
+            <View style={styles.stat}>
+              <Text variant="h1">{groups.length}</Text>
+              <Text variant="caption" color={c.muted}>
+                {t('profile.groups')}
+              </Text>
+            </View>
+            <View style={styles.stat}>
+              <Text variant="h1">{bookings.length}</Text>
+              <Text variant="caption" color={c.muted}>
+                {t('profile.appointments')}
+              </Text>
+            </View>
+          </Animated.View>
+        )}
 
-        <Animated.View entering={rise(100)} style={styles.group}>
-          <Row icon={BrainCircuit} tone="violet" label={t('profile.aiProfile')} sub={t('profile.aiProfileSub')} onPress={go('/(app)/profil-ia')} />
-          <Row icon={Map} tone="blue" label={t('profile.journey')} sub={t('profile.journeySub', { percent: Math.round(j.progress * 100), count: j.total - j.doneCount })} onPress={go('/(app)/parcours')} />
-          <Row icon={CalendarCheck2} tone="green" label={t('profile.myAppointments')} sub={bookings.length ? t('profile.upcoming', { count: bookings.length }) : t('profile.noAppointments')} onPress={go('/(app)/rendez-vous')} />
-          <Row icon={Bookmark} tone="orange" label={t('profile.savedGuides')} sub={t('profile.guidesCount', { count: saved.length })} onPress={go('/(app)/(tabs)/explorer?tab=guides')} />
-          <Row icon={FolderCheck} tone="amber" label={t('profile.documents')} sub={t('profile.documentsSub')} onPress={go('/(app)/outils/documents')} />
-        </Animated.View>
+        {isMentor ? (
+          <Animated.View entering={rise(100)} style={styles.group}>
+            <Row
+              icon={CalendarCheck2}
+              tone="green"
+              label={t('agenda.title')}
+              sub={agenda.toHandle.length ? t('profile.toHandle', { count: agenda.toHandle.length }) : agenda.upcoming.length ? t('profile.upcomingCalls', { count: agenda.upcoming.length }) : t('profile.agendaClear')}
+              onPress={() => router.navigate('/(app)/(tabs)/agenda')}
+            />
+            <Row icon={CalendarClock} tone="green" label={t('mentorHome.slots')} sub={slots.length ? t('mentorHome.slotsCount', { count: slots.length }) : t('mentorHome.slotsNone')} onPress={go('/(app)/creneaux')} />
+            <Row icon={PenLine} tone="green" label={t('mentorHome.editSheet')} sub={t('mentorHome.editSheetSub')} onPress={go('/(app)/ma-fiche')} />
+            <Row icon={Eye} tone="green" label={t('mentorHome.publicProfile')} sub={t('mentorHome.publicProfileSub')} onPress={mentor ? () => router.push({ pathname: '/(app)/mentor/[id]', params: { id: mentor.id } }) : undefined} />
+            <Row icon={HandHeart} tone="green" label={t('profile.charter')} sub={mentor?.charterOk === false ? t('profile.charterToAccept') : t('profile.charterOk')} onPress={go('/(app)/charte-mentor')} />
+          </Animated.View>
+        ) : (
+          <Animated.View entering={rise(100)} style={styles.group}>
+            <Row icon={BrainCircuit} tone="violet" label={t('profile.aiProfile')} sub={t('profile.aiProfileSub')} onPress={go('/(app)/profil-ia')} />
+            <Row icon={Map} tone="blue" label={t('profile.journey')} sub={t('profile.journeySub', { percent: Math.round(j.progress * 100), count: j.total - j.doneCount })} onPress={go('/(app)/parcours')} />
+            <Row icon={CalendarCheck2} tone="green" label={t('profile.myAppointments')} sub={bookings.length ? t('profile.upcoming', { count: bookings.length }) : t('profile.noAppointments')} onPress={go('/(app)/rendez-vous')} />
+            <Row icon={Bookmark} tone="orange" label={t('profile.savedGuides')} sub={t('profile.guidesCount', { count: saved.length })} onPress={go('/(app)/(tabs)/explorer?tab=guides')} />
+            <Row icon={FolderCheck} tone="amber" label={t('profile.documents')} sub={t('profile.documentsSub')} onPress={go('/(app)/outils/documents')} />
+          </Animated.View>
+        )}
 
         <Animated.View entering={rise(140)} style={styles.group}>
           {/* Un compte est étudiant OU mentor : l'étudiant arrivé en France peut candidater, l'équipe vérifie. */}
@@ -158,8 +223,8 @@ export default function Profil() {
           <Row
             icon={Bell}
             tone="slate"
-            label={t('profile.reminders')}
-            sub={t('profile.remindersSub')}
+            label={isMentor ? t('profile.notifications') : t('profile.reminders')}
+            sub={isMentor ? t('profile.notificationsMentorSub') : t('profile.remindersSub')}
             right={
               <Switch
                 value={profile.notificationsEnabled}

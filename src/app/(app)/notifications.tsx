@@ -11,6 +11,10 @@ import { PressableScale } from '@/components/ui/PressableScale';
 import { Text } from '@/components/ui/Text';
 import { useMentors, useMyBookings } from '@/data/hooks';
 import { useJourney } from '@/features/journey/store';
+import { appointmentState, splitMentorAgenda } from '@/features/mentors/appointments';
+import { useMentorRequests } from '@/features/mentors/hooks';
+import { useProfile } from '@/features/profile/store';
+import { useRoleTheme } from '@/theme';
 import { useT } from '@/i18n';
 import { daysFromToday, formatLong, formatTime } from '@/lib/date';
 import { makeStyles, useTheme } from '@/theme/scheme';
@@ -19,9 +23,15 @@ import { rise } from '@/theme/motion';
 
 type N = { id: string; icon: LucideIcon; tone: Tone; title: string; sub: string; onPress?: () => void; urgent?: boolean };
 
-/** Centre de notifications : échéances proches, rendez-vous, bienvenue. */
+/**
+ * Centre de notifications. Étudiant : échéances proches, demandes et rendez-vous. Mentor : demandes à traiter et
+ * appels à venir (il n'a pas de parcours).
+ */
 export default function Notifications() {
-  const { c, gradients } = useTheme();
+  const { c } = useTheme();
+  const theme = useRoleTheme();
+  const isMentor = useProfile((s) => s.profile.activeRole === 'mentor');
+  const requests = useMentorRequests({ enabled: isMentor });
   const t = useT();
   const styles = useStyles();
   const j = useJourney();
@@ -29,7 +39,29 @@ export default function Notifications() {
   const bookings = useMyBookings().data.filter((b) => (b.status === 'pending' || b.status === 'confirmed') && new Date(b.startsAt).getTime() > since);
   const { data: mentors = [] } = useMentors();
 
-  const items: N[] = [
+  const agenda = splitMentorAgenda(requests.data ?? []);
+  const mentorItems: N[] = [
+    ...agenda.toHandle.map((r) => ({
+      id: r.id,
+      icon: Hourglass,
+      tone: 'amber' as const,
+      title: t('notifications.newRequest', { name: r.student ?? t('mentorHome.aStudent') }),
+      sub: `${formatLong(r.startsAt)} · ${formatTime(r.startsAt)} · ${r.topic}`,
+      urgent: daysFromToday(r.startsAt) <= 1,
+      onPress: () => router.navigate('/(app)/(tabs)/agenda'),
+    })),
+    ...agenda.upcoming.map((r) => ({
+      id: r.id,
+      icon: Video,
+      tone: 'green' as const,
+      title: t('notifications.callWith', { name: r.student ?? t('mentorHome.aStudent') }),
+      sub: `${formatLong(r.startsAt)} · ${formatTime(r.startsAt)} · ${r.topic}`,
+      onPress: appointmentState(r) === 'live' ? () => router.push({ pathname: '/(app)/appel/[id]', params: { id: r.id } }) : () => router.navigate('/(app)/(tabs)/agenda'),
+    })),
+    { id: 'welcome', icon: PartyPopper, tone: 'violet', title: t('notifications.welcomeMentorTitle'), sub: t('notifications.welcomeMentorText') },
+  ];
+
+  const studentItems: N[] = [
     ...bookings.map((b) => {
       const name = mentors.find((x) => x.id === b.mentorId)?.firstName ?? t('notifications.yourMentor');
       return {
@@ -58,9 +90,10 @@ export default function Notifications() {
       }),
     { id: 'welcome', icon: PartyPopper, tone: 'violet', title: t('notifications.welcomeTitle'), sub: t('notifications.welcomeText') },
   ];
+  const items = isMentor ? mentorItems : studentItems;
 
   return (
-    <Screen top={gradients.roleTop.student} padded={false} header={<AppHeader back title={t('common.notifications')} hideActions />}>
+    <Screen top={theme.top} padded={false} header={<AppHeader back title={t('common.notifications')} hideActions />}>
       <View style={{ paddingHorizontal: 20, gap: 10 }}>
         {items.map((n, i) => (
           <Animated.View key={n.id} entering={rise(i * 50)}>

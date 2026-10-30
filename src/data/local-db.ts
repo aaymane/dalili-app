@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
+import type { WeeklySlot } from '@/lib/paris';
 import { persistStorage } from '@/lib/storage';
 
 import type { Booking, CommunityEvent, Group, LocalComment, Mentor, Post } from './types';
@@ -28,6 +29,9 @@ type LocalDb = {
   mentorApplication: { documents: string[]; sent: boolean; approved: boolean };
   /** Mode démo : ce que le mentor a modifié sur sa fiche publique. */
   mentorSheet: Partial<Mentor>;
+  /** Mode démo : tes créneaux de mentor, et les rendez-vous que tu as notés. */
+  mentorSlots: WeeklySlot[];
+  reviewedBookings: string[];
 
   toggleGroup: (id: string) => void;
   addGroup: (g: Group) => void;
@@ -45,6 +49,8 @@ type LocalDb = {
   setAiHistory: (h: LocalDb['aiHistory']) => void;
   setMentorApplication: (patch: Partial<LocalDb['mentorApplication']>) => void;
   setMentorSheet: (patch: Partial<Mentor>) => void;
+  setMentorSlots: (slots: WeeklySlot[]) => void;
+  markReviewed: (bookingId: string) => void;
   reset: () => void;
 };
 
@@ -63,6 +69,8 @@ const initial = {
   aiHistory: [] as LocalDb['aiHistory'],
   mentorApplication: { documents: [], sent: false, approved: false } as LocalDb['mentorApplication'],
   mentorSheet: {} as Partial<Mentor>,
+  mentorSlots: [] as WeeklySlot[],
+  reviewedBookings: [] as string[],
 };
 
 const toggleIn = (arr: string[], id: string) => (arr.includes(id) ? arr.filter((x) => x !== id) : [...arr, id]);
@@ -88,6 +96,8 @@ export const useLocalDb = create<LocalDb>()(
       setAiHistory: (h) => set({ aiHistory: h.slice(-40) }),
       setMentorApplication: (patch) => set((s) => ({ mentorApplication: { ...s.mentorApplication, ...patch } })),
       setMentorSheet: (patch) => set((s) => ({ mentorSheet: { ...s.mentorSheet, ...patch } })),
+      setMentorSlots: (slots) => set({ mentorSlots: slots }),
+      markReviewed: (id) => set((s) => ({ reviewedBookings: [...new Set([...s.reviewedBookings, id])] })),
       reset: () => set(initial),
     }),
     { name: 'dalili.localdb', storage: persistStorage, version: 1 },

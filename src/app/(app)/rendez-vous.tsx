@@ -1,5 +1,6 @@
 import { router } from 'expo-router';
 import { CalendarCheck2 } from 'lucide-react-native';
+import { useState } from 'react';
 import { RefreshControl, View } from 'react-native';
 import Animated from 'react-native-reanimated';
 
@@ -14,6 +15,8 @@ import { useMentors, useMyBookings } from '@/data/hooks';
 import type { Booking } from '@/data/types';
 import { splitAppointments } from '@/features/mentors/appointments';
 import { AppointmentRow } from '@/features/mentors/components/AppointmentRow';
+import { ReviewSheet } from '@/features/mentors/components/ReviewSheet';
+import { useMyReviewedBookings } from '@/features/mentors/hooks';
 import { useT } from '@/i18n';
 import { enter, leave, reflow, rise } from '@/theme/motion';
 import { makeStyles, useTheme } from '@/theme/scheme';
@@ -27,13 +30,26 @@ export default function RendezVous() {
   const bookings = useMyBookings();
   const { data: mentors = [] } = useMentors();
   const { upcoming, history } = splitAppointments(bookings.data);
+  const reviewed = useMyReviewedBookings().data ?? [];
+  const [reviewing, setReviewing] = useState<Booking | null>(null);
+  const [reviewOpen, setReviewOpen] = useState(false);
+  const mentorOf = (b: Booking) => mentors.find((m) => m.id === b.mentorId);
   const empty = !bookings.isPending && !bookings.data.length;
 
   const list = (items: Booking[], from: number) => (
     <Animated.View layout={reflow} style={styles.card}>
       {items.map((b, i) => (
         <Animated.View key={b.id} entering={enter(from + i)} exiting={leave} layout={reflow}>
-          <AppointmentRow booking={b} mentor={mentors.find((m) => m.id === b.mentorId)} first={i === 0} />
+          <AppointmentRow
+            booking={b}
+            mentor={mentorOf(b)}
+            first={i === 0}
+            reviewed={reviewed.includes(b.id)}
+            onReview={() => {
+              setReviewing(b);
+              setReviewOpen(true);
+            }}
+          />
         </Animated.View>
       ))}
     </Animated.View>
@@ -103,6 +119,13 @@ export default function RendezVous() {
           </>
         )}
       </View>
+      <ReviewSheet
+        visible={reviewOpen}
+        onClose={() => setReviewOpen(false)}
+        bookingId={reviewing?.id ?? null}
+        mentorId={reviewing?.mentorId ?? null}
+        name={(reviewing && mentorOf(reviewing)?.firstName) ?? t('appointments.mentor')}
+      />
     </Screen>
   );
 }

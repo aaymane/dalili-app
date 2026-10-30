@@ -1,4 +1,4 @@
-import { router } from 'expo-router';
+import { Redirect, router } from 'expo-router';
 import { Globe, Lock } from 'lucide-react-native';
 import { useState } from 'react';
 import { View } from 'react-native';
@@ -30,7 +30,14 @@ const COVERS: { colors: [string, string]; emoji: string }[] = [
 ];
 
 /** Création de groupe : couverture, ville, nom, description, confidentialité. */
-export default function NewGroup() {
+/** Seuls les mentors validés créent les groupes (la base le garantit aussi) : un étudiant revient à la Communauté. */
+export default function NewGroupRoute() {
+  const isMentor = useProfile((s) => s.profile.activeRole === 'mentor');
+  if (!isMentor) return <Redirect href="/(app)/(tabs)/communaute" />;
+  return <NewGroup />;
+}
+
+function NewGroup() {
   const { c: colors, gradients } = useTheme();
   const t = useT();
   const profile = useProfile((s) => s.profile);

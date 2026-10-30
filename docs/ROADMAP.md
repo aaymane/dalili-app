@@ -34,7 +34,7 @@
 - [ ] **Mentorat refondu (décisions du 30/10)** — un compte est étudiant OU mentor, jamais les deux
   - [x] **Étape 1 · Candidature mentor vérifiée** (30/10) : plus de sélecteur de rôle ; on ne devient mentor qu'en France, charte + titre de séjour + certificat de scolarité envoyés dans l'app (bucket privé), l'équipe valide ou refuse avec un motif dans l'admin du site, documents supprimés à la décision et avec le compte ; l'app bascule seule dans l'espace mentor. La base refuse une fiche hors de France ou sans les deux documents. Migrations appliquées en prod le 30/10.
   - [x] **Étape 2a · Espace mentor** (30/10) : onglets du mentor (Accueil, Agenda, Messages, Profil ; l'étudiant garde les siens), accueil refait (carte nuit + disponibilité, prochain appel avec compte à rebours, 3 demandes à traiter, raccourcis), Agenda (À traiter, À venir, Historique), « Ma fiche publique » modifiable avec aperçu en direct, spécialités traduites dans la langue de l'étudiant.
-  - [ ] **Étape 2b · Créneaux et avis** : le mentor choisit ses créneaux (`mentor_slots` + RLS), l'étudiant réserve dessus ; avis laissé par l'étudiant après un appel fait (table `reviews` + RLS), note réelle.
+  - [x] **Étape 2b · Créneaux, avis, communauté** (30/10) : le mentor choisit ses créneaux (heure de Paris), l'étudiant réserve sur un créneau libre à son heure (la base refuse hors créneau et les doublons) ; avis 1 à 5 après un appel passé, note et derniers avis tenus par la base (prénom seulement) ; seuls les mentors validés créent groupes et événements, onglet Communauté pour le mentor ; Profil et notifications propres au mentor. Reste : appliquer `creneaux_avis` et `communaute_mentors` en prod (feu vert).
   - [ ] **Étape 3 · Le mentor lance l'appel** : « Démarrer l'appel », l'étudiant attend dans le salon et reçoit « Yassine t'attend ».
   - [ ] **Étape 4 · Partenaires (site)** : page « Devenir partenaire » sur dalili.study (banques, écoles, assurances…), formulaire, table protégée, onglet admin.
 
@@ -52,7 +52,7 @@
 - [ ] **Guides synchronisés avec dalili.study** (les 64 guides via une table `guides` ou le CMS du site)
 - [ ] **Espace Hôte (V2)** : annonces d'hébergement temporaire, vérification d'identité, réservation
 - [x] **Analytics** (PostHog, serveur européen) : après accord, anonyme, 13 événements, projet UE configuré (29/10)
-- [x] **Tests** : Jest 30 + jest-expo 58 + Testing Library (29/10) ; 54 tests (parcours, synchronisation, candidature mentor, agenda du mentor, rendez-vous, présentation des écoles, chiffres, appels, dates, rappels, démo messagerie et sécurité). `npm test`, et `npm run check` = types + lint + tests
+- [x] **Tests** : Jest 30 + jest-expo 58 + Testing Library (29/10) ; 61 tests (parcours, synchronisation, candidature mentor, agenda du mentor, heure de Paris, créneaux et avis, rendez-vous, présentation des écoles, chiffres, appels, dates, rappels, démo messagerie et sécurité). `npm test`, et `npm run check` = types + lint + tests
 
 ## ⚠️ À valider par l'équipe
 

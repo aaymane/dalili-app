@@ -47,6 +47,12 @@ export function formatLong(d: Date | string) {
   return `${DAYS[currentLanguage()][x.getDay()]} ${x.getDate()} ${months()[x.getMonth()]}`;
 }
 
+/** Le nom du jour (0 = dimanche), en entier ou court (« lun. ») ; l'arabe garde le mot entier. */
+export function weekdayName(day: number, short = false) {
+  const name = DAYS[currentLanguage()][day];
+  return short && currentLanguage() !== 'ar' ? `${name.slice(0, 3)}.` : name;
+}
+
 export function monthShort(d: Date | string) {
   return MONTHS_SHORT[currentLanguage()][new Date(d).getMonth()];
 }

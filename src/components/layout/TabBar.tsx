@@ -19,7 +19,7 @@ const ICONS = { index: House, explorer: Compass, communaute: MessageSquareText, 
 /** Un compte est étudiant OU mentor : chacun ses onglets. L'étudiant a Dalili IA au centre. */
 const TABS = {
   student: ['index', 'explorer', 'ia', 'communaute', 'profil'],
-  mentor: ['index', 'agenda', 'conversations', 'profil'],
+  mentor: ['index', 'agenda', 'communaute', 'conversations', 'profil'],
 } as const;
 
 function TabItem({ name, focused, onPress, accent }: { name: keyof typeof ICONS; focused: boolean; onPress: () => void; accent: string }) {
@@ -65,7 +65,7 @@ function AiButton({ focused, onPress }: { focused: boolean; onPress: () => void 
   );
 }
 
-/** Tab bar sur-mesure : étudiant, 4 onglets + bouton IA central lumineux ; mentor, 4 onglets. */
+/** Tab bar sur-mesure : étudiant, 4 onglets + bouton IA central lumineux ; mentor, 5 onglets (il anime la communauté). */
 export function TabBar({ state, emitter, navigateToTab }: BottomTabBarProps) {
   const styles = useStyles();
   const insets = useSafeAreaInsets();

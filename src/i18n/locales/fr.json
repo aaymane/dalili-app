@@ -154,7 +154,20 @@
     "footer": "DALILI v0.1 · {{mode}} · Fait avec 💙 par des étudiants, pour des étudiants",
     "modeDemo": "Mode démo",
     "modeOnline": "Connecté à Supabase",
-    "modeA11y": "Mode {{role}}"
+    "modeA11y": "Mode {{role}}",
+    "mentorIn": "Mentor vérifié·e à {{city}}",
+    "mentorRating": "note",
+    "studentsHelped": "étudiants aidés",
+    "toHandle_one": "{{count}} demande à traiter",
+    "toHandle_other": "{{count}} demandes à traiter",
+    "upcomingCalls_one": "{{count}} appel à venir",
+    "upcomingCalls_other": "{{count}} appels à venir",
+    "agendaClear": "Tout est à jour",
+    "charter": "Charte du mentor",
+    "charterToAccept": "Nouvelle version à accepter",
+    "charterOk": "Acceptée, merci",
+    "notifications": "Notifications",
+    "notificationsMentorSub": "Nouvelles demandes, messages et rappels d’appel"
   },
   "auth": {
     "welcomeA": "Bienvenue dans",
@@ -494,7 +507,11 @@
       "inMinutes_other": "dans {{count}} min",
       "opens": "Salle ouverte 15 min avant",
       "opensA11y": "La salle s’ouvre 15 minutes avant {{time}}"
-    }
+    },
+    "slots": "Mes créneaux",
+    "slotsCount_one": "{{count}} créneau par semaine",
+    "slotsCount_other": "{{count}} créneaux par semaine",
+    "slotsNone": "Aucun : les étudiants te proposent une heure"
   },
   "journey": {
     "phase": {
@@ -883,7 +900,9 @@
       "successTitle": "Événement publié !",
       "successText": "Ton événement est en ligne. Il est déjà dans ton calendrier : partage-le à ton groupe.",
       "successCta": "Voir l’événement"
-    }
+    },
+    "byMentors": "Les groupes et les événements sont animés par des mentors vérifiés.",
+    "mentorIntro": "Crée un groupe ou un événement pour les étudiants de ta ville."
   },
   "mentors": {
     "lang": {
@@ -923,7 +942,17 @@
       "whatTime": "À quelle heure, {{day}} ?",
       "successTitle": "Demande envoyée",
       "successText": "{{name}} te répond selon ses disponibilités. Tu verras sa réponse sur ton accueil.",
-      "successCta": "Retour à l’accueil"
+      "successCta": "Retour à l’accueil",
+      "hintSlots": "Choisis un des créneaux de {{name}}. {{name}} accepte ta demande, puis tu reçois une notification.",
+      "slotTaken": "Ce créneau vient d’être pris. Choisis-en un autre.",
+      "noSlotTitle": "Plus de créneau libre ces 2 semaines",
+      "noSlotText": "Reviens bientôt, ou choisis un autre mentor dans Explorer.",
+      "pickDay": "Choisis un jour",
+      "dayA11y_one": "{{day}}, {{count}} créneau libre",
+      "dayA11y_other": "{{day}}, {{count}} créneaux libres",
+      "slotsCount_one": "{{count}} créneau",
+      "slotsCount_other": "{{count}} créneaux",
+      "localTime": "À l’heure de ton téléphone."
     },
     "booking": {
       "opening": "La conversation s’ouvre dans un instant. Réessaie.",
@@ -1353,7 +1382,10 @@
     "dueIn_one": "Échéance dans {{count}} jour",
     "dueIn_other": "Échéance dans {{count}} jours",
     "welcomeTitle": "Bienvenue sur DALILI 💙",
-    "welcomeText": "Ton parcours est prêt. On avance ensemble, une étape à la fois."
+    "welcomeText": "Ton parcours est prêt. On avance ensemble, une étape à la fois.",
+    "newRequest": "Nouvelle demande de {{name}}",
+    "welcomeMentorTitle": "Bienvenue dans ton espace mentor",
+    "welcomeMentorText": "Ajoute tes créneaux : les étudiants te trouveront plus facilement."
   },
   "reminders": {
     "weekTitle": "Dans 7 jours : {{title}}",
@@ -1472,5 +1504,42 @@
     "maxSpecialties": "{{count}} spécialités au plus : choisis celles où tu aides le mieux.",
     "save": "Enregistrer",
     "saved": "Fiche enregistrée. Les étudiants voient la nouvelle version."
+  },
+  "slots": {
+    "title": "Mes créneaux",
+    "intro": "Les horaires de la semaine où les étudiants peuvent te demander un appel. Tu acceptes toujours chaque demande.",
+    "save_one": "Enregistrer · {{count}} créneau",
+    "save_other": "Enregistrer · {{count}} créneaux",
+    "saved_one": "{{count}} créneau enregistré.",
+    "saved_other": "{{count}} créneaux enregistrés.",
+    "presets": {
+      "evenings": "Soirs de semaine",
+      "weekend": "Week-end matin"
+    },
+    "dayA11y_one": "{{day}}, {{count}} créneau",
+    "dayA11y_other": "{{day}}, {{count}} créneaux",
+    "clearDay": "Vider ce jour",
+    "parisNote": "Heure de Paris. Chaque étudiant les voit à son heure."
+  },
+  "review": {
+    "title": "Ton appel avec {{name}}",
+    "text": "Ta note aide les prochains étudiants à choisir. Et elle fait plaisir à {{name}}.",
+    "starsA11y_one": "{{count}} étoile sur 5",
+    "starsA11y_other": "{{count}} étoiles sur 5",
+    "starA11y_one": "{{count}} étoile",
+    "starA11y_other": "{{count}} étoiles",
+    "levels": {
+      "1": "Décevant",
+      "2": "Peut mieux faire",
+      "3": "Bien",
+      "4": "Très utile",
+      "5": "Génial, merci !"
+    },
+    "placeholder": "Un mot pour les autres étudiants (facultatif)",
+    "public": "Ton avis s’affiche sur sa fiche avec ton prénom seulement.",
+    "send": "Envoyer mon avis",
+    "thanks": "Merci ! {{name}} va être content·e.",
+    "cta": "Noter l’appel",
+    "done": "Appel noté"
   }
 }

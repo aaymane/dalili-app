@@ -1,6 +1,6 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
-import { CheckCheck, Eye, PenLine, PhoneCall, ShieldCheck, Star, Users, WifiOff, type LucideIcon } from 'lucide-react-native';
+import { CalendarClock, CheckCheck, Eye, PenLine, PhoneCall, ShieldCheck, Star, Users, WifiOff, type LucideIcon } from 'lucide-react-native';
 import { useState } from 'react';
 import { StyleSheet, Switch, View } from 'react-native';
 import Animated from 'react-native-reanimated';
@@ -20,7 +20,7 @@ import { splitMentorAgenda } from '@/features/mentors/appointments';
 import { Constellation } from '@/features/mentors/components/Constellation';
 import { NextCallCard } from '@/features/mentors/components/NextCallCard';
 import { RequestCard } from '@/features/mentors/components/RequestCard';
-import { useMentorRequests, useMyMentor, useSetAvailability } from '@/features/mentors/hooks';
+import { useMentorRequests, useMentorSlots, useMyMentor, useSetAvailability } from '@/features/mentors/hooks';
 import { displayName, useProfile } from '@/features/profile/store';
 import { SafetySheet } from '@/features/safety/components/SafetySheet';
 import { formatDecimal, useT } from '@/i18n';
@@ -56,6 +56,7 @@ export function MentorHome() {
   const [reported, setReported] = useState<MentorRequest | null>(null);
   const [reporting, setReporting] = useState(false);
   const mentor = mine.data;
+  const slots = useMentorSlots(mentor?.id).data ?? [];
   const agenda = splitMentorAgenda(requests.data ?? []);
   const next = agenda.upcoming[0];
   const report = (r: MentorRequest) => {
@@ -123,7 +124,13 @@ export function MentorHome() {
             <Reveal>
               <SectionHeader title={t('mentorHome.sheetTitle')} subtitle={t('mentorHome.sheetSub')} />
               <View style={styles.card}>
-                <Shortcut icon={PenLine} label={t('mentorHome.editSheet')} sub={t('mentorHome.editSheetSub')} onPress={() => router.push('/(app)/ma-fiche')} />
+                <Shortcut
+                  icon={CalendarClock}
+                  label={t('mentorHome.slots')}
+                  sub={slots.length ? t('mentorHome.slotsCount', { count: slots.length }) : t('mentorHome.slotsNone')}
+                  onPress={() => router.push('/(app)/creneaux')}
+                />
+                <Shortcut icon={PenLine} label={t('mentorHome.editSheet')} sub={t('mentorHome.editSheetSub')} onPress={() => router.push('/(app)/ma-fiche')} separated />
                 <Shortcut
                   icon={Eye}
                   label={t('mentorHome.publicProfile')}

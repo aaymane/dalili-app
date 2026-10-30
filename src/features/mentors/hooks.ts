@@ -14,9 +14,14 @@ import {
   answerRequest,
   approveDemoApplication,
   createMyMentor,
+  fetchBusyTimes,
   fetchMentorRequests,
+  fetchMentorSlots,
+  fetchMyReviewedBookings,
   fetchMyApplication,
   fetchMyMentor,
+  saveMySlots,
+  sendReview,
   setMyAvailability,
   updateMyMentor,
   uploadMentorDocument,
@@ -34,8 +39,8 @@ export function useMyMentor() {
   return useQuery({ queryKey: MINE, queryFn: fetchMyMentor });
 }
 
-export function useMentorRequests() {
-  return useQuery({ queryKey: REQUESTS, queryFn: fetchMentorRequests });
+export function useMentorRequests(options?: { enabled?: boolean }) {
+  return useQuery({ queryKey: REQUESTS, queryFn: fetchMentorRequests, enabled: options?.enabled ?? true });
 }
 
 export function useCreateMyMentor() {
@@ -107,6 +112,41 @@ export function useUpdateMyMentor() {
     },
     onError: (_e, _v, ctx) => qc.setQueryData(MINE, ctx?.before),
     // Les étudiants voient la nouvelle fiche dans Explorer.
+    onSettled: () => qc.invalidateQueries({ queryKey: ['mentors'] }),
+  });
+}
+
+export function useMentorSlots(mentorId?: string) {
+  return useQuery({ queryKey: ['mentor', 'slots', mentorId], queryFn: () => fetchMentorSlots(mentorId!), enabled: !!mentorId });
+}
+
+export function useBusyTimes(mentorId?: string) {
+  return useQuery({ queryKey: ['mentor', 'busy', mentorId], queryFn: () => fetchBusyTimes(mentorId!), enabled: !!mentorId });
+}
+
+export function useSaveMySlots(mentorId?: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: saveMySlots,
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['mentor', 'slots', mentorId] }),
+  });
+}
+
+export function useMyReviewedBookings() {
+  return useQuery({ queryKey: ['reviews', 'mine'], queryFn: fetchMyReviewedBookings });
+}
+
+/** Un avis : le rendez-vous passe « noté » tout de suite ; la fiche du mentor est relue. */
+export function useSendReview() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: sendReview,
+    onMutate: ({ bookingId }) => {
+      const before = qc.getQueryData<string[]>(['reviews', 'mine']);
+      qc.setQueryData<string[]>(['reviews', 'mine'], [...(before ?? []), bookingId]);
+      return { before };
+    },
+    onError: (_e, _v, ctx) => qc.setQueryData(['reviews', 'mine'], ctx?.before),
     onSettled: () => qc.invalidateQueries({ queryKey: ['mentors'] }),
   });
 }

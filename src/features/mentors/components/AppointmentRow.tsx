@@ -1,5 +1,5 @@
 import { router } from 'expo-router';
-import { MessageCircle, Video } from 'lucide-react-native';
+import { MessageCircle, Star, Video } from 'lucide-react-native';
 import { Alert, Platform, StyleSheet, View } from 'react-native';
 
 import { toast } from '@/components/feedback/Toast';
@@ -16,8 +16,8 @@ import { radius } from '@/theme/tokens';
 
 import { appointmentState, type AppointmentState } from '../appointments';
 
-/** Une ligne de « Mes rendez-vous » : le mentor, le sujet, la date, l'état, et ce qu'on peut faire maintenant. */
-export function AppointmentRow({ booking, mentor, first }: { booking: Booking; mentor?: Mentor; first?: boolean }) {
+/** Une ligne de « Mes rendez-vous » : le mentor, le sujet, la date, l'état, et ce qu'on peut faire maintenant (noter un appel passé). */
+export function AppointmentRow({ booking, mentor, first, reviewed, onReview }: { booking: Booking; mentor?: Mentor; first?: boolean; reviewed?: boolean; onReview?: () => void }) {
   const { c, tones } = useTheme();
   const t = useT();
   const styles = useStyles();
@@ -57,7 +57,7 @@ export function AppointmentRow({ booking, mentor, first }: { booking: Booking; m
     );
 
   return (
-    <View style={[styles.row, !first && styles.sep, !active && { opacity: 0.72 }]}>
+    <View style={[styles.row, !first && styles.sep, !active && state !== 'done' && { opacity: 0.72 }]}>
       <PressableScale
         onPress={() => mentor && router.push({ pathname: '/(app)/mentor/[id]', params: { id: mentor.id } })}
         disabled={!mentor}
@@ -82,6 +82,26 @@ export function AppointmentRow({ booking, mentor, first }: { booking: Booking; m
           </Text>
         </View>
       </PressableScale>
+
+      {state === 'done' && onReview ? (
+        <View style={styles.actions}>
+          {reviewed ? (
+            <View style={styles.reviewed}>
+              <Star size={14} color="#B45309" fill="#F59E0B" />
+              <Text variant="smallStrong" color={c.subtle}>
+                {t('review.done')}
+              </Text>
+            </View>
+          ) : (
+            <PressableScale onPress={onReview} style={[styles.action, styles.soft]} accessibilityLabel={t('review.cta', { name: firstName })}>
+              <Star size={15} color={c.electric} />
+              <Text variant="smallStrong" color={c.electric}>
+                {t('review.cta', { name: firstName })}
+              </Text>
+            </PressableScale>
+          )}
+        </View>
+      ) : null}
 
       {active ? (
         <View style={styles.actions}>
@@ -125,5 +145,6 @@ const useStyles = makeStyles(({ c }) => ({
   actions: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingStart: 56 },
   action: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, minHeight: 44, minWidth: 44, paddingHorizontal: 14, borderRadius: radius.pill },
   soft: { backgroundColor: c.electricSoft },
+  reviewed: { flexDirection: 'row', alignItems: 'center', gap: 6, minHeight: 44 },
   cancel: { minHeight: 44, justifyContent: 'center', paddingHorizontal: 10, marginStart: 'auto' },
 }));

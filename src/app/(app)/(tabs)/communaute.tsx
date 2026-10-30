@@ -16,17 +16,19 @@ import { Chip } from '@/components/ui/Tag';
 import { Text } from '@/components/ui/Text';
 import { useEvents, useGroups } from '@/data/hooks';
 import { EventCard, GroupCard } from '@/features/community/components/GroupCard';
+import { useProfile } from '@/features/profile/store';
 import { useT } from '@/i18n';
 import { useRoleTheme } from '@/theme';
 import { makeStyles, useTheme } from '@/theme/scheme';
 import { pop, rise } from '@/theme/motion';
 
-/** Communautés : groupes par ville + événements proches. */
+/** Communautés : groupes par ville + événements proches. Les mentors les créent et les animent, les étudiants les rejoignent. */
 export default function Communaute() {
-  const { c } = useTheme();
+  const { c, gradients } = useTheme();
   const t = useT();
   const styles = useStyles();
-  const { top } = useRoleTheme();
+  const { top, accent } = useRoleTheme();
+  const isMentor = useProfile((s) => s.profile.activeRole === 'mentor');
   const { data: groups } = useGroups();
   const { data: events } = useEvents();
   const [mode, setMode] = useState<'all' | 'groups' | 'events'>('all');
@@ -47,7 +49,12 @@ export default function Communaute() {
     <View style={{ flex: 1 }}>
       <Screen top={top} tabBar padded={false} header={<AppHeader />}>
         <View style={{ paddingHorizontal: 20, gap: 14 }}>
-          <Text variant="hero">{t('community.title')}</Text>
+          <View style={{ gap: 4 }}>
+            <Text variant="hero">{t('community.title')}</Text>
+            <Text variant="small" color={c.subtle}>
+              {isMentor ? t('community.mentorIntro') : t('community.byMentors')}
+            </Text>
+          </View>
           <Input
             icon={<Search size={16} color={c.electric} />}
             placeholder={t('community.search')}
@@ -106,17 +113,19 @@ export default function Communaute() {
           )}
         </View>
       </Screen>
-      <Animated.View entering={pop(300)} style={[styles.fab, { bottom: TAB_BAR_SPACE - 4 }]}>
-        <PressableScale onPress={() => setFab(true)} haptic="press" style={styles.fabBtn} accessibilityLabel={t('community.create')}>
-          <Plus size={24} color={c.navy} />
-        </PressableScale>
-      </Animated.View>
+      {isMentor ? (
+        <Animated.View entering={pop(300)} style={[styles.fab, { bottom: TAB_BAR_SPACE - 4 }]}>
+          <PressableScale onPress={() => setFab(true)} haptic="press" style={[styles.fabBtn, { borderColor: accent }]} accessibilityLabel={t('community.create')}>
+            <Plus size={24} color={accent} />
+          </PressableScale>
+        </Animated.View>
+      ) : null}
       <BottomSheet visible={fab} onClose={() => setFab(false)}>
         <Text variant="h2" style={{ marginBottom: 14 }}>
           {t('community.createSomething')}
         </Text>
         <View style={{ gap: 10 }}>
-          <Button label={t('community.createGroup')} onPress={() => { setFab(false); router.push('/(app)/groupe/nouveau'); }} />
+          <Button label={t('community.createGroup')} accent={gradients.mentor} onPress={() => { setFab(false); router.push('/(app)/groupe/nouveau'); }} />
           <Button label={t('community.createEvent')} variant="secondary" onPress={() => { setFab(false); router.push('/(app)/evenement/nouveau'); }} />
         </View>
       </BottomSheet>

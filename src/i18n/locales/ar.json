@@ -182,7 +182,28 @@
     "footer": "DALILI v0.1 · {{mode}} · صُنع بـ 💙 من طلاب، لأجل الطلاب",
     "modeDemo": "وضع تجريبي",
     "modeOnline": "متصل بـ Supabase",
-    "modeA11y": "وضع {{role}}"
+    "modeA11y": "وضع {{role}}",
+    "mentorIn": "مرشد موثّق في {{city}}",
+    "mentorRating": "التقييم",
+    "studentsHelped": "طلاب ساعدتهم",
+    "toHandle_zero": "لا طلبات للرد",
+    "toHandle_one": "طلب واحد للرد",
+    "toHandle_two": "طلبان للرد",
+    "toHandle_few": "{{count}} طلبات للرد",
+    "toHandle_many": "{{count}} طلبًا للرد",
+    "toHandle_other": "{{count}} طلب للرد",
+    "upcomingCalls_zero": "لا مكالمات قادمة",
+    "upcomingCalls_one": "مكالمة قادمة واحدة",
+    "upcomingCalls_two": "مكالمتان قادمتان",
+    "upcomingCalls_few": "{{count}} مكالمات قادمة",
+    "upcomingCalls_many": "{{count}} مكالمة قادمة",
+    "upcomingCalls_other": "{{count}} مكالمة قادمة",
+    "agendaClear": "كل شيء محدّث",
+    "charter": "ميثاق المرشد",
+    "charterToAccept": "نسخة جديدة للموافقة",
+    "charterOk": "تمت الموافقة، شكرًا",
+    "notifications": "الإشعارات",
+    "notificationsMentorSub": "الطلبات الجديدة والرسائل وتذكير المكالمات"
   },
   "auth": {
     "welcomeA": "مرحبًا بك في",
@@ -534,7 +555,15 @@
       "inMinutes_few": "بعد {{count}} دقائق",
       "inMinutes_many": "بعد {{count}} دقيقة",
       "inMinutes_other": "بعد {{count}} دقيقة"
-    }
+    },
+    "slots": "مواعيدي المتاحة",
+    "slotsCount_zero": "لا مواعيد",
+    "slotsCount_one": "موعد واحد في الأسبوع",
+    "slotsCount_two": "موعدان في الأسبوع",
+    "slotsCount_few": "{{count}} مواعيد في الأسبوع",
+    "slotsCount_many": "{{count}} موعدًا في الأسبوع",
+    "slotsCount_other": "{{count}} موعد في الأسبوع",
+    "slotsNone": "لا شيء: يقترح عليك الطلاب وقتًا"
   },
   "journey": {
     "phase": {
@@ -947,7 +976,9 @@
       "successTitle": "نُشرت الفعالية!",
       "successText": "فعاليتك منشورة. وهي في تقويمك: شاركها مع مجموعتك.",
       "successCta": "عرض الفعالية"
-    }
+    },
+    "byMentors": "يدير المجموعات والفعاليات مرشدون موثّقون.",
+    "mentorIntro": "أنشئ مجموعة أو فعالية لطلاب مدينتك."
   },
   "mentors": {
     "lang": {
@@ -987,7 +1018,25 @@
       "whatTime": "في أي ساعة، {{day}}؟",
       "successTitle": "أُرسل الطلب",
       "successText": "سيردّ {{name}} حسب وقته. سترى ردّه في صفحتك الرئيسية.",
-      "successCta": "العودة إلى الرئيسية"
+      "successCta": "العودة إلى الرئيسية",
+      "hintSlots": "اختر أحد مواعيد {{name}}. يقبل {{name}} طلبك، ثم يصلك إشعار.",
+      "slotTaken": "حُجز هذا الموعد للتو. اختر موعدًا آخر.",
+      "noSlotTitle": "لا مواعيد متاحة خلال أسبوعين",
+      "noSlotText": "عد قريبًا، أو اختر مرشدًا آخر في الاستكشاف.",
+      "pickDay": "اختر يومًا",
+      "dayA11y_zero": "{{day}}، لا مواعيد متاحة",
+      "dayA11y_one": "{{day}}، موعد متاح واحد",
+      "dayA11y_two": "{{day}}، موعدان متاحان",
+      "dayA11y_few": "{{day}}، {{count}} مواعيد متاحة",
+      "dayA11y_many": "{{day}}، {{count}} موعدًا متاحًا",
+      "dayA11y_other": "{{day}}، {{count}} موعد متاح",
+      "slotsCount_zero": "لا مواعيد",
+      "slotsCount_one": "موعد واحد",
+      "slotsCount_two": "موعدان",
+      "slotsCount_few": "{{count}} مواعيد",
+      "slotsCount_many": "{{count}} موعدًا",
+      "slotsCount_other": "{{count}} موعد",
+      "localTime": "بتوقيت هاتفك."
     },
     "booking": {
       "opening": "ستُفتح المحادثة بعد لحظة. أعد المحاولة.",
@@ -1441,7 +1490,10 @@
     "dueIn_many": "الموعد النهائي بعد {{count}} يومًا",
     "dueIn_other": "الموعد النهائي بعد {{count}} يوم",
     "welcomeTitle": "مرحبًا بك في DALILI 💙",
-    "welcomeText": "مسارك جاهز. نتقدّم معًا، خطوة بخطوة."
+    "welcomeText": "مسارك جاهز. نتقدّم معًا، خطوة بخطوة.",
+    "newRequest": "طلب جديد من {{name}}",
+    "welcomeMentorTitle": "مرحبًا بك في مساحة المرشد",
+    "welcomeMentorText": "أضف مواعيدك المتاحة: سيجدك الطلاب بسهولة أكبر."
   },
   "reminders": {
     "weekTitle": "بعد 7 أيام: {{title}}",
@@ -1564,5 +1616,62 @@
     "maxSpecialties": "{{count}} تخصصات كحد أقصى: اختر ما تساعد فيه أكثر.",
     "save": "حفظ",
     "saved": "تم حفظ الملف. يرى الطلاب النسخة الجديدة."
+  },
+  "slots": {
+    "title": "مواعيدي المتاحة",
+    "intro": "أوقات الأسبوع التي يمكن للطلاب أن يطلبوا فيها مكالمة. تقبل كل طلب بنفسك دائمًا.",
+    "save_zero": "حفظ",
+    "save_one": "حفظ · موعد واحد",
+    "save_two": "حفظ · موعدان",
+    "save_few": "حفظ · {{count}} مواعيد",
+    "save_many": "حفظ · {{count}} موعدًا",
+    "save_other": "حفظ · {{count}} موعد",
+    "saved_zero": "لم يُحفظ أي موعد.",
+    "saved_one": "تم حفظ موعد واحد.",
+    "saved_two": "تم حفظ موعدين.",
+    "saved_few": "تم حفظ {{count}} مواعيد.",
+    "saved_many": "تم حفظ {{count}} موعدًا.",
+    "saved_other": "تم حفظ {{count}} موعد.",
+    "presets": {
+      "evenings": "أمسيات الأسبوع",
+      "weekend": "صباح نهاية الأسبوع"
+    },
+    "dayA11y_zero": "{{day}}، لا مواعيد",
+    "dayA11y_one": "{{day}}، موعد واحد",
+    "dayA11y_two": "{{day}}، موعدان",
+    "dayA11y_few": "{{day}}، {{count}} مواعيد",
+    "dayA11y_many": "{{day}}، {{count}} موعدًا",
+    "dayA11y_other": "{{day}}، {{count}} موعد",
+    "clearDay": "إفراغ هذا اليوم",
+    "parisNote": "بتوقيت باريس. يراها كل طالب بتوقيته."
+  },
+  "review": {
+    "title": "مكالمتك مع {{name}}",
+    "text": "تقييمك يساعد الطلاب القادمين على الاختيار، ويُسعد {{name}}.",
+    "starsA11y_zero": "بدون نجوم من 5",
+    "starsA11y_one": "نجمة واحدة من 5",
+    "starsA11y_two": "نجمتان من 5",
+    "starsA11y_few": "{{count}} نجوم من 5",
+    "starsA11y_many": "{{count}} نجمة من 5",
+    "starsA11y_other": "{{count}} نجمة من 5",
+    "starA11y_zero": "بدون نجوم",
+    "starA11y_one": "نجمة واحدة",
+    "starA11y_two": "نجمتان",
+    "starA11y_few": "{{count}} نجوم",
+    "starA11y_many": "{{count}} نجمة",
+    "starA11y_other": "{{count}} نجمة",
+    "levels": {
+      "1": "مخيّب",
+      "2": "يمكن أن يكون أفضل",
+      "3": "جيد",
+      "4": "مفيد جدًا",
+      "5": "رائع، شكرًا!"
+    },
+    "placeholder": "كلمة للطلاب الآخرين (اختياري)",
+    "public": "يظهر تقييمك في ملفه باسمك الأول فقط.",
+    "send": "أرسل تقييمي",
+    "thanks": "شكرًا! سيسعد {{name}}.",
+    "cta": "قيّم المكالمة",
+    "done": "تم التقييم"
   }
 }

@@ -380,6 +380,79 @@ reset role;
 select tests.must_count('la liste « Mes rendez-vous » a son index', $q$select 1 from pg_indexes where indexname = 'bookings_student_idx'$q$, 1);
 rollback;
 
+-- ───────────── créneaux et avis : l'étudiant demande sur un créneau libre, note son appel passé ─────────────
+begin;
+update public.profiles set first_name = 'Aymen' where id = '00000000-0000-0000-0000-00000000000a';
+insert into public.mentors (id, user_id, first_name, last_name, city, is_active) values
+  ('00000000-0000-0000-0000-0000000000e1', '00000000-0000-0000-0000-00000000000c', 'Yassine', 'Kadiri', 'Lyon', true);
+-- Un appel passé et accepté, d'avant les créneaux (la base l'écrit, comme après une vraie demande).
+insert into public.bookings (id, student_id, mentor_id, starts_at, topic, status)
+  values ('00000000-0000-0000-0000-0000000000f7', '00000000-0000-0000-0000-00000000000a', '00000000-0000-0000-0000-0000000000e1', now() - interval '2 hours', 'CAF', 'confirmed');
+create temp table creneau as
+  select ((date_trunc('day', now() at time zone 'Europe/Paris') + interval '3 days 18 hours') at time zone 'Europe/Paris') as t;
+grant select on creneau to authenticated;
+set local role authenticated;
+set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-00000000000c","role":"authenticated"}';
+insert into public.mentor_slots (mentor_id, weekday, start_time)
+  select '00000000-0000-0000-0000-0000000000e1', extract(dow from t at time zone 'Europe/Paris')::int, '18:00' from creneau;
+select tests.must_fail('61e créneau', $q$insert into public.mentor_slots (mentor_id, weekday, start_time)
+  select '00000000-0000-0000-0000-0000000000e1', d, make_time(h, 0, 0) from generate_series(0, 6) d, generate_series(7, 22) h$q$);
+select tests.must_fail('créneau à une heure impossible', $q$insert into public.mentor_slots (mentor_id, weekday, start_time) values ('00000000-0000-0000-0000-0000000000e1', 1, '18:07')$q$);
+set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-00000000000b","role":"authenticated"}';
+select tests.must_fail('B ajoute un créneau au mentor', $q$insert into public.mentor_slots (mentor_id, weekday, start_time) values ('00000000-0000-0000-0000-0000000000e1', 2, '10:00')$q$);
+delete from public.mentor_slots;
+set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-00000000000a","role":"authenticated"}';
+select tests.must_count('B n''a retiré aucun créneau, A les voit', 'select * from public.mentor_slots', 1);
+select tests.must_fail('A demande hors des créneaux',
+  $q$insert into public.bookings (student_id, mentor_id, starts_at) select auth.uid(), '00000000-0000-0000-0000-0000000000e1', t + interval '1 hour' from creneau$q$);
+insert into public.bookings (student_id, mentor_id, starts_at, topic) select auth.uid(), '00000000-0000-0000-0000-0000000000e1', t, 'Visa' from creneau;
+select tests.must_count('A demande sur un créneau', 'select * from public.bookings where status = ''pending''', 1);
+select tests.must_fail('A note un appel pas encore passé',
+  $q$insert into public.mentor_reviews (booking_id, mentor_id, rating) select id, mentor_id, 5 from public.bookings where status = 'pending'$q$);
+insert into public.mentor_reviews (booking_id, mentor_id, rating, comment) values ('00000000-0000-0000-0000-0000000000f7', '00000000-0000-0000-0000-0000000000e1', 4, 'Très clair sur la CAF');
+select tests.must_fail('A note deux fois le même appel',
+  $q$insert into public.mentor_reviews (booking_id, mentor_id, rating) values ('00000000-0000-0000-0000-0000000000f7', '00000000-0000-0000-0000-0000000000e1', 1)$q$);
+select tests.must_fail('A se met à jour la note du mentor', 'update public.mentors set rating = 5');
+set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-00000000000b","role":"authenticated"}';
+select tests.must_fail('B demande le même créneau que A',
+  $q$insert into public.bookings (student_id, mentor_id, starts_at) select auth.uid(), '00000000-0000-0000-0000-0000000000e1', t from creneau$q$);
+select tests.must_count('B voit que l''heure est prise, sans savoir par qui', 'select * from public.mentor_busy_times(''00000000-0000-0000-0000-0000000000e1'')', 1);
+select tests.must_count('B ne lit pas l''avis de A', 'select * from public.mentor_reviews', 0);
+select tests.must_fail('B note l''appel de A',
+  $q$insert into public.mentor_reviews (booking_id, mentor_id, rating) values ('00000000-0000-0000-0000-0000000000f7', '00000000-0000-0000-0000-0000000000e1', 1)$q$);
+select tests.must_count('la fiche publique montre la note et l''avis, avec le prénom seulement',
+  $q$select 1 from public.mentors where rating = 4.0 and reviews @> '[{"author": "Aymen", "text": "Très clair sur la CAF", "rating": 4}]'::jsonb and reviews::text not like '%00000000-0000-0000-0000-00000000000a%'$q$, 1);
+set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-00000000000c","role":"authenticated"}';
+select tests.must_count('le mentor lit l''avis reçu', 'select * from public.mentor_reviews', 1);
+reset role;
+set local role anon;
+select tests.must_fail('anon lit les heures prises', $q$select * from public.mentor_busy_times('00000000-0000-0000-0000-0000000000e1')$q$);
+select tests.must_fail('anon lit les créneaux', 'select * from public.mentor_slots');
+rollback;
+
+-- ───────────── communauté : seuls les mentors validés créent groupes et événements ─────────────
+begin;
+insert into public.mentors (id, user_id, first_name, last_name, city, is_active) values
+  ('00000000-0000-0000-0000-0000000000e1', '00000000-0000-0000-0000-00000000000c', 'Yassine', 'Kadiri', 'Lyon', true),
+  ('00000000-0000-0000-0000-0000000000e2', '00000000-0000-0000-0000-00000000000d', 'Nadia', 'Daoud', 'Lille', false);
+set local role authenticated;
+set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-00000000000a","role":"authenticated"}';
+select tests.must_fail('un étudiant crée un groupe', $q$insert into public.groups (name, city, created_by) values ('Groupe A', 'Lyon', auth.uid())$q$);
+select tests.must_fail('un étudiant crée un événement',
+  $q$insert into public.events (title, city, place, starts_at, created_by) values ('Soirée', 'Lyon', 'Bar', now() + interval '3 days', auth.uid())$q$);
+set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-00000000000d","role":"authenticated"}';
+select tests.must_fail('un mentor pas encore validé crée un groupe', $q$insert into public.groups (name, city, created_by) values ('Groupe D', 'Lille', auth.uid())$q$);
+set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-00000000000c","role":"authenticated"}';
+select tests.must_fail('un mentor crée un groupe au nom d''un autre', $q$insert into public.groups (name, city, created_by) values ('Faux', 'Lyon', '00000000-0000-0000-0000-00000000000a')$q$);
+insert into public.groups (name, city, created_by) values ('Étudiants marocains à Lyon', 'Lyon', auth.uid());
+insert into public.events (title, city, place, starts_at, created_by) values ('Café d''accueil', 'Lyon', 'Bellecour', now() + interval '3 days', auth.uid());
+select tests.must_count('le mentor validé crée son groupe et son événement',
+  $q$select 1 from public.groups where created_by = auth.uid() union all select 1 from public.events where created_by = auth.uid()$q$, 2);
+set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-00000000000a","role":"authenticated"}';
+insert into public.group_members (group_id) select id from public.groups where created_by = '00000000-0000-0000-0000-00000000000c';
+select tests.must_count('un étudiant rejoint le groupe du mentor', 'select * from public.group_members where user_id = auth.uid()', 1);
+rollback;
+
 -- ───────────── signaler : seuls les fondateurs lisent, la base retrouve qui est signalé ─────────────
 begin;
 insert into public.mentors (id, user_id, first_name, last_name, city, is_active) values
@@ -457,7 +530,7 @@ insert into public.mentors (id, user_id, first_name, last_name, city, is_active)
 insert into public.bookings (id, student_id, mentor_id, starts_at, status) values
   ('00000000-0000-0000-0000-0000000000f1', '00000000-0000-0000-0000-00000000000a', '00000000-0000-0000-0000-0000000000e1', now() + interval '2 days', 'confirmed'),
   ('00000000-0000-0000-0000-0000000000f2', '00000000-0000-0000-0000-00000000000a', '00000000-0000-0000-0000-0000000000e1', now() + interval '3 days', 'pending'),
-  ('00000000-0000-0000-0000-0000000000f3', '00000000-0000-0000-0000-00000000000b', '00000000-0000-0000-0000-0000000000e1', now() + interval '2 days', 'pending'),
+  ('00000000-0000-0000-0000-0000000000f3', '00000000-0000-0000-0000-00000000000b', '00000000-0000-0000-0000-0000000000e1', now() + interval '2 days 1 hour', 'pending'),
   ('00000000-0000-0000-0000-0000000000f4', '00000000-0000-0000-0000-00000000000a', '00000000-0000-0000-0000-0000000000e2', now() + interval '2 days', 'pending');
 set local role anon;
 select tests.must_fail('anon bloque', $q$select public.block_user('00000000-0000-0000-0000-0000000000e1')$q$);
