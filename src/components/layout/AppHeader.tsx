@@ -8,7 +8,6 @@ import { ChevronLeft } from '@/components/ui/DirIcons';
 import { PressableScale } from '@/components/ui/PressableScale';
 import { Text } from '@/components/ui/Text';
 import { useUnreadCount } from '@/features/messages/hooks';
-import { RoleSwitch } from '@/features/profile/components/RoleSwitch';
 import { useProfile } from '@/features/profile/store';
 import { useT } from '@/i18n';
 import { makeStyles, useTheme } from '@/theme/scheme';
@@ -19,12 +18,10 @@ type Props = {
   pill?: string;
   onBack?: () => void;
   hideActions?: boolean;
-  /** Bascule Étudiant / Mentor (accueils), visible seulement pour qui a les deux rôles. */
-  roleSwitch?: boolean;
 };
 
 /** En-tête commun : logo (ou retour) à gauche, messages, notifications et avatar à droite. */
-export function AppHeader({ back, title, pill, onBack, hideActions, roleSwitch }: Props) {
+export function AppHeader({ back, title, pill, onBack, hideActions }: Props) {
   const { c } = useTheme();
   const styles = useStyles();
   const profile = useProfile((s) => s.profile);
@@ -51,8 +48,6 @@ export function AppHeader({ back, title, pill, onBack, hideActions, roleSwitch }
           <Text variant="h3" numberOfLines={1}>
             {title}
           </Text>
-        ) : roleSwitch ? (
-          <RoleSwitch />
         ) : null}
       </View>
       {!hideActions && (

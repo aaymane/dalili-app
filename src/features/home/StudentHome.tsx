@@ -59,7 +59,7 @@ export function StudentHome() {
   const bookingMentor = booking ? mentors.find((m) => m.id === booking.mentorId) : null;
 
   return (
-    <Screen top={gradients.roleTop.student} tabBar padded={false} header={<AppHeader roleSwitch />}>
+    <Screen top={gradients.roleTop.student} tabBar padded={false} header={<AppHeader />}>
       <View style={{ paddingHorizontal: 20, gap: 16 }}>
         {ticket.onHome ? (
           <>

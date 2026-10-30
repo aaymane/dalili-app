@@ -130,8 +130,6 @@
     "guidesCount_other": "{{count}} guides",
     "documents": "My documents",
     "documentsSub": "Your paperwork checklist",
-    "switchMode": "Switch mode",
-    "currentMode": "Currently: {{role}}",
     "reminders": "Deadline reminders",
     "remindersSub": "7 days before and the day before: visa, CAF, CVEC…",
     "appearance": "Appearance",
@@ -155,16 +153,6 @@
     "modeDemo": "Demo mode",
     "modeOnline": "Connected to Supabase",
     "modeA11y": "{{role}} mode"
-  },
-  "role": {
-    "title": "How do you want to\nuse the app today?",
-    "text": "One account: your data and conversations follow you.",
-    "student": "Your paperwork, your journey, your city",
-    "mentorActive": "Your call requests and slots",
-    "mentorNew": "Help newcomers, for free",
-    "host": "Welcome a student when they arrive",
-    "hostSoon": "The Host space is coming soon 🏡",
-    "soonA11y": "{{role}}, soon"
   },
   "auth": {
     "welcomeA": "Welcome to",
@@ -308,13 +296,13 @@
       "inFranceBadge": "MENTOR · HOST"
     },
     "loading": {
-      "titleMentor": "Setting up your\nMentor space",
+      "titleMentor": "Getting your\nspace ready",
       "titleCity": "Preparing your arrival\nin {{city}}…",
       "title": "Preparing\nyour arrival…",
       "yourCity": "your city",
-      "mentor1": "Creating your mentor profile",
+      "mentor1": "Your profile in France",
       "mentor2": "Students arriving in {{city}}",
-      "mentor3": "Your availability slots",
+      "mentor3": "Your mentor application",
       "space": "Building your personal space",
       "student1": "Picking the right mentors",
       "student2": "Mapping your paperwork",
@@ -324,7 +312,7 @@
       "cityTitle": "Which city\ndo you live in?",
       "cityText": "We connect you with students arriving near you.",
       "helpTitle": "How do you\nwant to help?",
-      "helpText": "You can do both later, from your profile.",
+      "helpText": "To become a mentor, the team first checks that you live and study in France.",
       "become": "Become a Mentor",
       "becomeText": "Guide students: paperwork, advice, your experience",
       "tagVisa": "Visa",
@@ -969,7 +957,7 @@
       "birthYear": "Year of birth",
       "yearPlaceholder": "yyyy",
       "yearPrivate": "It stays private: only the DALILI team sees it.",
-      "verifyNote": "Then the team checks your profile (student card, LinkedIn or residence permit) before showing it. We keep no copy.",
+      "verifyNote": "Next, you send your residence permit and your enrolment certificate. The team checks them, then deletes them.",
       "notSent": "Not sent. Check your connection and try again.",
       "outdated": "This charter is out of date: update the app.",
       "yearDigits": "Your year of birth, 4 digits.",
@@ -1267,6 +1255,10 @@
         "title": "Your requests to partner schools",
         "text": "Kept by DALILI to contact you. Never passed to the school without your consent."
       },
+      "mentorDocs": {
+        "title": "Your mentor application documents",
+        "text": "Residence permit and enrolment certificate: seen only by the team, deleted as soon as it decides."
+      },
       "reports": {
         "title": "Mentoring reports",
         "text": "Read only by the team. If an account is deleted, the report stays, without the name, to protect others."
@@ -1382,5 +1374,54 @@
     "findMentor": "Find a mentor",
     "loadError": "Couldn’t load your appointments. Check your connection.",
     "refreshA11y": "Refresh your appointments"
+  },
+  "mentorApply": {
+    "row": "Become a mentor",
+    "rowSub": {
+      "none": "Help students who are arriving",
+      "abroad": "As soon as you arrive in France",
+      "pending": "Application under review",
+      "rejected": "Application needs changes",
+      "approved": "Application approved"
+    },
+    "charterNext": "I accept the charter",
+    "lockedTitle": "First, arrive in France",
+    "lockedText": "To guide others, you need to have been through it. You can become a mentor as soon as you arrive, with your residence permit and your enrolment certificate.",
+    "lockedArrived": "I’m already in France",
+    "docsOverline": "Step {{step}} / {{total}} · Verification",
+    "docsTitle": "Your two\ndocuments",
+    "docsSubtitle": "The team checks that you live and study in France. That’s what keeps DALILI safe for everyone.",
+    "docs": {
+      "titre_sejour": "Residence permit",
+      "certificat_scolarite": "Enrolment certificate"
+    },
+    "docsHint": {
+      "titre_sejour": "Validated VLS-TS, residence card or receipt",
+      "certificat_scolarite": "From this year, in your name"
+    },
+    "take": "Take a photo",
+    "pick": "Choose",
+    "replace": "Retake",
+    "added": "added",
+    "toAdd": "to add",
+    "docA11y": "{{doc}}, {{state}}",
+    "uploadFailed": "Not sent. Check your connection and try again.",
+    "permission": "Allow the camera in your phone settings.",
+    "privacy": "Seen only by the DALILI team, never by students. Deleted as soon as we decide.",
+    "submit": "Send my application",
+    "notSent": "Not sent. Check your connection and try again.",
+    "notInFrance": "Your profile says you’re not in France yet. Wait a few seconds, then try again.",
+    "sentTitle": "Application sent!",
+    "sentText": "The team checks your documents, usually within 48 hours. You’ll get a notification as soon as it’s done.",
+    "pendingTitle": "We’re checking your application",
+    "pendingText": "Your documents are in good hands. As soon as the team approves, your mentor space opens on its own.",
+    "pendingStep1": "Application sent",
+    "pendingStep2": "Checked by the team",
+    "pendingStep3": "Your mentor space",
+    "demoApprove": "Demo mode: simulate approval",
+    "rejectedTitle": "Your application needs changes",
+    "rejectedText": "The team says: “{{reason}}”. Fix it and send it again whenever you want.",
+    "rejectedNoReason": "The team couldn’t approve it. Send readable documents again whenever you want.",
+    "welcome": "Welcome to your mentor space"
   }
 }
