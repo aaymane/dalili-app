@@ -28,7 +28,7 @@
 - [ ] **Notifications push & rappels d'échéances** — ✅ rappels locaux 7 jours avant et la veille (29/10) ; ✅ push des demandes d'appel (24/10) ; reste : push des nouveaux messages
   > `/fonctionnalite Rappels locaux avec expo-notifications : planifier une notification 7 jours et 1 jour avant chaque échéance du Parcours-quête (visa, CVEC, CAF…) quand profile.notificationsEnabled est vrai ; replanifier quand la date d'arrivée change. Puis push serveur (Expo Push) pour les nouveaux messages et les rendez-vous.`
 
-- [ ] **Synchronisation complète Supabase**
+- [x] **Synchronisation complète Supabase** : à chaque connexion, profil, étapes et tâches perso relus en arrière-plan (le serveur gagne, sauf ce que tu touches pendant la relecture ; une étape cochée hors ligne est renvoyée), écran « Mes rendez-vous » (à venir, historique, rejoindre, écrire, annuler) (30/10) — reste : appliquer l'index `bookings_student_idx` en prod (feu vert)
   > `/fonctionnalite Au login, charger depuis Supabase le profil, step_progress et custom_steps pour hydrater les stores Zustand (le serveur gagne en cas de conflit). Ajouter un écran « Mes rendez-vous » qui lit la table bookings.`
 
 - [ ] **Espace mentor complet**
@@ -48,7 +48,7 @@
 - [ ] **Guides synchronisés avec dalili.study** (les 64 guides via une table `guides` ou le CMS du site)
 - [ ] **Espace Hôte (V2)** : annonces d'hébergement temporaire, vérification d'identité, réservation
 - [x] **Analytics** (PostHog, serveur européen) : après accord, anonyme, 13 événements, projet UE configuré (29/10)
-- [x] **Tests** : Jest 30 + jest-expo 58 + Testing Library (29/10) ; 22 tests (parcours, présentation des écoles, chiffres, appels, dates, démo messagerie et sécurité). `npm test`, et `npm run check` = types + lint + tests
+- [x] **Tests** : Jest 30 + jest-expo 58 + Testing Library (29/10) ; 44 tests (parcours, synchronisation, rendez-vous, présentation des écoles, chiffres, appels, dates, rappels, démo messagerie et sécurité). `npm test`, et `npm run check` = types + lint + tests
 
 ## ⚠️ À valider par l'équipe
 

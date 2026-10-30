@@ -23,9 +23,13 @@ export async function syncCustomStep(step: { id: string; title: string; date: st
 /** Relit le parcours enregistré en ligne : étapes cochées et tâches perso. */
 export async function fetchJourney() {
   if (!supabase) return null;
+  const { data: s } = await supabase.auth.getSession();
+  const uid = s.session?.user.id;
+  // Sans compte, une liste vide effacerait le parcours du téléphone (le serveur gagne) : on ne rend rien.
+  if (!uid) return null;
   const [steps, custom] = await Promise.all([
-    supabase.from('step_progress').select('step_id, done'),
-    supabase.from('custom_steps').select('id, title, due_date, done').order('due_date'),
+    supabase.from('step_progress').select('step_id, done').eq('user_id', uid),
+    supabase.from('custom_steps').select('id, title, due_date, done').eq('user_id', uid).order('due_date'),
   ]);
   if (steps.error) throw steps.error;
   if (custom.error) throw custom.error;

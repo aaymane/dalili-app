@@ -323,6 +323,28 @@ set local role anon;
 select tests.must_fail('anon lit les demandes', 'select * from public.mentor_requests()');
 rollback;
 
+-- ───────────── synchronisation : à la connexion, chacun ne relit que son parcours et ses rendez-vous ─────────────
+begin;
+insert into public.mentors (id, user_id, first_name, last_name, city, is_active) values
+  ('00000000-0000-0000-0000-0000000000e1', '00000000-0000-0000-0000-00000000000c', 'Yassine', 'Kadiri', 'Lyon', true);
+set local role authenticated;
+set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-00000000000a","role":"authenticated"}';
+insert into public.step_progress (user_id, step_id, done) values (auth.uid(), 'visa', true);
+insert into public.custom_steps (user_id, title, due_date) values (auth.uid(), 'Banque', '2026-11-10');
+insert into public.bookings (student_id, mentor_id, starts_at) values (auth.uid(), '00000000-0000-0000-0000-0000000000e1', now() + interval '2 days');
+select tests.must_count('A relit ses étapes, ses tâches et ses rendez-vous',
+  $q$select 1 from public.step_progress union all select 1 from public.custom_steps union all select 1 from public.bookings$q$, 3);
+set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-00000000000b","role":"authenticated"}';
+select tests.must_count('B ne relit rien du parcours de A', $q$select 1 from public.step_progress union all select 1 from public.custom_steps$q$, 0);
+select tests.must_count('B ne voit pas les rendez-vous de A', 'select * from public.bookings', 0);
+select tests.must_fail('B écrase l''étape de A', $q$insert into public.step_progress (user_id, step_id, done) values ('00000000-0000-0000-0000-00000000000a', 'visa', false)$q$);
+update public.custom_steps set done = true;
+set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-00000000000a","role":"authenticated"}';
+select tests.must_count('B n''a pas pu cocher la tâche de A', 'select * from public.custom_steps where not done', 1);
+reset role;
+select tests.must_count('la liste « Mes rendez-vous » a son index', $q$select 1 from pg_indexes where indexname = 'bookings_student_idx'$q$, 1);
+rollback;
+
 -- ───────────── signaler : seuls les fondateurs lisent, la base retrouve qui est signalé ─────────────
 begin;
 insert into public.mentors (id, user_id, first_name, last_name, city, is_active) values

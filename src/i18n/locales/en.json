@@ -1359,5 +1359,28 @@
     "tomorrowTitle": "Tomorrow: {{title}}",
     "tomorrowBody": "It’s tomorrow. Check that everything is ready, we’re here if you get stuck.",
     "channel": "Deadline reminders"
+  },
+  "appointments": {
+    "title": "My appointments",
+    "intro": "Your call requests and appointments with mentors, all in one place.",
+    "upcoming": "Upcoming",
+    "history": "History",
+    "mentor": "Your mentor",
+    "state": {
+      "pending": "Pending",
+      "confirmed": "Confirmed",
+      "live": "It’s time",
+      "done": "Done",
+      "cancelled": "Cancelled",
+      "expired": "No answer"
+    },
+    "join": "Join the call",
+    "cancel": "Cancel",
+    "rowA11y": "{{name}}, {{topic}}, {{when}}. {{state}}. Opens their profile.",
+    "empty": "No appointments yet. A mentor who’s been through it can help: pick one and suggest a time slot.",
+    "emptyUpcoming": "Nothing planned for now.",
+    "findMentor": "Find a mentor",
+    "loadError": "Couldn’t load your appointments. Check your connection.",
+    "refreshA11y": "Refresh your appointments"
   }
 }

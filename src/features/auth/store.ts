@@ -12,7 +12,7 @@ import { unregisterPush } from '@/features/notifications/push';
 import { cancelReminders } from '@/features/notifications/reminders';
 import { useProfile } from '@/features/profile/store';
 
-import { deleteOnlineAccount, resetLocalData, restoreFromServer, watchProfile } from './account';
+import { deleteOnlineAccount, refreshFromServer, resetLocalData, restoreFromServer, watchProfile } from './account';
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -69,6 +69,8 @@ export const useAuth = create<AuthState>()(
         // quoi que ce soit, sinon il hériterait du profil et sauterait l'onboarding. Puis on remet
         // ce qu'il a enregistré en ligne (écran de chargement pendant ce temps).
         let restoring: Promise<void> | null = null;
+        // Compte déjà relu depuis ce lancement : une fois par session, pas à chaque rafraîchissement du jeton.
+        let pulled: string | null = null;
         let latest = 0;
         const apply = async (u: { id: string; email?: string } | undefined) => {
           const call = ++latest;
@@ -92,7 +94,13 @@ export const useAuth = create<AuthState>()(
             if (identity) useProfile.getState().update(identity);
             set({ ownerId: u.id, status: 'loading' });
             restoring = restoreFromServer();
+            pulled = u.id;
+          } else if (u && pulled !== u.id) {
+            // Même compte : l'app s'ouvre sans attendre, et le serveur met à jour ce qui a changé ailleurs.
+            pulled = u.id;
+            refreshFromServer();
           }
+          if (!u) pulled = null;
           if (u && restoring) await restoring;
           if (call !== latest) return; // un événement plus récent (déconnexion…) a déjà tranché
           set({ status: u ? 'signedIn' : 'signedOut', user: u ? { id: u.id, email: u.email ?? '' } : null });

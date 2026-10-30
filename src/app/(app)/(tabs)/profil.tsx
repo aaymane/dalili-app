@@ -136,7 +136,7 @@ export default function Profil() {
         <Animated.View entering={rise(100)} style={styles.group}>
           <Row icon={BrainCircuit} tone="violet" label={t('profile.aiProfile')} sub={t('profile.aiProfileSub')} onPress={go('/(app)/profil-ia')} />
           <Row icon={Map} tone="blue" label={t('profile.journey')} sub={t('profile.journeySub', { percent: Math.round(j.progress * 100), count: j.total - j.doneCount })} onPress={go('/(app)/parcours')} />
-          <Row icon={CalendarCheck2} tone="green" label={t('profile.myAppointments')} sub={bookings.length ? t('profile.upcoming', { count: bookings.length }) : t('profile.noAppointments')} onPress={go('/(app)/parcours?view=calendar')} />
+          <Row icon={CalendarCheck2} tone="green" label={t('profile.myAppointments')} sub={bookings.length ? t('profile.upcoming', { count: bookings.length }) : t('profile.noAppointments')} onPress={go('/(app)/rendez-vous')} />
           <Row icon={Bookmark} tone="orange" label={t('profile.savedGuides')} sub={t('profile.guidesCount', { count: saved.length })} onPress={go('/(app)/(tabs)/explorer?tab=guides')} />
           <Row icon={FolderCheck} tone="amber" label={t('profile.documents')} sub={t('profile.documentsSub')} onPress={go('/(app)/outils/documents')} />
         </Animated.View>

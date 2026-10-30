@@ -1359,5 +1359,28 @@
     "tomorrowTitle": "Demain : {{title}}",
     "tomorrowBody": "C’est demain. Vérifie que tout est prêt, on est là si tu bloques.",
     "channel": "Rappels d’échéances"
+  },
+  "appointments": {
+    "title": "Mes rendez-vous",
+    "intro": "Tes demandes d’appel et tes rendez-vous avec les mentors, au même endroit.",
+    "upcoming": "À venir",
+    "history": "Historique",
+    "mentor": "Ton mentor",
+    "state": {
+      "pending": "En attente",
+      "confirmed": "Confirmé",
+      "live": "C’est l’heure",
+      "done": "Terminé",
+      "cancelled": "Annulé",
+      "expired": "Sans réponse"
+    },
+    "join": "Rejoindre l’appel",
+    "cancel": "Annuler",
+    "rowA11y": "{{name}}, {{topic}}, {{when}}. {{state}}. Ouvre son profil.",
+    "empty": "Pas encore de rendez-vous. Un mentor déjà passé par là peut t’aider : choisis-en un et propose-lui un créneau.",
+    "emptyUpcoming": "Rien de prévu pour l’instant.",
+    "findMentor": "Trouver un mentor",
+    "loadError": "Impossible de charger tes rendez-vous. Vérifie ta connexion.",
+    "refreshA11y": "Actualiser tes rendez-vous"
   }
 }

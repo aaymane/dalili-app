@@ -59,7 +59,7 @@ Formulaires du site testés en vrai avec l'adresse de test de l'équipe (waitlis
 
 ## 4. Tester une migration avant la prod
 
-`npm run test:migrations` lance un Postgres jetable (Docker). Le script rejoue le schéma du site tel qu'il était avant M1 (`supabase/tests/01_site_prod.sql`, relevé le 20/10), toutes les migrations, le seed, puis les **tests de sécurité** (`supabase/tests/rls.sql`) : anon, quatre comptes, clé service, photos de profil, mentorat, notifications, webhook (faux Vault et faux `pg_net`). Dernier résultat (29/10) : 222 vérifications, toutes vertes.
+`npm run test:migrations` lance un Postgres jetable (Docker). Le script rejoue le schéma du site tel qu'il était avant M1 (`supabase/tests/01_site_prod.sql`, relevé le 20/10), toutes les migrations, le seed, puis les **tests de sécurité** (`supabase/tests/rls.sql`) : anon, quatre comptes, clé service, photos de profil, mentorat, notifications, webhook (faux Vault et faux `pg_net`). Dernier résultat (30/10) : 228 vérifications, toutes vertes (dont la synchronisation : chacun ne relit que son parcours et ses rendez-vous). `20261030120000_synchro_rendez_vous.sql` (index `bookings_student_idx`) n'est **pas encore appliquée** en prod.
 
 Règles :
 1. Nouveau fichier daté dans `supabase/migrations/`, jamais de modification d'une migration déjà appliquée.
