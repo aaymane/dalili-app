@@ -130,8 +130,6 @@
     "guidesCount_other": "{{count}} guides",
     "documents": "Mes documents",
     "documentsSub": "La checklist de tes papiers",
-    "switchMode": "Changer de mode",
-    "currentMode": "Actuellement : {{role}}",
     "reminders": "Rappels d’échéances",
     "remindersSub": "7 jours avant et la veille : visa, CAF, CVEC…",
     "appearance": "Apparence",
@@ -155,16 +153,6 @@
     "modeDemo": "Mode démo",
     "modeOnline": "Connecté à Supabase",
     "modeA11y": "Mode {{role}}"
-  },
-  "role": {
-    "title": "Comment veux-tu vivre\nl’app aujourd’hui ?",
-    "text": "Un seul compte : tes données et tes conversations te suivent.",
-    "student": "Tes démarches, ton parcours, ta ville",
-    "mentorActive": "Tes demandes d’appel et tes créneaux",
-    "mentorNew": "Aide les nouveaux arrivants, gratuitement",
-    "host": "Accueillir un étudiant à son arrivée",
-    "hostSoon": "L’espace Hôte arrive bientôt 🏡",
-    "soonA11y": "{{role}}, bientôt"
   },
   "auth": {
     "welcomeA": "Bienvenue dans",
@@ -308,13 +296,13 @@
       "inFranceBadge": "MENTOR · HÔTE"
     },
     "loading": {
-      "titleMentor": "On prépare ton\nespace Mentor",
+      "titleMentor": "On prépare\nton espace",
       "titleCity": "Je prépare ton arrivée\nà {{city}}…",
       "title": "Je prépare\nton arrivée…",
       "yourCity": "ta ville",
-      "mentor1": "Création de ton profil mentor",
-      "mentor2": "Étudiants qui arrivent à {{city}}",
-      "mentor3": "Tes créneaux de disponibilité",
+      "mentor1": "Ton profil en France",
+      "mentor2": "Les étudiants qui arrivent à {{city}}",
+      "mentor3": "Ta candidature mentor",
       "space": "Construction de ton espace perso",
       "student1": "Sélection de mentors adaptés",
       "student2": "Cartographie de tes démarches",
@@ -324,7 +312,7 @@
       "cityTitle": "Dans quelle ville\nvis-tu ?",
       "cityText": "On te connecte aux étudiants qui arrivent près de chez toi.",
       "helpTitle": "Comment veux-tu\naider ?",
-      "helpText": "Tu pourras faire les deux plus tard, depuis ton profil.",
+      "helpText": "Pour devenir mentor, l’équipe vérifie d’abord que tu vis et étudies en France.",
       "become": "Devenir Mentor",
       "becomeText": "Guide les étudiants : démarches, conseils, ton expérience",
       "tagVisa": "Visa",
@@ -969,7 +957,7 @@
       "birthYear": "Année de naissance",
       "yearPlaceholder": "aaaa",
       "yearPrivate": "Elle reste privée : seule l’équipe DALILI la voit.",
-      "verifyNote": "Ensuite, l’équipe vérifie ton profil (carte étudiante, LinkedIn ou titre de séjour) avant de montrer ta fiche. On ne garde aucune copie.",
+      "verifyNote": "Ensuite, tu envoies ton titre de séjour et ton certificat de scolarité. L’équipe les vérifie, puis les supprime.",
       "notSent": "Pas envoyée. Vérifie ta connexion et réessaie.",
       "outdated": "Cette charte n’est plus à jour : mets l’app à jour.",
       "yearDigits": "Ton année de naissance, sur 4 chiffres.",
@@ -1267,6 +1255,10 @@
         "title": "Tes demandes aux écoles partenaires",
         "text": "Gardées par DALILI pour te recontacter. Jamais transmises à l’école sans ton accord."
       },
+      "mentorDocs": {
+        "title": "Tes documents de candidature mentor",
+        "text": "Titre de séjour et certificat de scolarité : vus seulement par l’équipe, supprimés dès sa décision."
+      },
       "reports": {
         "title": "Les signalements du mentorat",
         "text": "Lus seulement par l’équipe. Si un compte est supprimé, le signalement reste, sans le nom, pour protéger les autres."
@@ -1382,5 +1374,54 @@
     "findMentor": "Trouver un mentor",
     "loadError": "Impossible de charger tes rendez-vous. Vérifie ta connexion.",
     "refreshA11y": "Actualiser tes rendez-vous"
+  },
+  "mentorApply": {
+    "row": "Devenir mentor",
+    "rowSub": {
+      "none": "Aide les étudiants qui arrivent",
+      "abroad": "Dès ton arrivée en France",
+      "pending": "Candidature en vérification",
+      "rejected": "Candidature à revoir",
+      "approved": "Candidature validée"
+    },
+    "charterNext": "J’accepte la charte",
+    "lockedTitle": "D’abord, arrive en France",
+    "lockedText": "Pour guider les autres, il faut être passé·e par là. Tu pourras devenir mentor dès ton arrivée, avec ton titre de séjour et ton certificat de scolarité.",
+    "lockedArrived": "Je suis déjà en France",
+    "docsOverline": "Étape {{step}} / {{total}} · Vérification",
+    "docsTitle": "Tes deux\ndocuments",
+    "docsSubtitle": "L’équipe vérifie que tu vis et étudies en France. C’est ce qui rend DALILI sûr pour tout le monde.",
+    "docs": {
+      "titre_sejour": "Titre de séjour",
+      "certificat_scolarite": "Certificat de scolarité"
+    },
+    "docsHint": {
+      "titre_sejour": "VLS-TS validé, carte de séjour ou récépissé",
+      "certificat_scolarite": "De cette année, à ton nom"
+    },
+    "take": "Prendre en photo",
+    "pick": "Choisir",
+    "replace": "Reprendre",
+    "added": "ajouté",
+    "toAdd": "à ajouter",
+    "docA11y": "{{doc}}, {{state}}",
+    "uploadFailed": "Pas envoyé. Vérifie ta connexion et réessaie.",
+    "permission": "Autorise l’appareil photo dans les réglages de ton téléphone.",
+    "privacy": "Vu seulement par l’équipe DALILI, jamais par les étudiants. Supprimé dès notre décision.",
+    "submit": "Envoyer ma candidature",
+    "notSent": "Pas envoyée. Vérifie ta connexion et réessaie.",
+    "notInFrance": "Ton profil dit que tu n’es pas encore en France. Attends quelques secondes, puis réessaie.",
+    "sentTitle": "Candidature envoyée !",
+    "sentText": "L’équipe regarde tes documents, en général sous 48 h. Tu reçois une notification dès que c’est fait.",
+    "pendingTitle": "On vérifie ta candidature",
+    "pendingText": "Tes documents sont entre de bonnes mains. Dès que l’équipe valide, ton espace mentor s’ouvre tout seul.",
+    "pendingStep1": "Candidature envoyée",
+    "pendingStep2": "Vérification par l’équipe",
+    "pendingStep3": "Ton espace mentor",
+    "demoApprove": "Mode démo : simuler la validation",
+    "rejectedTitle": "Ta candidature est à revoir",
+    "rejectedText": "L’équipe dit : « {{reason}} ». Corrige et renvoie quand tu veux.",
+    "rejectedNoReason": "L’équipe n’a pas pu la valider. Renvoie des documents lisibles quand tu veux.",
+    "welcome": "Bienvenue dans ton espace mentor"
   }
 }

@@ -1,4 +1,4 @@
-import { useLocalSearchParams } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { Check } from 'lucide-react-native';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
@@ -46,7 +46,9 @@ export default function Loading() {
       haptics.success();
       celebrate();
       complete();
-      track('onboarding_completed', { role: profile.activeRole === 'mentor' ? 'mentor' : 'student' });
+      track('onboarding_completed', { role });
+      // « Devenir mentor » : l'espace s'ouvre, puis la candidature (charte + documents) par-dessus.
+      if (role === 'mentor') setTimeout(() => router.push('/(app)/devenir-mentor'), 600);
     }, 700 + items.length * 750 + 500);
     return () => {
       timers.forEach(clearTimeout);

@@ -3,12 +3,17 @@
  * Avec Supabase et une session : la base (une demande se crée « en attente », le mentor accepte ou décline,
  * voir supabase/migrations/20261023130000_mentorat_reel.sql). Sans (mode démo, profils de test) : données d'exemple.
  */
+import { File } from 'expo-file-system';
+import { Platform } from 'react-native';
+
 import { toMentor } from '@/data/api';
 import { demoMentorRequests, demoMentors } from '@/data/demo';
+import { useLocalDb } from '@/data/local-db';
 import type { Mentor } from '@/data/types';
 import { supabase } from '@/lib/supabase';
 
 import { CHARTER_VERSION } from './charter';
+import { prepareDocument } from './documents';
 
 export type RequestStatus = 'pending' | 'confirmed' | 'cancelled' | 'done';
 
@@ -37,8 +42,11 @@ async function sessionUser() {
 
 export async function fetchMyMentor(): Promise<MyMentor | null> {
   const user = await sessionUser();
-  // Démo : un identifiant à part, pour ne pas confondre « ma fiche » avec un mentor de la liste d'exemple.
-  if (!supabase || !user) return { ...demoMentors[0], id: 'm-moi', isActive: true, charterOk: true };
+  // Démo : une fiche seulement après la candidature, avec un identifiant à part (pas un mentor de la liste d'exemple).
+  if (!supabase || !user) {
+    const demo = useLocalDb.getState().mentorApplication;
+    return demo.sent ? { ...demoMentors[0], id: 'm-moi', isActive: demo.approved, charterOk: true } : null;
+  }
   const [mentor, trust] = await Promise.all([
     supabase.from('mentors').select('*').eq('user_id', user.id).maybeSingle(),
     supabase.from('mentor_trust').select('charter_version').eq('user_id', user.id).maybeSingle(),
@@ -56,7 +64,7 @@ export async function fetchMyMentor(): Promise<MyMentor | null> {
  */
 export async function createMyMentor(input: { firstName: string; lastName: string; city: string; origin: string; birthYear: number }) {
   const user = await sessionUser();
-  if (!supabase || !user) return;
+  if (!supabase || !user) return useLocalDb.getState().setMentorApplication({ sent: true });
   const charter = await supabase.rpc('accept_mentor_charter', { p_birth_year: input.birthYear, p_version: CHARTER_VERSION });
   if (charter.error) throw charter.error;
   const { error } = await supabase.from('mentors').insert({
@@ -68,6 +76,65 @@ export async function createMyMentor(input: { firstName: string; lastName: strin
   });
   // Déjà créée (deuxième tap, autre téléphone, fiche d'avant la charte) : la charte acceptée suffit.
   if (error && error.code !== '23505') throw error;
+}
+
+export type DocKind = 'titre_sejour' | 'certificat_scolarite';
+export const DOC_KINDS: DocKind[] = ['titre_sejour', 'certificat_scolarite'];
+
+/**
+ * Où en est ta candidature mentor. none : rien d'envoyé (ou des documents seulement) ; pending : fiche envoyée,
+ * l'équipe vérifie ; rejected : refusée, avec le motif de l'équipe ; approved : tu es mentor.
+ */
+export type MentorApplication = { documents: DocKind[]; status: 'none' | 'pending' | 'rejected' | 'approved'; rejectedReason: string | null };
+
+export async function fetchMyApplication(): Promise<MentorApplication> {
+  const user = await sessionUser();
+  if (!supabase || !user) {
+    const demo = useLocalDb.getState().mentorApplication;
+    return { documents: demo.documents as DocKind[], status: demo.approved ? 'approved' : demo.sent ? 'pending' : 'none', rejectedReason: null };
+  }
+  const [mentor, docs, trust] = await Promise.all([
+    supabase.from('mentors').select('is_active').eq('user_id', user.id).maybeSingle(),
+    supabase.from('mentor_documents').select('kind').eq('user_id', user.id),
+    supabase.from('mentor_trust').select('rejected_at, rejected_reason').eq('user_id', user.id).maybeSingle(),
+  ]);
+  if (mentor.error) throw mentor.error;
+  if (docs.error) throw docs.error;
+  const status = mentor.data ? (mentor.data.is_active ? 'approved' : 'pending') : trust.data?.rejected_at ? 'rejected' : 'none';
+  return { documents: (docs.data ?? []).map((d) => d.kind as DocKind), status, rejectedReason: trust.data?.rejected_reason ?? null };
+}
+
+/**
+ * Envoie un document dans le dossier privé du compte (bucket `mentor-documents`), en remplaçant l'ancien de la même sorte.
+ * Seule l'équipe le lit, le temps de la vérification. En démo, rien ne part : on note seulement qu'il est ajouté.
+ */
+export async function uploadMentorDocument(kind: DocKind, pickedUri: string) {
+  const uri = await prepareDocument(pickedUri);
+  const user = await sessionUser();
+  if (!supabase || !user) {
+    const demo = useLocalDb.getState().mentorApplication;
+    return useLocalDb.getState().setMentorApplication({ documents: [...new Set([...demo.documents, kind])] });
+  }
+  const bucket = supabase.storage.from('mentor-documents');
+  const path = `${user.id}/${kind === 'titre_sejour' ? 'sejour' : 'scolarite'}-${Date.now().toString(36)}.jpg`;
+  const body = Platform.OS === 'web' ? await (await fetch(uri)).arrayBuffer() : await new File(uri).arrayBuffer();
+  const { error } = await bucket.upload(path, body, { contentType: 'image/jpeg', upsert: false });
+  if (error) throw error;
+  const { data: old } = await supabase.from('mentor_documents').select('path').eq('user_id', user.id).eq('kind', kind).maybeSingle();
+  if (old) {
+    await supabase.from('mentor_documents').delete().eq('user_id', user.id).eq('kind', kind);
+    await bucket.remove([old.path]);
+  }
+  const { error: rowError } = await supabase.from('mentor_documents').insert({ kind, path });
+  if (rowError) {
+    await bucket.remove([path]);
+    throw rowError;
+  }
+}
+
+/** Démo seulement : l'équipe « valide » la candidature, pour montrer la bascule vers l'espace mentor. */
+export function approveDemoApplication() {
+  useLocalDb.getState().setMentorApplication({ approved: true });
 }
 
 /** L'interrupteur « Je prends des demandes / En pause ». */

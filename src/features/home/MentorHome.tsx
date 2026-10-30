@@ -67,7 +67,7 @@ export function MentorHome() {
 
   const mentor = mine.data;
   return (
-    <Screen top={gradients.roleTop.mentor} tabBar padded={false} header={<AppHeader roleSwitch />}>
+    <Screen top={gradients.roleTop.mentor} tabBar padded={false} header={<AppHeader />}>
       <View style={{ paddingHorizontal: 20, gap: 26 }}>
         {mine.isError ? (
           <Animated.View entering={enter(0)}>

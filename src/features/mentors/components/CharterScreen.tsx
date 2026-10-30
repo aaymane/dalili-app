@@ -25,15 +25,17 @@ type Props = {
   total: number;
   /** Fiche déjà envoyée avant la charte : on accepte seulement, sans renvoyer de fiche. */
   hasSheet?: boolean;
+  /** Candidature : la charte n'est que la 1re étape, l'année part avec la fiche, après les documents. */
+  onNext?: (birthYear: number) => void;
   onBack: () => void;
-  onDone: () => void;
+  onDone?: () => void;
 };
 
 /**
- * Charte du mentor : année de naissance (18 ans au moins) et 6 engagements à cocher, puis la fiche part à l'équipe.
- * La base refuse une fiche sans charte acceptée : cet écran est le seul chemin pour devenir mentor.
+ * Charte du mentor : année de naissance (18 ans au moins) et 6 engagements à cocher.
+ * Dans la candidature, on passe ensuite aux documents ; pour une fiche d'avant la charte, on l'accepte seulement.
  */
-export function CharterScreen({ step, total, hasSheet, onBack, onDone }: Props) {
+export function CharterScreen({ step, total, hasSheet, onNext, onBack, onDone }: Props) {
   const { c: colors, tones, gradients } = useTheme();
   const t = useT();
   const styles = useStyles();
@@ -50,6 +52,7 @@ export function CharterScreen({ step, total, hasSheet, onBack, onDone }: Props) 
 
   const submit = () => {
     if (yearError) return setShowError(true);
+    if (onNext) return onNext(Number(year));
     create.mutate(
       {
         firstName: profile.firstName,
@@ -61,7 +64,7 @@ export function CharterScreen({ step, total, hasSheet, onBack, onDone }: Props) 
       {
         onSuccess: () => {
           haptics.success();
-          onDone();
+          onDone?.();
         },
         // Les refus de la base (23514) : moins de 18 ans, ou charte plus à jour.
         onError: (e) =>
@@ -92,7 +95,7 @@ export function CharterScreen({ step, total, hasSheet, onBack, onDone }: Props) 
       }
       footer={
         <Button
-          label={hasSheet ? t('mentors.charter.accept') : t('mentors.charter.acceptSend')}
+          label={onNext ? t('mentorApply.charterNext') : hasSheet ? t('mentors.charter.accept') : t('mentors.charter.acceptSend')}
           accent={gradients.mentor}
           icon={<ShieldCheck size={18} color="#fff" />}
           loading={create.isPending}

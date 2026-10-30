@@ -3,6 +3,7 @@ import { router, Stack } from 'expo-router';
 import { useEffect } from 'react';
 
 import { useJourney, useJourneyStore } from '@/features/journey/store';
+import { useMentorRoleSync } from '@/features/mentors/hooks';
 import { AnalyticsConsentSheet, useAnalyticsTracking } from '@/features/profile/components/AnalyticsConsent';
 import { openFromNotification, registerPush } from '@/features/notifications/push';
 import { cancelReminders, planReminders, syncReminders } from '@/features/notifications/reminders';
@@ -61,6 +62,7 @@ export default function AppLayout() {
   usePushNotifications();
   useDeadlineReminders();
   useAnalyticsTracking();
+  useMentorRoleSync();
   return (
     <>
       <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: c.bg } }}>
@@ -68,10 +70,6 @@ export default function AppLayout() {
         <Stack.Screen
           name="etape/[id]"
           options={{ presentation: 'formSheet', sheetAllowedDetents: [0.92], sheetCornerRadius: 30, sheetGrabberVisible: true, contentStyle: { backgroundColor: c.card } }}
-        />
-        <Stack.Screen
-          name="role"
-          options={{ presentation: 'formSheet', sheetAllowedDetents: 'fitToContents', sheetCornerRadius: 30, sheetGrabberVisible: true, contentStyle: { backgroundColor: c.card } }}
         />
         <Stack.Screen name="appel/[id]" options={{ presentation: 'fullScreenModal', animation: 'fade' }} />
         <Stack.Screen name="ecole/decouvrir" options={{ presentation: 'fullScreenModal', animation: 'fade', contentStyle: { backgroundColor: c.navyDeep } }} />

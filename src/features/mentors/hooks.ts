@@ -1,12 +1,32 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { router } from 'expo-router';
+import { useEffect } from 'react';
 
+import { celebrate } from '@/components/feedback/Confetti';
+import { toast } from '@/components/feedback/Toast';
 import { askNotifications, notifyServer } from '@/features/notifications/push';
+import { useProfile } from '@/features/profile/store';
+import { t } from '@/i18n';
 import { track } from '@/lib/analytics';
+import { haptics } from '@/lib/haptics';
 
-import { answerRequest, createMyMentor, fetchMentorRequests, fetchMyMentor, setMyAvailability, type MentorRequest, type MyMentor } from './api';
+import {
+  answerRequest,
+  approveDemoApplication,
+  createMyMentor,
+  fetchMentorRequests,
+  fetchMyApplication,
+  fetchMyMentor,
+  setMyAvailability,
+  uploadMentorDocument,
+  type DocKind,
+  type MentorRequest,
+  type MyMentor,
+} from './api';
 
 const MINE = ['mentor', 'mine'] as const;
 const REQUESTS = ['mentor', 'requests'] as const;
+const APPLICATION = ['mentor', 'application'] as const;
 
 export function useMyMentor() {
   return useQuery({ queryKey: MINE, queryFn: fetchMyMentor });
@@ -24,8 +44,53 @@ export function useCreateMyMentor() {
       // Pour apprendre la validation de ta fiche, puis chaque nouvelle demande.
       void askNotifications();
     },
-    onSettled: () => qc.invalidateQueries({ queryKey: MINE }),
+    onSettled: () => Promise.all([qc.invalidateQueries({ queryKey: MINE }), qc.invalidateQueries({ queryKey: APPLICATION })]),
   });
+}
+
+export function useMyApplication() {
+  return useQuery({ queryKey: APPLICATION, queryFn: fetchMyApplication });
+}
+
+/** Un document de la candidature : la carte passe « ajouté » dès que l'envoi est fini. */
+export function useUploadDocument() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ kind, uri }: { kind: DocKind; uri: string }) => uploadMentorDocument(kind, uri),
+    onSuccess: () => qc.invalidateQueries({ queryKey: APPLICATION }),
+  });
+}
+
+/** Démo : simule la validation par l'équipe (la bascule vers l'espace mentor suit). */
+export function useApproveDemo() {
+  const qc = useQueryClient();
+  return () => {
+    approveDemoApplication();
+    void qc.invalidateQueries({ queryKey: MINE });
+    void qc.invalidateQueries({ queryKey: APPLICATION });
+  };
+}
+
+/**
+ * Un compte est étudiant OU mentor : il devient mentor quand l'équipe valide sa fiche, et l'app bascule toute seule
+ * (confettis, accueil mentor). Une fiche suspendue ou retirée le ramène côté étudiant. Hors ligne : rien ne bouge.
+ */
+export function useMentorRoleSync() {
+  const { data, isSuccess } = useMyMentor();
+  const role = useProfile((s) => s.profile.activeRole);
+  const mentor = !!data?.isActive;
+  useEffect(() => {
+    if (!isSuccess) return;
+    if (mentor && role !== 'mentor') {
+      useProfile.getState().update({ roles: ['mentor'], activeRole: 'mentor' });
+      haptics.success();
+      celebrate();
+      toast(t('mentorApply.welcome'), 'success');
+      router.navigate('/(app)/(tabs)');
+    } else if (!mentor && role === 'mentor') {
+      useProfile.getState().update({ roles: ['student'], activeRole: 'student' });
+    }
+  }, [isSuccess, mentor, role]);
 }
 
 /** L'interrupteur bascule tout de suite ; s'il n'est pas enregistré, il revient. */

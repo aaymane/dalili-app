@@ -1,5 +1,5 @@
 import { router, type Href } from 'expo-router';
-import { Ban, Bell, Bookmark, BrainCircuit, CalendarCheck2, Camera, FolderCheck, Languages, LogOut, type LucideIcon, Map, RefreshCw, Repeat, ShieldCheck, Siren, SunMoon } from 'lucide-react-native';
+import { Ban, Bell, Bookmark, BrainCircuit, CalendarCheck2, Camera, FolderCheck, HeartHandshake, Languages, LogOut, type LucideIcon, Map, RefreshCw, ShieldCheck, Siren, SunMoon } from 'lucide-react-native';
 import { useState, type ReactNode } from 'react';
 import { Alert, Platform, Switch, View } from 'react-native';
 import Animated from 'react-native-reanimated';
@@ -22,7 +22,8 @@ import { askNotifications, unregisterPush } from '@/features/notifications/push'
 import { AvatarSheet } from '@/features/profile/components/AvatarSheet';
 import { LanguageSheet } from '@/features/profile/components/LanguageSheet';
 import { NameCard } from '@/features/profile/components/NameCard';
-import { useProfile } from '@/features/profile/store';
+import { useMyApplication } from '@/features/mentors/hooks';
+import { isInFrance, useProfile } from '@/features/profile/store';
 import { LANGUAGE_NAMES, useCurrentLanguage, useLanguage, useT } from '@/i18n';
 import { useRoleTheme } from '@/theme';
 import { makeStyles, useTheme, useAppearance } from '@/theme/scheme';
@@ -67,6 +68,8 @@ export default function Profil() {
   const saved = useLocalDb((s) => s.savedGuides);
   const groups = useLocalDb((s) => s.joinedGroups);
   const j = useJourney();
+  const application = useMyApplication().data;
+  const isMentor = profile.activeRole === 'mentor';
   const { top, accent } = useRoleTheme();
   const go = (h: Href) => () => router.push(h);
 
@@ -142,7 +145,16 @@ export default function Profil() {
         </Animated.View>
 
         <Animated.View entering={rise(140)} style={styles.group}>
-          <Row icon={Repeat} tone="slate" label={t('profile.switchMode')} sub={t('profile.currentMode', { role: t(`roles.${profile.activeRole}`) })} onPress={go('/(app)/role')} />
+          {/* Un compte est étudiant OU mentor : l'étudiant arrivé en France peut candidater, l'équipe vérifie. */}
+          {isMentor ? null : (
+            <Row
+              icon={HeartHandshake}
+              tone="green"
+              label={t('mentorApply.row')}
+              sub={t(`mentorApply.rowSub.${isInFrance(profile) ? (application?.status ?? 'none') : 'abroad'}`)}
+              onPress={go('/(app)/devenir-mentor')}
+            />
+          )}
           <Row
             icon={Bell}
             tone="slate"

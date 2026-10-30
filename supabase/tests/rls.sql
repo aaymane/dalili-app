@@ -86,6 +86,20 @@ select tests.must_fail('A se déclare vérifié', $q$update public.mentor_trust 
 select tests.must_fail('A change son année de naissance à la main', 'update public.mentor_trust set birth_year = 1990 where user_id = auth.uid()');
 select public.accept_mentor_charter(1985, public.mentor_charter_version());
 select tests.must_count('réaccepter la charte ne change pas l''année notée', 'select * from public.mentor_trust where birth_year = 1999', 1);
+-- Candidature mentor (30/10) : pas de fiche tant que A n'est pas en France avec ses deux documents.
+select tests.must_fail('A, pas encore en France, envoie une fiche', $q$insert into public.mentors (user_id, first_name, last_name, city) values (auth.uid(), 'A', 'A', 'Paris')$q$);
+update public.profiles set situation = 'in_france' where id = auth.uid();
+select tests.must_fail('A, en France, envoie une fiche sans documents', $q$insert into public.mentors (user_id, first_name, last_name, city) values (auth.uid(), 'A', 'A', 'Paris')$q$);
+insert into storage.objects (bucket_id, name) values ('mentor-documents', '00000000-0000-0000-0000-00000000000a/sejour1.jpg');
+insert into public.mentor_documents (kind, path) values ('titre_sejour', '00000000-0000-0000-0000-00000000000a/sejour1.jpg');
+select tests.must_fail('A envoie une fiche avec un seul document', $q$insert into public.mentors (user_id, first_name, last_name, city) values (auth.uid(), 'A', 'A', 'Paris')$q$);
+select tests.must_fail('A note un document dans le dossier de B',
+  $q$insert into public.mentor_documents (kind, path) values ('certificat_scolarite', '00000000-0000-0000-0000-00000000000b/scol001.jpg')$q$);
+select tests.must_fail('A dépose un document dans le dossier de B',
+  $q$insert into storage.objects (bucket_id, name) values ('mentor-documents', '00000000-0000-0000-0000-00000000000b/faux01.jpg')$q$);
+select tests.must_fail('A se marque refusé·e ou non refusé·e à la main', 'update public.mentor_trust set rejected_at = null where user_id = auth.uid()');
+insert into storage.objects (bucket_id, name) values ('mentor-documents', '00000000-0000-0000-0000-00000000000a/scol001.jpg');
+insert into public.mentor_documents (kind, path) values ('certificat_scolarite', '00000000-0000-0000-0000-00000000000a/scol001.jpg');
 insert into public.mentors (user_id, first_name, last_name, city) values (auth.uid(), 'A', 'A', 'Paris');
 select tests.must_count('A voit sa fiche mentor en attente', 'select * from public.mentors where not is_active', 1);
 select tests.must_fail('A gonfle le nombre de membres', 'update public.groups set members_count = 9999');
@@ -101,10 +115,31 @@ begin;
 set local role authenticated;
 set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-00000000000a","role":"authenticated"}';
 select public.accept_mentor_charter(1999, public.mentor_charter_version());
+update public.profiles set situation = 'in_france' where id = auth.uid();
+insert into storage.objects (bucket_id, name) values ('mentor-documents', '00000000-0000-0000-0000-00000000000a/sejour1.jpg'), ('mentor-documents', '00000000-0000-0000-0000-00000000000a/scol001.jpg');
+insert into public.mentor_documents (kind, path) values ('titre_sejour', '00000000-0000-0000-0000-00000000000a/sejour1.jpg'), ('certificat_scolarite', '00000000-0000-0000-0000-00000000000a/scol001.jpg');
 insert into public.mentors (user_id, first_name, last_name, city) values (auth.uid(), 'A', 'A', 'Paris');
+select tests.must_count('A voit ses deux documents', $q$select 1 from public.mentor_documents union all select 1 from storage.objects where bucket_id = 'mentor-documents'$q$, 4);
 set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-00000000000b","role":"authenticated"}';
 select tests.must_count('B ne voit pas un mentor non validé', 'select * from public.mentors', 0);
 select tests.must_count('B ne voit ni l''âge ni la vérification de A', 'select * from public.mentor_trust', 0);
+select tests.must_count('B ne voit pas les documents de A', $q$select 1 from public.mentor_documents union all select 1 from storage.objects where bucket_id = 'mentor-documents'$q$, 0);
+delete from storage.objects where bucket_id = 'mentor-documents';
+delete from public.mentor_documents;
+set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-00000000000a","role":"authenticated"}';
+select tests.must_count('B n''a pu retirer aucun document de A', 'select * from public.mentor_documents', 2);
+reset role;
+update public.mentor_trust set rejected_at = now(), rejected_reason = 'Document illisible' where user_id = '00000000-0000-0000-0000-00000000000a';
+set local role authenticated;
+select tests.must_count('A lit le motif du refus', $q$select * from public.mentor_trust where rejected_reason = 'Document illisible'$q$, 1);
+select public.accept_mentor_charter(1999, public.mentor_charter_version());
+select tests.must_count('recandidater efface le refus', 'select * from public.mentor_trust where rejected_at is null and rejected_reason is null', 1);
+delete from public.mentor_documents where kind = 'titre_sejour';
+select tests.must_count('A retire un de ses documents', 'select * from public.mentor_documents', 1);
+reset role;
+set local role anon;
+select tests.must_fail('anon lit les documents', 'select * from public.mentor_documents');
+select tests.must_count('le bucket des documents est privé', $q$select 1 from storage.buckets where id = 'mentor-documents' and not public$q$, 1);
 rollback;
 
 -- ───────────── mentors vérifiés : pas de mise en ligne sans preuve vue ─────────────

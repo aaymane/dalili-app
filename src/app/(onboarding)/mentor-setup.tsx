@@ -19,7 +19,7 @@ import { makeStyles, useTheme } from '@/theme/scheme';
 import { radius } from '@/theme/tokens';
 import { leave, rise } from '@/theme/motion';
 
-/** Parcours « Je vis déjà en France » : ville → comment aider (Mentor / Hôte / j'ai besoin d'aide). */
+/** Parcours « Je vis déjà en France » : ville → comment aider (candidature Mentor / Hôte bientôt / j'ai besoin d'aide). */
 export default function MentorSetup() {
   const { c, gradients } = useTheme();
   const styles = useStyles();
@@ -55,9 +55,10 @@ export default function MentorSetup() {
               <PressableScale
                 haptic="press"
                 onPress={() => {
-                  update({ roles: ['mentor', 'student'], activeRole: 'mentor' });
-                  // La charte d'abord : c'est elle qui envoie la fiche à l'équipe.
-                  router.push('/(onboarding)/charte');
+                  // Un compte est étudiant OU mentor : on reste étudiant (en France) le temps que l'équipe vérifie.
+                  // La candidature (charte + documents) s'ouvre juste après l'onboarding.
+                  update({ situation: 'in_france', roles: ['student'], activeRole: 'student', destinationCity: profile.mentorCity });
+                  router.push({ pathname: '/(onboarding)/loading', params: { role: 'mentor' } });
                 }}
                 style={[styles.choice, { backgroundColor: c.electricSoft }]}>
                 <IconTile icon={GraduationCap} tone="blue" size={56} radius={18} />

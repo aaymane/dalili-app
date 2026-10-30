@@ -1,12 +1,14 @@
 import { Redirect, router, useLocalSearchParams } from 'expo-router';
 import { useEffect } from 'react';
 
+import { useLocalDb } from '@/data/local-db';
 import { useAuth } from '@/features/auth/store';
 import { useJourneyStore } from '@/features/journey/store';
 import { useProfile } from '@/features/profile/store';
 import { emptyProfile, type Profile } from '@/features/profile/types';
 import { useLanguage, type LanguagePreference } from '@/i18n';
 import { addDays, toISODate } from '@/lib/date';
+import { queryClient } from '@/lib/query';
 
 /**
  * ⚠️ Écran TEMPORAIRE, mode développement uniquement : charge un profil de test pour les captures.
@@ -73,7 +75,11 @@ export default function DevProfil() {
   useEffect(() => {
     const preset = PROFILES[p ?? 'aymen'];
     if (!__DEV__ || !preset) return;
-    const mentor: Partial<Profile> = role === 'mentor' ? { roles: ['mentor', 'student'], activeRole: 'mentor', mentorCity: preset.profile.destinationCity ?? null } : {};
+    // Un compte est étudiant OU mentor : en mode Mentor, la candidature de démo est déjà validée.
+    const mentor: Partial<Profile> =
+      role === 'mentor' ? { roles: ['mentor'], activeRole: 'mentor', situation: 'in_france', mentorCity: preset.profile.destinationCity ?? null } : {};
+    useLocalDb.getState().setMentorApplication(role === 'mentor' ? { documents: ['titre_sejour', 'certificat_scolarite'], sent: true, approved: true } : { documents: [], sent: false, approved: false });
+    void queryClient.invalidateQueries({ queryKey: ['mentor'] });
     const arrival: Partial<Profile> = jours != null ? { arrivalDate: toISODate(addDays(new Date(), Number(jours))) } : {};
     useProfile.setState({ profile: { ...emptyProfile, ...preset.profile, ...mentor, ...arrival }, onboardingDone: !onboarding });
     useJourneyStore.getState().reset();

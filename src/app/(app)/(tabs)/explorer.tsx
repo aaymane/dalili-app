@@ -5,6 +5,7 @@ import { useMemo, useState } from 'react';
 import { ScrollView, View } from 'react-native';
 import Animated, { FadeIn } from 'react-native-reanimated';
 
+import { toast } from '@/components/feedback/Toast';
 import { AppHeader } from '@/components/layout/AppHeader';
 import { Screen } from '@/components/layout/Screen';
 import { ArrowRight } from '@/components/ui/DirIcons';
@@ -262,7 +263,7 @@ export default function Explorer() {
             <View style={styles.progress}>
               <View style={[styles.progressFill, { width: '68%' }]} />
             </View>
-            <PressableScale onPress={() => router.push('/(app)/role')} style={styles.hostCta}>
+            <PressableScale onPress={() => toast(t('onboarding.mentor.hostSoon'), 'info')} haptic="select" style={styles.hostCta}>
               <Text variant="smallStrong" color="#fff" style={{ flex: 1 }}>
                 {t('explorer.hostCta')}
               </Text>

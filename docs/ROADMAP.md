@@ -31,8 +31,11 @@
 - [x] **Synchronisation complète Supabase** : à chaque connexion, profil, étapes et tâches perso relus en arrière-plan (le serveur gagne, sauf ce que tu touches pendant la relecture ; une étape cochée hors ligne est renvoyée), écran « Mes rendez-vous » (à venir, historique, rejoindre, écrire, annuler) (30/10) — reste : appliquer l'index `bookings_student_idx` en prod (feu vert)
   > `/fonctionnalite Au login, charger depuis Supabase le profil, step_progress et custom_steps pour hydrater les stores Zustand (le serveur gagne en cas de conflit). Ajouter un écran « Mes rendez-vous » qui lit la table bookings.`
 
-- [ ] **Espace mentor complet**
-  > `/fonctionnalite Espace mentor : formulaire « Devenir mentor » (ville, parcours, spécialités, langues, citation) qui crée la ligne mentors, gestion des créneaux (table mentor_slots + RLS), demandes reçues lues depuis bookings avec accepter/refuser, statistiques réelles.`
+- [ ] **Mentorat refondu (décisions du 30/10)** — un compte est étudiant OU mentor, jamais les deux
+  - [x] **Étape 1 · Candidature mentor vérifiée** (30/10) : plus de sélecteur de rôle ; on ne devient mentor qu'en France, charte + titre de séjour + certificat de scolarité envoyés dans l'app (bucket privé), l'équipe valide ou refuse avec un motif dans l'admin du site, documents supprimés à la décision et avec le compte ; l'app bascule seule dans l'espace mentor. La base refuse une fiche hors de France ou sans les deux documents. Reste : appliquer `candidature_mentor` en prod (feu vert), pousser le site.
+  - [ ] **Étape 2 · Espace mentor** : onglets propres (Accueil, Rendez-vous, Messages, Profil), demandes à traiter, à venir, historique, créneaux (`mentor_slots`), fiche publique modifiable avec aperçu, stats et avis.
+  - [ ] **Étape 3 · Le mentor lance l'appel** : « Démarrer l'appel », l'étudiant attend dans le salon et reçoit « Yassine t'attend ».
+  - [ ] **Étape 4 · Partenaires (site)** : page « Devenir partenaire » sur dalili.study (banques, écoles, assurances…), formulaire, table protégée, onglet admin.
 
 - [x] **Commentaires sur les posts** : plein écran, champ collé au clavier, supprimer le sien (29/10)
   > `/fonctionnalite Commentaires : ouvrir un post en plein écran, liste des commentaires, champ de saisie collant au clavier, insertion dans la table comments (RLS membres), mise à jour optimiste.`
@@ -48,7 +51,7 @@
 - [ ] **Guides synchronisés avec dalili.study** (les 64 guides via une table `guides` ou le CMS du site)
 - [ ] **Espace Hôte (V2)** : annonces d'hébergement temporaire, vérification d'identité, réservation
 - [x] **Analytics** (PostHog, serveur européen) : après accord, anonyme, 13 événements, projet UE configuré (29/10)
-- [x] **Tests** : Jest 30 + jest-expo 58 + Testing Library (29/10) ; 44 tests (parcours, synchronisation, rendez-vous, présentation des écoles, chiffres, appels, dates, rappels, démo messagerie et sécurité). `npm test`, et `npm run check` = types + lint + tests
+- [x] **Tests** : Jest 30 + jest-expo 58 + Testing Library (29/10) ; 53 tests (parcours, synchronisation, candidature mentor, rendez-vous, présentation des écoles, chiffres, appels, dates, rappels, démo messagerie et sécurité). `npm test`, et `npm run check` = types + lint + tests
 
 ## ⚠️ À valider par l'équipe
 

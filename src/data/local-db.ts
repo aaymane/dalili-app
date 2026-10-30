@@ -24,6 +24,8 @@ type LocalDb = {
   readGuides: string[];
   documents: Record<string, boolean>;
   aiHistory: { role: 'user' | 'assistant'; content: string }[];
+  /** Mode démo : ta candidature mentor (documents envoyés, fiche envoyée, validée). */
+  mentorApplication: { documents: string[]; sent: boolean; approved: boolean };
 
   toggleGroup: (id: string) => void;
   addGroup: (g: Group) => void;
@@ -39,6 +41,7 @@ type LocalDb = {
   markGuideRead: (id: string) => void;
   toggleDocument: (id: string) => void;
   setAiHistory: (h: LocalDb['aiHistory']) => void;
+  setMentorApplication: (patch: Partial<LocalDb['mentorApplication']>) => void;
   reset: () => void;
 };
 
@@ -55,6 +58,7 @@ const initial = {
   readGuides: [] as string[],
   documents: {} as Record<string, boolean>,
   aiHistory: [] as LocalDb['aiHistory'],
+  mentorApplication: { documents: [], sent: false, approved: false } as LocalDb['mentorApplication'],
 };
 
 const toggleIn = (arr: string[], id: string) => (arr.includes(id) ? arr.filter((x) => x !== id) : [...arr, id]);
@@ -78,6 +82,7 @@ export const useLocalDb = create<LocalDb>()(
       markGuideRead: (id) => set((s) => ({ readGuides: s.readGuides.includes(id) ? s.readGuides : [...s.readGuides, id] })),
       toggleDocument: (id) => set((s) => ({ documents: { ...s.documents, [id]: !s.documents[id] } })),
       setAiHistory: (h) => set({ aiHistory: h.slice(-40) }),
+      setMentorApplication: (patch) => set((s) => ({ mentorApplication: { ...s.mentorApplication, ...patch } })),
       reset: () => set(initial),
     }),
     { name: 'dalili.localdb', storage: persistStorage, version: 1 },
