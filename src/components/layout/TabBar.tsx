@@ -1,19 +1,26 @@
 import type { BottomTabBarProps } from 'expo-router/js-tabs';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Compass, House, MessageSquareText, Sparkles, UserRound } from 'lucide-react-native';
+import { CalendarCheck2, Compass, House, MessageCircle, MessageSquareText, Sparkles, UserRound } from 'lucide-react-native';
 import { useEffect } from 'react';
 import { Platform, View } from 'react-native';
 import Animated, { Easing, useAnimatedStyle, useSharedValue, withRepeat, withSequence, withSpring, withTiming } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { PressableScale } from '@/components/ui/PressableScale';
+import { useProfile } from '@/features/profile/store';
 import { Text } from '@/components/ui/Text';
 import { useT } from '@/i18n';
 import { useRoleTheme } from '@/theme';
 import { makeStyles, useTheme } from '@/theme/scheme';
 import { motion } from '@/theme/tokens';
 
-const ICONS = { index: House, explorer: Compass, communaute: MessageSquareText, profil: UserRound } as const;
+const ICONS = { index: House, explorer: Compass, communaute: MessageSquareText, profil: UserRound, agenda: CalendarCheck2, conversations: MessageCircle } as const;
+
+/** Un compte est étudiant OU mentor : chacun ses onglets. L'étudiant a Dalili IA au centre. */
+const TABS = {
+  student: ['index', 'explorer', 'ia', 'communaute', 'profil'],
+  mentor: ['index', 'agenda', 'conversations', 'profil'],
+} as const;
 
 function TabItem({ name, focused, onPress, accent }: { name: keyof typeof ICONS; focused: boolean; onPress: () => void; accent: string }) {
   const styles = useStyles();
@@ -58,14 +65,20 @@ function AiButton({ focused, onPress }: { focused: boolean; onPress: () => void 
   );
 }
 
-/** Tab bar sur-mesure : 4 onglets + bouton IA central lumineux. */
+/** Tab bar sur-mesure : étudiant, 4 onglets + bouton IA central lumineux ; mentor, 4 onglets. */
 export function TabBar({ state, emitter, navigateToTab }: BottomTabBarProps) {
   const styles = useStyles();
   const insets = useSafeAreaInsets();
   const { accent } = useRoleTheme();
+  const role = useProfile((s) => s.profile.activeRole);
+  const shown: readonly string[] = role === 'mentor' ? TABS.mentor : TABS.student;
   return (
     <View style={[styles.bar, { paddingBottom: Math.max(insets.bottom, 10) }]}>
-      {state.routes.map((route, index) => {
+      {/* Dans l'ordre du rôle (pas celui des fichiers) : Accueil, Agenda, Messages, Profil pour le mentor. */}
+      {shown.map((name) => {
+        const index = state.routes.findIndex((r) => r.name === name);
+        const route = state.routes[index];
+        if (!route) return null;
         const focused = state.index === index;
         const onPress = () => {
           const event = emitter.emit({ type: 'tabPress', target: route.key, canPreventDefault: true });

@@ -38,7 +38,9 @@
     "ia": "Dalili",
     "communaute": "Communauté",
     "profil": "Profil",
-    "ai": "Dalili IA"
+    "ai": "Dalili IA",
+    "agenda": "Agenda",
+    "conversations": "Messages"
   },
   "dates": {
     "today": "aujourd'hui",
@@ -437,8 +439,6 @@
   },
   "mentorHome": {
     "loadingA11y": "Chargement de ton espace mentor",
-    "availability": "Ta disponibilité",
-    "availabilitySub": "Tu acceptes selon ce que tu fais sur le moment",
     "taking": "Je prends des demandes",
     "paused": "En pause",
     "takingText": "Les étudiants de {{city}} peuvent te proposer un appel",
@@ -460,8 +460,6 @@
     "requests": "Demandes d’appel",
     "pending": "{{count}} en attente",
     "nonePending": "Rien en attente",
-    "empty": "Quand un étudiant te propose un appel, sa demande arrive ici. Tu acceptes selon ce que tu fais à ce moment-là.",
-    "student": "Étudiant",
     "aStudent": "Un·e étudiant·e",
     "thisStudent": "cet·te étudiant·e",
     "from": "Depuis {{city}}",
@@ -475,16 +473,28 @@
     "write": "Écrire",
     "writeA11y": "Écrire à {{name}}",
     "reportA11y": "Signaler ou bloquer {{name}}",
-    "become": "Deviens mentor",
-    "becomeText": "Tu es passé·e par là. Ta fiche permet aux étudiants qui arrivent à {{city}} de te demander un appel gratuit. L’équipe la relit avant de la montrer.",
-    "yourCity": "ta ville",
-    "becomeCta": "Lire la charte et envoyer ma fiche",
     "needName": "Ajoute d’abord ton prénom dans ton profil : les étudiants le verront.",
     "needCity": "Choisis d’abord ta ville dans ton profil.",
     "charter": "Accepte la charte du mentor",
     "charterText": "6 engagements pour protéger les étudiants, et toi aussi. Une minute.",
-    "pendingTitle": "Ta fiche est en cours de validation",
-    "pendingText": "L’équipe vérifie chaque mentor et relit sa fiche avant de la montrer. Elle peut te contacter par email pour voir ta carte étudiante, ton LinkedIn ou ton titre de séjour. Une fois validée, les étudiants de {{city}} pourront te proposer un appel, et leurs demandes arriveront ici."
+    "seeAll": "Tout voir ({{count}})",
+    "clearTitle": "Tout est à jour",
+    "clearText": "Les nouvelles demandes arrivent ici, avec une notification.",
+    "clearPaused": "Tu es en pause : aucune nouvelle demande ne peut arriver.",
+    "sheetTitle": "Ta fiche",
+    "sheetSub": "Ce que les étudiants voient avant de te choisir",
+    "editSheet": "Modifier ma fiche",
+    "editSheetSub": "Titre, études, citation, spécialités, langues",
+    "publicProfileSub": "Ta fiche, comme un étudiant la voit",
+    "next": {
+      "title": "Prochain appel",
+      "live": "C’est l’heure",
+      "inHours": "dans {{hours}} h {{minutes}}",
+      "inMinutes_one": "dans {{count}} min",
+      "inMinutes_other": "dans {{count}} min",
+      "opens": "Salle ouverte 15 min avant",
+      "opensA11y": "La salle s’ouvre 15 minutes avant {{time}}"
+    }
   },
   "journey": {
     "phase": {
@@ -1423,5 +1433,44 @@
     "rejectedText": "L’équipe dit : « {{reason}} ». Corrige et renvoie quand tu veux.",
     "rejectedNoReason": "L’équipe n’a pas pu la valider. Renvoie des documents lisibles quand tu veux.",
     "welcome": "Bienvenue dans ton espace mentor"
+  },
+  "agenda": {
+    "title": "Agenda",
+    "subPending_one": "{{count}} demande attend ta réponse.",
+    "subPending_other": "{{count}} demandes attendent ta réponse.",
+    "subClear": "Tu as répondu à toutes les demandes.",
+    "toHandle": "À traiter",
+    "upcoming": "À venir",
+    "history": "Historique",
+    "empty": {
+      "toHandle": {
+        "title": "Aucune demande en attente",
+        "text": "Quand un étudiant te propose un appel, tu le vois ici et tu reçois une notification."
+      },
+      "upcoming": {
+        "title": "Pas d’appel prévu",
+        "text": "Les demandes que tu acceptes s’affichent ici, avec le bouton pour rejoindre l’appel."
+      },
+      "history": {
+        "title": "Rien pour l’instant",
+        "text": "Tes appels passés, déclinés ou annulés se rangent ici."
+      }
+    }
+  },
+  "sheet": {
+    "title": "Ma fiche publique",
+    "intro": "C’est ce que les étudiants voient avant de te proposer un appel. Simple et vrai, c’est ce qui marche le mieux.",
+    "preview": "Aperçu",
+    "headline": "Ce que tu fais",
+    "headlinePh": "Ingénieur · Informatique",
+    "study": "Tes études",
+    "studyPh": "M2 · Informatique à Lyon",
+    "quote": "Ton mot pour les étudiants",
+    "quotePh": "J’ai galéré avec la CAF, je t’aide à gagner du temps.",
+    "specialties": "Tu peux aider sur",
+    "languages": "Tu parles",
+    "maxSpecialties": "{{count}} spécialités au plus : choisis celles où tu aides le mieux.",
+    "save": "Enregistrer",
+    "saved": "Fiche enregistrée. Les étudiants voient la nouvelle version."
   }
 }

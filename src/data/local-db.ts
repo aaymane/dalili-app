@@ -3,7 +3,7 @@ import { persist } from 'zustand/middleware';
 
 import { persistStorage } from '@/lib/storage';
 
-import type { Booking, CommunityEvent, Group, LocalComment, Post } from './types';
+import type { Booking, CommunityEvent, Group, LocalComment, Mentor, Post } from './types';
 
 /**
  * « Base locale » : stocke les actions de l'utilisateur (rejoindre, poster, réserver…).
@@ -26,6 +26,8 @@ type LocalDb = {
   aiHistory: { role: 'user' | 'assistant'; content: string }[];
   /** Mode démo : ta candidature mentor (documents envoyés, fiche envoyée, validée). */
   mentorApplication: { documents: string[]; sent: boolean; approved: boolean };
+  /** Mode démo : ce que le mentor a modifié sur sa fiche publique. */
+  mentorSheet: Partial<Mentor>;
 
   toggleGroup: (id: string) => void;
   addGroup: (g: Group) => void;
@@ -42,6 +44,7 @@ type LocalDb = {
   toggleDocument: (id: string) => void;
   setAiHistory: (h: LocalDb['aiHistory']) => void;
   setMentorApplication: (patch: Partial<LocalDb['mentorApplication']>) => void;
+  setMentorSheet: (patch: Partial<Mentor>) => void;
   reset: () => void;
 };
 
@@ -59,6 +62,7 @@ const initial = {
   documents: {} as Record<string, boolean>,
   aiHistory: [] as LocalDb['aiHistory'],
   mentorApplication: { documents: [], sent: false, approved: false } as LocalDb['mentorApplication'],
+  mentorSheet: {} as Partial<Mentor>,
 };
 
 const toggleIn = (arr: string[], id: string) => (arr.includes(id) ? arr.filter((x) => x !== id) : [...arr, id]);
@@ -83,6 +87,7 @@ export const useLocalDb = create<LocalDb>()(
       toggleDocument: (id) => set((s) => ({ documents: { ...s.documents, [id]: !s.documents[id] } })),
       setAiHistory: (h) => set({ aiHistory: h.slice(-40) }),
       setMentorApplication: (patch) => set((s) => ({ mentorApplication: { ...s.mentorApplication, ...patch } })),
+      setMentorSheet: (patch) => set((s) => ({ mentorSheet: { ...s.mentorSheet, ...patch } })),
       reset: () => set(initial),
     }),
     { name: 'dalili.localdb', storage: persistStorage, version: 1 },

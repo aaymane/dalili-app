@@ -12,6 +12,9 @@ export default function TabsLayout() {
       <Tabs.Screen name="ia" />
       <Tabs.Screen name="communaute" />
       <Tabs.Screen name="profil" />
+      {/* Espace mentor : la barre n'affiche que les onglets du rôle (TabBar). */}
+      <Tabs.Screen name="agenda" />
+      <Tabs.Screen name="conversations" />
     </Tabs>
   );
 }

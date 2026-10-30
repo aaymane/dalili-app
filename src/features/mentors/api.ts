@@ -45,7 +45,7 @@ export async function fetchMyMentor(): Promise<MyMentor | null> {
   // Démo : une fiche seulement après la candidature, avec un identifiant à part (pas un mentor de la liste d'exemple).
   if (!supabase || !user) {
     const demo = useLocalDb.getState().mentorApplication;
-    return demo.sent ? { ...demoMentors[0], id: 'm-moi', isActive: demo.approved, charterOk: true } : null;
+    return demo.sent ? { ...demoMentors[0], ...useLocalDb.getState().mentorSheet, id: 'm-moi', isActive: demo.approved, charterOk: true } : null;
   }
   const [mentor, trust] = await Promise.all([
     supabase.from('mentors').select('*').eq('user_id', user.id).maybeSingle(),
@@ -135,6 +135,19 @@ export async function uploadMentorDocument(kind: DocKind, pickedUri: string) {
 /** Démo seulement : l'équipe « valide » la candidature, pour montrer la bascule vers l'espace mentor. */
 export function approveDemoApplication() {
   useLocalDb.getState().setMentorApplication({ approved: true });
+}
+
+/** Ce que le mentor modifie lui-même sur sa fiche publique (la note, les séances et les avis restent tenus par la base). */
+export type MentorSheetPatch = Partial<Pick<Mentor, 'headline' | 'study' | 'quote' | 'specialties' | 'languages'>>;
+
+export async function updateMyMentor(patch: MentorSheetPatch) {
+  const user = await sessionUser();
+  if (!supabase || !user) return useLocalDb.getState().setMentorSheet(patch);
+  const { error } = await supabase
+    .from('mentors')
+    .update({ headline: patch.headline, study: patch.study, quote: patch.quote, specialties: patch.specialties, languages: patch.languages })
+    .eq('user_id', user.id);
+  if (error) throw error;
 }
 
 /** L'interrupteur « Je prends des demandes / En pause ». */

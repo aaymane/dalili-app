@@ -38,7 +38,9 @@
     "ia": "Dalili",
     "communaute": "Community",
     "profil": "Profile",
-    "ai": "Dalili AI"
+    "ai": "Dalili AI",
+    "agenda": "Agenda",
+    "conversations": "Messages"
   },
   "dates": {
     "today": "today",
@@ -437,8 +439,6 @@
   },
   "mentorHome": {
     "loadingA11y": "Loading your mentor space",
-    "availability": "Your availability",
-    "availabilitySub": "You accept depending on what you’re doing at the time",
     "taking": "I’m taking requests",
     "paused": "Paused",
     "takingText": "Students in {{city}} can offer you a call",
@@ -460,8 +460,6 @@
     "requests": "Call requests",
     "pending": "{{count}} waiting",
     "nonePending": "Nothing waiting",
-    "empty": "When a student offers you a call, their request lands here. You accept depending on what you’re doing then.",
-    "student": "Student",
     "aStudent": "A student",
     "thisStudent": "this student",
     "from": "From {{city}}",
@@ -475,16 +473,28 @@
     "write": "Message",
     "writeA11y": "Message {{name}}",
     "reportA11y": "Report or block {{name}}",
-    "become": "Become a mentor",
-    "becomeText": "You’ve been there. Your profile lets students arriving in {{city}} ask you for a free call. The team reviews it before showing it.",
-    "yourCity": "your city",
-    "becomeCta": "Read the charter and send my profile",
     "needName": "Add your first name to your profile first: students will see it.",
     "needCity": "Choose your city in your profile first.",
     "charter": "Accept the mentor charter",
     "charterText": "6 commitments to protect students, and you too. One minute.",
-    "pendingTitle": "Your profile is being reviewed",
-    "pendingText": "The team checks every mentor and reviews their profile before showing it. They may email you to see your student card, LinkedIn or residence permit. Once approved, students in {{city}} can offer you a call, and their requests will land here."
+    "seeAll": "See all ({{count}})",
+    "clearTitle": "All caught up",
+    "clearText": "New requests arrive here, with a notification.",
+    "clearPaused": "You’re on a break: no new request can come in.",
+    "sheetTitle": "Your profile",
+    "sheetSub": "What students see before choosing you",
+    "editSheet": "Edit my profile",
+    "editSheetSub": "Title, studies, quote, specialties, languages",
+    "publicProfileSub": "Your profile, as a student sees it",
+    "next": {
+      "title": "Next call",
+      "live": "It’s time",
+      "inHours": "in {{hours}} h {{minutes}}",
+      "inMinutes_one": "in {{count}} min",
+      "inMinutes_other": "in {{count}} min",
+      "opens": "Room opens 15 min before",
+      "opensA11y": "The room opens 15 minutes before {{time}}"
+    }
   },
   "journey": {
     "phase": {
@@ -1423,5 +1433,44 @@
     "rejectedText": "The team says: “{{reason}}”. Fix it and send it again whenever you want.",
     "rejectedNoReason": "The team couldn’t approve it. Send readable documents again whenever you want.",
     "welcome": "Welcome to your mentor space"
+  },
+  "agenda": {
+    "title": "Agenda",
+    "subPending_one": "{{count}} request is waiting for your answer.",
+    "subPending_other": "{{count}} requests are waiting for your answer.",
+    "subClear": "You’ve answered every request.",
+    "toHandle": "To answer",
+    "upcoming": "Upcoming",
+    "history": "History",
+    "empty": {
+      "toHandle": {
+        "title": "No pending requests",
+        "text": "When a student suggests a call, you see it here and get a notification."
+      },
+      "upcoming": {
+        "title": "No call planned",
+        "text": "Requests you accept show up here, with the button to join the call."
+      },
+      "history": {
+        "title": "Nothing yet",
+        "text": "Your past, declined or cancelled calls are kept here."
+      }
+    }
+  },
+  "sheet": {
+    "title": "My public profile",
+    "intro": "This is what students see before suggesting a call. Simple and honest works best.",
+    "preview": "Preview",
+    "headline": "What you do",
+    "headlinePh": "Engineer · Computer science",
+    "study": "Your studies",
+    "studyPh": "MSc · Computer science in Lyon",
+    "quote": "Your note to students",
+    "quotePh": "I struggled with the CAF, I’ll help you save time.",
+    "specialties": "You can help with",
+    "languages": "You speak",
+    "maxSpecialties": "{{count}} specialties at most: pick the ones where you help best.",
+    "save": "Save",
+    "saved": "Profile saved. Students now see the new version."
   }
 }

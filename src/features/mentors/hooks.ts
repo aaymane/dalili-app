@@ -18,9 +18,11 @@ import {
   fetchMyApplication,
   fetchMyMentor,
   setMyAvailability,
+  updateMyMentor,
   uploadMentorDocument,
   type DocKind,
   type MentorRequest,
+  type MentorSheetPatch,
   type MyMentor,
 } from './api';
 
@@ -91,6 +93,22 @@ export function useMentorRoleSync() {
       useProfile.getState().update({ roles: ['student'], activeRole: 'student' });
     }
   }, [isSuccess, mentor, role]);
+}
+
+/** Ta fiche publique : l'aperçu change tout de suite ; si l'enregistrement échoue, l'ancienne version revient. */
+export function useUpdateMyMentor() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (patch: MentorSheetPatch) => updateMyMentor(patch),
+    onMutate: (patch) => {
+      const before = qc.getQueryData<MyMentor | null>(MINE);
+      if (before) qc.setQueryData<MyMentor>(MINE, { ...before, ...patch });
+      return { before };
+    },
+    onError: (_e, _v, ctx) => qc.setQueryData(MINE, ctx?.before),
+    // Les étudiants voient la nouvelle fiche dans Explorer.
+    onSettled: () => qc.invalidateQueries({ queryKey: ['mentors'] }),
+  });
 }
 
 /** L'interrupteur bascule tout de suite ; s'il n'est pas enregistré, il revient. */

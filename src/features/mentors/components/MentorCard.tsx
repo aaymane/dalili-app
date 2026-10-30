@@ -11,6 +11,7 @@ import type { Mentor } from '@/data/types';
 import { useT } from '@/i18n';
 import { makeStyles, useTheme } from '@/theme/scheme';
 import { radius } from '@/theme/tokens';
+import { specialtyLabel } from '../specialties';
 
 /** Carte verticale (carrousel « Mentors pour toi »). */
 export function MentorTile({ m }: { m: Mentor }) {
@@ -42,7 +43,7 @@ export function MentorTile({ m }: { m: Mentor }) {
       </View>
       <View style={{ flexDirection: 'row', gap: 4, marginTop: 10, flexWrap: 'wrap' }}>
         {m.specialties.slice(0, 3).map((s) => (
-          <Tag key={s} label={s.split(' ')[0]} />
+          <Tag key={s} label={specialtyLabel(s).split(' ')[0]} />
         ))}
       </View>
       <Text variant="caption" color={m.availableThisWeek ? c.mentor : c.muted} style={{ marginTop: 10 }}>
@@ -74,7 +75,7 @@ export function MentorRow({ m }: { m: Mentor }) {
         </Text>
         <View style={{ flexDirection: 'row', gap: 4, marginTop: 6, flexWrap: 'wrap' }}>
           {m.specialties.slice(0, 3).map((s) => (
-            <Tag key={s} label={s} />
+            <Tag key={s} label={specialtyLabel(s)} />
           ))}
         </View>
       </View>

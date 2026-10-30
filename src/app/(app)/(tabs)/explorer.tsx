@@ -29,6 +29,7 @@ import { useT } from '@/i18n';
 import { makeStyles, useTheme } from '@/theme/scheme';
 import { radius } from '@/theme/tokens';
 import { reflow, rise } from '@/theme/motion';
+import { specialtyLabel } from '@/features/mentors/specialties';
 
 type Tab = 'mentors' | 'guides' | 'schools' | 'hosts';
 
@@ -70,7 +71,7 @@ export default function Explorer() {
     return mentors.filter(
       (m) =>
         (!city || m.city === city) &&
-        (!needle || `${m.firstName} ${m.lastName} ${m.headline} ${m.specialties.join(' ')}`.toLowerCase().includes(needle)),
+        (!needle || `${m.firstName} ${m.lastName} ${m.headline} ${m.specialties.map(specialtyLabel).join(' ')}`.toLowerCase().includes(needle)),
     );
   }, [mentors, city, q]);
 

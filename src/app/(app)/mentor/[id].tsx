@@ -19,6 +19,7 @@ import { useT } from '@/i18n';
 import { makeStyles, useTheme } from '@/theme/scheme';
 import { radius } from '@/theme/tokens';
 import { pop, rise } from '@/theme/motion';
+import { specialtyLabel } from '@/features/mentors/specialties';
 
 const LANG_CODE: Record<string, string> = { ar: 'AR', fr: 'FR', en: 'EN', ber: 'ⵣ' };
 
@@ -124,7 +125,7 @@ export default function MentorProfile() {
               {m.specialties.map((s) => (
                 <View key={s} style={styles.spec}>
                   <Text variant="smallStrong" color={c.electric}>
-                    {s}
+                    {specialtyLabel(s)}
                   </Text>
                 </View>
               ))}

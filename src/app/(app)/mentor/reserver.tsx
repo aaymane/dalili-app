@@ -25,6 +25,7 @@ import { makeStyles, useTheme } from '@/theme/scheme';
 import { radius } from '@/theme/tokens';
 import { rise } from '@/theme/motion';
 import { track } from '@/lib/analytics';
+import { specialtyLabel } from '@/features/mentors/specialties';
 
 /** Heures que l'étudiant peut proposer. Ce ne sont pas des disponibilités : le mentor accepte selon son moment. */
 const TIMES = ['09:00', '10:30', '12:00', '14:00', '16:00', '18:00', '19:30', '21:00'];
@@ -124,9 +125,9 @@ export default function Reserve() {
               <Input placeholder={t('mentors.book.topicPlaceholder')} value={topic} onChangeText={setTopic} maxLength={80} />
               <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
                 {m.specialties.map((sp) => (
-                  <PressableScale key={sp} haptic="select" onPress={() => setTopic(sp)} style={[styles.suggest, topic === sp && { backgroundColor: c.electric }]}>
-                    <Text variant="smallStrong" color={topic === sp ? c.white : c.electric}>
-                      {sp}
+                  <PressableScale key={sp} haptic="select" onPress={() => setTopic(specialtyLabel(sp))} style={[styles.suggest, topic === specialtyLabel(sp) && { backgroundColor: c.electric }]}>
+                    <Text variant="smallStrong" color={topic === specialtyLabel(sp) ? c.white : c.electric}>
+                      {specialtyLabel(sp)}
                     </Text>
                   </PressableScale>
                 ))}
