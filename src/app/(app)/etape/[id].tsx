@@ -1,6 +1,7 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
-import { BookOpen, Check, CircleDot, ShieldAlert, Sparkles, UsersRound } from 'lucide-react-native';
+import { LinearGradient } from 'expo-linear-gradient';
+import { BookOpen, CalendarClock, Check, CircleDot, Clock, Heart, ShieldAlert, Sparkles, UsersRound } from 'lucide-react-native';
 import { ScrollView, View } from 'react-native';
 import Animated from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -20,13 +21,16 @@ import { StepIcon } from '@/features/journey/components/StepIcon';
 import { useStep } from '@/features/journey/steps';
 import { useJourney, useJourneyStore } from '@/features/journey/store';
 import { useT } from '@/i18n';
-import { formatLong } from '@/lib/date';
+import { daysFromToday, formatDayMonth, formatLong } from '@/lib/date';
 import { haptics } from '@/lib/haptics';
 import { makeStyles, useTheme } from '@/theme/scheme';
 import { radius } from '@/theme/tokens';
 import { rise } from '@/theme/motion';
 
-/** Fiche de clarification : le quoi, le pourquoi, le combien, le quand — et UNE action. */
+/**
+ * Fiche de clarification : le quoi, le pourquoi, le combien, le quand — et UNE action. L'action et « C'est fait »
+ * restent dans une barre fixe en bas : jamais besoin de descendre pour agir.
+ */
 export default function StepSheet() {
   const { c } = useTheme();
   const styles = useStyles();
@@ -61,219 +65,230 @@ export default function StepSheet() {
     setTimeout(() => router.navigate({ pathname: '/(app)/(tabs)/ia', params: { q } }), 250);
   };
 
+  const late = !!item && !done && daysFromToday(item.date) < 0;
+  const act = () => (step.action.url ? WebBrowser.openBrowserAsync(step.action.url) : guide ? openGuide(guide.slug) : ask(step.title));
+  const actLabel = step.action.url ? t('step.officialSite') : guide ? t('step.readGuide') : t('step.ai');
+
   return (
-    <ScrollView style={{ backgroundColor: c.card }} contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 30 }]} showsVerticalScrollIndicator={false}>
-      <Animated.View entering={rise()} style={styles.head}>
-        <IconTile size={52} bg={c.electricSoft} radius={16}>
-          <StepIcon name={step.icon} color={c.electric} size={24} />
-        </IconTile>
-        <View style={{ flex: 1, gap: 8 }}>
-          <Text variant="h1">{step.title}</Text>
-          <View style={{ flexDirection: 'row', gap: 6, alignItems: 'center', flexWrap: 'wrap' }}>
-            <Tag label={step.tags.join(' · ')} />
-            <StatusPill status={done ? 'done' : current ? 'current' : 'todo'} />
-          </View>
-        </View>
-      </Animated.View>
-
-      <Animated.View entering={rise(60)} style={styles.reassure}>
-        <Text variant="body">
-          <Text variant="bodyStrong" color={c.electric}>
-            {t('step.reassureA')}{' '}
-          </Text>
-          {t('step.reassureB')}
-        </Text>
-      </Animated.View>
-
-      <Animated.View entering={rise(100)} style={{ gap: 6 }}>
-        <Text variant="overline" color={c.muted}>
-          {t('step.what')}
-        </Text>
-        <Text variant="body">{step.oneLiner}</Text>
-      </Animated.View>
-      <Animated.View entering={rise(130)} style={{ gap: 6 }}>
-        <Text variant="overline" color={c.muted}>
-          {t('step.why')}
-        </Text>
-        <Text variant="body">{step.why}</Text>
-      </Animated.View>
-
-      <Animated.View entering={rise(160)} style={{ gap: 10 }}>
-        <View style={styles.stat}>
-          <Text variant="overline" color={c.muted} style={{ fontSize: 9 }}>
-            {t('step.when')}
-          </Text>
-          <Text variant="h3">{step.when}</Text>
-          {item ? (
-            <Text variant="caption" color={c.electric}>
-              {t('step.forYou', { date: formatLong(item.date) })}
-            </Text>
-          ) : null}
-        </View>
-        <FigureList figures={step.figures} />
-      </Animated.View>
-
-      <Animated.View entering={rise(190)} style={{ gap: 10 }}>
-        <Text variant="overline" color={c.muted}>
-          {t('step.how')}
-        </Text>
-        {step.howTo.map((h, i) => (
-          <View key={h.title} style={styles.how}>
-            <View style={[styles.num, { opacity: 1 - i * 0.18 }]}>
-              <Text variant="h3" color="#fff">
-                {i + 1}
-              </Text>
-            </View>
-            <View style={{ flex: 1 }}>
-              <Text variant="bodyStrong">{h.title}</Text>
-              <Text variant="small" color={c.subtle}>
-                {h.detail}
-              </Text>
+    // Deux enfants directs, sans conteneur : la feuille iOS a besoin que la liste qui défile soit le premier.
+    <>
+      <ScrollView style={{ backgroundColor: c.card }} contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 120 }]} showsVerticalScrollIndicator={false}>
+        <Animated.View entering={rise()} style={styles.head}>
+          <IconTile size={52} bg={c.electricSoft} radius={16}>
+            <StepIcon name={step.icon} color={c.electric} size={24} />
+          </IconTile>
+          <View style={{ flex: 1, gap: 8 }}>
+            <Text variant="h1">{step.title}</Text>
+            <View style={{ flexDirection: 'row', gap: 6, alignItems: 'center', flexWrap: 'wrap' }}>
+              <Tag label={step.tags.join(' · ')} />
+              <StatusPill status={done ? 'done' : current ? 'current' : 'todo'} />
             </View>
           </View>
-        ))}
-      </Animated.View>
-
-      {guide?.documents.length ? (
-        <DocumentsCard documents={guide.documents} />
-      ) : step.needs?.length ? (
-        <Animated.View entering={rise(210)} style={{ gap: 8 }}>
-          <Text variant="overline" color={c.muted}>
-            {t('step.needs')}
-          </Text>
-          {step.needs.map((n) => (
-            <View key={n} style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-              <CircleDot size={14} color={c.electric} />
-              <Text variant="body">{n}</Text>
-            </View>
-          ))}
         </Animated.View>
-      ) : null}
 
-      {step.terms?.length ? (
-        <Animated.View entering={rise(230)} style={{ gap: 8 }}>
-          <Text variant="overline" color={c.muted}>
-            {t('step.terms')}
+        {/* L'essentiel d'un coup d'œil : combien de temps, et quand (une date passée le dit). */}
+        <Animated.View entering={rise(50)} style={styles.facts}>
+          <View style={styles.fact}>
+            <Clock size={14} color={c.subtle} />
+            <Text variant="smallStrong" color={c.subtle}>
+              {t('common.minutes', { n: step.minutes })}
+            </Text>
+          </View>
+          <View style={[styles.fact, late && { backgroundColor: c.warningSoft }]}>
+            <CalendarClock size={14} color={late ? c.warningInk : c.electric} />
+            <Text variant="smallStrong" color={late ? c.warningInk : c.electric}>
+              {item ? (late ? t('step.lateOn', { date: formatDayMonth(item.date) }) : t('step.forYou', { date: formatLong(item.date) })) : step.when}
+            </Text>
+          </View>
+        </Animated.View>
+
+        <Animated.View entering={rise(90)} style={{ gap: 8 }}>
+          <Text variant="body">{step.oneLiner}</Text>
+          <Text variant="body" color={c.subtle}>
+            {step.why}
           </Text>
-          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
-            {step.terms.map((term) => (
-              <PressableScale key={term} onPress={() => openTerm(term)} haptic="select" style={styles.term}>
-                <Text variant="smallStrong" color={c.electric}>
-                  {term}
-                </Text>
-              </PressableScale>
+          <View style={styles.reassure}>
+            <Heart size={14} color={c.electric} />
+            <Text variant="small" color={c.subtle} style={{ flex: 1 }}>
+              <Text variant="smallStrong" color={c.electric}>
+                {t('step.reassureA')}{' '}
+              </Text>
+              {t('step.reassureB')}
+            </Text>
+          </View>
+        </Animated.View>
+
+        {step.figures.length ? (
+          <Animated.View entering={rise(120)}>
+            <FigureList figures={step.figures} />
+          </Animated.View>
+        ) : null}
+
+        {/* Comment faire : une frise numérotée, du premier geste au dernier. */}
+        <Animated.View entering={rise(150)} style={{ gap: 12 }}>
+          <Text variant="h3">{t('step.how')}</Text>
+          <View>
+            {step.howTo.map((h, i) => (
+              <View key={h.title} style={styles.how}>
+                <View style={{ alignItems: 'center' }}>
+                  <View style={styles.num}>
+                    <Text variant="smallStrong" color={c.onAccent}>
+                      {i + 1}
+                    </Text>
+                  </View>
+                  {i < step.howTo.length - 1 ? <View style={styles.rail} /> : null}
+                </View>
+                <View style={{ flex: 1, gap: 2, paddingBottom: i < step.howTo.length - 1 ? 18 : 0 }}>
+                  <Text variant="bodyStrong">{h.title}</Text>
+                  <Text variant="small" color={c.subtle}>
+                    {h.detail}
+                  </Text>
+                </View>
+              </View>
             ))}
           </View>
         </Animated.View>
-      ) : null}
 
-      <Animated.View entering={rise(250)} style={styles.action}>
-        <Text variant="overline" color="rgba(255,255,255,0.55)" style={{ fontSize: 9.5 }}>
-          {t('step.action')}
-        </Text>
-        <Text variant="h3" color="#fff">
-          {step.action.label}
-        </Text>
-        <Button
-          label={step.action.url ? t('step.officialSite') : t('step.seeHow')}
-          size="md"
-          variant="white"
-          icon={<ArrowUpRight size={16} color={c.navy} />}
-          onPress={() => (step.action.url ? WebBrowser.openBrowserAsync(step.action.url) : guide ? openGuide(guide.slug) : ask(step.title))}
-        />
-      </Animated.View>
-
-      {guide ? (
-        <View style={{ gap: 14 }}>
-          <View style={{ gap: 4 }}>
-            <Text variant="overline" color={c.muted}>
-              {t('step.fromGuide')}
-            </Text>
-            <PressableScale onPress={() => openGuide(guide.slug)} style={styles.guide} accessibilityRole="link">
-              <BookOpen size={18} color={c.electric} />
-              <View style={{ flex: 1 }}>
-                <Text variant="smallStrong">{guide.title}</Text>
-                <Text variant="caption" color={c.muted}>
-                  {t('step.readTime', { n: readMinutes(guide.readTime) })}
-                </Text>
+        {guide?.documents.length ? (
+          <DocumentsCard documents={guide.documents} />
+        ) : step.needs?.length ? (
+          <Animated.View entering={rise(180)} style={{ gap: 8 }}>
+            <Text variant="h3">{t('step.needs')}</Text>
+            {step.needs.map((n) => (
+              <View key={n} style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                <CircleDot size={14} color={c.electric} />
+                <Text variant="body">{n}</Text>
               </View>
-              <ChevronRight size={16} color={c.muted} />
-            </PressableScale>
-            {!step.hasCountryGuide ? (
-              <Text variant="caption" color={c.subtle}>
-                {t('step.countryGuideSoon')}
+            ))}
+          </Animated.View>
+        ) : null}
+
+        {step.terms?.length ? (
+          <Animated.View entering={rise(200)} style={{ gap: 10 }}>
+            <Text variant="h3">{t('step.terms')}</Text>
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+              {step.terms.map((term) => (
+                <PressableScale key={term} onPress={() => openTerm(term)} haptic="select" style={styles.term}>
+                  <Text variant="smallStrong" color={c.electric}>
+                    {term}
+                  </Text>
+                </PressableScale>
+              ))}
+            </View>
+          </Animated.View>
+        ) : null}
+
+        {guide ? (
+          <View style={{ gap: 14 }}>
+            <View style={{ gap: 10 }}>
+              <Text variant="h3">{t('step.fromGuide')}</Text>
+              <PressableScale onPress={() => openGuide(guide.slug)} style={styles.guide} accessibilityRole="link">
+                <BookOpen size={18} color={c.electric} />
+                <View style={{ flex: 1 }}>
+                  <Text variant="smallStrong">{guide.title}</Text>
+                  <Text variant="caption" color={c.muted}>
+                    {t('step.readTime', { n: readMinutes(guide.readTime) })}
+                  </Text>
+                </View>
+                <ChevronRight size={16} color={c.muted} />
+              </PressableScale>
+              {!step.hasCountryGuide ? (
+                <Text variant="caption" color={c.subtle}>
+                  {t('step.countryGuideSoon')}
+                </Text>
+              ) : null}
+            </View>
+            <KeyFactsCard guide={guide} />
+            <FaqList faq={guide.faq} limit={3} />
+            <SourcesCard guide={guide} />
+          </View>
+        ) : null}
+
+        {otherGuides.length ? (
+          <View style={{ gap: 10 }}>
+            <Text variant="h3">{t('step.further')}</Text>
+            {otherGuides.map((g) => (
+              <PressableScale key={g.slug} onPress={() => openGuide(g.slug)} style={styles.guide} accessibilityRole="link">
+                <BookOpen size={18} color={c.subtle} />
+                <Text variant="smallStrong" style={{ flex: 1 }}>
+                  {g.title}
+                </Text>
+                <ChevronRight size={16} color={c.muted} />
+              </PressableScale>
+            ))}
+          </View>
+        ) : null}
+
+        {showSafety ? (
+          <PressableScale onPress={() => openGuide(journey.safety.guide)} style={[styles.guide, { backgroundColor: c.warningSoft, borderColor: c.warningSoft }]}>
+            <ShieldAlert size={18} color={c.warningInk} />
+            <View style={{ flex: 1 }}>
+              <Text variant="smallStrong" color={c.warningInk}>
+                {journey.safety.title}
               </Text>
-            ) : null}
-          </View>
-          <KeyFactsCard guide={guide} />
-          <FaqList faq={guide.faq} limit={3} />
-          <SourcesCard guide={guide} />
-        </View>
-      ) : null}
-
-      {otherGuides.length ? (
-        <View style={{ gap: 8 }}>
-          <Text variant="overline" color={c.muted}>
-            {t('step.further')}
-          </Text>
-          {otherGuides.map((g) => (
-            <PressableScale key={g.slug} onPress={() => openGuide(g.slug)} style={styles.guide} accessibilityRole="link">
-              <BookOpen size={18} color={c.subtle} />
-              <Text variant="smallStrong" style={{ flex: 1 }}>
-                {g.title}
+              <Text variant="caption" color={c.warningInk}>
+                {journey.safety.oneLiner}
               </Text>
-              <ChevronRight size={16} color={c.muted} />
-            </PressableScale>
-          ))}
-        </View>
-      ) : null}
+            </View>
+            <ChevronRight size={16} color={c.warningInk} />
+          </PressableScale>
+        ) : null}
 
-      {showSafety ? (
-        <PressableScale onPress={() => openGuide(journey.safety.guide)} style={[styles.guide, { backgroundColor: c.warningSoft, borderColor: c.warningSoft }]}>
-          <ShieldAlert size={18} color={c.warningInk} />
-          <View style={{ flex: 1 }}>
-            <Text variant="smallStrong" color={c.warningInk}>
-              {journey.safety.title}
-            </Text>
-            <Text variant="caption" color={c.warningInk}>
-              {journey.safety.oneLiner}
-            </Text>
-          </View>
-          <ChevronRight size={16} color={c.warningInk} />
-        </PressableScale>
-      ) : null}
-
-      <View style={{ gap: 10 }}>
-        <Button
-          label={done ? t('step.markTodo') : t('step.markDone')}
-          variant={done ? 'secondary' : 'primary'}
-          icon={!done ? <Check size={18} color="#fff" strokeWidth={3} /> : undefined}
-          onPress={markDone}
-        />
-        <View style={{ flexDirection: 'row', gap: 10 }}>
-          <View style={{ flex: 1 }}>
-            <Button label={t('step.aMentor')} size="md" variant="secondary" iconLeft={<UsersRound size={16} color={c.navy} />} onPress={() => {
-              router.back();
-              setTimeout(() => router.navigate('/(app)/(tabs)/explorer'), 250);
-            }} />
-          </View>
-          <View style={{ flex: 1 }}>
-            <Button label={t('step.ai')} size="md" variant="secondary" iconLeft={<Sparkles size={16} color={c.aiIndigo} />} onPress={() => ask(t('step.explain', { title: step.title }))} />
+        <View style={{ gap: 10 }}>
+          <Text variant="h3">{t('step.help')}</Text>
+          <View style={{ flexDirection: 'row', gap: 10 }}>
+            <View style={{ flex: 1 }}>
+              <Button
+                label={t('step.aMentor')}
+                size="md"
+                variant="secondary"
+                iconLeft={<UsersRound size={16} color={c.navy} />}
+                onPress={() => {
+                  router.back();
+                  setTimeout(() => router.navigate('/(app)/(tabs)/explorer'), 250);
+                }}
+              />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Button label={t('step.ai')} size="md" variant="secondary" iconLeft={<Sparkles size={16} color={c.aiIndigo} />} onPress={() => ask(t('step.explain', { title: step.title }))} />
+            </View>
           </View>
         </View>
-      </View>
-    </ScrollView>
+      </ScrollView>
+
+      {/* Toujours visible : faire l'action, et la cocher une fois faite. Le contenu glisse dessous, en fondu. */}
+      <Animated.View entering={rise(220)} style={[styles.footer, { paddingBottom: Math.max(insets.bottom, 14) }]} pointerEvents="box-none">
+        <LinearGradient colors={[`${c.card}00`, c.card]} style={styles.fade} pointerEvents="none" />
+        <View style={styles.footerRow}>
+          <View style={{ flex: 1.15 }}>
+            <Button label={actLabel} onPress={act} icon={<ArrowUpRight size={18} color={c.onAccent} />} />
+          </View>
+          <View style={{ flex: 1 }}>
+            <Button
+              label={done ? t('step.undo') : t('step.markDone')}
+              variant="secondary"
+              iconLeft={done ? undefined : <Check size={18} color={c.success} strokeWidth={3} />}
+              onPress={markDone}
+            />
+          </View>
+        </View>
+      </Animated.View>
+    </>
   );
 }
 
-const useStyles = makeStyles(({ c, shadow }) => ({
-  content: { padding: 22, paddingTop: 28, gap: 20, maxWidth: 620, width: '100%', alignSelf: 'center' },
+const useStyles = makeStyles(({ c }) => ({
+  content: { padding: 22, paddingTop: 28, gap: 24, maxWidth: 620, width: '100%', alignSelf: 'center' },
   head: { flexDirection: 'row', gap: 14, alignItems: 'flex-start' },
-  reassure: { padding: 16, borderRadius: radius.lg, backgroundColor: c.electricSoft },
-  stat: { flex: 1, padding: 14, borderRadius: radius.lg, borderWidth: 1.5, borderColor: c.line, gap: 4 },
-  how: { flexDirection: 'row', gap: 12, alignItems: 'center', padding: 12, borderRadius: radius.lg, backgroundColor: c.card, ...shadow.sm },
-  num: { width: 34, height: 34, borderRadius: 10, backgroundColor: '#5B5CF0', alignItems: 'center', justifyContent: 'center' },
+  facts: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: -6 },
+  fact: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 12, paddingVertical: 8, borderRadius: radius.pill, backgroundColor: c.fill },
+  reassure: { flexDirection: 'row', alignItems: 'flex-start', gap: 8, marginTop: 4 },
+  how: { flexDirection: 'row', gap: 14 },
+  num: { width: 28, height: 28, borderRadius: 14, backgroundColor: c.electric, alignItems: 'center', justifyContent: 'center' },
+  rail: { flex: 1, width: 2, marginVertical: 4, borderRadius: 1, backgroundColor: c.electricSoft },
   term: { paddingHorizontal: 12, paddingVertical: 7, borderRadius: 999, backgroundColor: c.electricSoft },
-  action: { padding: 18, borderRadius: radius.xl, backgroundColor: c.navyInk, gap: 10 },
   guide: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 14, borderRadius: radius.lg, borderWidth: 1.5, borderColor: c.line },
+  footer: { position: 'absolute', left: 0, right: 0, bottom: 0, paddingHorizontal: 22, paddingTop: 10, backgroundColor: c.card },
+  fade: { position: 'absolute', left: 0, right: 0, top: -28, height: 28 },
+  footerRow: { flexDirection: 'row', gap: 10, maxWidth: 620, width: '100%', alignSelf: 'center' },
 }));

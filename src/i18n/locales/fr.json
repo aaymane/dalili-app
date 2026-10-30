@@ -599,6 +599,10 @@
     "keep": "Garder mon billet"
   },
   "step": {
+    "readGuide": "Lire le guide",
+    "lateOn": "Prévu le {{date}} : dès que possible",
+    "undo": "Pas encore fait",
+    "help": "Besoin d’un coup de main ?",
     "reassureA": "Pas de panique.",
     "reassureB": "Des milliers d’étudiants sont passés par là avant toi, on t’explique tout, simplement.",
     "what": "C’est quoi, en 1 phrase ?",

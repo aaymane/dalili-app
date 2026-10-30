@@ -599,6 +599,10 @@
     "keep": "Keep my ticket"
   },
   "step": {
+    "readGuide": "Read the guide",
+    "lateOn": "Planned for {{date}}: as soon as you can",
+    "undo": "Not done yet",
+    "help": "Need a hand?",
     "reassureA": "Don’t panic.",
     "reassureB": "Thousands of students have been here before you, we explain everything, simply.",
     "what": "What is it, in 1 sentence?",
