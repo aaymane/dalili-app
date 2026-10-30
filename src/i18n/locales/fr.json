@@ -1076,6 +1076,17 @@
     "send": "Envoyer"
   },
   "call": {
+    "endedTitle": "Appel terminé",
+    "endedStudent": "Comment ça s’est passé avec {{name}} ? Ta note aide les prochains étudiants. Tu peux aussi réserver un autre appel.",
+    "endedMentor": "Merci d’avoir pris ce temps pour {{name}}. Le salon est fermé.",
+    "rate": "Noter {{name}}",
+    "bookAgain": "Réserver un autre appel",
+    "backHome": "Retour à l’accueil",
+    "backAgenda": "Retour à mon agenda",
+    "endTitle": "Terminer l’appel ?",
+    "endText": "Le salon se ferme pour vous deux. {{name}} pourra te noter et réserver un autre appel.",
+    "endForBoth": "Terminer pour nous deux",
+    "justLeave": "Quitter un instant",
     "connecting": "Connexion…",
     "preparing": "On prépare la salle de l’appel.",
     "demoNote": "Aperçu : en mode démo, l’appel n’est pas réel.",

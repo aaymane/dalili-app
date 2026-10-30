@@ -510,6 +510,36 @@ insert into public.bookings (student_id, mentor_id, starts_at) values (auth.uid(
 select tests.must_count('refusée par le mentor : l''étudiant redemande', $q$select * from public.bookings where status = 'pending'$q$, 1);
 rollback;
 
+-- ───────────── fin d'appel : le salon ferme 45 minutes après l'heure, ou quand le mentor termine ─────────────
+begin;
+insert into public.mentors (id, user_id, first_name, last_name, city, is_active) values
+  ('00000000-0000-0000-0000-0000000000e1', '00000000-0000-0000-0000-00000000000c', 'Yassine', 'Kadiri', 'Lyon', true),
+  ('00000000-0000-0000-0000-0000000000e2', '00000000-0000-0000-0000-00000000000d', 'Nadia', 'Daoud', 'Lille', true);
+-- Un appel accepté commencé il y a 20 minutes : le salon est encore ouvert, il bloque.
+insert into public.bookings (id, student_id, mentor_id, starts_at, status) values ('00000000-0000-0000-0000-0000000000fa', '00000000-0000-0000-0000-00000000000a', '00000000-0000-0000-0000-0000000000e2', now() - interval '20 minutes', 'confirmed');
+set local role authenticated;
+set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-00000000000a","role":"authenticated"}';
+select tests.must_fail('appel en cours (20 min) : pas de nouvelle demande',
+  $q$insert into public.bookings (student_id, mentor_id, starts_at) values (auth.uid(), '00000000-0000-0000-0000-0000000000e1', now() + interval '2 days')$q$);
+reset role;
+set local request.jwt.claims = '{}';
+-- Le mentor termine l'appel (le site passe le rendez-vous en « done ») : l'étudiant redemande tout de suite.
+update public.bookings set status = 'done' where id = '00000000-0000-0000-0000-0000000000fa';
+set local role authenticated;
+set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-00000000000a","role":"authenticated"}';
+insert into public.bookings (id, student_id, mentor_id, starts_at) values ('00000000-0000-0000-0000-0000000000fb', auth.uid(), '00000000-0000-0000-0000-0000000000e1', now() + interval '2 days');
+select tests.must_count('appel terminé par le mentor : nouvelle demande possible', $q$select * from public.bookings where id = '00000000-0000-0000-0000-0000000000fb'$q$, 1);
+reset role;
+set local request.jwt.claims = '{}';
+delete from public.bookings where id = '00000000-0000-0000-0000-0000000000fb';
+-- Sans fin explicite : passé 45 minutes après l'heure, le salon est fermé et l'étudiant redemande.
+update public.bookings set status = 'confirmed', starts_at = now() - interval '50 minutes' where id = '00000000-0000-0000-0000-0000000000fa';
+set local role authenticated;
+set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-00000000000a","role":"authenticated"}';
+insert into public.bookings (student_id, mentor_id, starts_at) values (auth.uid(), '00000000-0000-0000-0000-0000000000e1', now() + interval '3 days');
+select tests.must_count('salon fermé (50 min après) : nouvelle demande possible', $q$select * from public.bookings where status = 'pending'$q$, 1);
+rollback;
+
 -- ───────────── partenaires : seul le serveur du site lit et écrit les demandes ─────────────
 begin;
 set local role anon;

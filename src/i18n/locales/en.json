@@ -1076,6 +1076,17 @@
     "send": "Send"
   },
   "call": {
+    "endedTitle": "Call ended",
+    "endedStudent": "How did it go with {{name}}? Your rating helps the next students. You can also book another call.",
+    "endedMentor": "Thank you for taking this time for {{name}}. The room is closed.",
+    "rate": "Rate {{name}}",
+    "bookAgain": "Book another call",
+    "backHome": "Back to home",
+    "backAgenda": "Back to my schedule",
+    "endTitle": "End the call?",
+    "endText": "The room closes for both of you. {{name}} will be able to rate you and book another call.",
+    "endForBoth": "End for both of us",
+    "justLeave": "Leave for a moment",
     "connecting": "Connecting…",
     "preparing": "Getting the call room ready.",
     "demoNote": "Preview: in demo mode, the call isn’t real.",

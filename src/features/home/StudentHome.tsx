@@ -15,6 +15,7 @@ import { useGroups, useMentors, useMyBookings } from '@/data/hooks';
 import { ArrivalSheet } from '@/features/journey/components/ArrivalSheet';
 import { Ticket } from '@/features/journey/components/Ticket';
 import { useTicket } from '@/features/journey/ticket';
+import { splitAppointments } from '@/features/mentors/appointments';
 import { BookingCard } from '@/features/mentors/components/BookingCard';
 import { MentorTile } from '@/features/mentors/components/MentorCard';
 import { MentorsSoon } from '@/features/mentors/components/MentorsSoon';
@@ -39,10 +40,9 @@ export function StudentHome() {
   const profile = useProfile((s) => s.profile);
   const { data: mentors = [] } = useMentors();
   const { data: groups } = useGroups();
-  const [since] = useState(() => Date.now() - 3_600_000);
   const { data: allBookings } = useMyBookings();
-  // Prochaine demande en attente ou prochain appel confirmé (le plus proche d'abord).
-  const bookings = allBookings.filter((b) => (b.status === 'pending' || b.status === 'confirmed') && new Date(b.startsAt).getTime() > since);
+  // Prochaine demande en attente ou prochain appel (le plus proche d'abord) ; un appel terminé disparaît d'ici.
+  const bookings = splitAppointments(allBookings).upcoming;
   const [arrivalOpen, setArrivalOpen] = useState(false);
   const ticket = useTicket();
   const t = useT();

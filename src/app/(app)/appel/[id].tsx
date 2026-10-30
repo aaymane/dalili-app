@@ -2,11 +2,13 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 import { View } from 'react-native';
 
+import { CallEnded } from '@/features/call/components/CallEnded';
 import { CallPreview } from '@/features/call/components/CallPreview';
 import { CallWaiting } from '@/features/call/components/CallWaiting';
 import { LiveCall } from '@/features/call/components/LiveCall';
 import { loadDaily } from '@/features/call/daily';
 import { useCallAccess, useCallPeer } from '@/features/call/hooks';
+import { useProfile } from '@/features/profile/store';
 import { SafetySheet } from '@/features/safety/components/SafetySheet';
 import { currentLanguage, useT } from '@/i18n';
 import { formatTime } from '@/lib/date';
@@ -14,13 +16,15 @@ import { formatTime } from '@/lib/date';
 /**
  * Appel vidéo d'un rendez-vous confirmé (`id` = la demande d'appel).
  * Le site ouvre la salle 15 minutes avant l'heure, et c'est le mentor qui lance l'appel : l'étudiant arrivé avant
- * attend dans la salle d'attente. En mode démo et dans Expo Go, l'écran reste un aperçu.
+ * attend dans la salle d'attente. Le mentor peut terminer l'appel ; ensuite (ou 45 minutes après l'heure), l'écran
+ * « Appel terminé » invite l'étudiant à noter et à redemander. En mode démo et dans Expo Go, l'écran reste un aperçu.
  */
 export default function Call() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const t = useT();
   const access = useCallAccess(id);
   const peer = useCallPeer(id);
+  const role = useProfile((s) => s.profile.activeRole);
   const [reporting, setReporting] = useState(false);
   const a = access.data;
   const retry = () => void access.refetch();
@@ -52,6 +56,8 @@ export default function Call() {
         text={t('call.earlyText')}
       />
     );
+  } else if (a.kind === 'ended') {
+    screen = <CallEnded bookingId={id} role={role === 'mentor' ? 'mentor' : 'student'} name={peer.name} color={peer.color} mentorId={peer.mentorId} />;
   } else if (a.kind === 'offline') {
     screen = <CallWaiting name={peer.name} color={peer.color} title={t('call.offlineTitle')} text={t('call.offlineText')} onRetry={retry} />;
   } else {

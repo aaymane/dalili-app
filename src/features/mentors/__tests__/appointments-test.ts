@@ -11,7 +11,8 @@ describe('mes rendez-vous', () => {
     expect(appointmentState(booking('a', 60 * 24, 'pending'), now)).toBe('pending');
     expect(appointmentState(booking('b', 60 * 24, 'confirmed'), now)).toBe('confirmed');
     expect(appointmentState(booking('c', 10, 'confirmed'), now)).toBe('live');
-    expect(appointmentState(booking('d', -60, 'confirmed'), now)).toBe('live');
+    expect(appointmentState(booking('d', -30, 'confirmed'), now)).toBe('live');
+    expect(appointmentState(booking('d', -50, 'confirmed'), now)).toBe('done'); // salle fermée 45 min après l'heure
     expect(appointmentState(booking('e', -180, 'confirmed'), now)).toBe('done');
     expect(appointmentState(booking('f', -180, 'pending'), now)).toBe('expired');
     expect(appointmentState(booking('g', 60, 'cancelled'), now)).toBe('cancelled');
@@ -35,8 +36,9 @@ describe('mes rendez-vous', () => {
   it('une demande à la fois : en attente avant son heure, ou acceptée jusqu’à la fin de l’appel', () => {
     expect(activeBooking([booking('a', 60, 'pending')], now)?.id).toBe('a');
     expect(activeBooking([booking('a', -10, 'pending')], now)).toBeUndefined(); // sans réponse, elle a expiré
-    expect(activeBooking([booking('b', -60, 'confirmed')], now)?.id).toBe('b'); // appel en cours
-    expect(activeBooking([booking('b', -180, 'confirmed')], now)).toBeUndefined(); // appel passé
+    expect(activeBooking([booking('b', -30, 'confirmed')], now)?.id).toBe('b'); // appel en cours
+    expect(activeBooking([booking('b', -50, 'confirmed')], now)).toBeUndefined(); // salle fermée : l'étudiant redemande
+    expect(activeBooking([booking('b', -10, 'done')], now)).toBeUndefined(); // terminé par le mentor
     expect(activeBooking([booking('c', 60, 'cancelled'), booking('d', -60 * 24, 'done')], now)).toBeUndefined();
   });
 });

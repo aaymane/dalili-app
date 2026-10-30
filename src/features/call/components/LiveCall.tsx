@@ -1,9 +1,11 @@
 import { router } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import Animated from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { BottomSheet } from '@/components/feedback/BottomSheet';
+import { toast } from '@/components/feedback/Toast';
 import { Avatar } from '@/components/ui/Avatar';
 import { Button } from '@/components/ui/Button';
 import { Text } from '@/components/ui/Text';
@@ -16,6 +18,7 @@ import { radius } from '@/theme/tokens';
 
 import type { CallInfo } from '../api';
 import { loadDaily } from '../daily';
+import { useEndCall } from '../hooks';
 import { audioTrack, useDailyCall, videoTrack } from '../useDailyCall';
 import { CallAvatar, CallBackdrop, CallControls, CallTop, duration } from './CallParts';
 
@@ -50,10 +53,34 @@ export function LiveCall({ bookingId, info, color, onRetry }: { bookingId: strin
           ? t('call.ended')
           : t('call.lost');
 
+  // Toi qui raccroches : tu sors. Le salon qui se ferme sous tes pieds (le mentor a terminé, l'heure est passée,
+  // la connexion a lâché) : l'écran redemande l'accès une fois, qui répond « terminé » ou te reconnecte.
+  const leftByMe = useRef(false);
+  const rechecked = useRef(false);
+  useEffect(() => {
+    if ((call.phase === 'left' || call.phase === 'error') && !leftByMe.current && !rechecked.current) {
+      rechecked.current = true;
+      onRetry();
+    }
+  }, [call.phase, onRetry]);
+
   const hangUp = () => {
+    leftByMe.current = true;
     call.leave();
     router.back();
   };
+  // Le mentor choisit : terminer pour les deux (le salon ferme, l'étudiant peut noter) ou juste quitter un instant.
+  const [ending, setEnding] = useState(false);
+  const end = useEndCall(bookingId);
+  const finish = () =>
+    end.mutate(undefined, {
+      onSuccess: () => {
+        leftByMe.current = true;
+        setEnding(false);
+        call.leave();
+      },
+      onError: () => toast(t('common.offlineRetry'), 'info'),
+    });
 
   return (
     <View style={styles.root}>
@@ -104,8 +131,19 @@ export function LiveCall({ bookingId, info, color, onRetry }: { bookingId: strin
       </Animated.View>
 
       <View style={{ marginBottom: insets.bottom + 24 }}>
-        <CallControls micOn={call.micOn} camOn={call.camOn} onMic={call.toggleMic} onCam={call.toggleCam} onHangUp={hangUp} onFlip={call.flipCamera} />
+        <CallControls micOn={call.micOn} camOn={call.camOn} onMic={call.toggleMic} onCam={call.toggleCam} onHangUp={info.role === 'mentor' ? () => setEnding(true) : hangUp} onFlip={call.flipCamera} />
       </View>
+
+      <BottomSheet visible={ending} onClose={() => setEnding(false)}>
+        <View style={{ gap: 14 }}>
+          <Text variant="h2">{t('call.endTitle')}</Text>
+          <Text variant="body" color={c.subtle}>
+            {t('call.endText', { name })}
+          </Text>
+          <Button label={t('call.endForBoth')} variant="danger" loading={end.isPending} onPress={finish} />
+          <Button label={t('call.justLeave')} variant="secondary" onPress={hangUp} />
+        </View>
+      </BottomSheet>
 
       <SafetySheet visible={reporting} onClose={() => setReporting(false)} target={{ bookingId }} name={name} onBlocked={hangUp} />
     </View>

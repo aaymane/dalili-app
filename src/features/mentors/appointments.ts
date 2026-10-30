@@ -1,8 +1,8 @@
 import type { Booking } from '@/data/types';
+import { CALL_CLOSES_AFTER_MS as CALL_END_MS, CALL_OPENS_BEFORE_MS as CALL_OPEN_MS } from '@/features/call/window';
 
-/** La salle d'appel reste ouverte 2 heures après l'heure (features/call/window.ts) : jusque-là, le rendez-vous est « à venir ». */
-const CALL_END_MS = 2 * 60 * 60_000;
-const CALL_OPEN_MS = 15 * 60_000;
+// La salle d'appel ferme 45 minutes après l'heure (features/call/window.ts) : jusque-là, le rendez-vous est « à venir ».
+// Terminé plus tôt par le mentor, il est « done » tout de suite.
 
 /** pending : le mentor n'a pas répondu. live : la salle est ouverte. expired : demande restée sans réponse. */
 export type AppointmentState = 'pending' | 'confirmed' | 'live' | 'done' | 'cancelled' | 'expired';

@@ -1,11 +1,11 @@
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { useMentors, useMyBookings } from '@/data/hooks';
 import { useMentorRequests } from '@/features/mentors/hooks';
 import { useProfile } from '@/features/profile/store';
 import { useT } from '@/i18n';
 
-import { requestCall } from './api';
+import { endCall, requestCall } from './api';
 
 /**
  * L'accès à la salle, demandé à l'ouverture de l'écran (jamais relu une fois obtenu : ce serait rejoindre à nouveau).
@@ -20,6 +20,22 @@ export function useCallAccess(bookingId: string) {
     retry: false,
     refetchOnWindowFocus: false,
     refetchInterval: (q) => (q.state.data?.kind === 'waiting' ? 4000 : false),
+  });
+}
+
+/**
+ * Le mentor termine l'appel. Ensuite, l'écran relit l'accès (« terminé ») et les listes de rendez-vous se mettent à
+ * jour : plus de bouton « Rejoindre », et l'étudiant peut redemander.
+ */
+export function useEndCall(bookingId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: () => endCall(bookingId),
+    onSettled: () => {
+      void qc.invalidateQueries({ queryKey: ['call', bookingId] });
+      void qc.invalidateQueries({ queryKey: ['bookings'] });
+      void qc.invalidateQueries({ queryKey: ['mentor', 'requests'] });
+    },
   });
 }
 
