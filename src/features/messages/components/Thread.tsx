@@ -163,7 +163,7 @@ export function Composer({
 const useStyles = makeStyles(({ c, scheme }) => ({
   bubbleRow: { alignItems: 'flex-start', gap: 3 },
   mineRow: { alignItems: 'flex-end' },
-  bubble: { maxWidth: '82%', paddingHorizontal: 14, paddingVertical: 10, borderRadius: 20 },
+  bubble: { maxWidth: '82%', paddingHorizontal: 14, paddingVertical: 10, borderRadius: 20, overflow: 'hidden' },
   mine: { borderBottomEndRadius: 6 },
   theirs: { backgroundColor: c.card, borderBottomStartRadius: 6, borderWidth: StyleSheet.hairlineWidth, borderColor: c.line },
   time: { paddingHorizontal: 6 },
@@ -174,5 +174,5 @@ const useStyles = makeStyles(({ c, scheme }) => ({
   day: { alignSelf: 'center', paddingHorizontal: 12, paddingVertical: 4, borderRadius: radius.pill, backgroundColor: scheme === 'dark' ? 'rgba(20,27,49,0.85)' : 'rgba(255,255,255,0.7)', marginVertical: 8 },
   composer: { flexDirection: 'row', alignItems: 'flex-end', gap: 8, paddingStart: 16, paddingEnd: 6, paddingVertical: 6, borderRadius: 26, backgroundColor: c.card, borderWidth: 1, borderColor: c.line },
   input: { flex: 1, fontFamily: fonts.body, fontSize: 15, color: c.navy, maxHeight: 120, paddingVertical: 10, outlineStyle: 'none' } as any,
-  send: { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center' },
+  send: { width: 44, height: 44, borderRadius: 22, overflow: 'hidden', alignItems: 'center', justifyContent: 'center' },
 }));

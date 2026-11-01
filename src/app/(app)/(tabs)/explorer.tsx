@@ -150,7 +150,7 @@ export default function Explorer() {
 
       {tab === 'guides' && (
         <Animated.View entering={FadeIn.duration(200)} style={{ gap: 16, marginTop: 14, paddingHorizontal: 20 }}>
-          <PressableScale onPress={() => router.push('/(app)/lexique')}>
+          <PressableScale onPress={() => router.push('/(app)/lexique')} style={styles.lexiqueShadow}>
             <LinearGradient colors={['#2B1F7A', '#1F2850']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.lexique}>
               <IconTile icon={Languages} tone="violet" size={46} radius={14} />
               <View style={{ flex: 1 }}>
@@ -244,35 +244,37 @@ export default function Explorer() {
 
       {tab === 'hosts' && (
         <Animated.View entering={rise()} style={{ paddingHorizontal: 20, marginTop: 16 }}>
-          <LinearGradient colors={['#FB923C', '#EA580C']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.hostCard}>
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-              <IconTile size={44} bg="rgba(255,255,255,0.2)" radius={14}>
-                <House size={20} color="#fff" />
-              </IconTile>
-              <View style={styles.soon}>
-                <Text variant="caption" color="#fff">
-                  {t('explorer.soon')}
-                </Text>
+          <View style={styles.hostShadow}>
+            <LinearGradient colors={['#FB923C', '#EA580C']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.hostCard}>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                <IconTile size={44} bg="rgba(255,255,255,0.2)" radius={14}>
+                  <House size={20} color="#fff" />
+                </IconTile>
+                <View style={styles.soon}>
+                  <Text variant="caption" color="#fff">
+                    {t('explorer.soon')}
+                  </Text>
+                </View>
               </View>
-            </View>
-            <Text variant="h1" color="#fff" style={{ marginTop: 30 }}>
-              {t('explorer.host')}
-            </Text>
-            <Text variant="body" color="rgba(255,255,255,0.85)">
-              {t('explorer.hostText')}
-            </Text>
-            <View style={styles.progress}>
-              <View style={[styles.progressFill, { width: '68%' }]} />
-            </View>
-            <PressableScale onPress={() => toast(t('onboarding.mentor.hostSoon'), 'info')} haptic="select" style={styles.hostCta}>
-              <Text variant="smallStrong" color="#fff" style={{ flex: 1 }}>
-                {t('explorer.hostCta')}
+              <Text variant="h1" color="#fff" style={{ marginTop: 30 }}>
+                {t('explorer.host')}
               </Text>
-              <View style={styles.hostArrow}>
-                <ArrowRight size={16} color={colors.host} />
+              <Text variant="body" color="rgba(255,255,255,0.85)">
+                {t('explorer.hostText')}
+              </Text>
+              <View style={styles.progress}>
+                <View style={[styles.progressFill, { width: '68%' }]} />
               </View>
-            </PressableScale>
-          </LinearGradient>
+              <PressableScale onPress={() => toast(t('onboarding.mentor.hostSoon'), 'info')} haptic="select" style={styles.hostCta}>
+                <Text variant="smallStrong" color="#fff" style={{ flex: 1 }}>
+                  {t('explorer.hostCta')}
+                </Text>
+                <View style={styles.hostArrow}>
+                  <ArrowRight size={16} color={colors.host} />
+                </View>
+              </PressableScale>
+            </LinearGradient>
+          </View>
         </Animated.View>
       )}
     </Screen>
@@ -284,10 +286,13 @@ const useStyles = makeStyles(({ c, shadow }) => ({
   tabIdle: { backgroundColor: c.card, ...shadow.sm },
   skeleton: { height: 92, borderRadius: radius.xl, backgroundColor: c.fill },
   empty: { alignItems: 'center', gap: 6, padding: 24, borderRadius: radius.xl, backgroundColor: c.card },
-  lexique: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 16, borderRadius: radius.xl, ...shadow.md },
+  // L'ombre sur l'enveloppe, le dégradé coupé dans l'arrondi (iOS le dessine parfois en carré sans `overflow`).
+  lexiqueShadow: { borderRadius: radius.xl, ...shadow.md },
+  lexique: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 16, borderRadius: radius.xl, overflow: 'hidden' },
   guide: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 12, borderRadius: radius.xl, backgroundColor: c.card, ...shadow.sm },
   emoji: { width: 56, height: 56, borderRadius: 18, alignItems: 'center', justifyContent: 'center' },
-  hostCard: { borderRadius: radius.xxl, padding: 20, gap: 8, ...shadow.md, shadowColor: c.host },
+  hostShadow: { borderRadius: radius.xxl, ...shadow.md, shadowColor: c.host },
+  hostCard: { borderRadius: radius.xxl, padding: 20, gap: 8, overflow: 'hidden' },
   soon: { alignSelf: 'flex-start', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 999, backgroundColor: 'rgba(255,255,255,0.22)' },
   progress: { height: 5, borderRadius: 3, backgroundColor: 'rgba(255,255,255,0.3)', marginTop: 18, overflow: 'hidden' },
   progressFill: { height: 5, backgroundColor: c.card, borderRadius: 3 },

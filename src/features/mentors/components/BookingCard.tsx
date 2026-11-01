@@ -71,49 +71,53 @@ export function BookingCard({ booking, mentor }: { booking: Booking; mentor: Men
   }
 
   return (
-    <LinearGradient colors={gradients.hero} style={styles.slide}>
-      <View style={styles.row}>
-        <Avatar name={`${mentor.firstName} ${mentor.lastName}`} color={mentor.avatarColor} size={46} />
-        <View style={{ flex: 1 }}>
-          <Text variant="h3" color={c.white}>
-            {t('mentors.booking.callWith', { name: mentor.firstName })}
-          </Text>
-          <Text variant="small" color="rgba(255,255,255,0.65)">
-            {when}
-          </Text>
+    <View style={styles.slideShadow}>
+      <LinearGradient colors={gradients.hero} style={styles.slide}>
+        <View style={styles.row}>
+          <Avatar name={`${mentor.firstName} ${mentor.lastName}`} color={mentor.avatarColor} size={46} />
+          <View style={{ flex: 1 }}>
+            <Text variant="h3" color={c.white}>
+              {t('mentors.booking.callWith', { name: mentor.firstName })}
+            </Text>
+            <Text variant="small" color="rgba(255,255,255,0.65)">
+              {when}
+            </Text>
+          </View>
+          <View style={styles.live}>
+            <View style={styles.liveDot} />
+            <Text variant="caption" color="#FF8A8A">
+              {daysFromToday(booking.startsAt) === 0 ? t('mentors.booking.today') : t('mentors.booking.confirmed')}
+            </Text>
+          </View>
         </View>
-        <View style={styles.live}>
-          <View style={styles.liveDot} />
-          <Text variant="caption" color="#FF8A8A">
-            {daysFromToday(booking.startsAt) === 0 ? t('mentors.booking.today') : t('mentors.booking.confirmed')}
+        <PressableScale onPress={() => router.push({ pathname: '/(app)/appel/[id]', params: { id: booking.id } })} style={styles.cta}>
+          <Video size={15} color={c.white} />
+          <Text variant="smallStrong" color={c.white}>
+            {t('mentors.booking.join')}
           </Text>
-        </View>
-      </View>
-      <PressableScale onPress={() => router.push({ pathname: '/(app)/appel/[id]', params: { id: booking.id } })} style={styles.cta}>
-        <Video size={15} color={c.white} />
-        <Text variant="smallStrong" color={c.white}>
-          {t('mentors.booking.join')}
-        </Text>
-      </PressableScale>
-      <PressableScale onPress={write} disabled={open.isPending} style={styles.write} accessibilityLabel={t('mentors.booking.writeTo', { name: mentor.firstName })}>
-        <MessageCircle size={15} color={c.white} />
-        <Text variant="smallStrong" color={c.white}>
-          {t('mentors.booking.writeTo', { name: mentor.firstName })}
-        </Text>
-      </PressableScale>
-      <PressableScale onPress={askCancel} hitSlop={6} style={{ alignSelf: 'center', marginTop: 10 }} accessibilityLabel={t('mentors.booking.cancelCall')}>
-        <Text variant="caption" color="rgba(255,255,255,0.6)">
-          {t('mentors.booking.cancelCall')}
-        </Text>
-      </PressableScale>
-    </LinearGradient>
+        </PressableScale>
+        <PressableScale onPress={write} disabled={open.isPending} style={styles.write} accessibilityLabel={t('mentors.booking.writeTo', { name: mentor.firstName })}>
+          <MessageCircle size={15} color={c.white} />
+          <Text variant="smallStrong" color={c.white}>
+            {t('mentors.booking.writeTo', { name: mentor.firstName })}
+          </Text>
+        </PressableScale>
+        <PressableScale onPress={askCancel} hitSlop={6} style={{ alignSelf: 'center', marginTop: 10 }} accessibilityLabel={t('mentors.booking.cancelCall')}>
+          <Text variant="caption" color="rgba(255,255,255,0.6)">
+            {t('mentors.booking.cancelCall')}
+          </Text>
+        </PressableScale>
+      </LinearGradient>
+    </View>
   );
 }
 
 const useStyles = makeStyles(({ c, shadow }) => ({
   row: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   pending: { gap: 10, padding: 16, borderRadius: radius.xl, backgroundColor: c.surface, ...shadow.sm },
-  slide: { borderRadius: radius.xxl, padding: 18, ...shadow.md },
+  // L'ombre sur l'enveloppe, le dégradé coupé dans l'arrondi (iOS le dessine parfois en carré sans `overflow`).
+  slideShadow: { borderRadius: radius.xxl, ...shadow.md },
+  slide: { borderRadius: radius.xxl, padding: 18, overflow: 'hidden' },
   cta: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, height: 44, borderRadius: 999, marginTop: 14, backgroundColor: c.electric },
   write: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, height: 44, borderRadius: 999, marginTop: 8, borderWidth: 1.5, borderColor: 'rgba(255,255,255,0.35)' },
   live: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 8, paddingVertical: 4, borderRadius: 999, backgroundColor: 'rgba(229,72,77,0.15)' },

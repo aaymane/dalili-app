@@ -211,9 +211,9 @@ const useStyles = makeStyles(({ c, shadow, scheme }) => ({
   status: { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: scheme === 'dark' ? 'rgba(20,27,49,0.8)' : 'rgba(255,255,255,0.7)', paddingLeft: 6, paddingRight: 14, minHeight: 44, borderRadius: 999 },
   profileBtn: { width: 44, height: 44, borderRadius: 22, backgroundColor: c.card, alignItems: 'center', justifyContent: 'center', ...shadow.sm },
   bubbleAi: { backgroundColor: c.card, borderRadius: 20, borderTopLeftRadius: 6, padding: 14, ...shadow.sm },
-  bubbleUser: { maxWidth: '82%', borderRadius: 20, borderBottomRightRadius: 6, padding: 14 },
+  bubbleUser: { maxWidth: '82%', borderRadius: 20, overflow: 'hidden', borderBottomRightRadius: 6, padding: 14 },
   suggestion: { flexDirection: 'row', alignItems: 'center', gap: 10, padding: 14, borderRadius: radius.lg, backgroundColor: c.card, ...shadow.sm },
   inputBar: { flexDirection: 'row', alignItems: 'center', gap: 10, marginHorizontal: 16, paddingLeft: 18, paddingRight: 6, minHeight: 56, borderRadius: 28, backgroundColor: c.card, borderWidth: 1.5, borderColor: c.line, ...shadow.md },
   input: { flex: 1, fontFamily: fonts.body, fontSize: 15, color: c.navy, maxHeight: 110, paddingVertical: 12, outlineStyle: 'none' } as any,
-  send: { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center' },
+  send: { width: 44, height: 44, borderRadius: 22, overflow: 'hidden', alignItems: 'center', justifyContent: 'center' },
 }));
