@@ -1,4 +1,4 @@
-import { CalendarDays, Plus } from 'lucide-react-native';
+import { Plus } from 'lucide-react-native';
 import { useState } from 'react';
 import { TextInput, View } from 'react-native';
 
@@ -16,7 +16,7 @@ import { fonts, radius } from '@/theme/tokens';
 
 import { useJourneyStore } from '../store';
 
-/** « + Ajouter ma propre étape » — carte en pointillés (prototype). */
+/** « + Ajouter ma propre étape » : une ligne discrète qui ouvre la feuille (nom, puis date au calendrier). */
 export function AddStepCard({ defaultDate }: { defaultDate?: Date }) {
   const { c } = useTheme();
   const styles = useStyles();
@@ -35,39 +35,36 @@ export function AddStepCard({ defaultDate }: { defaultDate?: Date }) {
     haptics.success();
     toast(t('journey.added'));
     setTitle('');
+    setOpen(false);
   };
 
   return (
-    <View style={styles.card}>
-      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-        <Plus size={18} color={c.electric} strokeWidth={2.6} />
-        <Text variant="h3" color={c.electric}>
+    <>
+      <PressableScale onPress={() => setOpen(true)} style={styles.row} accessibilityRole="button">
+        <View style={styles.plus}>
+          <Plus size={16} color={c.electric} strokeWidth={2.6} />
+        </View>
+        <Text variant="smallStrong" color={c.electric}>
           {t('journey.addTitle')}
         </Text>
-      </View>
-      <View style={{ flexDirection: 'row', gap: 8 }}>
-        <TextInput value={title} onChangeText={setTitle} placeholder={t('journey.addPlaceholder')} placeholderTextColor={c.muted} style={[styles.field, { flex: 1.4 }]} onSubmitEditing={submit} returnKeyType="done" />
-        <PressableScale onPress={() => setOpen(true)} style={[styles.field, styles.dateBtn]}>
-          <CalendarDays size={14} color={c.electric} />
-          <Text variant="smallStrong">{formatDayMonth(date)}</Text>
-        </PressableScale>
-      </View>
-      <Button label={t('journey.addCta')} size="md" onPress={submit} />
-      <BottomSheet visible={open} onClose={() => setOpen(false)}>
-        <Calendar
-          selected={date}
-          onSelect={(d) => {
-            setDate(d);
-            setTimeout(() => setOpen(false), 160);
-          }}
-        />
+      </PressableScale>
+      <BottomSheet visible={open} onClose={() => setOpen(false)} scroll>
+        <View style={{ gap: 14 }}>
+          <Text variant="h2">{t('journey.addTitle')}</Text>
+          <TextInput value={title} onChangeText={setTitle} placeholder={t('journey.addPlaceholder')} placeholderTextColor={c.muted} style={styles.field} returnKeyType="done" />
+          <Text variant="smallStrong" color={c.subtle}>
+            {t('journey.addWhen', { date: formatDayMonth(date) })}
+          </Text>
+          <Calendar selected={date} onSelect={setDate} />
+          <Button label={t('journey.addCta')} onPress={submit} />
+        </View>
       </BottomSheet>
-    </View>
+    </>
   );
 }
 
 const useStyles = makeStyles(({ c }) => ({
-  card: { gap: 12, padding: 16, borderRadius: radius.xl, borderWidth: 2, borderStyle: 'dashed', borderColor: '#9DB6FF', backgroundColor: c.cardSelected },
-  field: { height: 46, borderRadius: radius.md, borderWidth: 1.5, borderColor: c.line, backgroundColor: c.card, paddingHorizontal: 12, fontFamily: fonts.body, fontSize: 14, color: c.navy },
-  dateBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6 },
+  row: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 10, alignSelf: 'flex-start', minHeight: 44 },
+  plus: { width: 30, height: 30, borderRadius: 15, backgroundColor: c.electricSoft, alignItems: 'center', justifyContent: 'center' },
+  field: { height: 50, borderRadius: radius.md, borderWidth: 1.5, borderColor: c.line, backgroundColor: c.card, paddingHorizontal: 14, fontFamily: fonts.body, fontSize: 15, color: c.navy },
 }));
