@@ -33,6 +33,9 @@ import { specialtyLabel } from '@/features/mentors/specialties';
 /** Heures que l'étudiant peut proposer. Ce ne sont pas des disponibilités : le mentor accepte selon son moment. */
 const TIMES = ['09:00', '10:30', '12:00', '14:00', '16:00', '18:00', '19:30', '21:00'];
 
+/** « lundi 2 novembre · 18h00 » → « Lundi 2 novembre · 18h00 ». */
+const upperFirst = (s: string) => s.charAt(0).toLocaleUpperCase() + s.slice(1);
+
 const at = (day: Date, time: string) => {
   const [h, min] = time.split(':').map(Number);
   const d = new Date(day);
@@ -48,11 +51,13 @@ export default function Reserve() {
   const { c, gradients } = useTheme();
   const t = useT();
   const styles = useStyles();
-  const { id } = useLocalSearchParams<{ id: string }>();
+  // `topic` : le sujet touché sur la fiche du mentor arrive déjà rempli.
+  const params = useLocalSearchParams<{ id: string; topic?: string }>();
+  const id = params.id;
   const { data: m } = useMentor(id);
   const qc = useQueryClient();
   const addBooking = useLocalDb((s) => s.addBooking);
-  const [topic, setTopic] = useState('');
+  const [topic, setTopic] = useState(params.topic ?? '');
   const [day, setDay] = useState<Date | null>(null);
   const [time, setTime] = useState<string | null>(null);
   const [slotAt, setSlotAt] = useState<Date | null>(null);
@@ -113,7 +118,22 @@ export default function Reserve() {
       top={gradients.roleTop.student}
       padded={false}
       header={<AppHeader back />}
-      footer={paused || blocked ? undefined : <Button label={t('mentors.book.send')} disabled={!chosen} loading={loading} onPress={send} />}>
+      footer={
+        paused || blocked ? undefined : (
+          // Ce qui part, juste au-dessus du bouton : le créneau choisi, et ce qui se passe ensuite.
+          <View style={{ gap: 10 }}>
+            <View style={{ gap: 2 }}>
+              <Text variant="smallStrong" color={chosen ? c.navy : c.muted} align="center">
+                {chosen ? upperFirst(`${formatLong(chosen)} · ${formatTime(chosen)}`) : t('mentors.book.pickSlot')}
+              </Text>
+              <Text variant="caption" color={c.muted} align="center">
+                {bySlots ? t('mentors.book.acceptNote', { name: m.firstName }) : t('mentors.book.proposeNote', { name: m.firstName })}
+              </Text>
+            </View>
+            <Button label={t('mentors.book.send')} disabled={!chosen} loading={loading} onPress={send} />
+          </View>
+        )
+      }>
       <View style={{ paddingHorizontal: 20, gap: 18 }}>
         <Animated.View entering={rise()} style={styles.who}>
           <Avatar name={`${m.firstName} ${m.lastName}`} color={m.avatarColor} size={52} />
@@ -167,13 +187,7 @@ export default function Reserve() {
           </Animated.View>
         ) : (
           <>
-            <Animated.View entering={rise(60)} style={styles.note}>
-              <Text variant="small" color={c.subtle}>
-                {bySlots ? t('mentors.book.hintSlots', { name: m.firstName }) : t('mentors.book.hint', { name: m.firstName })}
-              </Text>
-            </Animated.View>
-
-            <View style={{ gap: 8 }}>
+            <Animated.View entering={rise(60)} style={{ gap: 10 }}>
               <Text variant="h3">{t('mentors.book.topic')}</Text>
               <Input placeholder={t('mentors.book.topicPlaceholder')} value={topic} onChangeText={setTopic} maxLength={80} />
               <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
@@ -185,7 +199,7 @@ export default function Reserve() {
                   </PressableScale>
                 ))}
               </View>
-            </View>
+            </Animated.View>
 
             {slots.isPending ? null : bySlots ? (
               <SlotPicker slots={slots.data ?? []} busy={busy.data ?? []} value={slotAt} onChange={setSlotAt} />
@@ -203,10 +217,8 @@ export default function Reserve() {
                 {day ? (
                   <Animated.View entering={FadeIn.duration(250)} style={styles.timesCard}>
                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                      <Clock size={16} color={c.electric} />
-                      <Text variant="h3" color={c.electric}>
-                        {t('mentors.book.whatTime', { day: formatLong(day) })}
-                      </Text>
+                      <Clock size={16} color={c.muted} />
+                      <Text variant="h3">{t('mentors.book.whatTime', { day: formatLong(day) })}</Text>
                     </View>
                     <View style={styles.times}>
                       {TIMES.map((slot) => {

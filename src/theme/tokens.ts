@@ -27,6 +27,8 @@ export const lightPalette = {
   mentorSoft: '#E3F7EF',
   /** Vert du mentor sur fond nuit (étoile, icônes de la carte d'impact). */
   mentorGlow: '#7DE3B9',
+  /** Texte vert du mentor sur fond clair (contraste AA) : « Mentor vérifié ». */
+  mentorInk: '#0F7A55',
   host: '#EA580C',
   hostSoft: '#FDEDE3',
 
@@ -79,6 +81,7 @@ export const darkPalette: Palette = {
   mentor: '#2BC78F',
   mentorSoft: '#0E2C22',
   mentorGlow: '#7DE3B9',
+  mentorInk: '#7DE3B9',
   host: '#FB7F3F',
   hostSoft: '#3A1F12',
 

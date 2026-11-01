@@ -11,6 +11,7 @@ import { Screen } from '@/components/layout/Screen';
 import { ArrowRight } from '@/components/ui/DirIcons';
 import { IconTile } from '@/components/ui/IconTile';
 import { Input } from '@/components/ui/Input';
+import { ListGroup } from '@/components/ui/ListGroup';
 import { PressableScale } from '@/components/ui/PressableScale';
 import { Chip } from '@/components/ui/Tag';
 import { Text } from '@/components/ui/Text';
@@ -128,13 +129,17 @@ export default function Explorer() {
               ))}
           </ScrollView>
           <Animated.View layout={reflow} style={{ gap: 10, paddingHorizontal: 20 }}>
-            {isLoading
-              ? [0, 1, 2].map((i) => <View key={i} style={styles.skeleton} />)
-              : mentorList.map((m, i) => (
+            {isLoading ? (
+              [0, 1, 2].map((i) => <View key={i} style={styles.skeleton} />)
+            ) : mentorList.length ? (
+              <ListGroup>
+                {mentorList.map((m, i) => (
                   <Animated.View key={m.id} entering={rise(i * 50)} layout={reflow}>
                     <MentorRow m={m} />
                   </Animated.View>
                 ))}
+              </ListGroup>
+            ) : null}
             {!isLoading && !mentors.length ? <MentorsSoon /> : null}
             {!isLoading && mentors.length > 0 && !mentorList.length ? (
               <View style={styles.empty}>

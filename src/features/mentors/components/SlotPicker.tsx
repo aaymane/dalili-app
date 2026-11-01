@@ -79,10 +79,8 @@ export function SlotPicker({ slots, busy, value, onChange }: Props) {
       {day ? (
         <Animated.View key={day} entering={enter(1)} layout={reflow} style={styles.card}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-            <Clock size={16} color={c.electric} />
-            <Text variant="h3" color={c.electric}>
-              {t('mentors.book.whatTime', { day: formatLong(new Date(`${day}T12:00:00`)) })}
-            </Text>
+            <Clock size={16} color={c.muted} />
+            <Text variant="h3">{t('mentors.book.whatTime', { day: formatLong(new Date(`${day}T12:00:00`)) })}</Text>
           </View>
           <View style={styles.times}>
             {times.map((d) => {
