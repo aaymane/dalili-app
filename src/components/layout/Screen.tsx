@@ -1,10 +1,12 @@
+import { useQueryClient } from '@tanstack/react-query';
 import { LinearGradient } from 'expo-linear-gradient';
-import type { ReactNode } from 'react';
-import { KeyboardAvoidingView, Platform, StyleSheet, View, type ScrollViewProps } from 'react-native';
+import { useState, type ReactNode } from 'react';
+import { KeyboardAvoidingView, Platform, RefreshControl, StyleSheet, View, type ScrollViewProps } from 'react-native';
 import Animated, { useAnimatedRef, useScrollOffset } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ScrollContext } from '@/components/motion/scroll';
+import { haptics } from '@/lib/haptics';
 
 import { useColors } from '@/theme/scheme';
 
@@ -23,12 +25,26 @@ type Props = {
   bg?: string;
   scrollProps?: ScrollViewProps;
   keyboard?: boolean;
+  /** Tirer vers le bas relit les données de l'écran (oui par défaut ; non pour un formulaire, par exemple). */
+  refreshable?: boolean;
 };
 
-/** Gabarit d'écran : dégradé haut, safe-area, scroll, footer collant. */
-export function Screen({ children, top, scroll = true, header, footer, padded = true, tabBar, bg, scrollProps, keyboard }: Props) {
+/** Gabarit d'écran : dégradé haut, safe-area, scroll (tirer pour actualiser), footer collant. */
+export function Screen({ children, top, scroll = true, header, footer, padded = true, tabBar, bg, scrollProps, keyboard, refreshable = true }: Props) {
   const c = useColors();
   const insets = useSafeAreaInsets();
+  const qc = useQueryClient();
+  const [refreshing, setRefreshing] = useState(false);
+  // Tirer vers le bas : tout ce que l'écran affiche est relu (publications, groupes, rendez-vous…).
+  const refresh = async () => {
+    setRefreshing(true);
+    haptics.select();
+    try {
+      await qc.refetchQueries({ type: 'active' });
+    } finally {
+      setRefreshing(false);
+    }
+  };
   // Position de défilement suivie sur le thread UI : parallaxe et apparitions (`Reveal`) s'y calent.
   const scrollRef = useAnimatedRef<Animated.ScrollView>();
   const scrollY = useScrollOffset(scrollRef);
@@ -38,6 +54,7 @@ export function Screen({ children, top, scroll = true, header, footer, padded = 
       ref={scrollRef}
       showsVerticalScrollIndicator={false}
       keyboardShouldPersistTaps="handled"
+      refreshControl={refreshable ? <RefreshControl refreshing={refreshing} onRefresh={refresh} tintColor={c.muted} colors={[c.electric]} /> : undefined}
       {...scrollProps}
       contentContainerStyle={[padded && styles.pad, { paddingBottom: bottom }, scrollProps?.contentContainerStyle]}>
       {children}

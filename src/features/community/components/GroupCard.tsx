@@ -1,3 +1,4 @@
+import { useQueryClient } from '@tanstack/react-query';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
@@ -9,19 +10,34 @@ import { ChevronRight } from '@/components/ui/DirIcons';
 import { PressableScale } from '@/components/ui/PressableScale';
 import { Text } from '@/components/ui/Text';
 import { remoteJoinGroup } from '@/data/api';
-import type { EventWithState, GroupWithState } from '@/data/hooks';
+import { MY_GROUPS, type EventWithState, type GroupWithState } from '@/data/hooks';
 import { useLocalDb } from '@/data/local-db';
 import { t, useT } from '@/i18n';
 import { formatTime, monthShort, weekdayName } from '@/lib/date';
 import { makeStyles, useTheme } from '@/theme/scheme';
 import { fonts, radius } from '@/theme/tokens';
 
+/**
+ * Rejoindre ou quitter un groupe. Avec un compte, la base est la vérité : l'écran change tout de suite, puis relit
+ * la base (et revient en arrière si elle refuse). En démo, c'est ce téléphone qui s'en souvient.
+ */
 export function useJoinGroup() {
   const toggle = useLocalDb((s) => s.toggleGroup);
+  const qc = useQueryClient();
   return (g: { id: string; name: string; isMember: boolean }) => {
-    toggle(g.id);
-    remoteJoinGroup(g.id, !g.isMember).catch(() => {});
-    toast(g.isMember ? t('community.left', { name: g.name }) : t('community.welcome', { name: g.name }), g.isMember ? 'info' : undefined);
+    const join = !g.isMember;
+    const before = qc.getQueryData<string[] | null>(MY_GROUPS);
+    if (Array.isArray(before)) qc.setQueryData<string[]>(MY_GROUPS, join ? [...new Set([...before, g.id])] : before.filter((id) => id !== g.id));
+    else toggle(g.id);
+    toast(join ? t('community.welcome', { name: g.name }) : t('community.left', { name: g.name }), join ? 'success' : 'info');
+    remoteJoinGroup(g.id, join)
+      // Le fil se relit aussi : il était vide tant que tu n'étais pas membre (la base ne le montre qu'aux membres).
+      .then(() => Promise.all([qc.invalidateQueries({ queryKey: ['groups'] }), qc.invalidateQueries({ queryKey: ['posts', g.id] })]))
+      .catch(() => {
+        if (Array.isArray(before)) qc.setQueryData(MY_GROUPS, before);
+        else toggle(g.id);
+        toast(t('community.joinFailed'), 'info');
+      });
   };
 }
 

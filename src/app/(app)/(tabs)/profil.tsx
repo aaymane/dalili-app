@@ -13,7 +13,7 @@ import { PressableScale } from '@/components/ui/PressableScale';
 import { ProgressRing } from '@/components/ui/ProgressRing';
 import { Segmented } from '@/components/ui/Segmented';
 import { Text } from '@/components/ui/Text';
-import { useMyBookings } from '@/data/hooks';
+import { useGroups, useMyBookings } from '@/data/hooks';
 import { useLocalDb } from '@/data/local-db';
 import { resetLocalData } from '@/features/auth/account';
 import { isDemoMode, useAuth } from '@/features/auth/store';
@@ -67,7 +67,8 @@ export default function Profil() {
   const [since] = useState(() => Date.now());
   const bookings = useMyBookings().data.filter((b) => (b.status === 'pending' || b.status === 'confirmed') && new Date(b.startsAt).getTime() > since);
   const saved = useLocalDb((s) => s.savedGuides);
-  const groups = useLocalDb((s) => s.joinedGroups);
+  // Tes groupes d'après la base (avec un compte), pas seulement ceux rejoints sur ce téléphone.
+  const groups = useGroups().data.filter((g) => g.isMember);
   const j = useJourney();
   const application = useMyApplication().data;
   const isMentor = profile.activeRole === 'mentor';

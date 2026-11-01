@@ -144,12 +144,28 @@ export async function fetchPosts(groupId: string): Promise<Post[]> {
 
 /* ---------- Écritures (no-op en démo : la base locale suffit) ---------- */
 
+/**
+ * Les groupes dont tu es membre, d'après la base (la vérité, sur tous tes téléphones et après une reconnexion).
+ * `null` en mode démo : l'app se fie alors à ce que tu as rejoint sur ce téléphone.
+ */
+export async function fetchMyGroupIds(): Promise<string[] | null> {
+  if (!supabase) return null;
+  const { data: s } = await supabase.auth.getSession();
+  if (!s.session) return null;
+  const { data, error } = await supabase.from('group_members').select('group_id').eq('user_id', s.session.user.id);
+  if (error) throw error;
+  return (data ?? []).map((r) => r.group_id as string);
+}
+
+/** Rejoindre ou quitter un groupe. Un refus de la base remonte : l'écran remet l'état d'avant et le dit. */
 export async function remoteJoinGroup(groupId: string, join: boolean) {
   if (!supabase) return;
   const { data: u } = await supabase.auth.getUser();
   if (!u.user) return;
-  if (join) await supabase.from('group_members').upsert({ group_id: groupId, user_id: u.user.id }, { ignoreDuplicates: true });
-  else await supabase.from('group_members').delete().match({ group_id: groupId, user_id: u.user.id });
+  const { error } = join
+    ? await supabase.from('group_members').upsert({ group_id: groupId, user_id: u.user.id }, { ignoreDuplicates: true })
+    : await supabase.from('group_members').delete().match({ group_id: groupId, user_id: u.user.id });
+  if (error) throw error;
 }
 
 /**

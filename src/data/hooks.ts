@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useMemo } from 'react';
 
-import { fetchEvents, fetchGroups, fetchMentors, fetchMyBookings, fetchPosts, remoteCancelBooking } from './api';
+import { fetchEvents, fetchGroups, fetchMentors, fetchMyBookings, fetchMyGroupIds, fetchPosts, remoteCancelBooking } from './api';
 import { fetchCore, fetchGuide, snapshot, snapshotGuide, type Core, type CoreKey } from './content';
 import { useAuth } from '@/features/auth/store';
 import { notifyServer } from '@/features/notifications/push';
@@ -10,6 +10,8 @@ import { useLocalDb } from './local-db';
 import type { Booking } from './types';
 
 const MY_BOOKINGS = ['bookings', 'mine'] as const;
+/** Tes adhésions aux groupes (base), sous la clé des groupes : actualiser les groupes les relit aussi. */
+export const MY_GROUPS = ['groups', 'mine'] as const;
 
 /**
  * Tes demandes et rendez-vous. Avec un compte : la base (la réponse du mentor est relue à chaque retour sur l'app, voir lib/query.ts).
@@ -52,7 +54,9 @@ export function useMentor(id?: string) {
 
 /** Groupes (base + créés localement) avec l'état « membre », et « à toi » (tu l'as créé : tu changes sa photo). */
 export function useGroups() {
-  const q = useQuery({ queryKey: ['groups'], queryFn: fetchGroups });
+  const q = useQuery({ queryKey: ['groups', 'list'], queryFn: fetchGroups });
+  // Membre ou non : la base le dit (avec un compte) ; en démo, ce qui a été rejoint sur ce téléphone.
+  const mine = useQuery({ queryKey: MY_GROUPS, queryFn: fetchMyGroupIds });
   const created = useLocalDb((s) => s.createdGroups);
   const joined = useLocalDb((s) => s.joinedGroups);
   const covers = useLocalDb((s) => s.covers);
@@ -61,14 +65,17 @@ export function useGroups() {
     // Un groupe créé en ligne revient aussi du serveur : on garde la version du serveur, une seule fois.
     const remote = q.data ?? [];
     const all = [...created.filter((c) => !remote.some((r) => r.id === c.id)), ...remote];
+    const demo = !Array.isArray(mine.data);
+    const memberOf = demo ? joined : (mine.data as string[]);
     return all.map((g) => ({
       ...g,
       coverUrl: covers[g.id] ?? g.coverUrl ?? null,
       isMine: created.some((c) => c.id === g.id) || (!!uid && g.createdBy === uid),
-      isMember: joined.includes(g.id),
-      members: g.members + (joined.includes(g.id) && !created.some((c) => c.id === g.id) ? 1 : 0),
+      isMember: memberOf.includes(g.id),
+      // Avec un compte, le nombre de membres vient de la base (déjà à jour) ; en démo, on ajoute le tien.
+      members: g.members + (demo && joined.includes(g.id) && !created.some((c) => c.id === g.id) ? 1 : 0),
     }));
-  }, [q.data, created, joined, covers, uid]);
+  }, [q.data, mine.data, created, joined, covers, uid]);
   return { ...q, data };
 }
 
