@@ -1,7 +1,12 @@
+import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
-import { ArrowUp, Lock, RotateCcw } from 'lucide-react-native';
+import * as WebBrowser from 'expo-web-browser';
+import { ArrowUp, FileText, Lock, Paperclip, RotateCcw } from 'lucide-react-native';
 import { useEffect, useState } from 'react';
 import { StyleSheet, TextInput, View } from 'react-native';
+
+import { PhotoViewer } from '@/components/feedback/PhotoViewer';
+import { toast } from '@/components/feedback/Toast';
 import Animated, { useAnimatedStyle, useSharedValue, withDelay, withRepeat, withSequence, withTiming } from 'react-native-reanimated';
 
 import { PressableScale } from '@/components/ui/PressableScale';
@@ -14,6 +19,67 @@ import { makeStyles, useTheme } from '@/theme/scheme';
 import { fonts, radius } from '@/theme/tokens';
 
 import type { Message } from '../api';
+import { useAttachmentUrl } from '../hooks';
+
+/** « 240 Ko », « 1,8 Mo ». */
+const sizeLabel = (bytes: number) => (bytes < 1024 * 1024 ? `${Math.max(1, Math.round(bytes / 1024))} Ko` : `${(bytes / 1024 / 1024).toFixed(1).replace('.', ',')} Mo`);
+
+/**
+ * Une pièce jointe dans la conversation : la photo (on la touche pour la voir en grand) ou le PDF (il s'ouvre).
+ * Après 30 jours, le fichier est supprimé : on garde son nom, et on le dit.
+ */
+function AttachmentView({ m }: { m: Message }) {
+  const { c } = useTheme();
+  const t = useT();
+  const styles = useStyles();
+  const a = m.attachment!;
+  const url = useAttachmentUrl(a);
+  const [viewing, setViewing] = useState(false);
+  const expired = !a.path && !a.localUri;
+  if (expired)
+    return (
+      <View style={[styles.file, styles.fileExpired]}>
+        <FileText size={18} color={c.muted} />
+        <View style={{ flexShrink: 1 }}>
+          <Text variant="smallStrong" color={c.muted} numberOfLines={1}>
+            {a.name}
+          </Text>
+          <Text variant="caption" color={c.muted}>
+            {t('messages.fileExpired')}
+          </Text>
+        </View>
+      </View>
+    );
+  if (a.type === 'image/jpeg')
+    return (
+      <>
+        <PressableScale onPress={() => url && setViewing(true)} scaleTo={0.98} style={[styles.photo, (m.pending || m.failed) && { opacity: 0.6 }]} accessibilityRole="imagebutton" accessibilityLabel={t('messages.photoA11y', { name: a.name })}>
+          {url ? <Image source={{ uri: url, cacheKey: a.path ?? a.localUri }} style={StyleSheet.absoluteFill} contentFit="cover" transition={150} /> : null}
+        </PressableScale>
+        <PhotoViewer uri={viewing ? url : null} cacheKey={a.path ?? a.localUri} onClose={() => setViewing(false)} />
+      </>
+    );
+  return (
+    <PressableScale
+      onPress={() => (url ? WebBrowser.openBrowserAsync(url) : toast(t('messages.fileOpening'), 'info'))}
+      scaleTo={0.98}
+      style={[styles.file, m.mine && styles.fileMine, (m.pending || m.failed) && { opacity: 0.6 }]}
+      accessibilityRole="link"
+      accessibilityLabel={t('messages.pdfA11y', { name: a.name })}>
+      <View style={styles.fileIcon}>
+        <FileText size={18} color={c.electric} />
+      </View>
+      <View style={{ flexShrink: 1 }}>
+        <Text variant="smallStrong" numberOfLines={1}>
+          {a.name}
+        </Text>
+        <Text variant="caption" color={c.muted}>
+          PDF · {sizeLabel(a.size)}
+        </Text>
+      </View>
+    </PressableScale>
+  );
+}
 
 /**
  * Une bulle. Les tiennes à droite, dans la couleur de ton rôle ; celles de l'autre à gauche.
@@ -29,9 +95,11 @@ export function Bubble({ m, fresh, showTime, onRetry }: { m: Message; fresh: boo
       {m.body}
     </Text>
   );
+  const hasText = m.body.trim().length > 0;
   return (
     <Animated.View entering={fresh ? rise() : undefined} style={[styles.bubbleRow, m.mine && styles.mineRow]}>
-      {m.mine ? (
+      {m.attachment ? <AttachmentView m={m} /> : null}
+      {!hasText ? null : m.mine ? (
         <LinearGradient colors={theme.gradient} style={[styles.bubble, styles.mine, (m.pending || m.failed) && { opacity: 0.6 }]}>
           {body}
         </LinearGradient>
@@ -114,12 +182,15 @@ export function DaySeparator({ iso }: { iso: string }) {
 export function Composer({
   onSend,
   onTyping,
+  onAttach,
   disabled,
   placeholder,
   label,
 }: {
   onSend: (body: string) => void;
   onTyping?: () => void;
+  /** Le trombone : joindre une photo ou un PDF (messagerie seulement, pas les commentaires). */
+  onAttach?: () => void;
   disabled?: boolean;
   placeholder?: string;
   label?: string;
@@ -136,7 +207,12 @@ export function Composer({
     setText('');
   };
   return (
-    <View style={styles.composer}>
+    <View style={[styles.composer, onAttach && { paddingStart: 4 }]}>
+      {onAttach ? (
+        <PressableScale onPress={onAttach} disabled={disabled} haptic="select" style={styles.attach} accessibilityLabel={t('messages.attachA11y')}>
+          <Paperclip size={20} color={c.subtle} />
+        </PressableScale>
+      ) : null}
       <TextInput
         value={text}
         onChangeText={(value) => {
@@ -175,4 +251,10 @@ const useStyles = makeStyles(({ c, scheme }) => ({
   composer: { flexDirection: 'row', alignItems: 'flex-end', gap: 8, paddingStart: 16, paddingEnd: 6, paddingVertical: 6, borderRadius: 26, backgroundColor: c.card, borderWidth: 1, borderColor: c.line },
   input: { flex: 1, fontFamily: fonts.body, fontSize: 15, color: c.navy, maxHeight: 120, paddingVertical: 10, outlineStyle: 'none' } as any,
   send: { width: 44, height: 44, borderRadius: 22, overflow: 'hidden', alignItems: 'center', justifyContent: 'center' },
+  attach: { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center' },
+  photo: { width: 230, aspectRatio: 4 / 5, borderRadius: 18, overflow: 'hidden', backgroundColor: c.fill },
+  file: { flexDirection: 'row', alignItems: 'center', gap: 10, maxWidth: '82%', padding: 10, paddingEnd: 14, borderRadius: 18, backgroundColor: c.card, borderWidth: StyleSheet.hairlineWidth, borderColor: c.line },
+  fileMine: { borderColor: c.electricSoft },
+  fileExpired: { backgroundColor: c.surface },
+  fileIcon: { width: 38, height: 38, borderRadius: 12, backgroundColor: c.electricSoft, alignItems: 'center', justifyContent: 'center' },
 }));

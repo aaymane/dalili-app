@@ -916,6 +916,113 @@ select tests.must_count('nouveau message : la base prévient le site, sans le te
 reset role;
 rollback;
 
+-- ───────────── couvertures : seul le créateur du groupe ou de l'événement dépose la photo ─────────────
+select tests.must_count('les buckets photos et pièces jointes sont privés',
+  $q$select 1 from storage.buckets where id in ('covers', 'post-photos', 'message-files') and not public$q$, 3);
+begin;
+insert into public.groups (id, name, city, created_by) values
+  ('00000000-0000-0000-0000-0000000000c2', 'Groupe de C', 'Lyon', '00000000-0000-0000-0000-00000000000c');
+insert into public.events (id, title, city, place, starts_at, created_by) values
+  ('00000000-0000-0000-0000-0000000000d2', 'Soirée de C', 'Lyon', 'Bellecour', now() + interval '3 days', '00000000-0000-0000-0000-00000000000c');
+set local role authenticated;
+set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-00000000000c","role":"authenticated"}';
+insert into storage.objects (bucket_id, name) values
+  ('covers', 'groups/00000000-0000-0000-0000-0000000000c2/m1abc2.jpg'),
+  ('covers', 'events/00000000-0000-0000-0000-0000000000d2/m1abc3.jpg');
+update public.groups set cover_path = 'groups/00000000-0000-0000-0000-0000000000c2/m1abc2.jpg' where id = '00000000-0000-0000-0000-0000000000c2';
+update public.events set cover_path = 'events/00000000-0000-0000-0000-0000000000d2/m1abc3.jpg' where id = '00000000-0000-0000-0000-0000000000d2';
+select tests.must_count('le créateur pose la photo de son groupe et de son événement',
+  $q$select 1 from public.groups where cover_path is not null union all select 1 from public.events where cover_path is not null$q$, 2);
+select tests.must_fail('le créateur met un lien externe en couverture',
+  $q$update public.groups set cover_path = 'https://pirate.example/pixel.jpg' where id = '00000000-0000-0000-0000-0000000000c2'$q$);
+select tests.must_fail('le créateur pointe sa couverture vers un autre groupe',
+  $q$update public.groups set cover_path = 'groups/00000000-0000-0000-0000-0000000000c1/m1abc2.jpg' where id = '00000000-0000-0000-0000-0000000000c2'$q$);
+select tests.must_fail('C dépose une couverture dans le dossier d''un groupe qui n''est pas le sien',
+  $q$insert into storage.objects (bucket_id, name) values ('covers', 'groups/00000000-0000-0000-0000-0000000000c1/pirate.jpg')$q$);
+set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-00000000000a","role":"authenticated"}';
+select tests.must_fail('un étudiant dépose une couverture sur le groupe du mentor',
+  $q$insert into storage.objects (bucket_id, name) values ('covers', 'groups/00000000-0000-0000-0000-0000000000c2/pirate.jpg')$q$);
+select tests.must_fail('… ou à la racine du bucket', $q$insert into storage.objects (bucket_id, name) values ('covers', 'pirate.jpg')$q$);
+update public.groups set cover_path = null where id = '00000000-0000-0000-0000-0000000000c2';
+delete from storage.objects where bucket_id = 'covers';
+select tests.must_count('l''étudiant voit les couvertures, sans pouvoir les retirer ni les changer',
+  $q$select 1 from storage.objects where bucket_id = 'covers' union all select 1 from public.groups where cover_path is not null$q$, 3);
+set local role anon;
+set local request.jwt.claims = '{}';
+select tests.must_count('anon ne voit aucune couverture', $q$select * from storage.objects where bucket_id = 'covers'$q$, 0);
+rollback;
+
+-- ───────────── photos des publications : membres du groupe, chacun dans son dossier ─────────────
+begin;
+set local role authenticated;
+set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-00000000000a","role":"authenticated"}';
+select tests.must_fail('A dépose une photo dans un groupe dont il n''est pas membre',
+  $q$insert into storage.objects (bucket_id, name) values ('post-photos', '00000000-0000-0000-0000-0000000000c1/00000000-0000-0000-0000-00000000000a/m1abc2.jpg')$q$);
+insert into public.group_members (group_id) values ('00000000-0000-0000-0000-0000000000c1');
+insert into storage.objects (bucket_id, name) values ('post-photos', '00000000-0000-0000-0000-0000000000c1/00000000-0000-0000-0000-00000000000a/m1abc2.jpg');
+select tests.must_fail('A dépose une photo dans le dossier de B',
+  $q$insert into storage.objects (bucket_id, name) values ('post-photos', '00000000-0000-0000-0000-0000000000c1/00000000-0000-0000-0000-00000000000b/m1abc2.jpg')$q$);
+insert into public.posts (group_id, image_path) values ('00000000-0000-0000-0000-0000000000c1', '00000000-0000-0000-0000-0000000000c1/00000000-0000-0000-0000-00000000000a/m1abc2.jpg');
+select tests.must_count('A publie une photo sans texte, le fil la montre',
+  $q$select * from public.posts_with_author where image_path like '%/m1abc2.jpg' and body = ''$q$, 1);
+select tests.must_fail('A publie la photo de quelqu''un d''autre',
+  $q$insert into public.posts (group_id, image_path) values ('00000000-0000-0000-0000-0000000000c1', '00000000-0000-0000-0000-0000000000c1/00000000-0000-0000-0000-00000000000b/m1abc2.jpg')$q$);
+select tests.must_fail('A publie un lien externe comme photo',
+  $q$insert into public.posts (group_id, image_path) values ('00000000-0000-0000-0000-0000000000c1', 'https://pirate.example/pixel.jpg')$q$);
+select tests.must_fail('A publie une publication vide', $q$insert into public.posts (group_id, body) values ('00000000-0000-0000-0000-0000000000c1', '   ')$q$);
+set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-00000000000b","role":"authenticated"}';
+select tests.must_count('B, pas membre, ne voit pas la photo', $q$select * from storage.objects where bucket_id = 'post-photos'$q$, 0);
+delete from storage.objects where bucket_id = 'post-photos';
+insert into public.group_members (group_id) values ('00000000-0000-0000-0000-0000000000c1');
+select tests.must_count('B rejoint le groupe : il voit la photo (et n''a rien pu supprimer)', $q$select * from storage.objects where bucket_id = 'post-photos'$q$, 1);
+rollback;
+
+-- ───────────── pièces jointes : seulement les deux participants, jamais après un blocage ─────────────
+begin;
+insert into public.mentors (id, user_id, first_name, last_name, city, is_active) values
+  ('00000000-0000-0000-0000-0000000000e1', '00000000-0000-0000-0000-00000000000c', 'Yassine', 'Kadiri', 'Lyon', true);
+insert into public.mentor_trust (user_id, birth_year, charter_version, verified_at, verified_proof, verified_by)
+  values ('00000000-0000-0000-0000-00000000000c', 1998, public.mentor_charter_version(), now(), 'linkedin', 'Aymane');
+insert into public.bookings (id, student_id, mentor_id, starts_at, status) values
+  ('00000000-0000-0000-0000-0000000000f1', '00000000-0000-0000-0000-00000000000a', '00000000-0000-0000-0000-0000000000e1', now() + interval '2 days', 'confirmed');
+insert into public.conversations (student_id, mentor_id) values ('00000000-0000-0000-0000-00000000000a', '00000000-0000-0000-0000-0000000000e1') on conflict do nothing;
+create temp table conv on commit drop as select id from public.conversations;
+grant select on conv to authenticated;
+set local role authenticated;
+set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-00000000000a","role":"authenticated"}';
+insert into storage.objects (bucket_id, name) select 'message-files', id || '/m1abc2.jpg' from conv;
+insert into public.messages (conversation_id, attachment_path, attachment_name, attachment_type, attachment_size)
+  select id, id || '/m1abc2.jpg', 'passeport.jpg', 'image/jpeg', 240000 from conv;
+select tests.must_count('A envoie une photo sans texte au mentor : la liste montre « 📎 passeport.jpg »',
+  $q$select * from public.my_conversations() where last_body = '📎 passeport.jpg'$q$, 1);
+select tests.must_fail('A annonce une pièce jointe sans fichier',
+  $q$insert into public.messages (conversation_id, attachment_name, attachment_type, attachment_size) select id, 'x.pdf', 'application/pdf', 10 from conv$q$);
+select tests.must_fail('A pointe vers le dossier d''une autre conversation',
+  $q$insert into public.messages (conversation_id, attachment_path, attachment_name, attachment_type, attachment_size) select id, '00000000-0000-0000-0000-000000000099/m1abc2.jpg', 'x.jpg', 'image/jpeg', 10 from conv$q$);
+select tests.must_fail('A déguise un PDF en photo',
+  $q$insert into public.messages (conversation_id, attachment_path, attachment_name, attachment_type, attachment_size) select id, id || '/m1abc2.jpg', 'x.pdf', 'application/pdf', 10 from conv$q$);
+select tests.must_fail('A annonce un fichier de plus de 10 Mo',
+  $q$insert into public.messages (conversation_id, attachment_path, attachment_name, attachment_type, attachment_size) select id, id || '/m1abc2.jpg', 'x.jpg', 'image/jpeg', 20000000 from conv$q$);
+set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-00000000000c","role":"authenticated"}';
+select tests.must_count('le mentor ouvre la pièce jointe', $q$select * from storage.objects where bucket_id = 'message-files'$q$, 1);
+delete from storage.objects where bucket_id = 'message-files';
+select tests.must_count('… sans pouvoir supprimer celle de l''étudiant', $q$select * from storage.objects where bucket_id = 'message-files'$q$, 1);
+set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-00000000000b","role":"authenticated"}';
+select tests.must_count('B ne voit pas la pièce jointe', $q$select * from storage.objects where bucket_id = 'message-files'$q$, 0);
+select tests.must_fail('B dépose un fichier dans la conversation de A', $q$insert into storage.objects (bucket_id, name) select 'message-files', id || '/pirate.jpg' from conv$q$);
+set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-00000000000a","role":"authenticated"}';
+select public.block_user('00000000-0000-0000-0000-0000000000e1');
+select tests.must_count('A bloque le mentor : plus personne n''ouvre le fichier', $q$select * from storage.objects where bucket_id = 'message-files'$q$, 0);
+set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-00000000000c","role":"authenticated"}';
+select tests.must_count('… le mentor non plus', $q$select * from storage.objects where bucket_id = 'message-files'$q$, 0);
+reset role;
+-- Après 30 jours, le site retire le fichier : le message reste, avec le nom.
+set local role service_role;
+update public.messages set attachment_path = null where attachment_path is not null;
+select tests.must_count('30 jours : le fichier part, le message et son nom restent',
+  $q$select * from public.messages where attachment_name = 'passeport.jpg' and attachment_path is null$q$, 1);
+rollback;
+
 -- ───────────── serveur du site (clé service) ─────────────
 begin;
 set local role service_role;

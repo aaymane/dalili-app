@@ -1,9 +1,10 @@
 import { router, useLocalSearchParams } from 'expo-router';
-import { Check, Lock, Plus } from 'lucide-react-native';
+import { Check, LogOut, Lock, MoreHorizontal, Plus } from 'lucide-react-native';
 import { useState } from 'react';
 import { View } from 'react-native';
 import Animated, { FadeIn } from 'react-native-reanimated';
 
+import { BottomSheet } from '@/components/feedback/BottomSheet';
 import { AppHeader } from '@/components/layout/AppHeader';
 import { Screen } from '@/components/layout/Screen';
 import { Avatar } from '@/components/ui/Avatar';
@@ -14,6 +15,7 @@ import { Segmented } from '@/components/ui/Segmented';
 import { Text } from '@/components/ui/Text';
 import { useEvents, useGroup, usePosts } from '@/data/hooks';
 import { EventRow, GroupMark, useJoinGroup } from '@/features/community/components/GroupCard';
+import { AddCoverRow, CoverPhoto, useChangeCover } from '@/features/community/cover';
 import { PostCard } from '@/features/community/components/PostCard';
 import { useProfile } from '@/features/profile/store';
 import { useT } from '@/i18n';
@@ -36,6 +38,10 @@ export default function GroupPage() {
   const profile = useProfile((s) => s.profile);
   const join = useJoinGroup();
   const [tab, setTab] = useState<Tab>('feed');
+  // Quitter le groupe : rangé dans « … », puis confirmé (on ne part pas d'un seul toucher par erreur).
+  const [menu, setMenu] = useState(false);
+  const [leaving, setLeaving] = useState(false);
+  const cover = useChangeCover('groups', id);
   const [now] = useState(() => Date.now());
   if (!g) return null;
   const groupEvents = events
@@ -50,7 +56,11 @@ export default function GroupPage() {
     <Screen top={wash(g.cover[0], c.bg)} padded={false} header={<AppHeader back />}>
       <View style={{ paddingHorizontal: 20, gap: 22 }}>
         <Animated.View entering={rise()} style={{ gap: 16 }}>
-          <GroupMark colors={g.cover} emoji={g.emoji} size={76} />
+          {g.coverUrl ? (
+            <CoverPhoto uri={g.coverUrl} cacheKey={g.coverPath} onChange={g.isMine ? cover.change : undefined} busy={cover.busy} />
+          ) : (
+            <GroupMark colors={g.cover} emoji={g.emoji} size={76} />
+          )}
           <View style={{ gap: 4 }}>
             <Text variant="hero">{g.name}</Text>
             <Text variant="small" color={c.subtle}>
@@ -73,12 +83,22 @@ export default function GroupPage() {
               ))}
             </View>
           ) : null}
-          <Button
-            label={g.isMember ? t('community.member') : t('community.group.join')}
-            variant={g.isMember ? 'secondary' : 'primary'}
-            icon={g.isMember ? <Check size={16} color={c.navy} strokeWidth={3} /> : <Plus size={16} color={c.white} strokeWidth={3} />}
-            onPress={() => join(g)}
-          />
+          {g.isMine && !g.coverUrl ? <AddCoverRow onPress={cover.change} busy={cover.busy} /> : null}
+          {g.isMember ? (
+            <View style={styles.memberRow}>
+              <View style={styles.memberPill}>
+                <Check size={14} color={c.success} strokeWidth={3} />
+                <Text variant="smallStrong">
+                  {t('community.group.youreIn')}
+                </Text>
+              </View>
+              <PressableScale onPress={() => setMenu(true)} haptic="select" style={styles.more} accessibilityLabel={t('community.group.moreA11y')}>
+                <MoreHorizontal size={20} color={c.navy} />
+              </PressableScale>
+            </View>
+          ) : (
+            <Button label={t('community.group.join')} icon={<Plus size={16} color={c.white} strokeWidth={3} />} onPress={() => join(g)} />
+          )}
         </Animated.View>
 
         <Segmented
@@ -148,6 +168,40 @@ export default function GroupPage() {
           </Animated.View>
         )}
       </View>
+      <BottomSheet visible={menu} onClose={() => setMenu(false)}>
+        <ListGroup>
+          <PressableScale
+            onPress={() => {
+              setMenu(false);
+              setTimeout(() => setLeaving(true), 320);
+            }}
+            scaleTo={0.985}
+            style={styles.menuRow}
+            accessibilityRole="button">
+            <LogOut size={20} color={c.danger} />
+            <Text variant="bodyStrong" color={c.danger}>
+              {t('community.group.leave')}
+            </Text>
+          </PressableScale>
+        </ListGroup>
+      </BottomSheet>
+      <BottomSheet visible={leaving} onClose={() => setLeaving(false)}>
+        <View style={{ gap: 14 }}>
+          <Text variant="h2">{t('community.group.leaveTitle', { name: g.name })}</Text>
+          <Text variant="body" color={c.subtle}>
+            {t('community.group.leaveText')}
+          </Text>
+          <Button
+            label={t('community.group.leave')}
+            variant="danger"
+            onPress={() => {
+              setLeaving(false);
+              join(g);
+            }}
+          />
+          <Button label={t('community.group.stay')} variant="secondary" onPress={() => setLeaving(false)} />
+        </View>
+      </BottomSheet>
     </Screen>
   );
 }
@@ -157,4 +211,8 @@ const useStyles = makeStyles(({ c, shadow }) => ({
   locked: { alignItems: 'center', gap: 6, paddingVertical: 18, paddingHorizontal: 12 },
   composer: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 12, borderRadius: radius.lg, backgroundColor: c.card, ...shadow.sm },
   member: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 12, paddingHorizontal: 14 },
+  memberRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  memberPill: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 12, minHeight: 36, borderRadius: radius.pill, backgroundColor: c.fill },
+  more: { width: 44, height: 44, borderRadius: 22, backgroundColor: c.card, alignItems: 'center', justifyContent: 'center', ...shadow.sm },
+  menuRow: { flexDirection: 'row', alignItems: 'center', gap: 14, paddingHorizontal: 16, minHeight: 56 },
 }));

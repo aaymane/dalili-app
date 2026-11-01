@@ -13,9 +13,10 @@ import { Input } from '@/components/ui/Input';
 import { OptionCard } from '@/components/ui/OptionCard';
 import { PressableScale } from '@/components/ui/PressableScale';
 import { Text } from '@/components/ui/Text';
-import { remoteCreateGroup } from '@/data/api';
+import { remoteCreateGroup, uploadCover } from '@/data/api';
 import { useLocalDb } from '@/data/local-db';
 import { Cover } from '@/features/community/components/Cover';
+import { CoverPicker } from '@/features/community/cover';
 import { useProfile } from '@/features/profile/store';
 import { useT } from '@/i18n';
 import { useTheme } from '@/theme/scheme';
@@ -49,6 +50,8 @@ function NewGroup() {
   const [privacy, setPrivacy] = useState<'public' | 'private'>('public');
   const [created, setCreated] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  // Photo facultative : envoyée une fois le groupe créé (son dossier porte son identifiant).
+  const [photo, setPhoto] = useState<string | null>(null);
 
   const create = async () => {
     if (!name.trim() || !city.trim()) return toast(t('community.newGroup.required'), 'info');
@@ -58,6 +61,7 @@ function NewGroup() {
       const remote = await remoteCreateGroup(base);
       const g = remote ?? { ...base, id: `g-${Date.now()}`, members: 1 };
       addGroup(g);
+      if (photo) await uploadCover('groups', g.id, photo).catch(() => toast(t('community.cover.failedAfter'), 'info'));
       setCreated(g.id);
     } catch {
       toast(t('community.newGroup.failed'), 'info');
@@ -69,7 +73,7 @@ function NewGroup() {
   return (
     <Screen top={gradients.roleTop.student} keyboard padded={false} header={<AppHeader back pill={t('community.createGroup')} hideActions />} footer={<Button label={t('community.create')} icon={<ArrowRight size={18} color="#fff" />} loading={loading} onPress={create} />}>
       <View style={{ paddingHorizontal: 20, gap: 16 }}>
-        <Cover colors={COVERS[cover].colors} emoji={COVERS[cover].emoji} height={150} label={t('community.groupBadge')} />
+        {photo ? null : <Cover colors={COVERS[cover].colors} emoji={COVERS[cover].emoji} height={150} label={t('community.groupBadge')} />}
         <View style={{ flexDirection: 'row', gap: 8, justifyContent: 'center' }}>
           {COVERS.map((c, i) => (
             <PressableScale key={i} haptic="select" onPress={() => setCover(i)} accessibilityLabel={t('community.newGroup.coverA11y', { n: i + 1 })} accessibilityState={{ selected: cover === i }} style={{ width: 40, height: 40, borderRadius: 12, overflow: 'hidden', borderWidth: 2, borderColor: cover === i ? colors.electric : 'transparent' }}>
@@ -77,6 +81,7 @@ function NewGroup() {
             </PressableScale>
           ))}
         </View>
+        <CoverPicker uri={photo} onChange={setPhoto} />
         <Input label={t('community.newGroup.name')} placeholder={t('community.newGroup.namePlaceholder')} value={name} onChangeText={setName} />
         <Input label={t('community.newGroup.city')} placeholder={t('community.newGroup.cityPlaceholder')} value={city} onChangeText={setCity} />
         <Input label={t('community.description')} placeholder={t('community.newGroup.descPlaceholder')} value={desc} onChangeText={setDesc} multiline />

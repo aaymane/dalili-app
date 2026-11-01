@@ -6,6 +6,8 @@
 import { supabase } from '@/lib/supabase';
 
 import { demoEvents, demoGroups, demoMentors, demoPosts } from './demo';
+import { useLocalDb } from './local-db';
+import { fileName, prepareJpeg, removeFiles, signedUrls, uploadFile, type Bucket } from './media';
 import type { Booking, CommunityEvent, Group, Mentor, Post } from './types';
 
 /* ---------- Mappers (snake_case SQL → camelCase app) ---------- */
@@ -42,6 +44,8 @@ const toGroup = (r: Row): Group => ({
   privacy: r.privacy ?? 'public',
   cover: [r.cover_from ?? '#3D78FF', r.cover_to ?? '#1F2850'],
   emoji: r.emoji ?? '👋',
+  coverPath: r.cover_path ?? null,
+  createdBy: r.created_by ?? null,
 });
 
 const toEvent = (r: Row): CommunityEvent => ({
@@ -59,6 +63,8 @@ const toEvent = (r: Row): CommunityEvent => ({
   link: r.link ?? undefined,
   cover: [r.cover_from ?? '#014DF8', r.cover_to ?? '#1F2850'],
   emoji: r.emoji ?? '🎉',
+  coverPath: r.cover_path ?? null,
+  createdBy: r.created_by ?? null,
 });
 
 const toPost = (r: Row): Post => ({
@@ -70,7 +76,18 @@ const toPost = (r: Row): Post => ({
   body: r.body,
   likes: r.likes_count ?? 0,
   comments: r.comments ?? [],
+  imagePath: r.image_path ?? null,
 });
+
+/** Les liens temporaires des photos d'une liste (couvertures, photos des publications). */
+async function withUrls<T>(items: T[], bucket: Bucket, path: (x: T) => string | null | undefined, set: (x: T, url: string | null) => T): Promise<T[]> {
+  const paths = items.map(path).filter((p): p is string => !!p);
+  const urls = await signedUrls(bucket, paths);
+  return items.map((x) => {
+    const p = path(x);
+    return p ? set(x, urls[p] ?? null) : x;
+  });
+}
 
 /* ---------- Lectures ---------- */
 
@@ -100,7 +117,7 @@ export async function fetchGroups(): Promise<Group[]> {
   if (!supabase || (await noSession())) return demoGroups;
   const { data, error } = await supabase.from('groups').select('*').order('members_count', { ascending: false });
   if (error) throw error;
-  return (data ?? []).map(toGroup);
+  return withUrls((data ?? []).map(toGroup), 'covers', (g) => g.coverPath, (g, coverUrl) => ({ ...g, coverUrl }));
 }
 
 export async function fetchEvents(): Promise<CommunityEvent[]> {
@@ -111,7 +128,7 @@ export async function fetchEvents(): Promise<CommunityEvent[]> {
     .gte('starts_at', new Date().toISOString())
     .order('starts_at');
   if (error) throw error;
-  return (data ?? []).map(toEvent);
+  return withUrls((data ?? []).map(toEvent), 'covers', (e) => e.coverPath, (e, coverUrl) => ({ ...e, coverUrl }));
 }
 
 export async function fetchPosts(groupId: string): Promise<Post[]> {
@@ -122,7 +139,7 @@ export async function fetchPosts(groupId: string): Promise<Post[]> {
     .eq('group_id', groupId)
     .order('created_at', { ascending: false });
   if (error) throw error;
-  return (data ?? []).map(toPost);
+  return withUrls((data ?? []).map(toPost), 'post-photos', (p) => p.imagePath, (p, imageUrl) => ({ ...p, imageUrl }));
 }
 
 /* ---------- Écritures (no-op en démo : la base locale suffit) ---------- */
@@ -135,12 +152,45 @@ export async function remoteJoinGroup(groupId: string, join: boolean) {
   else await supabase.from('group_members').delete().match({ group_id: groupId, user_id: u.user.id });
 }
 
-export async function remoteCreatePost(groupId: string, body: string) {
-  if (!supabase) return;
+/**
+ * Publier dans un groupe : du texte, une photo, ou les deux. La photo part d'abord (réduite, sans métadonnées)
+ * dans le dossier du groupe et de l'auteur ; si la publication est refusée, elle est retirée.
+ * `false` en mode démo : rien n'est parti, l'écran garde la publication sur le téléphone.
+ */
+export async function remoteCreatePost(groupId: string, body: string, photoUri?: string | null): Promise<boolean> {
+  if (!supabase) return false;
   const { data: u } = await supabase.auth.getUser();
-  if (!u.user) return;
-  const { error } = await supabase.from('posts').insert({ group_id: groupId, author_id: u.user.id, body });
-  if (error) throw error;
+  if (!u.user) return false;
+  let image_path: string | null = null;
+  if (photoUri) {
+    image_path = `${groupId}/${u.user.id}/${fileName()}.jpg`;
+    await uploadFile('post-photos', image_path, await prepareJpeg(photoUri), 'image/jpeg');
+  }
+  const { error } = await supabase.from('posts').insert({ group_id: groupId, author_id: u.user.id, body, image_path });
+  if (error) {
+    if (image_path) await removeFiles('post-photos', [image_path]);
+    throw error;
+  }
+  return true;
+}
+
+/**
+ * Photo de couverture d'un groupe ou d'un événement (seul son créateur peut, la base le vérifie). Elle remplace
+ * l'ancienne, qui est retirée. En démo, elle reste sur le téléphone.
+ */
+export async function uploadCover(kind: 'groups' | 'events', id: string, photoUri: string) {
+  const prepared = await prepareJpeg(photoUri);
+  if (!supabase || (await noSession())) return useLocalDb.getState().setCover(id, prepared);
+  const folder = `${kind}/${id}`;
+  const path = `${folder}/${fileName()}.jpg`;
+  await uploadFile('covers', path, prepared, 'image/jpeg');
+  const { error } = await supabase.from(kind).update({ cover_path: path }).eq('id', id);
+  if (error) {
+    await removeFiles('covers', [path]);
+    throw error;
+  }
+  const { data: files } = await supabase.storage.from('covers').list(folder);
+  await removeFiles('covers', (files ?? []).map((f) => `${folder}/${f.name}`).filter((p) => p !== path));
 }
 
 export async function remoteJoinEvent(eventId: string, join: boolean) {

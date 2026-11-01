@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useRef, useState } from 'react';
 
+import { signedUrl } from '@/data/media';
 import { notifyServer } from '@/features/notifications/push';
 import { useProfile } from '@/features/profile/store';
 import { queryClient } from '@/lib/query';
@@ -13,6 +14,7 @@ import {
   markConversationRead,
   sendMessage,
   subscribeToConversation,
+  type Attachment,
   type Conversation,
   type Message,
 } from './api';
@@ -92,20 +94,27 @@ export function useThread(id: string) {
   return { ...q, typing: typing || demoTyping, notifyTyping };
 }
 
-/** Envoyer : la bulle apparaît tout de suite ; si l'envoi rate, elle le dit et se renvoie d'un tap. */
+/**
+ * Envoyer : la bulle apparaît tout de suite (la photo aussi, depuis le téléphone) ; si l'envoi rate, elle le dit
+ * et se renvoie d'un tap.
+ */
 export function useSendMessage(conversationId: string) {
   const qc = useQueryClient();
   const key = thread(conversationId);
   return useMutation({
-    mutationFn: ({ body }: { body: string; tempId: string }) => sendMessage(conversationId, body),
-    onMutate: ({ body, tempId }) => {
-      const temp: Message = { id: tempId, conversationId, mine: true, body: body.trim(), createdAt: new Date().toISOString(), pending: true };
+    mutationFn: ({ body, attachment }: { body: string; tempId: string; attachment?: Attachment }) => sendMessage(conversationId, body, attachment),
+    onMutate: ({ body, tempId, attachment }) => {
+      const temp: Message = { id: tempId, conversationId, mine: true, body: body.trim(), attachment, createdAt: new Date().toISOString(), pending: true };
       qc.setQueryData<Message[]>(key, (list = []) => [...list.filter((m) => m.id !== tempId), temp]);
     },
     onSuccess: (m, { tempId }) => {
       track('message_sent', { as_role: useProfile.getState().profile.activeRole === 'mentor' ? 'mentor' : 'student' });
       if (!m.id.startsWith('local-')) void notifyServer('message_created', m.id);
-      qc.setQueryData<Message[]>(key, (list = []) => list.map((x) => (x.id === tempId ? m : x)).filter((x, i, all) => all.findIndex((y) => y.id === x.id) === i));
+      // La photo qu'on vient d'envoyer reste affichée depuis le téléphone (pas de nouveau téléchargement).
+      const sent = (temp?: Message) => (temp?.attachment?.localUri && m.attachment ? { ...m, attachment: { ...m.attachment, localUri: temp.attachment.localUri } } : m);
+      qc.setQueryData<Message[]>(key, (list = []) =>
+        list.map((x) => (x.id === tempId ? sent(x) : x)).filter((x, i, all) => all.findIndex((y) => y.id === x.id) === i),
+      );
     },
     onError: (_e, { tempId }) => qc.setQueryData<Message[]>(key, (list = []) => list.map((x) => (x.id === tempId ? { ...x, pending: false, failed: true } : x))),
     onSettled: () => qc.invalidateQueries({ queryKey: CONVERSATIONS }),
@@ -121,4 +130,19 @@ export function useOpenFromBooking() {
 export function useConversationWithMentor(mentorId?: string): Conversation | undefined {
   const { data } = useConversations();
   return data?.find((c) => c.asRole === 'student' && c.mentorId === mentorId);
+}
+
+/**
+ * Le lien temporaire d'une pièce jointe (1 heure), demandé seulement quand on l'affiche ou l'ouvre.
+ * Le fichier envoyé depuis ce téléphone s'affiche sans lien.
+ */
+export function useAttachmentUrl(attachment?: Attachment) {
+  const path = attachment?.localUri ? null : attachment?.path;
+  const q = useQuery({
+    queryKey: ['messages', 'file', path],
+    queryFn: () => signedUrl('message-files', path!),
+    enabled: !!path,
+    staleTime: 50 * 60_000,
+  });
+  return attachment?.localUri ?? q.data ?? null;
 }

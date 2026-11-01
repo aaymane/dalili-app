@@ -41,6 +41,7 @@
   - [x] **Documents en photo ou PDF** (30/10) : « titre de séjour ou visa » et certificat de scolarité ; le PDF demande un nouveau build de l'app (`expo-document-picker`), la photo marche déjà.
   - [x] **Étape 4 · Partenaires (site)** (30/10) : page dalili.study/partenaires (parcours de l'étudiant animé, chiffres réels, pour qui, règles, étapes, formulaire anti-robots limité à 3 envois par heure, FAQ), email à l'équipe, onglet admin « Partenaires » (statut, notes, pastille). Table `partner_leads` sans aucun accès public. Migration appliquée en prod le 30/10.
 
+- [ ] **Photos et pièces jointes** (01/11) : vraies photos de couverture (le créateur seulement, à la création ou depuis la fiche), photos dans les publications des groupes (visionneuse plein écran), photos et PDF dans la conversation mentor ↔ étudiant (dans les deux sens, supprimés après 30 jours et avec le compte, rappel de sécurité à chaque envoi). « Quitter le groupe » rangé dans « … » avec confirmation. Migration `photos_et_pieces_jointes` appliquée en prod le 01/11. Reste : ajouter `CRON_SECRET` sur Vercel, pousser le site.
 - [x] **Commentaires sur les posts** : plein écran, champ collé au clavier, supprimer le sien (29/10)
   > `/fonctionnalite Commentaires : ouvrir un post en plein écran, liste des commentaires, champ de saisie collant au clavier, insertion dans la table comments (RLS membres), mise à jour optimiste.`
 
@@ -55,7 +56,7 @@
 - [ ] **Guides synchronisés avec dalili.study** (les 64 guides via une table `guides` ou le CMS du site)
 - [ ] **Espace Hôte (V2)** : annonces d'hébergement temporaire, vérification d'identité, réservation
 - [x] **Analytics** (PostHog, serveur européen) : après accord, anonyme, 13 événements, projet UE configuré (29/10)
-- [x] **Tests** : Jest 30 + jest-expo 58 + Testing Library (29/10) ; 62 tests (parcours, synchronisation, candidature mentor, agenda du mentor, heure de Paris, créneaux et avis, rendez-vous, présentation des écoles, chiffres, appels, dates, rappels, démo messagerie et sécurité). `npm test`, et `npm run check` = types + lint + tests
+- [x] **Tests** : Jest 30 + jest-expo 58 + Testing Library (29/10) ; 66 tests (parcours, synchronisation, candidature mentor, agenda du mentor, heure de Paris, créneaux et avis, rendez-vous, présentation des écoles, chiffres, appels, dates, rappels, démo messagerie et sécurité). `npm test`, et `npm run check` = types + lint + tests
 
 ## ⚠️ À valider par l'équipe
 

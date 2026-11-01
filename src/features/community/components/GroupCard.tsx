@@ -1,3 +1,4 @@
+import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { Check } from 'lucide-react-native';
@@ -20,15 +21,24 @@ export function useJoinGroup() {
   return (g: { id: string; name: string; isMember: boolean }) => {
     toggle(g.id);
     remoteJoinGroup(g.id, !g.isMember).catch(() => {});
-    if (!g.isMember) toast(t('community.welcome', { name: g.name }));
+    toast(g.isMember ? t('community.left', { name: g.name }) : t('community.welcome', { name: g.name }), g.isMember ? 'info' : undefined);
   };
 }
 
 const openGroup = (id: string) => router.push({ pathname: '/(app)/groupe/[id]', params: { id } });
 const openEvent = (id: string) => router.push({ pathname: '/(app)/evenement/[id]', params: { id } });
 
-/** L'icône d'un groupe ou d'un événement : ses couleurs et son emoji, choisis par le mentor qui l'a créé. */
-export function GroupMark({ colors, emoji, size = 48 }: { colors: readonly [string, string]; emoji: string; size?: number }) {
+/**
+ * L'icône d'un groupe ou d'un événement : sa photo de couverture si le créateur en a mis une, sinon ses couleurs
+ * et son emoji.
+ */
+export function GroupMark({ colors, emoji, size = 48, uri, cacheKey }: { colors: readonly [string, string]; emoji: string; size?: number; uri?: string | null; cacheKey?: string | null }) {
+  if (uri)
+    return (
+      <View style={{ width: size, height: size, borderRadius: size * 0.3, overflow: 'hidden' }}>
+        <Image source={{ uri, cacheKey: cacheKey ?? undefined }} style={StyleSheet.absoluteFill} contentFit="cover" transition={150} accessibilityIgnoresInvertColors />
+      </View>
+    );
   return (
     <LinearGradient
       colors={colors}
@@ -68,7 +78,7 @@ export function GroupRow({ g }: { g: GroupWithState }) {
   const join = useJoinGroup();
   return (
     <PressableScale scaleTo={0.985} onPress={() => openGroup(g.id)} style={styles.row}>
-      <GroupMark colors={g.cover} emoji={g.emoji} />
+      <GroupMark colors={g.cover} emoji={g.emoji} uri={g.coverUrl} cacheKey={g.coverPath} />
       <View style={{ flex: 1, gap: 2 }}>
         <Text variant="h3" numberOfLines={1}>
           {g.name}
@@ -101,8 +111,16 @@ export function EventInvite({ e }: { e: EventWithState }) {
   const d = new Date(e.startsAt);
   return (
     <PressableScale scaleTo={0.98} onPress={() => openEvent(e.id)} style={styles.invite} accessibilityRole="button">
-      <LinearGradient colors={e.cover} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={StyleSheet.absoluteFill} />
-      <LinearGradient colors={['rgba(0,0,0,0)', 'rgba(0,0,0,0.5)']} start={{ x: 0, y: 0.35 }} end={{ x: 0, y: 1 }} style={StyleSheet.absoluteFill} />
+      {e.coverUrl ? (
+        // La vraie photo de l'événement ; un voile en haut garde la date lisible.
+        <>
+          <Image source={{ uri: e.coverUrl, cacheKey: e.coverPath ?? undefined }} style={StyleSheet.absoluteFill} contentFit="cover" transition={200} accessibilityIgnoresInvertColors />
+          <LinearGradient colors={['rgba(0,0,0,0.3)', 'rgba(0,0,0,0)']} start={{ x: 0, y: 0 }} end={{ x: 0, y: 0.4 }} style={StyleSheet.absoluteFill} />
+        </>
+      ) : (
+        <LinearGradient colors={e.cover} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={StyleSheet.absoluteFill} />
+      )}
+      <LinearGradient colors={['rgba(0,0,0,0)', e.coverUrl ? 'rgba(0,0,0,0.65)' : 'rgba(0,0,0,0.5)']} start={{ x: 0, y: 0.35 }} end={{ x: 0, y: 1 }} style={StyleSheet.absoluteFill} />
       <View style={styles.inviteTop}>
         <View style={styles.date}>
           <Text variant="caption" color="rgba(255,255,255,0.8)">
@@ -120,7 +138,7 @@ export function EventInvite({ e }: { e: EventWithState }) {
               {t('community.going')}
             </Text>
           </View>
-        ) : (
+        ) : e.coverUrl ? null : (
           <Text style={styles.emoji} accessible={false}>
             {e.emoji}
           </Text>

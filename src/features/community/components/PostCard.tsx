@@ -1,7 +1,10 @@
+import { Image } from 'expo-image';
 import { Heart, MessageCircle, Share2 } from 'lucide-react-native';
-import { Share, View } from 'react-native';
+import { useState } from 'react';
+import { Share, StyleSheet, View } from 'react-native';
 import Animated, { useAnimatedStyle, useSharedValue, withSequence, withSpring } from 'react-native-reanimated';
 
+import { PhotoViewer } from '@/components/feedback/PhotoViewer';
 import { Avatar } from '@/components/ui/Avatar';
 import { PressableScale } from '@/components/ui/PressableScale';
 import { Text } from '@/components/ui/Text';
@@ -23,6 +26,8 @@ export function PostCard({ p, city, onOpen, hideComments }: { p: PostWithState; 
   const toggleLike = useLocalDb((s) => s.toggleLike);
   const scale = useSharedValue(1);
   const heart = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }));
+  const [viewing, setViewing] = useState(false);
+  const hasText = p.body.trim().length > 0;
   return (
     <View style={styles.card}>
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
@@ -35,13 +40,19 @@ export function PostCard({ p, city, onOpen, hideComments }: { p: PostWithState; 
           </Text>
         </View>
       </View>
-      {onOpen ? (
+      {!hasText ? null : onOpen ? (
         <PressableScale onPress={onOpen} scaleTo={0.99} haptic={false} accessibilityLabel={t('community.post.openA11y', { name: p.author })}>
           <Text variant="body">{p.body}</Text>
         </PressableScale>
       ) : (
         <Text variant="body">{p.body}</Text>
       )}
+      {p.imageUrl ? (
+        // La photo de la publication : carrée dans le fil, en entier quand on la touche.
+        <PressableScale onPress={() => setViewing(true)} scaleTo={0.99} style={styles.photo} accessibilityRole="imagebutton" accessibilityLabel={t('community.post.photoA11y', { name: p.author })}>
+          <Image source={{ uri: p.imageUrl, cacheKey: p.imagePath ?? undefined }} style={StyleSheet.absoluteFill} contentFit="cover" transition={200} />
+        </PressableScale>
+      ) : null}
       <View style={styles.actions}>
         <PressableScale
           haptic="select"
@@ -100,12 +111,14 @@ export function PostCard({ p, city, onOpen, hideComments }: { p: PostWithState; 
           </Text>
         </PressableScale>
       ) : null}
+      <PhotoViewer uri={viewing ? (p.imageUrl ?? null) : null} cacheKey={p.imagePath ?? undefined} onClose={() => setViewing(false)} />
     </View>
   );
 }
 
 const useStyles = makeStyles(({ c, shadow }) => ({
   card: { padding: 16, gap: 12, borderRadius: radius.xl, backgroundColor: c.card, ...shadow.sm },
+  photo: { width: '100%', aspectRatio: 1, borderRadius: radius.lg, overflow: 'hidden', backgroundColor: c.fill },
   actions: { flexDirection: 'row', alignItems: 'center', gap: 18, borderTopWidth: 1, borderTopColor: c.line, paddingTop: 12 },
   action: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   more: { minHeight: 36, justifyContent: 'center' },

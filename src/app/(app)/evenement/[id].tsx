@@ -19,6 +19,7 @@ import { remoteJoinEvent } from '@/data/api';
 import { useEvent, useGroup } from '@/data/hooks';
 import { useLocalDb } from '@/data/local-db';
 import { SeatsBar } from '@/features/community/components/GroupCard';
+import { AddCoverRow, CoverPhoto, useChangeCover } from '@/features/community/cover';
 import { useJourneyStore } from '@/features/journey/store';
 import { useT } from '@/i18n';
 import { wash } from '@/lib/color';
@@ -68,6 +69,7 @@ export default function EventPage() {
   const toggle = useLocalDb((s) => s.toggleEvent);
   const addCustom = useJourneyStore((s) => s.addCustom);
   const [done, setDone] = useState(false);
+  const cover = useChangeCover('events', id);
   if (!e) return null;
   const full = e.attendees >= e.capacity && !e.isGoing;
   const left = Math.max(0, e.capacity - e.attendees);
@@ -90,6 +92,13 @@ export default function EventPage() {
       header={<AppHeader back />}
       footer={<Button label={e.isGoing ? t('community.event.leave') : full ? t('community.event.full') : t('community.event.participate')} variant={e.isGoing ? 'secondary' : 'primary'} disabled={full} icon={!e.isGoing && !full ? <ArrowRight size={18} color={c.white} /> : undefined} onPress={participate} />}>
       <View style={{ paddingHorizontal: 20, gap: 26 }}>
+        {e.coverUrl ? (
+          <Animated.View entering={rise()}>
+            <CoverPhoto uri={e.coverUrl} cacheKey={e.coverPath} onChange={e.isMine ? cover.change : undefined} busy={cover.busy} />
+          </Animated.View>
+        ) : e.isMine ? (
+          <AddCoverRow onPress={cover.change} busy={cover.busy} />
+        ) : null}
         {/* Le carton d'invitation : la date en grand, aux couleurs de l'événement, puis le titre. */}
         <Animated.View entering={rise()} style={styles.hero}>
           <LinearGradient colors={e.cover} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.date}>

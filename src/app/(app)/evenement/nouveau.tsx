@@ -16,9 +16,10 @@ import { OptionCard } from '@/components/ui/OptionCard';
 import { PressableScale } from '@/components/ui/PressableScale';
 import { Segmented } from '@/components/ui/Segmented';
 import { Text } from '@/components/ui/Text';
-import { remoteCreateEvent } from '@/data/api';
+import { remoteCreateEvent, uploadCover } from '@/data/api';
 import { useLocalDb } from '@/data/local-db';
 import { Cover } from '@/features/community/components/Cover';
+import { CoverPicker } from '@/features/community/cover';
 import { useProfile } from '@/features/profile/store';
 import { useT } from '@/i18n';
 import { formatDayMonth } from '@/lib/date';
@@ -52,6 +53,8 @@ function NewEvent() {
   const [approval, setApproval] = useState(false);
   const [dateOpen, setDateOpen] = useState(false);
   const [created, setCreated] = useState<string | null>(null);
+  // Photo facultative : envoyée une fois l'événement créé (son dossier porte son identifiant).
+  const [photo, setPhoto] = useState<string | null>(null);
 
   const publish = async () => {
     if (!title.trim() || !place.trim()) return toast(t('community.newEvent.required'), 'info');
@@ -75,6 +78,7 @@ function NewEvent() {
       const remote = await remoteCreateEvent(base);
       const e = remote ?? { ...base, id: `e-${Date.now()}`, attendees: 1 };
       addEvent(e);
+      if (photo) await uploadCover('events', e.id, photo).catch(() => toast(t('community.cover.failedAfter'), 'info'));
       setCreated(e.id);
     } catch {
       toast(t('community.newEvent.failed'), 'info');
@@ -84,7 +88,8 @@ function NewEvent() {
   return (
     <Screen top={gradients.roleTop.student} keyboard padded={false} header={<AppHeader back pill={t('community.createEvent')} hideActions />} footer={<Button label={t('community.publish')} icon={<ArrowRight size={18} color="#fff" />} onPress={publish} />}>
       <View style={{ paddingHorizontal: 20, gap: 16 }}>
-        <Cover colors={['#7A5AF8', '#1F2850']} emoji="🎉" height={130} label={t('community.eventBadge')} labelColor="#7A5AF8" />
+        {photo ? null : <Cover colors={['#7A5AF8', '#1F2850']} emoji="🎉" height={130} label={t('community.eventBadge')} labelColor="#7A5AF8" />}
+        <CoverPicker uri={photo} onChange={setPhoto} />
         <Input label={t('community.newEvent.name')} placeholder={t('community.newEvent.namePlaceholder')} value={title} onChangeText={setTitle} />
         <View style={styles.box}>
           <View style={{ flexDirection: 'row', gap: 10 }}>

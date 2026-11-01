@@ -804,7 +804,13 @@
       "share": "Share something with the group…",
       "firstPost": "Be the first to post ✨",
       "you": "You",
-      "youTag": "{{name}} (you)"
+      "youTag": "{{name}} (you)",
+      "youreIn": "You’re in this group",
+      "moreA11y": "More options for this group",
+      "leave": "Leave group",
+      "leaveTitle": "Leave “{{name}}”?",
+      "leaveText": "You won’t see the discussions or the members anymore. You can come back anytime.",
+      "stay": "Stay in the group"
     },
     "post": {
       "fallbackTitle": "Post",
@@ -833,18 +839,23 @@
       "openA11y": "Open {{name}}’s post",
       "like": "Like",
       "share": "Share",
-      "shareMessage": "{{author}} on DALILI: {{body}}"
+      "shareMessage": "{{author}} on DALILI: {{body}}",
+      "photoA11y": "Photo posted by {{name}}: view it full screen"
     },
     "newPost": {
       "title": "Create a post",
-      "tooShort": "Write at least a few words ✍️",
+      "tooShort": "Write a few words or add a photo ✍️",
       "published": "Posted in the group 🎉",
       "me": "Me",
       "you": "You",
       "inGroup": "in {{name}}",
       "inTheGroup": "in the group",
       "placeholder": "Share a question, a tip, a win…",
-      "kind": "Be kind: no personal details (phone number, address) in public."
+      "kind": "Be kind: no personal details (phone number, address) in public.",
+      "failed": "Post not sent. Check your connection and try again.",
+      "addPhoto": "Add a photo",
+      "takePhoto": "Take a photo",
+      "removePhoto": "Remove photo"
     },
     "newGroup": {
       "required": "Name and city are required.",
@@ -914,7 +925,16 @@
     "noGroups": "No group matches your search.",
     "joinA11y": "Join “{{name}}”",
     "seats_one": "{{count}} of {{capacity}} spots taken",
-    "seats_other": "{{count}} of {{capacity}} spots taken"
+    "seats_other": "{{count}} of {{capacity}} spots taken",
+    "left": "You left “{{name}}”.",
+    "cover": {
+      "updated": "Cover photo updated.",
+      "failed": "Photo not sent. Check your connection and try again.",
+      "failedAfter": "Created! The photo didn’t go through: add it from the page.",
+      "change": "Change photo",
+      "add": "Add a cover photo",
+      "remove": "Remove photo"
+    }
   },
   "mentors": {
     "lang": {
@@ -1085,12 +1105,25 @@
     "notSentA11y": "Not sent. Tap to resend",
     "notSentRetry": "Not sent · Resend",
     "sending": "Sending…",
-    "trust": "Private conversation between the two of you. Never share your papers, your codes or money.",
+    "trust": "Private conversation between the two of you. Never share your passwords, bank codes or money.",
     "today": "Today",
     "yesterday": "Yesterday",
     "placeholder": "Write your message…",
     "label": "Your message",
-    "send": "Send"
+    "send": "Send",
+    "fileExpired": "File deleted after 30 days",
+    "photoA11y": "Photo {{name}}: view it full screen",
+    "fileOpening": "The file is opening. Try again.",
+    "pdfA11y": "Open the PDF {{name}}",
+    "attachA11y": "Attach a photo or a PDF",
+    "attachTitle": "Send to {{name}}",
+    "attachCamera": "Take a photo",
+    "attachLibrary": "Choose a photo",
+    "attachPdf": "Choose a PDF",
+    "attachReminder": "Never share your passwords or bank codes. Files are visible to the two of you only, and deleted after 30 days.",
+    "pdfUpdate": "Update the app to send a PDF.",
+    "tooBig": "This file is over 10 MB. Send a lighter version.",
+    "cameraDenied": "Allow the camera in Settings › DALILI."
   },
   "call": {
     "endedTitle": "Call ended",
@@ -1338,6 +1371,14 @@
       "reports": {
         "title": "Mentoring reports",
         "text": "Read only by the team. If an account is deleted, the report stays, without the name, to protect others."
+      },
+      "groupPhotos": {
+        "title": "Your photos in groups",
+        "text": "Visible to the group’s members. Covers, added by mentors, are visible to every account."
+      },
+      "attachments": {
+        "title": "Your attachments with a mentor",
+        "text": "Photos and PDFs visible to the two of you only, deleted after 30 days, and with your account."
       }
     },
     "promises": "Our commitments",

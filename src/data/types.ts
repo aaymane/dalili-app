@@ -37,6 +37,11 @@ export type Group = {
   privacy: 'public' | 'private';
   cover: readonly [string, string];
   emoji: string;
+  /** Photo de couverture déposée par le créateur (chemin dans le bucket `covers`), et son lien temporaire. */
+  coverPath?: string | null;
+  coverUrl?: string | null;
+  /** Le compte qui l'a créé : lui seul change la photo. */
+  createdBy?: string | null;
 };
 
 export type Post = {
@@ -48,6 +53,9 @@ export type Post = {
   body: string;
   likes: number;
   comments: { author: string; body: string; isAuthor?: boolean }[];
+  /** Photo de la publication (bucket `post-photos`, lue par les membres) et son lien temporaire. */
+  imagePath?: string | null;
+  imageUrl?: string | null;
 };
 
 /** Un commentaire écrit sur ce téléphone en mode démo. */
@@ -68,6 +76,9 @@ export type CommunityEvent = {
   link?: string;
   cover: readonly [string, string];
   emoji: string;
+  coverPath?: string | null;
+  coverUrl?: string | null;
+  createdBy?: string | null;
 };
 
 export type Partner = { id: string; name: string; kind: 'school' | 'bank' | 'insurance'; tagline: string; color: string };

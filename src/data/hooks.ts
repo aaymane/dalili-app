@@ -3,6 +3,7 @@ import { useMemo } from 'react';
 
 import { fetchEvents, fetchGroups, fetchMentors, fetchMyBookings, fetchPosts, remoteCancelBooking } from './api';
 import { fetchCore, fetchGuide, snapshot, snapshotGuide, type Core, type CoreKey } from './content';
+import { useAuth } from '@/features/auth/store';
 import { notifyServer } from '@/features/notifications/push';
 
 import { useLocalDb } from './local-db';
@@ -49,17 +50,25 @@ export function useMentor(id?: string) {
   return { ...q, data: q.data?.find((m) => m.id === id) };
 }
 
-/** Groupes (base + créés localement) avec l'état « membre ». */
+/** Groupes (base + créés localement) avec l'état « membre », et « à toi » (tu l'as créé : tu changes sa photo). */
 export function useGroups() {
   const q = useQuery({ queryKey: ['groups'], queryFn: fetchGroups });
   const created = useLocalDb((s) => s.createdGroups);
   const joined = useLocalDb((s) => s.joinedGroups);
+  const covers = useLocalDb((s) => s.covers);
+  const uid = useAuth((s) => s.user?.id);
   const data = useMemo(() => {
     // Un groupe créé en ligne revient aussi du serveur : on garde la version du serveur, une seule fois.
     const remote = q.data ?? [];
     const all = [...created.filter((c) => !remote.some((r) => r.id === c.id)), ...remote];
-    return all.map((g) => ({ ...g, isMember: joined.includes(g.id), members: g.members + (joined.includes(g.id) && !created.some((c) => c.id === g.id) ? 1 : 0) }));
-  }, [q.data, created, joined]);
+    return all.map((g) => ({
+      ...g,
+      coverUrl: covers[g.id] ?? g.coverUrl ?? null,
+      isMine: created.some((c) => c.id === g.id) || (!!uid && g.createdBy === uid),
+      isMember: joined.includes(g.id),
+      members: g.members + (joined.includes(g.id) && !created.some((c) => c.id === g.id) ? 1 : 0),
+    }));
+  }, [q.data, created, joined, covers, uid]);
   return { ...q, data };
 }
 
@@ -72,11 +81,19 @@ export function useEvents() {
   const q = useQuery({ queryKey: ['events'], queryFn: fetchEvents });
   const created = useLocalDb((s) => s.createdEvents);
   const joined = useLocalDb((s) => s.joinedEvents);
+  const covers = useLocalDb((s) => s.covers);
+  const uid = useAuth((s) => s.user?.id);
   const data = useMemo(() => {
     const remote = q.data ?? [];
     const all = [...created.filter((c) => !remote.some((r) => r.id === c.id)), ...remote].sort((a, b) => a.startsAt.localeCompare(b.startsAt));
-    return all.map((e) => ({ ...e, isGoing: joined.includes(e.id), attendees: e.attendees + (joined.includes(e.id) && !created.some((c) => c.id === e.id) ? 1 : 0) }));
-  }, [q.data, created, joined]);
+    return all.map((e) => ({
+      ...e,
+      coverUrl: covers[e.id] ?? e.coverUrl ?? null,
+      isMine: created.some((c) => c.id === e.id) || (!!uid && e.createdBy === uid),
+      isGoing: joined.includes(e.id),
+      attendees: e.attendees + (joined.includes(e.id) && !created.some((c) => c.id === e.id) ? 1 : 0),
+    }));
+  }, [q.data, created, joined, covers, uid]);
   return { ...q, data };
 }
 

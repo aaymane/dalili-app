@@ -32,4 +32,12 @@ describe('messagerie en mode démo', () => {
     expect(after).toHaveLength(before + 2);
     expect(after[after.length - 1].mine).toBe(false);
   });
+
+  it('un PDF part sans texte et garde son nom, sa taille et le fichier du téléphone', async () => {
+    const id = DEMO_CONVERSATIONS.student.id;
+    const attachment = { path: null, name: 'attestation.pdf', type: 'application/pdf' as const, size: 240_000, localUri: 'file:///cache/attestation.pdf' };
+    const sent = await sendMessage(id, '', attachment);
+    expect(sent).toMatchObject({ mine: true, body: '', attachment });
+    expect((await fetchMessages(id)).some((m) => m.attachment?.name === 'attestation.pdf')).toBe(true);
+  });
 });

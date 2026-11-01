@@ -804,7 +804,13 @@
       "share": "Partager quelque chose avec le groupe…",
       "firstPost": "Sois le premier ou la première à publier ✨",
       "you": "Toi",
-      "youTag": "{{name}} (toi)"
+      "youTag": "{{name}} (toi)",
+      "youreIn": "Tu fais partie du groupe",
+      "moreA11y": "Plus d’options pour ce groupe",
+      "leave": "Quitter le groupe",
+      "leaveTitle": "Quitter « {{name}} » ?",
+      "leaveText": "Tu ne verras plus les discussions ni les membres. Tu pourras revenir quand tu veux.",
+      "stay": "Rester dans le groupe"
     },
     "post": {
       "fallbackTitle": "Publication",
@@ -833,18 +839,23 @@
       "openA11y": "Ouvrir la publication de {{name}}",
       "like": "J’aime",
       "share": "Partager",
-      "shareMessage": "{{author}} sur DALILI : {{body}}"
+      "shareMessage": "{{author}} sur DALILI : {{body}}",
+      "photoA11y": "Photo publiée par {{name}} : la voir en grand"
     },
     "newPost": {
       "title": "Créer un post",
-      "tooShort": "Écris au moins quelques mots ✍️",
+      "tooShort": "Écris quelques mots ou ajoute une photo ✍️",
       "published": "Publié dans le groupe 🎉",
       "me": "Moi",
       "you": "Toi",
       "inGroup": "dans {{name}}",
       "inTheGroup": "dans le groupe",
       "placeholder": "Partage une question, un bon plan, une victoire…",
-      "kind": "Sois bienveillant·e : pas de données personnelles (numéro, adresse) en public."
+      "kind": "Sois bienveillant·e : pas de données personnelles (numéro, adresse) en public.",
+      "failed": "Publication pas envoyée. Vérifie ta connexion et réessaie.",
+      "addPhoto": "Ajouter une photo",
+      "takePhoto": "Prendre une photo",
+      "removePhoto": "Retirer la photo"
     },
     "newGroup": {
       "required": "Le nom et la ville sont obligatoires.",
@@ -914,7 +925,16 @@
     "noGroups": "Aucun groupe ne correspond à ta recherche.",
     "joinA11y": "Rejoindre « {{name}} »",
     "seats_one": "{{count}} place prise sur {{capacity}}",
-    "seats_other": "{{count}} places prises sur {{capacity}}"
+    "seats_other": "{{count}} places prises sur {{capacity}}",
+    "left": "Tu as quitté « {{name}} ».",
+    "cover": {
+      "updated": "Photo de couverture mise à jour.",
+      "failed": "Photo pas envoyée. Vérifie ta connexion et réessaie.",
+      "failedAfter": "Créé ! La photo n’est pas partie : ajoute-la depuis la fiche.",
+      "change": "Changer la photo",
+      "add": "Ajouter une photo de couverture",
+      "remove": "Retirer la photo"
+    }
   },
   "mentors": {
     "lang": {
@@ -1085,12 +1105,25 @@
     "notSentA11y": "Pas envoyé. Toucher pour renvoyer",
     "notSentRetry": "Pas envoyé · Renvoyer",
     "sending": "Envoi…",
-    "trust": "Conversation privée entre vous deux. Ne partage jamais tes papiers, tes codes ou de l’argent.",
+    "trust": "Conversation privée entre vous deux. Ne partage jamais tes mots de passe, tes codes bancaires ni d’argent.",
     "today": "Aujourd’hui",
     "yesterday": "Hier",
     "placeholder": "Écris ton message…",
     "label": "Ton message",
-    "send": "Envoyer"
+    "send": "Envoyer",
+    "fileExpired": "Fichier supprimé après 30 jours",
+    "photoA11y": "Photo {{name}} : la voir en grand",
+    "fileOpening": "Le fichier s’ouvre dans un instant. Réessaie.",
+    "pdfA11y": "Ouvrir le PDF {{name}}",
+    "attachA11y": "Joindre une photo ou un PDF",
+    "attachTitle": "Envoyer à {{name}}",
+    "attachCamera": "Prendre une photo",
+    "attachLibrary": "Choisir une photo",
+    "attachPdf": "Choisir un PDF",
+    "attachReminder": "Ne partage jamais tes mots de passe ni tes codes bancaires. Les fichiers sont visibles par vous deux seulement, et supprimés après 30 jours.",
+    "pdfUpdate": "Mets l’app à jour pour envoyer un PDF.",
+    "tooBig": "Ce fichier dépasse 10 Mo. Envoie une version plus légère.",
+    "cameraDenied": "Autorise l’appareil photo dans Réglages › DALILI."
   },
   "call": {
     "endedTitle": "Appel terminé",
@@ -1338,6 +1371,14 @@
       "reports": {
         "title": "Les signalements du mentorat",
         "text": "Lus seulement par l’équipe. Si un compte est supprimé, le signalement reste, sans le nom, pour protéger les autres."
+      },
+      "groupPhotos": {
+        "title": "Tes photos dans les groupes",
+        "text": "Visibles par les membres du groupe. Les couvertures, déposées par les mentors, sont visibles par tous les comptes."
+      },
+      "attachments": {
+        "title": "Tes pièces jointes avec un mentor",
+        "text": "Photos et PDF visibles seulement par vous deux, supprimés après 30 jours, et avec ton compte."
       }
     },
     "promises": "Nos engagements",

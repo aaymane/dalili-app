@@ -32,6 +32,8 @@ type LocalDb = {
   /** Mode démo : tes créneaux de mentor, et les rendez-vous que tu as notés. */
   mentorSlots: WeeklySlot[];
   reviewedBookings: string[];
+  /** Mode démo : les photos de couverture déposées sur ce téléphone (id du groupe ou de l'événement → fichier). */
+  covers: Record<string, string>;
 
   toggleGroup: (id: string) => void;
   addGroup: (g: Group) => void;
@@ -51,6 +53,7 @@ type LocalDb = {
   setMentorSheet: (patch: Partial<Mentor>) => void;
   setMentorSlots: (slots: WeeklySlot[]) => void;
   markReviewed: (bookingId: string) => void;
+  setCover: (id: string, uri: string) => void;
   reset: () => void;
 };
 
@@ -71,6 +74,7 @@ const initial = {
   mentorSheet: {} as Partial<Mentor>,
   mentorSlots: [] as WeeklySlot[],
   reviewedBookings: [] as string[],
+  covers: {} as Record<string, string>,
 };
 
 const toggleIn = (arr: string[], id: string) => (arr.includes(id) ? arr.filter((x) => x !== id) : [...arr, id]);
@@ -98,6 +102,7 @@ export const useLocalDb = create<LocalDb>()(
       setMentorSheet: (patch) => set((s) => ({ mentorSheet: { ...s.mentorSheet, ...patch } })),
       setMentorSlots: (slots) => set({ mentorSlots: slots }),
       markReviewed: (id) => set((s) => ({ reviewedBookings: [...new Set([...s.reviewedBookings, id])] })),
+      setCover: (id, uri) => set((s) => ({ covers: { ...s.covers, [id]: uri } })),
       reset: () => set(initial),
     }),
     { name: 'dalili.localdb', storage: persistStorage, version: 1 },

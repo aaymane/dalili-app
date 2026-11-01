@@ -3,6 +3,9 @@
  * seuls les deux participants la lisent (supabase/migrations/20261029100000_messagerie.sql).
  * Sans Supabase ou sans session (mode démo) : une conversation d'exemple par rôle, sur le téléphone (`local.ts`).
  */
+import { File } from 'expo-file-system';
+
+import { fileName, prepareJpeg, removeFiles, uploadFile } from '@/data/media';
 import { supabase } from '@/lib/supabase';
 
 import { DEMO_CONVERSATIONS, useLocalMessages } from './local';
@@ -24,11 +27,21 @@ export type Conversation = {
   unread: number;
 };
 
+/**
+ * Une pièce jointe : photo (JPEG) ou PDF. `path` est effacé par le site après 30 jours (le nom reste).
+ * `localUri` : le fichier sur ce téléphone (envoi en cours, ou mode démo).
+ */
+export type Attachment = { path: string | null; name: string; type: 'image/jpeg' | 'application/pdf'; size: number; localUri?: string };
+
+/** Ce que l'écran a choisi : une photo (appareil, galerie) ou un PDF. */
+export type PickedFile = { uri: string; name: string; type: Attachment['type']; size?: number };
+
 export type Message = {
   id: string;
   conversationId: string;
   mine: boolean;
   body: string;
+  attachment?: Attachment;
   createdAt: string;
   /** Envoi en cours (affiché tout de suite), ou raté (à renvoyer). */
   pending?: boolean;
@@ -44,11 +57,14 @@ async function me() {
   return data.session?.user.id ?? null;
 }
 
+const COLUMNS = 'id, conversation_id, sender_id, body, created_at, attachment_path, attachment_name, attachment_type, attachment_size';
+
 const toMessage = (r: Record<string, any>, uid: string): Message => ({
   id: r.id,
   conversationId: r.conversation_id,
   mine: r.sender_id === uid,
-  body: r.body,
+  body: r.body ?? '',
+  attachment: r.attachment_name ? { path: r.attachment_path ?? null, name: r.attachment_name, type: r.attachment_type, size: r.attachment_size ?? 0 } : undefined,
   createdAt: r.created_at,
 });
 
@@ -99,7 +115,7 @@ export async function fetchMessages(conversationId: string): Promise<Message[]> 
   if (!supabase || !uid) return useLocalMessages.getState().messages[conversationId] ?? [];
   const { data, error } = await supabase
     .from('messages')
-    .select('id, conversation_id, sender_id, body, created_at')
+    .select(COLUMNS)
     .eq('conversation_id', conversationId)
     .order('created_at', { ascending: false })
     .limit(200);
@@ -107,16 +123,43 @@ export async function fetchMessages(conversationId: string): Promise<Message[]> 
   return (data ?? []).reverse().map((r) => toMessage(r, uid));
 }
 
-export async function sendMessage(conversationId: string, body: string): Promise<Message> {
+/** Une photo est réduite et réencodée (sans métadonnées) ; un PDF part tel quel. */
+export async function prepareAttachment(file: PickedFile): Promise<Attachment> {
+  if (file.type === 'application/pdf') return { path: null, name: file.name, type: file.type, size: file.size ?? 0, localUri: file.uri };
+  const uri = await prepareJpeg(file.uri);
+  return { path: null, name: file.name, type: 'image/jpeg', size: new File(uri).size ?? 0, localUri: uri };
+}
+
+/**
+ * Envoyer un message : du texte, une pièce jointe, ou les deux. Le fichier part d'abord dans le dossier de la
+ * conversation ; si la base refuse le message, il est retiré.
+ */
+export async function sendMessage(conversationId: string, body: string, attachment?: Attachment): Promise<Message> {
   const uid = await me();
   if (!supabase || !uid) {
-    const m: Message = { id: `local-${Date.now()}`, conversationId, mine: true, body: body.trim(), createdAt: new Date().toISOString() };
+    const m: Message = { id: `local-${Date.now()}`, conversationId, mine: true, body: body.trim(), attachment, createdAt: new Date().toISOString() };
     useLocalMessages.getState().add(m);
     demoReply(conversationId);
     return m;
   }
-  const { data, error } = await supabase.from('messages').insert({ conversation_id: conversationId, body }).select('id, conversation_id, sender_id, body, created_at').single();
-  if (error) throw error.code === '23514' && error.message.startsWith('Doucement') ? new MessageRefused() : error;
+  let path: string | null = null;
+  if (attachment?.localUri) {
+    path = `${conversationId}/${fileName()}.${attachment.type === 'application/pdf' ? 'pdf' : 'jpg'}`;
+    await uploadFile('message-files', path, attachment.localUri, attachment.type);
+  }
+  const { data, error } = await supabase
+    .from('messages')
+    .insert({
+      conversation_id: conversationId,
+      body,
+      ...(attachment && path ? { attachment_path: path, attachment_name: attachment.name.slice(0, 120), attachment_type: attachment.type, attachment_size: attachment.size } : {}),
+    })
+    .select(COLUMNS)
+    .single();
+  if (error) {
+    if (path) await removeFiles('message-files', [path]);
+    throw error.code === '23514' && error.message.startsWith('Doucement') ? new MessageRefused() : error;
+  }
   return toMessage(data, uid);
 }
 
