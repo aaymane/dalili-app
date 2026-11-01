@@ -772,13 +772,7 @@
   "community": {
     "title": "Communautés",
     "search": "Cherche un groupe, un événement…",
-    "filterA11y": "Filtrer : groupes ou événements",
-    "groups": "Groupes",
     "events": "Événements",
-    "cities": "Villes",
-    "popularGroups": "Groupes populaires",
-    "seeAll": "Voir tout",
-    "nearEvents": "Événements proches",
     "create": "Créer",
     "createSomething": "Créer quelque chose",
     "createGroup": "Créer un groupe",
@@ -790,7 +784,6 @@
     "member": "Membre",
     "join": "Rejoindre",
     "going": "Inscrit·e",
-    "people": "{{attendees}}/{{capacity}} personnes",
     "welcome": "Bienvenue dans « {{name}} » 🎉",
     "description": "Description",
     "privacy": "Confidentialité",
@@ -802,18 +795,14 @@
       "membersCity_other": "{{count}} membres · {{city}}",
       "join": "Rejoindre le groupe",
       "about": "À propos",
-      "feed": "Fil d’actualité",
-      "members": "Membres",
+      "feed": "Discussions",
+      "members": "Membres actifs",
       "lockedTitle": "Contenu réservé aux membres",
       "lockedText": "Rejoins le groupe pour voir les publications, les événements et échanger avec les autres étudiants.",
       "share": "Partager quelque chose avec le groupe…",
       "firstPost": "Sois le premier ou la première à publier ✨",
-      "upcoming": "Événements à venir",
-      "newMembers": "Nouveaux membres",
       "you": "Toi",
-      "youTag": "{{name}} (toi)",
-      "follow": "Suivre",
-      "writeA11y": "Écrire un post"
+      "youTag": "{{name}} (toi)"
     },
     "post": {
       "fallbackTitle": "Publication",
@@ -875,15 +864,18 @@
       "full": "Complet",
       "participate": "Participer à l’événement",
       "cancelled": "Inscription annulée.",
-      "joinedBy_one": "Rejoint par {{a}}, {{b}} et {{count}} autre personne",
-      "joinedBy_other": "Rejoint par {{a}}, {{b}} et {{count}} autres",
-      "price": "Tarif",
       "free": "Gratuit pour les membres DALILI",
       "paid": "Payant, infos sur place",
       "moreInfo": "Pour plus d’informations",
       "successTitle": "Tu es inscrit·e !",
       "successText": "Bravo ! Ta place est réservée. Retrouve les détails et l’adresse dans ton calendrier.",
-      "successCta": "Voir mon calendrier"
+      "successCta": "Voir mon calendrier",
+      "at": "À {{time}}",
+      "directions": "Itinéraire",
+      "directionsA11y": "Ouvrir l’itinéraire vers {{place}}",
+      "spotsLeft_one": "{{count}} place restante",
+      "spotsLeft_other": "{{count}} places restantes",
+      "byGroup": "Organisé par « {{name}} »"
     },
     "newEvent": {
       "required": "Le nom et le lieu sont obligatoires.",
@@ -910,7 +902,17 @@
       "successCta": "Voir l’événement"
     },
     "byMentors": "Les groupes et les événements sont animés par des mentors vérifiés.",
-    "mentorIntro": "Crée un groupe ou un événement pour les étudiants de ta ville."
+    "mentorIntro": "Crée un groupe ou un événement pour les étudiants de ta ville.",
+    "upcoming": "Prochains événements",
+    "noEvents": "Aucun événement prévu pour l’instant.",
+    "noEventsCity": "Aucun événement prévu à {{city}} pour l’instant.",
+    "myGroups": "Mes groupes",
+    "moreGroups": "D’autres groupes",
+    "discover": "Rejoins un groupe",
+    "noGroups": "Aucun groupe ne correspond à ta recherche.",
+    "joinA11y": "Rejoindre « {{name}} »",
+    "seats_one": "{{count}} place prise sur {{capacity}}",
+    "seats_other": "{{count}} places prises sur {{capacity}}"
   },
   "mentors": {
     "lang": {

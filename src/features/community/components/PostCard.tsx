@@ -1,4 +1,4 @@
-import { Heart, MessageCircle, MoreHorizontal, Share2 } from 'lucide-react-native';
+import { Heart, MessageCircle, Share2 } from 'lucide-react-native';
 import { Share, View } from 'react-native';
 import Animated, { useAnimatedStyle, useSharedValue, withSequence, withSpring } from 'react-native-reanimated';
 
@@ -28,15 +28,12 @@ export function PostCard({ p, city, onOpen, hideComments }: { p: PostWithState; 
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
         <Avatar name={p.author} size={40} color={p.authorColor} />
         <View style={{ flex: 1 }}>
-          <Text variant="smallStrong" color={colors.electric}>
-            {p.author}
-          </Text>
+          <Text variant="smallStrong">{p.author}</Text>
           <Text variant="caption" color={colors.muted}>
             {timeAgo(p.createdAt)}
             {city ? ` · ${city}` : ''}
           </Text>
         </View>
-        <MoreHorizontal size={18} color={colors.muted} />
       </View>
       {onOpen ? (
         <PressableScale onPress={onOpen} scaleTo={0.99} haptic={false} accessibilityLabel={t('community.post.openA11y', { name: p.author })}>
@@ -87,9 +84,9 @@ export function PostCard({ p, city, onOpen, hideComments }: { p: PostWithState; 
       </View>
       {hideComments ? null : p.comments.slice(-2).map((c, i) => (
         <View key={i} style={[styles.comment, c.isAuthor && { marginStart: 28, backgroundColor: colors.electricSoft }]}>
-          <Avatar name={c.author} size={26} color="#94A3B8" />
+          <Avatar name={c.author} size={26} color={colors.muted} />
           <View style={{ flex: 1 }}>
-            <Text variant="caption" color={colors.electric}>
+            <Text variant="caption" color={colors.navy}>
               {c.isAuthor ? t('community.post.authorTag', { name: c.author }) : c.author}
             </Text>
             <Text variant="small">{c.body}</Text>

@@ -1,28 +1,60 @@
+import { LinearGradient } from 'expo-linear-gradient';
 import { router, useLocalSearchParams } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
-import { CalendarDays, Link2, MapPin, Tag as TagIcon } from 'lucide-react-native';
-import { useState } from 'react';
-import { View } from 'react-native';
+import { CalendarDays, Link2, MapPin, Ticket, Users } from 'lucide-react-native';
+import { useState, type ReactNode } from 'react';
+import { Linking, Platform, View } from 'react-native';
 import Animated from 'react-native-reanimated';
 
 import { SuccessModal } from '@/components/feedback/SuccessModal';
 import { toast } from '@/components/feedback/Toast';
+import { AppHeader } from '@/components/layout/AppHeader';
 import { Screen } from '@/components/layout/Screen';
-import { Avatar } from '@/components/ui/Avatar';
 import { Button } from '@/components/ui/Button';
-import { ArrowRight, ArrowUpRight, ChevronLeft } from '@/components/ui/DirIcons';
+import { ArrowRight, ArrowUpRight } from '@/components/ui/DirIcons';
+import { ListGroup } from '@/components/ui/ListGroup';
 import { PressableScale } from '@/components/ui/PressableScale';
 import { Text } from '@/components/ui/Text';
 import { remoteJoinEvent } from '@/data/api';
-import { useEvent } from '@/data/hooks';
+import { useEvent, useGroup } from '@/data/hooks';
 import { useLocalDb } from '@/data/local-db';
-import { Cover } from '@/features/community/components/Cover';
+import { SeatsBar } from '@/features/community/components/GroupCard';
 import { useJourneyStore } from '@/features/journey/store';
 import { useT } from '@/i18n';
-import { formatLong, formatTime, toISODate } from '@/lib/date';
+import { wash } from '@/lib/color';
+import { formatLong, formatTime, monthShort, toISODate, weekdayName } from '@/lib/date';
 import { makeStyles, useTheme } from '@/theme/scheme';
-import { radius } from '@/theme/tokens';
+import { fonts, radius } from '@/theme/tokens';
 import { rise } from '@/theme/motion';
+
+const upperFirst = (s: string) => s.charAt(0).toLocaleUpperCase() + s.slice(1);
+
+/** L'itinéraire s'ouvre dans l'app de cartes du téléphone. */
+const openMaps = (query: string) => {
+  const q = encodeURIComponent(query);
+  Linking.openURL(Platform.OS === 'ios' ? `https://maps.apple.com/?q=${q}` : `https://www.google.com/maps/search/?api=1&query=${q}`).catch(() => {});
+};
+
+/** Une ligne d'information : une icône, ce qu'il faut savoir, et parfois une action à droite. */
+function Fact({ icon, title, sub, right, children }: { icon: ReactNode; title: string; sub?: string; right?: ReactNode; children?: ReactNode }) {
+  const { c } = useTheme();
+  const styles = useStyles();
+  return (
+    <View style={styles.fact}>
+      <View style={styles.factIcon}>{icon}</View>
+      <View style={{ flex: 1, gap: 2 }}>
+        <Text variant="bodyStrong">{title}</Text>
+        {sub ? (
+          <Text variant="small" color={c.muted}>
+            {sub}
+          </Text>
+        ) : null}
+        {children}
+      </View>
+      {right}
+    </View>
+  );
+}
 
 /** Détail d'un événement + inscription (ajoutée au calendrier du Parcours). */
 export default function EventPage() {
@@ -31,100 +63,96 @@ export default function EventPage() {
   const styles = useStyles();
   const { id } = useLocalSearchParams<{ id: string }>();
   const { data: e } = useEvent(id);
+  // Le groupe qui l'organise, quand il y en a un : on sait qui sera là.
+  const { data: group } = useGroup(e?.groupId);
   const toggle = useLocalDb((s) => s.toggleEvent);
   const addCustom = useJourneyStore((s) => s.addCustom);
   const [done, setDone] = useState(false);
   if (!e) return null;
   const full = e.attendees >= e.capacity && !e.isGoing;
+  const left = Math.max(0, e.capacity - e.attendees);
+  const d = new Date(e.startsAt);
 
   const participate = () => {
     toggle(e.id);
     remoteJoinEvent(e.id, !e.isGoing).catch(() => {});
     if (!e.isGoing) {
-      addCustom(`${e.title} · ${e.place}`, toISODate(new Date(e.startsAt)));
+      addCustom(`${e.title} · ${e.place}`, toISODate(d));
       setDone(true);
     } else toast(t('community.event.cancelled'), 'info');
   };
 
   return (
     <Screen
+      // Le haut de l'écran prend la couleur de l'événement, en lavis.
+      top={wash(e.cover[0], c.bg)}
       padded={false}
-      footer={<Button label={e.isGoing ? t('community.event.leave') : full ? t('community.event.full') : t('community.event.participate')} variant={e.isGoing ? 'secondary' : 'primary'} disabled={full} icon={!e.isGoing ? <ArrowRight size={18} color="#fff" /> : undefined} onPress={participate} />}>
-      <View style={{ paddingHorizontal: 16, paddingTop: 8 }}>
-        <Cover colors={e.cover} emoji={e.emoji} height={190} radius={26}>
-          <PressableScale onPress={() => router.back()} style={styles.back} accessibilityLabel={t('common.back')}>
-            <ChevronLeft size={20} color="#fff" />
-          </PressableScale>
-        </Cover>
-      </View>
-      <View style={{ paddingHorizontal: 20, gap: 16, marginTop: 16 }}>
-        <Animated.View entering={rise()} style={{ gap: 6 }}>
-          <Text variant="hero">{e.title}</Text>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-            <CalendarDays size={15} color={c.electric} />
-            <Text variant="body" color={c.subtle}>
-              {formatLong(e.startsAt)} · {formatTime(e.startsAt)}
+      header={<AppHeader back />}
+      footer={<Button label={e.isGoing ? t('community.event.leave') : full ? t('community.event.full') : t('community.event.participate')} variant={e.isGoing ? 'secondary' : 'primary'} disabled={full} icon={!e.isGoing && !full ? <ArrowRight size={18} color={c.white} /> : undefined} onPress={participate} />}>
+      <View style={{ paddingHorizontal: 20, gap: 26 }}>
+        {/* Le carton d'invitation : la date en grand, aux couleurs de l'événement, puis le titre. */}
+        <Animated.View entering={rise()} style={styles.hero}>
+          <LinearGradient colors={e.cover} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.date}>
+            <Text variant="caption" color="rgba(255,255,255,0.85)">
+              {weekdayName(d.getDay(), true)}
             </Text>
+            <Text style={styles.day}>{d.getDate()}</Text>
+            <Text variant="caption" color="rgba(255,255,255,0.85)">
+              {monthShort(d)}
+            </Text>
+          </LinearGradient>
+          <View style={{ flex: 1, gap: 4 }}>
+            <Text variant="h1">{e.title}</Text>
+            {group ? (
+              <PressableScale onPress={() => router.push({ pathname: '/(app)/groupe/[id]', params: { id: group.id } })} hitSlop={8} accessibilityRole="link">
+                <Text variant="smallStrong" color={c.electric}>
+                  {t('community.event.byGroup', { name: group.name })}
+                </Text>
+              </PressableScale>
+            ) : (
+              <Text variant="small" color={c.subtle}>
+                {e.city}
+              </Text>
+            )}
           </View>
         </Animated.View>
-        <Text variant="h2">{t('community.group.about')}</Text>
-        <View style={styles.card}>
-          <Text variant="body">{e.description}</Text>
-        </View>
-        <View style={[styles.card, { backgroundColor: c.electric, gap: 10 }]}>
-          <Text variant="bodyStrong" color="#fff">
-            {e.place}
-          </Text>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-            <MapPin size={14} color="#fff" />
-            <Text variant="small" color="#fff">
-              {e.address}
-            </Text>
-          </View>
-          <View style={styles.map}>
-            <View style={styles.pin}>
-              <MapPin size={22} color="#fff" fill={c.electric} />
-            </View>
-            <View style={[styles.road, { top: 30, transform: [{ rotate: '-8deg' }] }]} />
-            <View style={[styles.road, { top: 70, transform: [{ rotate: '12deg' }] }]} />
-          </View>
-        </View>
-        <View style={[styles.card, styles.row]}>
-          <View style={{ flexDirection: 'row' }}>
-            {['Kalili', 'Zakaria', 'Sara'].map((n, i) => (
-              <View key={n} style={{ marginStart: i ? -10 : 0 }}>
-                <Avatar name={n} size={34} ring="#fff" color={['#3D78FF', '#F97316', '#14B8A6'][i]} />
+
+        <Animated.View entering={rise(80)}>
+          <ListGroup>
+            <Fact icon={<CalendarDays size={18} color={c.subtle} />} title={upperFirst(formatLong(d))} sub={t('community.event.at', { time: formatTime(d) })} />
+            <PressableScale onPress={() => openMaps(`${e.place}, ${e.address}`)} scaleTo={0.985} accessibilityRole="link" accessibilityLabel={t('community.event.directionsA11y', { place: e.place })}>
+              <Fact
+                icon={<MapPin size={18} color={c.subtle} />}
+                title={e.place}
+                sub={e.address}
+                right={
+                  <Text variant="smallStrong" color={c.electric}>
+                    {t('community.event.directions')}
+                  </Text>
+                }
+              />
+            </PressableScale>
+            <Fact icon={<Users size={18} color={c.subtle} />} title={full ? t('community.event.full') : t('community.event.spotsLeft', { count: left })}>
+              <View style={{ marginTop: 6 }}>
+                <SeatsBar attendees={e.attendees} capacity={e.capacity} />
               </View>
-            ))}
-          </View>
-          <Text variant="small" style={{ flex: 1 }}>
-            {t('community.event.joinedBy', { a: 'Kalili', b: 'Zakaria', count: Math.max(0, e.attendees - 2) })}
-          </Text>
-        </View>
-        <View style={[styles.card, styles.row]}>
-          <TagIcon size={18} color={c.electric} />
-          <View>
-            <Text variant="caption" color={c.muted}>
-              {t('community.event.price')}
+            </Fact>
+            <Fact icon={<Ticket size={18} color={c.subtle} />} title={e.price === 'free' ? t('community.event.free') : t('community.event.paid')} />
+            {e.link ? (
+              <PressableScale onPress={() => WebBrowser.openBrowserAsync(e.link!)} scaleTo={0.985} accessibilityRole="link">
+                <Fact icon={<Link2 size={18} color={c.subtle} />} title={e.link.replace(/^https?:\/\//, '').replace(/\/$/, '')} sub={t('community.event.moreInfo')} right={<ArrowUpRight size={18} color={c.electric} />} />
+              </PressableScale>
+            ) : null}
+          </ListGroup>
+        </Animated.View>
+
+        {e.description ? (
+          <View style={{ gap: 8 }}>
+            <Text variant="h3">{t('community.group.about')}</Text>
+            <Text variant="body" color={c.subtle}>
+              {e.description}
             </Text>
-            <Text variant="bodyStrong" color={c.electric}>
-              {e.price === 'free' ? t('community.event.free') : t('community.event.paid')}
-            </Text>
           </View>
-        </View>
-        {e.link ? (
-          <PressableScale onPress={() => WebBrowser.openBrowserAsync(e.link!)} style={[styles.card, styles.row, { borderWidth: 2, borderColor: '#A7E8CC' }]}>
-            <View style={styles.linkIcon}>
-              <Link2 size={16} color="#fff" />
-            </View>
-            <View style={{ flex: 1 }}>
-              <Text variant="bodyStrong">{e.link.replace(/^https?:\/\//, '')}</Text>
-              <Text variant="caption" color={c.muted}>
-                {t('community.event.moreInfo')}
-              </Text>
-            </View>
-            <ArrowUpRight size={18} color={c.mentor} />
-          </PressableScale>
         ) : null}
       </View>
       <SuccessModal
@@ -142,12 +170,10 @@ export default function EventPage() {
   );
 }
 
-const useStyles = makeStyles(({ c, shadow }) => ({
-  back: { position: 'absolute', top: 12, start: 12, width: 38, height: 38, borderRadius: 19, backgroundColor: 'rgba(0,0,0,0.25)', alignItems: 'center', justifyContent: 'center' },
-  card: { padding: 16, borderRadius: radius.xl, backgroundColor: c.card, ...shadow.sm },
-  row: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  map: { height: 110, borderRadius: radius.md, backgroundColor: c.fill, overflow: 'hidden', alignItems: 'center', justifyContent: 'center' },
-  road: { position: 'absolute', left: -20, right: -20, height: 10, backgroundColor: c.card },
-  pin: { zIndex: 2 },
-  linkIcon: { width: 36, height: 36, borderRadius: 10, backgroundColor: c.mentor, alignItems: 'center', justifyContent: 'center' },
+const useStyles = makeStyles(({ c }) => ({
+  hero: { flexDirection: 'row', alignItems: 'center', gap: 16 },
+  date: { width: 78, height: 88, borderRadius: radius.lg, overflow: 'hidden', alignItems: 'center', justifyContent: 'center' },
+  day: { fontFamily: fonts.displayBold, fontSize: 34, lineHeight: 38, color: c.white, letterSpacing: -0.6 },
+  fact: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 14, paddingHorizontal: 14 },
+  factIcon: { width: 36, height: 36, borderRadius: 12, backgroundColor: c.fill, alignItems: 'center', justifyContent: 'center' },
 }));

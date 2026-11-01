@@ -1,20 +1,19 @@
+import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
-import { Users } from 'lucide-react-native';
-import { View } from 'react-native';
+import { Check } from 'lucide-react-native';
+import { StyleSheet, View } from 'react-native';
 
 import { toast } from '@/components/feedback/Toast';
-import { Button } from '@/components/ui/Button';
+import { ChevronRight } from '@/components/ui/DirIcons';
 import { PressableScale } from '@/components/ui/PressableScale';
 import { Text } from '@/components/ui/Text';
 import { remoteJoinGroup } from '@/data/api';
 import type { EventWithState, GroupWithState } from '@/data/hooks';
 import { useLocalDb } from '@/data/local-db';
 import { t, useT } from '@/i18n';
-import { formatLong, formatTime } from '@/lib/date';
+import { formatTime, monthShort, weekdayName } from '@/lib/date';
 import { makeStyles, useTheme } from '@/theme/scheme';
-import { radius } from '@/theme/tokens';
-
-import { Cover } from './Cover';
+import { fonts, radius } from '@/theme/tokens';
 
 export function useJoinGroup() {
   const toggle = useLocalDb((s) => s.toggleGroup);
@@ -25,60 +24,162 @@ export function useJoinGroup() {
   };
 }
 
-export function GroupCard({ g }: { g: GroupWithState }) {
+const openGroup = (id: string) => router.push({ pathname: '/(app)/groupe/[id]', params: { id } });
+const openEvent = (id: string) => router.push({ pathname: '/(app)/evenement/[id]', params: { id } });
+
+/** L'icône d'un groupe ou d'un événement : ses couleurs et son emoji, choisis par le mentor qui l'a créé. */
+export function GroupMark({ colors, emoji, size = 48 }: { colors: readonly [string, string]; emoji: string; size?: number }) {
+  return (
+    <LinearGradient
+      colors={colors}
+      start={{ x: 0, y: 0 }}
+      end={{ x: 1, y: 1 }}
+      style={{ width: size, height: size, borderRadius: size * 0.3, overflow: 'hidden', alignItems: 'center', justifyContent: 'center' }}>
+      <Text style={{ fontSize: size * 0.48, lineHeight: size * 0.62 }} accessible={false}>
+        {emoji}
+      </Text>
+    </LinearGradient>
+  );
+}
+
+/** Places prises sur la capacité : un filet qui se remplit, et le chiffre. `light` : sur une invitation en couleur. */
+export function SeatsBar({ attendees, capacity, light }: { attendees: number; capacity: number; light?: boolean }) {
+  const { c } = useTheme();
+  const t = useT();
+  const styles = useStyles();
+  const pct = capacity > 0 ? Math.min(100, Math.round((attendees / capacity) * 100)) : 0;
+  return (
+    <View style={{ gap: 6 }}>
+      <View style={[styles.track, { backgroundColor: light ? 'rgba(255,255,255,0.25)' : c.fill }]}>
+        <View style={[styles.fill, { width: `${pct}%`, backgroundColor: light ? c.white : c.electric }]} />
+      </View>
+      <Text variant="caption" color={light ? 'rgba(255,255,255,0.85)' : c.muted}>
+        {t('community.seats', { count: attendees, capacity })}
+      </Text>
+    </View>
+  );
+}
+
+/** Un groupe dans une liste (ListGroup) : son icône, son nom, ses membres, et « Rejoindre » en un geste. */
+export function GroupRow({ g }: { g: GroupWithState }) {
   const { c } = useTheme();
   const t = useT();
   const styles = useStyles();
   const join = useJoinGroup();
   return (
-    <PressableScale scaleTo={0.98} onPress={() => router.push({ pathname: '/(app)/groupe/[id]', params: { id: g.id } })} style={styles.card}>
-      <Cover colors={g.cover} emoji={g.emoji} label={t('community.groupBadge')} height={130} radius={18} />
-      <View style={styles.row}>
-        <View style={{ flex: 1 }}>
-          <Text variant="h3">{g.name}</Text>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-            <Users size={12} color={c.muted} />
-            <Text variant="caption" color={c.muted}>
-              {t('community.members', { count: g.members })}
-            </Text>
-          </View>
-        </View>
-        <Button label={g.isMember ? t('community.member') : t('community.join')} size="sm" full={false} variant={g.isMember ? 'secondary' : 'primary'} onPress={() => join(g)} />
+    <PressableScale scaleTo={0.985} onPress={() => openGroup(g.id)} style={styles.row}>
+      <GroupMark colors={g.cover} emoji={g.emoji} />
+      <View style={{ flex: 1, gap: 2 }}>
+        <Text variant="h3" numberOfLines={1}>
+          {g.name}
+        </Text>
+        <Text variant="small" color={c.muted} numberOfLines={1}>
+          {t('community.group.membersCity', { count: g.members, city: g.city })}
+        </Text>
       </View>
+      {g.isMember ? (
+        <ChevronRight size={16} color={c.muted} />
+      ) : (
+        <PressableScale haptic="select" hitSlop={6} onPress={() => join(g)} style={styles.joinPill} accessibilityRole="button" accessibilityLabel={t('community.joinA11y', { name: g.name })}>
+          <Text variant="smallStrong" color={c.electric}>
+            {t('community.join')}
+          </Text>
+        </PressableScale>
+      )}
     </PressableScale>
   );
 }
 
-export function EventCard({ e }: { e: EventWithState }) {
+/**
+ * Une invitation (rail « Prochains événements ») : la date en grand, puis le titre, le lieu, l'heure et les places.
+ * Les couleurs sont celles de l'événement ; un voile en bas garde le texte lisible.
+ */
+export function EventInvite({ e }: { e: EventWithState }) {
   const { c } = useTheme();
   const t = useT();
   const styles = useStyles();
+  const d = new Date(e.startsAt);
   return (
-    <PressableScale scaleTo={0.98} onPress={() => router.push({ pathname: '/(app)/evenement/[id]', params: { id: e.id } })} style={styles.card}>
-      <Cover colors={e.cover} emoji={e.emoji} label={t('community.eventBadge')} labelColor="#7A5AF8" height={130} radius={18} />
-      <View style={styles.row}>
-        <View style={{ flex: 1, gap: 2 }}>
-          <Text variant="h3">{e.title}</Text>
-          <Text variant="caption" color={c.subtle}>
-            📍 {e.city} · {formatLong(e.startsAt)} · {formatTime(e.startsAt)}
+    <PressableScale scaleTo={0.98} onPress={() => openEvent(e.id)} style={styles.invite} accessibilityRole="button">
+      <LinearGradient colors={e.cover} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={StyleSheet.absoluteFill} />
+      <LinearGradient colors={['rgba(0,0,0,0)', 'rgba(0,0,0,0.5)']} start={{ x: 0, y: 0.35 }} end={{ x: 0, y: 1 }} style={StyleSheet.absoluteFill} />
+      <View style={styles.inviteTop}>
+        <View style={styles.date}>
+          <Text variant="caption" color="rgba(255,255,255,0.8)">
+            {weekdayName(d.getDay(), true)}
           </Text>
-          <Text variant="caption" color={c.muted}>
-            {t('community.people', { attendees: e.attendees, capacity: e.capacity })}
+          <Text style={styles.day}>{d.getDate()}</Text>
+          <Text variant="caption" color="rgba(255,255,255,0.8)">
+            {monthShort(d)}
           </Text>
         </View>
-        <Button
-          label={e.isGoing ? t('community.going') : t('community.join')}
-          size="sm"
-          full={false}
-          variant={e.isGoing ? 'secondary' : 'primary'}
-          onPress={() => router.push({ pathname: '/(app)/evenement/[id]', params: { id: e.id } })}
-        />
+        {e.isGoing ? (
+          <View style={styles.going}>
+            <Check size={12} color={c.white} strokeWidth={3} />
+            <Text variant="caption" color={c.white}>
+              {t('community.going')}
+            </Text>
+          </View>
+        ) : (
+          <Text style={styles.emoji} accessible={false}>
+            {e.emoji}
+          </Text>
+        )}
+      </View>
+      <View style={{ gap: 4 }}>
+        <Text variant="h2" color={c.white} numberOfLines={2}>
+          {e.title}
+        </Text>
+        <Text variant="small" color="rgba(255,255,255,0.85)" numberOfLines={1} style={{ marginBottom: 8 }}>
+          {e.place} · {formatTime(e.startsAt)}
+        </Text>
+        <SeatsBar attendees={e.attendees} capacity={e.capacity} light />
       </View>
     </PressableScale>
   );
 }
 
-const useStyles = makeStyles(({ c, shadow }) => ({
-  card: { padding: 8, borderRadius: radius.xl, backgroundColor: c.card, ...shadow.sm },
-  row: { flexDirection: 'row', alignItems: 'center', gap: 10, padding: 8, paddingTop: 12 },
+/** Un événement dans une liste (ListGroup) : la date, le titre, le lieu et l'heure. */
+export function EventRow({ e }: { e: EventWithState }) {
+  const { c } = useTheme();
+  const styles = useStyles();
+  const d = new Date(e.startsAt);
+  return (
+    <PressableScale scaleTo={0.985} onPress={() => openEvent(e.id)} style={styles.row}>
+      <View style={styles.dateBox}>
+        <Text variant="h3" style={{ fontSize: 16 }}>
+          {d.getDate()}
+        </Text>
+        <Text variant="caption" color={c.muted} style={{ fontSize: 9 }}>
+          {monthShort(d)}
+        </Text>
+      </View>
+      <View style={{ flex: 1, gap: 2 }}>
+        <Text variant="smallStrong" numberOfLines={2}>
+          {e.title}
+        </Text>
+        <Text variant="caption" color={c.muted} numberOfLines={1}>
+          {e.place} · {formatTime(e.startsAt)}
+        </Text>
+      </View>
+      <ChevronRight size={16} color={c.muted} />
+    </PressableScale>
+  );
+}
+
+export const INVITE_W = 268;
+
+const useStyles = makeStyles(({ c }) => ({
+  row: { flexDirection: 'row', alignItems: 'center', gap: 14, paddingVertical: 12, paddingHorizontal: 14, minHeight: 72 },
+  joinPill: { paddingHorizontal: 14, minHeight: 34, justifyContent: 'center', borderRadius: radius.pill, backgroundColor: c.electricSoft },
+  track: { height: 4, borderRadius: 2, overflow: 'hidden' },
+  fill: { height: 4, borderRadius: 2 },
+  invite: { width: INVITE_W, height: 248, borderRadius: radius.xl, overflow: 'hidden', padding: 16, justifyContent: 'space-between' },
+  inviteTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
+  // La date comme sur un carton d'invitation : le jour en très grand.
+  date: { alignItems: 'center', minWidth: 58, paddingVertical: 8, paddingHorizontal: 10, borderRadius: radius.md, backgroundColor: 'rgba(255,255,255,0.16)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.22)' },
+  day: { fontFamily: fonts.displayBold, fontSize: 30, lineHeight: 34, color: c.white, letterSpacing: -0.6 },
+  emoji: { fontSize: 34, lineHeight: 42 },
+  going: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 10, paddingVertical: 5, borderRadius: radius.pill, backgroundColor: 'rgba(255,255,255,0.2)' },
+  dateBox: { width: 44, height: 46, borderRadius: 12, backgroundColor: c.fill, alignItems: 'center', justifyContent: 'center' },
 }));

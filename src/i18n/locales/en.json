@@ -772,13 +772,7 @@
   "community": {
     "title": "Communities",
     "search": "Search a group, an event…",
-    "filterA11y": "Filter: groups or events",
-    "groups": "Groups",
     "events": "Events",
-    "cities": "Cities",
-    "popularGroups": "Popular groups",
-    "seeAll": "See all",
-    "nearEvents": "Events nearby",
     "create": "Create",
     "createSomething": "Create something",
     "createGroup": "Create a group",
@@ -790,7 +784,6 @@
     "member": "Member",
     "join": "Join",
     "going": "Going",
-    "people": "{{attendees}}/{{capacity}} people",
     "welcome": "Welcome to “{{name}}” 🎉",
     "description": "Description",
     "privacy": "Privacy",
@@ -802,18 +795,14 @@
       "membersCity_other": "{{count}} members · {{city}}",
       "join": "Join the group",
       "about": "About",
-      "feed": "Feed",
-      "members": "Members",
+      "feed": "Discussions",
+      "members": "Active members",
       "lockedTitle": "Members only",
       "lockedText": "Join the group to see posts and events, and to talk with other students.",
       "share": "Share something with the group…",
       "firstPost": "Be the first to post ✨",
-      "upcoming": "Upcoming events",
-      "newMembers": "New members",
       "you": "You",
-      "youTag": "{{name}} (you)",
-      "follow": "Follow",
-      "writeA11y": "Write a post"
+      "youTag": "{{name}} (you)"
     },
     "post": {
       "fallbackTitle": "Post",
@@ -875,15 +864,18 @@
       "full": "Full",
       "participate": "Join the event",
       "cancelled": "Spot cancelled.",
-      "joinedBy_one": "{{a}}, {{b}} and {{count}} other are going",
-      "joinedBy_other": "{{a}}, {{b}} and {{count}} others are going",
-      "price": "Price",
       "free": "Free for DALILI members",
       "paid": "Paid, details on site",
       "moreInfo": "More information",
       "successTitle": "You’re in!",
       "successText": "Well done! Your spot is booked. You’ll find the details and address in your calendar.",
-      "successCta": "See my calendar"
+      "successCta": "See my calendar",
+      "at": "At {{time}}",
+      "directions": "Directions",
+      "directionsA11y": "Open directions to {{place}}",
+      "spotsLeft_one": "{{count}} spot left",
+      "spotsLeft_other": "{{count}} spots left",
+      "byGroup": "Organized by “{{name}}”"
     },
     "newEvent": {
       "required": "Name and place are required.",
@@ -910,7 +902,17 @@
       "successCta": "See the event"
     },
     "byMentors": "Groups and events are run by verified mentors.",
-    "mentorIntro": "Create a group or an event for students in your city."
+    "mentorIntro": "Create a group or an event for students in your city.",
+    "upcoming": "Upcoming events",
+    "noEvents": "No events planned for now.",
+    "noEventsCity": "No events planned in {{city}} for now.",
+    "myGroups": "My groups",
+    "moreGroups": "More groups",
+    "discover": "Join a group",
+    "noGroups": "No group matches your search.",
+    "joinA11y": "Join “{{name}}”",
+    "seats_one": "{{count}} of {{capacity}} spots taken",
+    "seats_other": "{{count}} of {{capacity}} spots taken"
   },
   "mentors": {
     "lang": {

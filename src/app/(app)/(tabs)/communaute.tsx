@@ -1,49 +1,61 @@
 import { router } from 'expo-router';
-import { Plus, Search, SlidersHorizontal } from 'lucide-react-native';
+import { Plus, Search } from 'lucide-react-native';
 import { useMemo, useState } from 'react';
 import { ScrollView, View } from 'react-native';
-import Animated, { FadeIn } from 'react-native-reanimated';
+import Animated from 'react-native-reanimated';
 
 import { BottomSheet } from '@/components/feedback/BottomSheet';
 import { AppHeader } from '@/components/layout/AppHeader';
 import { Screen, TAB_BAR_SPACE } from '@/components/layout/Screen';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
+import { ListGroup } from '@/components/ui/ListGroup';
 import { PressableScale } from '@/components/ui/PressableScale';
-import { SectionHeader } from '@/components/ui/SectionHeader';
-import { Segmented } from '@/components/ui/Segmented';
 import { Chip } from '@/components/ui/Tag';
 import { Text } from '@/components/ui/Text';
 import { useEvents, useGroups } from '@/data/hooks';
-import { EventCard, GroupCard } from '@/features/community/components/GroupCard';
+import { EventInvite, GroupRow, INVITE_W } from '@/features/community/components/GroupCard';
 import { useProfile } from '@/features/profile/store';
 import { useT } from '@/i18n';
 import { useRoleTheme } from '@/theme';
+import { enter, pop, rise } from '@/theme/motion';
 import { makeStyles, useTheme } from '@/theme/scheme';
-import { pop, rise } from '@/theme/motion';
 
-/** Communautés : groupes par ville + événements proches. Les mentors les créent et les animent, les étudiants les rejoignent. */
+/** Un événement reste visible jusqu'à 2 heures après son début. */
+const STILL_ON_MS = 2 * 3_600_000;
+
+/**
+ * Communauté : les prochains événements en invitations (on les fait défiler), puis tes groupes et ceux à rejoindre.
+ * Les mentors créent et animent ; les étudiants rejoignent en un geste.
+ */
 export default function Communaute() {
   const { c, gradients } = useTheme();
   const t = useT();
   const styles = useStyles();
   const { top, accent } = useRoleTheme();
-  const isMentor = useProfile((s) => s.profile.activeRole === 'mentor');
+  const profile = useProfile((s) => s.profile);
+  const isMentor = profile.activeRole === 'mentor';
   const { data: groups } = useGroups();
   const { data: events } = useEvents();
-  const [mode, setMode] = useState<'all' | 'groups' | 'events'>('all');
   const [q, setQ] = useState('');
   const [city, setCity] = useState<string | null>(null);
   const [fab, setFab] = useState(false);
+  const [now] = useState(() => Date.now());
 
   const needle = q.trim().toLowerCase();
-  const gs = useMemo(() => groups.filter((g) => (!city || g.city === city) && (!needle || `${g.name} ${g.city}`.toLowerCase().includes(needle))), [groups, city, needle]);
-  const es = useMemo(() => events.filter((e) => (!city || e.city === city) && (!needle || `${e.title} ${e.city}`.toLowerCase().includes(needle))), [events, city, needle]);
-  const cityCounts = useMemo(() => {
-    const c: Record<string, number> = {};
-    groups.forEach((g) => (c[g.city] = (c[g.city] ?? 0) + g.members));
-    return Object.entries(c).sort((a, b) => b[1] - a[1]);
-  }, [groups]);
+  const matches = (text: string, itemCity: string) => (!city || itemCity === city) && (!needle || `${text} ${itemCity}`.toLowerCase().includes(needle));
+  const upcoming = events
+    .filter((e) => new Date(e.startsAt).getTime() > now - STILL_ON_MS && matches(e.title, e.city))
+    .sort((a, b) => a.startsAt.localeCompare(b.startsAt));
+  const shown = groups.filter((g) => matches(g.name, g.city)).sort((a, b) => b.members - a.members);
+  const mine = shown.filter((g) => g.isMember);
+  const others = shown.filter((g) => !g.isMember);
+  // Ta ville d'arrivée d'abord, puis les autres de la plus active à la moins active.
+  const cities = useMemo(() => {
+    const size: Record<string, number> = {};
+    [...groups, ...events].forEach((x) => (size[x.city] = (size[x.city] ?? 0) + 1));
+    return Object.keys(size).sort((a, b) => Number(b === profile.destinationCity) - Number(a === profile.destinationCity) || size[b] - size[a]);
+  }, [groups, events, profile.destinationCity]);
 
   return (
     <View style={{ flex: 1 }}>
@@ -55,62 +67,65 @@ export default function Communaute() {
               {isMentor ? t('community.mentorIntro') : t('community.byMentors')}
             </Text>
           </View>
-          <Input
-            icon={<Search size={16} color={c.electric} />}
-            placeholder={t('community.search')}
-            value={q}
-            onChangeText={setQ}
-            right={
-              <PressableScale onPress={() => setMode(mode === 'all' ? 'groups' : 'all')} style={[styles.filter, mode !== 'all' && { backgroundColor: c.electric }]}
-                accessibilityLabel={t('community.filterA11y')}
-                accessibilityState={{ selected: mode !== 'all' }}>
-                <SlidersHorizontal size={16} color={mode !== 'all' ? '#fff' : c.navy} />
-              </PressableScale>
-            }
-          />
-          {mode !== 'all' && (
-            <Animated.View entering={FadeIn}>
-              <Segmented
-                value={mode === 'events' ? 'events' : 'groups'}
-                onChange={(v) => setMode(v)}
-                options={[
-                  { value: 'groups', label: t('community.groups') },
-                  { value: 'events', label: t('community.events') },
-                ]}
-              />
-            </Animated.View>
-          )}
-          <Text variant="smallStrong">{t('community.cities')}</Text>
+          <Input icon={<Search size={16} color={c.electric} />} placeholder={t('community.search')} value={q} onChangeText={setQ} />
         </View>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8, paddingHorizontal: 20, paddingVertical: 10 }}>
-          {cityCounts.map(([c, n]) => (
-            <PressableScale key={c} onPress={() => setCity(city === c ? null : c)} haptic="select">
-              <Chip label={c} count={n} active={city === c} />
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8, paddingHorizontal: 20, paddingVertical: 12 }}>
+          <PressableScale onPress={() => setCity(null)} haptic="select">
+            <Chip label={t('explorer.allCities')} active={!city} />
+          </PressableScale>
+          {cities.map((name) => (
+            <PressableScale key={name} onPress={() => setCity(city === name ? null : name)} haptic="select">
+              <Chip label={name} active={city === name} />
             </PressableScale>
           ))}
         </ScrollView>
 
-        <View style={{ paddingHorizontal: 20, gap: 26, marginTop: 8 }}>
-          {mode !== 'events' && (
-            <Animated.View entering={rise()}>
-              <SectionHeader title={t('community.popularGroups')} action={t('community.seeAll')} onAction={() => setMode('groups')} />
-              <View style={{ gap: 14 }}>
-                {(mode === 'groups' ? gs : gs.slice(0, 3)).map((g) => (
-                  <GroupCard key={g.id} g={g} />
+        <View style={{ gap: 30, marginTop: 6 }}>
+          <Animated.View entering={rise()} style={{ gap: 12 }}>
+            <Text variant="h2" style={styles.gutter}>
+              {t('community.upcoming')}
+            </Text>
+            {upcoming.length ? (
+              // Les invitations défilent et s'arrêtent net sur la suivante.
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} snapToInterval={INVITE_W + 12} decelerationRate="fast" contentContainerStyle={{ gap: 12, paddingHorizontal: 20 }}>
+                {upcoming.map((e, i) => (
+                  <Animated.View key={e.id} entering={enter(i)}>
+                    <EventInvite e={e} />
+                  </Animated.View>
                 ))}
-              </View>
-            </Animated.View>
-          )}
-          {mode !== 'groups' && (
-            <Animated.View entering={rise(80)}>
-              <SectionHeader title={t('community.nearEvents')} action={t('community.seeAll')} onAction={() => setMode('events')} />
-              <View style={{ gap: 14 }}>
-                {(mode === 'events' ? es : es.slice(0, 3)).map((e) => (
-                  <EventCard key={e.id} e={e} />
+              </ScrollView>
+            ) : (
+              <Text variant="small" color={c.muted} style={styles.gutter}>
+                {city ? t('community.noEventsCity', { city }) : t('community.noEvents')}
+              </Text>
+            )}
+          </Animated.View>
+
+          {mine.length ? (
+            <Animated.View entering={rise(60)} style={[styles.gutter, { gap: 12 }]}>
+              <Text variant="h2">{t('community.myGroups')}</Text>
+              <ListGroup>
+                {mine.map((g) => (
+                  <GroupRow key={g.id} g={g} />
                 ))}
-              </View>
+              </ListGroup>
             </Animated.View>
-          )}
+          ) : null}
+
+          <Animated.View entering={rise(120)} style={[styles.gutter, { gap: 12 }]}>
+            <Text variant="h2">{mine.length ? t('community.moreGroups') : t('community.discover')}</Text>
+            {others.length ? (
+              <ListGroup>
+                {others.map((g) => (
+                  <GroupRow key={g.id} g={g} />
+                ))}
+              </ListGroup>
+            ) : (
+              <Text variant="small" color={c.muted}>
+                {t('community.noGroups')}
+              </Text>
+            )}
+          </Animated.View>
         </View>
       </Screen>
       {isMentor ? (
@@ -134,7 +149,7 @@ export default function Communaute() {
 }
 
 const useStyles = makeStyles(({ c, shadow }) => ({
-  filter: { width: 34, height: 34, borderRadius: 10, backgroundColor: c.fill, alignItems: 'center', justifyContent: 'center' },
+  gutter: { paddingHorizontal: 20 },
   fab: { position: 'absolute', end: 20 },
   fabBtn: { width: 54, height: 54, borderRadius: 27, backgroundColor: c.card, alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: c.electricSoft, ...shadow.md },
 }));
