@@ -767,7 +767,9 @@
     },
     "general1": "How much money do I need to show for the visa?",
     "general2": "How do I apply for CROUS housing?",
-    "general3": "What is the CVEC?"
+    "general3": "What is the CVEC?",
+    "newChat": "New conversation",
+    "signIn": "Sign in"
   },
   "community": {
     "title": "Communities",

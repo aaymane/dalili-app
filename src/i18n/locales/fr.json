@@ -767,7 +767,9 @@
     },
     "general1": "Combien d’argent faut-il prouver pour le visa ?",
     "general2": "Comment demander un logement CROUS ?",
-    "general3": "C’est quoi la CVEC ?"
+    "general3": "C’est quoi la CVEC ?",
+    "newChat": "Nouvelle conversation",
+    "signIn": "Me connecter"
   },
   "community": {
     "title": "Communautés",

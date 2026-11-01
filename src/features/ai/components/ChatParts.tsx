@@ -11,6 +11,7 @@ import { ChevronRight } from '@/components/ui/DirIcons';
 import { Input } from '@/components/ui/Input';
 import { Chip } from '@/components/ui/Tag';
 import { IconTile } from '@/components/ui/IconTile';
+import { ListGroup } from '@/components/ui/ListGroup';
 import { PressableScale } from '@/components/ui/PressableScale';
 import { Text } from '@/components/ui/Text';
 import { useMentors } from '@/data/hooks';
@@ -64,7 +65,7 @@ const openSource = (s: SourceRef) => {
   else openLink(s.url);
 };
 
-/** Pastilles « D'après nos guides » : chaque source ouvre le guide dans l'app. */
+/** « D'après nos guides » : une liste, un guide par ligne ; chacun s'ouvre dans l'app. */
 export function SourcePills({ sources: all }: { sources: SourceRef[] }) {
   const { c } = useTheme();
   const t = useT();
@@ -73,21 +74,22 @@ export function SourcePills({ sources: all }: { sources: SourceRef[] }) {
   const sources = all.filter((s, i) => all.findIndex((x) => x.url === s.url) === i);
   if (!sources.length) return null;
   return (
-    <View style={{ gap: 6 }}>
-      <Text variant="overline" color={c.muted} style={{ fontSize: 9.5 }}>
+    <Animated.View entering={rise(60)} style={{ gap: 8 }}>
+      <Text variant="caption" color={c.muted}>
         {t('ai.fromGuides')}
       </Text>
-      {sources.map((s, i) => (
-        <Animated.View key={s.url} entering={rise(i * 60)}>
-          <PressableScale onPress={() => openSource(s)} style={styles.source} accessibilityRole="link" accessibilityLabel={t('ai.readGuideA11y', { title: s.title })}>
-            <BookOpen size={15} color={c.aiIndigo} />
+      <ListGroup>
+        {sources.map((s) => (
+          <PressableScale key={s.url} scaleTo={0.985} onPress={() => openSource(s)} style={styles.source} accessibilityRole="link" accessibilityLabel={t('ai.readGuideA11y', { title: s.title })}>
+            <BookOpen size={16} color={c.aiIndigo} />
             <Text variant="smallStrong" style={{ flex: 1 }} numberOfLines={2}>
               {s.title}
             </Text>
+            <ChevronRight size={16} color={c.muted} />
           </PressableScale>
-        </Animated.View>
-      ))}
-    </View>
+        ))}
+      </ListGroup>
+    </Animated.View>
   );
 }
 
@@ -240,11 +242,12 @@ function Option({ icon, label, onPress, done }: { icon: React.ReactNode; label: 
   const { c } = useTheme();
   const styles = useStyles();
   return (
-    <PressableScale onPress={onPress} disabled={done} style={[styles.option, done && { borderColor: c.success }]}>
+    <PressableScale onPress={onPress} disabled={done} scaleTo={0.985} style={styles.option}>
       {icon}
       <Text variant="smallStrong" style={{ flex: 1 }} color={done ? c.success : c.navy}>
         {label}
       </Text>
+      {done ? null : <ChevronRight size={16} color={c.muted} />}
     </PressableScale>
   );
 }
@@ -256,23 +259,25 @@ export function RefusalOptions({ m, onRequest }: { m: ChatMessage; onRequest: ()
   const [sending, setSending] = useState(false);
   const nearest = m.sources?.[0];
   return (
-    <Animated.View entering={FadeIn.delay(120)} style={{ gap: 8 }}>
-      {nearest ? (
-        <Option icon={<BookOpen size={17} color={c.aiIndigo} />} label={t('ai.nearestGuide', { title: nearest.title })} onPress={() => openSource(nearest)} />
-      ) : null}
-      <Option icon={<UsersRound size={17} color={c.mentor} />} label={t('ai.askMentor')} onPress={() => router.navigate('/(app)/(tabs)/explorer')} />
-      <Option
-        icon={m.requested ? <Check size={17} color={c.success} /> : <BookPlus size={17} color={c.electric} />}
-        label={m.requested ? t('ai.requested') : t('ai.request')}
-        done={m.requested}
-        onPress={async () => {
-          if (sending) return;
-          setSending(true);
-          const ok = await onRequest();
-          setSending(false);
-          if (!ok) toast(t('ai.requestFailed'), 'info');
-        }}
-      />
+    <Animated.View entering={FadeIn.delay(120)}>
+      <ListGroup>
+        {nearest ? (
+          <Option icon={<BookOpen size={17} color={c.aiIndigo} />} label={t('ai.nearestGuide', { title: nearest.title })} onPress={() => openSource(nearest)} />
+        ) : null}
+        <Option icon={<UsersRound size={17} color={c.mentor} />} label={t('ai.askMentor')} onPress={() => router.navigate('/(app)/(tabs)/explorer')} />
+        <Option
+          icon={m.requested ? <Check size={17} color={c.success} /> : <BookPlus size={17} color={c.electric} />}
+          label={m.requested ? t('ai.requested') : t('ai.request')}
+          done={m.requested}
+          onPress={async () => {
+            if (sending) return;
+            setSending(true);
+            const ok = await onRequest();
+            setSending(false);
+            if (!ok) toast(t('ai.requestFailed'), 'info');
+          }}
+        />
+      </ListGroup>
     </Animated.View>
   );
 }
@@ -352,12 +357,13 @@ export function RetryButton({ onPress }: { onPress: () => void }) {
 }
 
 const useStyles = makeStyles(({ c, shadow }) => ({
-  tools: { flexDirection: 'row', gap: 8 },
+  tools: { flexDirection: 'row', gap: 4, marginStart: -10 },
   reasons: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  tool: { flexDirection: 'row', alignItems: 'center', gap: 6, height: 36, paddingHorizontal: 12, borderRadius: radius.pill, backgroundColor: c.surface },
+  // Écouter / Signaler : discrets, sans fond (le fond n'apparaît que pendant la lecture).
+  tool: { flexDirection: 'row', alignItems: 'center', gap: 6, height: 36, paddingHorizontal: 10, borderRadius: radius.pill },
   action: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 10, borderRadius: radius.lg, backgroundColor: c.surface, ...shadow.sm },
-  source: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: 12, paddingVertical: 10, borderRadius: radius.lg, backgroundColor: c.card, borderWidth: 1, borderColor: '#E3E1FF' },
-  option: { flexDirection: 'row', alignItems: 'center', gap: 10, minHeight: 48, paddingHorizontal: 14, paddingVertical: 10, borderRadius: radius.lg, backgroundColor: c.card, borderWidth: 1.5, borderColor: '#E3E1FF', ...shadow.sm },
+  source: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 14, paddingVertical: 12, minHeight: 48 },
+  option: { flexDirection: 'row', alignItems: 'center', gap: 12, minHeight: 52, paddingHorizontal: 14, paddingVertical: 12 },
   note: { flexDirection: 'row', alignItems: 'center', gap: 10, padding: 12, borderRadius: radius.lg },
   legal: { flexDirection: 'row', gap: 8, alignItems: 'flex-start', paddingHorizontal: 4 },
   retry: { flexDirection: 'row', alignItems: 'center', gap: 6, alignSelf: 'flex-start', paddingHorizontal: 14, minHeight: 44, borderRadius: 999, borderWidth: 1.5, borderColor: '#C9D6FF', backgroundColor: c.card },

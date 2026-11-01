@@ -143,8 +143,15 @@ export function useAssistant() {
     return result;
   };
 
+  /** « Nouvelle conversation » : on repart de zéro (pas pendant qu'une réponse arrive). */
+  const reset = () => {
+    if (busy.current) return;
+    haptics.select();
+    setMessages([]);
+  };
+
   const last = messages[messages.length - 1];
   const thinking = last?.status === 'pending';
   const streaming = last?.status === 'streaming';
-  return { messages, ask, request, report, thinking, streaming, busy: thinking || streaming };
+  return { messages, ask, request, report, reset, thinking, streaming, busy: thinking || streaming };
 }
