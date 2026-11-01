@@ -1,7 +1,9 @@
 import { BlurMask, Canvas, Circle, DashPathEffect, Group, Path, Skia } from '@shopify/react-native-skia';
 import { useEffect, useMemo, useState } from 'react';
 import { View } from 'react-native';
-import { useDerivedValue, useReducedMotion, useSharedValue, withDelay, withTiming } from 'react-native-reanimated';
+import { useAnimatedReaction, useDerivedValue, useReducedMotion, useSharedValue, withDelay, withTiming } from 'react-native-reanimated';
+
+import { useReveal } from '@/components/motion/Reveal';
 
 import { useT } from '@/i18n';
 import { EASE_OUT } from '@/theme/motion';
@@ -32,10 +34,19 @@ export function Constellation({ helped, waiting }: Props) {
   const reduce = useReducedMotion();
   const [width, setWidth] = useState(0);
   const draw = useSharedValue(reduce ? 1 : 0);
+  // Dans une section qui apparaît au défilement, les traits attendent qu'elle se montre (sinon, dès l'affichage).
+  const reveal = useReveal();
+  const ready = useSharedValue(0);
 
   useEffect(() => {
-    if (!reduce && width > 0) draw.set(withDelay(250, withTiming(1, { duration: 1000, easing: EASE_OUT })));
-  }, [reduce, width, draw]);
+    ready.set(width > 0 ? 1 : 0);
+  }, [width, ready]);
+  useAnimatedReaction(
+    () => ready.get() === 1 && (!reveal || reveal.get() > 0.3),
+    (go, was) => {
+      if (go && !was && !reduce) draw.set(withDelay(250, withTiming(1, { duration: 1000, easing: EASE_OUT })));
+    },
+  );
 
   const stars = useMemo(() => {
     const cx = width / 2;

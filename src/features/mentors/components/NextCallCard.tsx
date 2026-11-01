@@ -53,7 +53,7 @@ export function NextCallCard({ r }: { r: MentorRequest }) {
   return (
     <LinearGradient colors={DEEP_MENTOR} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.card}>
       <View style={styles.row}>
-        <Text variant="overline" color="rgba(255,255,255,0.85)">
+        <Text variant="smallStrong" color="rgba(255,255,255,0.85)">
           {t('mentorHome.next.title')}
         </Text>
         <View style={styles.badge}>

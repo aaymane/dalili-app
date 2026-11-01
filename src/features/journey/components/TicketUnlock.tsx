@@ -3,10 +3,7 @@ import { router } from 'expo-router';
 import { useEffect } from 'react';
 import { StyleSheet, View } from 'react-native';
 import Animated, {
-  SensorType,
-  useAnimatedSensor,
   useAnimatedStyle,
-  useFrameCallback,
   useReducedMotion,
   useSharedValue,
   withDelay,
@@ -15,6 +12,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { useDeviceTilt } from '@/components/brand/Holo';
 import { TiltingStarField } from '@/components/brand/StarField';
 import { celebrate } from '@/components/feedback/Confetti';
 import { Button } from '@/components/ui/Button';
@@ -30,11 +28,6 @@ import { useTicket } from '../ticket';
 import { Ticket } from './Ticket';
 
 /** Inclinaison (radians) qui pousse le reflet jusqu'au bord du billet. */
-const FULL_TILT = 0.45;
-const clamp = (v: number) => {
-  'worklet';
-  return Math.max(-1, Math.min(1, v));
-};
 
 /**
  * Déblocage du billet (docs/VISION.md §4.C), une seule fois, juste après avoir coché le visa :
@@ -51,21 +44,8 @@ export function TicketUnlock() {
 
   const shown = useSharedValue(reduce ? 1 : 0);
   const on = useSharedValue(0);
-  const tilt = useSharedValue({ x: 0, y: 0 });
-  const rest = useSharedValue<{ pitch: number; roll: number } | null>(null);
-  const rotation = useAnimatedSensor(SensorType.ROTATION, { interval: 'auto' });
-
   // Le téléphone penché déplace le reflet ; la position de repos se recentre doucement (comme le ciel).
-  useFrameCallback(() => {
-    if (reduce) return;
-    const s = rotation.sensor.get();
-    const r = rest.get() ?? { pitch: s.pitch, roll: s.roll };
-    const next = { pitch: r.pitch + (s.pitch - r.pitch) * 0.01, roll: r.roll + (s.roll - r.roll) * 0.01 };
-    rest.set(next);
-    const target = { x: clamp((s.roll - next.roll) / FULL_TILT), y: clamp((s.pitch - next.pitch) / FULL_TILT) };
-    const cur = tilt.get();
-    tilt.set({ x: cur.x + (target.x - cur.x) * 0.15, y: cur.y + (target.y - cur.y) * 0.15 });
-  });
+  const tilt = useDeviceTilt();
 
   useEffect(() => {
     markTicketSeen();

@@ -167,7 +167,11 @@
     "charterToAccept": "New version to accept",
     "charterOk": "Accepted, thank you",
     "notifications": "Notifications",
-    "notificationsMentorSub": "New requests, messages and call reminders"
+    "notificationsMentorSub": "New requests, messages and call reminders",
+    "sectionMine": "My space",
+    "sectionMentor": "My mentoring",
+    "sectionSettings": "Settings",
+    "sectionHelp": "Help and safety"
   },
   "auth": {
     "welcomeA": "Welcome to",
@@ -512,7 +516,8 @@
     "slotsCount_other": "{{count}} slots per week",
     "slotsNone": "None: students suggest a time",
     "start": "Start the call",
-    "startA11y": "Start the call with {{name}}"
+    "startA11y": "Start the call with {{name}}",
+    "impactTitle": "Your impact this month"
   },
   "journey": {
     "phase": {

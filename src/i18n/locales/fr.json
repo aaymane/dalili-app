@@ -167,7 +167,11 @@
     "charterToAccept": "Nouvelle version à accepter",
     "charterOk": "Acceptée, merci",
     "notifications": "Notifications",
-    "notificationsMentorSub": "Nouvelles demandes, messages et rappels d’appel"
+    "notificationsMentorSub": "Nouvelles demandes, messages et rappels d’appel",
+    "sectionMine": "Mon espace",
+    "sectionMentor": "Mon activité de mentor",
+    "sectionSettings": "Réglages",
+    "sectionHelp": "Aide et sécurité"
   },
   "auth": {
     "welcomeA": "Bienvenue dans",
@@ -512,7 +516,8 @@
     "slotsCount_other": "{{count}} créneaux par semaine",
     "slotsNone": "Aucun : les étudiants te proposent une heure",
     "start": "Démarrer l’appel",
-    "startA11y": "Démarrer l’appel avec {{name}}"
+    "startA11y": "Démarrer l’appel avec {{name}}",
+    "impactTitle": "Ton impact ce mois-ci"
   },
   "journey": {
     "phase": {

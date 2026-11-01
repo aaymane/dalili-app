@@ -203,7 +203,11 @@
     "charterToAccept": "نسخة جديدة للموافقة",
     "charterOk": "تمت الموافقة، شكرًا",
     "notifications": "الإشعارات",
-    "notificationsMentorSub": "الطلبات الجديدة والرسائل وتذكير المكالمات"
+    "notificationsMentorSub": "الطلبات الجديدة والرسائل وتذكير المكالمات",
+    "sectionMine": "مساحتي",
+    "sectionMentor": "نشاطي كمرشد",
+    "sectionSettings": "الإعدادات",
+    "sectionHelp": "المساعدة والأمان"
   },
   "auth": {
     "welcomeA": "مرحبًا بك في",
@@ -564,7 +568,8 @@
     "slotsCount_other": "{{count}} موعد في الأسبوع",
     "slotsNone": "لا شيء: يقترح عليك الطلاب وقتًا",
     "start": "ابدأ المكالمة",
-    "startA11y": "ابدأ المكالمة مع {{name}}"
+    "startA11y": "ابدأ المكالمة مع {{name}}",
+    "impactTitle": "أثرك هذا الشهر"
   },
   "journey": {
     "phase": {
