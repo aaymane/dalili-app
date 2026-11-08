@@ -86,6 +86,8 @@
         "projectId": "3414c7f6-c3f4-4ac7-8929-81c769c8526c"
       }
     },
-    "owner": "amriayman1"
+    "owner": "amriayman1",
+    "runtimeVersion": { "policy": "fingerprint" },
+    "updates": { "url": "https://u.expo.dev/3414c7f6-c3f4-4ac7-8929-81c769c8526c" }
   }
 }

@@ -13,13 +13,27 @@
         "env": {
           "ORG_GRADLE_PROJECT_reactNativeArchitectures": "arm64-v8a"
         }
-      }
+      },
+      "channel": "development"
     },
     "development-simulator": {
       "extends": "development",
       "ios": {
         "simulator": true
-      }
+      },
+      "channel": "development-simulator"
+    },
+    "preview": {
+      "distribution": "internal",
+      "environment": "preview",
+      "node": "24.13.0",
+      "android": {
+        "buildType": "apk",
+        "env": {
+          "ORG_GRADLE_PROJECT_reactNativeArchitectures": "arm64-v8a"
+        }
+      },
+      "channel": "preview"
     }
   }
 }
