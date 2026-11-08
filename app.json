@@ -40,8 +40,8 @@
       [
         "expo-image-picker",
         {
-          "photosPermission": "DALILI utilise tes photos pour ta photo de profil.",
-          "cameraPermission": "DALILI utilise l’appareil photo pour ta photo de profil et tes appels vidéo avec un mentor.",
+          "photosPermission": "DALILI utilise tes photos pour ta photo de profil, tes publications et les documents que tu ranges dans ton coffre.",
+          "cameraPermission": "DALILI utilise l’appareil photo pour scanner tes documents, ta photo de profil et tes appels vidéo avec un mentor.",
           "microphonePermission": "DALILI utilise le micro pendant tes appels avec un mentor."
         }
       ],
@@ -60,10 +60,22 @@
       [
         "expo-secure-store",
         {
-          "faceIDPermission": "DALILI peut utiliser Face ID pour protéger l’accès à ton compte."
+          "faceIDPermission": "DALILI utilise Face ID pour protéger l’accès à ton compte et à tes documents."
         }
       ],
-      "./plugins/withDaily"
+      [
+        "expo-local-authentication",
+        {
+          "faceIDPermission": "DALILI utilise Face ID pour protéger l’accès à ton compte et à tes documents."
+        }
+      ],
+      "./plugins/withDaily",
+      [
+        "react-native-document-scanner-plugin",
+        {
+          "cameraPermission": "DALILI utilise l’appareil photo pour scanner tes documents, ta photo de profil et tes appels vidéo avec un mentor."
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,

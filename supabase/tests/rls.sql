@@ -1023,6 +1023,106 @@ select tests.must_count('30 jours : le fichier part, le message et son nom reste
   $q$select * from public.messages where attachment_name = 'passeport.jpg' and attachment_path is null$q$, 1);
 rollback;
 
+-- ───────────── Coffre « Mes documents » (08/11) ─────────────
+begin;
+select tests.must_count('le bucket du coffre est privé', $q$select 1 from storage.buckets where id = 'vault' and not public$q$, 1);
+set local role authenticated;
+set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-00000000000a","role":"authenticated"}';
+insert into storage.objects (bucket_id, name, metadata) values
+  ('vault', '00000000-0000-0000-0000-00000000000a/passp1.jpg', '{"size": 120000, "mimetype": "image/jpeg"}');
+select tests.must_fail('A dépose dans le dossier de B',
+  $q$insert into storage.objects (bucket_id, name) values ('vault', '00000000-0000-0000-0000-00000000000b/pirate.jpg')$q$);
+select tests.must_fail('A dépose à la racine du coffre', $q$insert into storage.objects (bucket_id, name) values ('vault', 'pirate.jpg')$q$);
+select tests.must_fail('A dépose un fichier qui n''est ni JPEG ni PDF',
+  $q$insert into storage.objects (bucket_id, name) values ('vault', '00000000-0000-0000-0000-00000000000a/virus1.exe')$q$);
+select tests.must_fail('A dépose dans un sous-dossier',
+  $q$insert into storage.objects (bucket_id, name) values ('vault', '00000000-0000-0000-0000-00000000000a/x/passp2.jpg')$q$);
+insert into public.vault_documents (category, kind, title, file_path, file_type, file_size)
+  values ('identity', 'passport', 'Passeport', '00000000-0000-0000-0000-00000000000a/passp1.jpg', 'image/jpeg', 1);
+select tests.must_count('A range son passeport, la taille vient du stockage',
+  $q$select * from public.vault_documents where file_size = 120000 and user_id = '00000000-0000-0000-0000-00000000000a'$q$, 1);
+select tests.must_fail('A range un document sans fichier déposé',
+  $q$insert into public.vault_documents (category, title, file_path, file_type, file_size) values ('identity', 'Faux', '00000000-0000-0000-0000-00000000000a/absent1.jpg', 'image/jpeg', 10)$q$);
+select tests.must_fail('A range deux fois le même fichier',
+  $q$insert into public.vault_documents (category, title, file_path, file_type, file_size) values ('identity', 'Copie', '00000000-0000-0000-0000-00000000000a/passp1.jpg', 'image/jpeg', 10)$q$);
+select tests.must_fail('A choisit une rubrique inconnue',
+  $q$insert into public.vault_documents (category, title, file_path, file_type, file_size) values ('secret', 'X', '00000000-0000-0000-0000-00000000000a/passp1.jpg', 'image/jpeg', 10)$q$);
+select tests.must_fail('A donne un titre vide',
+  $q$insert into public.vault_documents (category, title, file_path, file_type, file_size) values ('other', '   ', '00000000-0000-0000-0000-00000000000a/passp1.jpg', 'image/jpeg', 10)$q$);
+select tests.must_fail('A écrit lui-même le propriétaire',
+  $q$insert into public.vault_documents (user_id, category, title, file_path, file_type, file_size) values ('00000000-0000-0000-0000-00000000000b', 'other', 'X', '00000000-0000-0000-0000-00000000000b/passp1.jpg', 'image/jpeg', 10)$q$);
+insert into storage.objects (bucket_id, name, metadata) values
+  ('vault', '00000000-0000-0000-0000-00000000000a/fauxpdf.pdf', '{"size": 900, "mimetype": "image/jpeg"}');
+select tests.must_fail('A déclare un PDF qui est une photo',
+  $q$insert into public.vault_documents (category, title, file_path, file_type, file_size) values ('other', 'X', '00000000-0000-0000-0000-00000000000a/fauxpdf.pdf', 'application/pdf', 900)$q$);
+update public.vault_documents set title = 'Passeport marocain', category = 'identity', kind = null;
+select tests.must_count('A renomme son document', $q$select * from public.vault_documents where title = 'Passeport marocain'$q$, 1);
+select tests.must_fail('A remplace le fichier d''un document',
+  $q$update public.vault_documents set file_path = '00000000-0000-0000-0000-00000000000a/fauxpdf.pdf'$q$);
+select tests.must_fail('A change la taille enregistrée', $q$update public.vault_documents set file_size = 1$q$);
+select tests.must_fail('A donne son document à B', $q$update public.vault_documents set user_id = '00000000-0000-0000-0000-00000000000b'$q$);
+update storage.objects set metadata = '{"size": 1}' where bucket_id = 'vault';
+select tests.must_count('A ne remplace pas un fichier déposé (aucune règle de mise à jour)',
+  $q$select * from storage.objects where bucket_id = 'vault' and (metadata ->> 'size')::int > 1$q$, 2);
+
+set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-00000000000b","role":"authenticated"}';
+select tests.must_count('B ne voit pas les documents de A', $q$select * from public.vault_documents$q$, 0);
+select tests.must_count('B ne voit pas les fichiers de A', $q$select * from storage.objects where bucket_id = 'vault'$q$, 0);
+select tests.must_fail('B range le fichier de A dans son coffre',
+  $q$insert into public.vault_documents (category, title, file_path, file_type, file_size) values ('identity', 'Volé', '00000000-0000-0000-0000-00000000000a/passp1.jpg', 'image/jpeg', 10)$q$);
+update public.vault_documents set title = 'Volé';
+delete from public.vault_documents;
+delete from storage.objects where bucket_id = 'vault';
+set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-00000000000a","role":"authenticated"}';
+select tests.must_count('… A garde son document intact', $q$select * from public.vault_documents where title = 'Passeport marocain'$q$, 1);
+select tests.must_count('… et ses deux fichiers', $q$select * from storage.objects where bucket_id = 'vault'$q$, 2);
+reset role;
+
+set local role anon;
+select tests.must_fail('anon lit le coffre', 'select * from public.vault_documents');
+select tests.must_count('anon ne voit aucun fichier du coffre', $q$select * from storage.objects where bucket_id = 'vault'$q$, 0);
+select tests.must_fail('anon dépose dans le coffre',
+  $q$insert into storage.objects (bucket_id, name) values ('vault', '00000000-0000-0000-0000-00000000000a/anon01.jpg')$q$);
+reset role;
+
+-- Limite : 200 documents par compte, et 220 fichiers déposés au plus.
+set local role authenticated;
+set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-00000000000a","role":"authenticated"}';
+insert into storage.objects (bucket_id, name, metadata)
+  select 'vault', '00000000-0000-0000-0000-00000000000a/q' || lpad(g::text, 6, '0') || '.pdf', '{"size": 1000, "mimetype": "application/pdf"}'
+  from generate_series(1, 200) g;
+insert into public.vault_documents (category, title, file_path, file_type, file_size)
+  select 'other', 'Doc ' || g, '00000000-0000-0000-0000-00000000000a/q' || lpad(g::text, 6, '0') || '.pdf', 'application/pdf', 1
+  from generate_series(1, 199) g;
+select tests.must_count('A a 200 documents', $q$select * from public.vault_documents$q$, 200);
+select tests.must_fail('201e document refusé : coffre plein',
+  $q$insert into public.vault_documents (category, title, file_path, file_type, file_size) values ('other', 'Un de trop', '00000000-0000-0000-0000-00000000000a/q000200.pdf', 'application/pdf', 1)$q$);
+insert into storage.objects (bucket_id, name, metadata)
+  select 'vault', '00000000-0000-0000-0000-00000000000a/r' || lpad(g::text, 6, '0') || '.pdf', '{"size": 1000, "mimetype": "application/pdf"}'
+  from generate_series(1, 18) g;
+select tests.must_fail('221e fichier refusé : plus de place dans le dossier',
+  $q$insert into storage.objects (bucket_id, name) values ('vault', '00000000-0000-0000-0000-00000000000a/deborde.pdf')$q$);
+rollback;
+
+-- Limite : 250 Mo par compte.
+begin;
+set local role authenticated;
+set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-00000000000b","role":"authenticated"}';
+insert into storage.objects (bucket_id, name, metadata)
+  select 'vault', '00000000-0000-0000-0000-00000000000b/lourd' || lpad(g::text, 2, '0') || '.pdf', '{"size": 20971520, "mimetype": "application/pdf"}'
+  from generate_series(1, 13) g;
+insert into public.vault_documents (category, title, file_path, file_type, file_size)
+  select 'studies', 'Lourd ' || g, '00000000-0000-0000-0000-00000000000b/lourd' || lpad(g::text, 2, '0') || '.pdf', 'application/pdf', 1
+  from generate_series(1, 12) g;
+select tests.must_count('B range 12 fichiers de 20 Mo', $q$select * from public.vault_documents$q$, 12);
+select tests.must_fail('13e fichier de 20 Mo refusé : plus de 250 Mo',
+  $q$insert into public.vault_documents (category, title, file_path, file_type, file_size) values ('studies', 'Lourd 13', '00000000-0000-0000-0000-00000000000b/lourd13.pdf', 'application/pdf', 1)$q$);
+reset role;
+-- Le compte supprimé emporte ses documents (les fichiers, eux, sont retirés par le site).
+delete from auth.users where id = '00000000-0000-0000-0000-00000000000b';
+select tests.must_count('compte supprimé : plus aucun document', $q$select * from public.vault_documents$q$, 0);
+rollback;
+
 -- ───────────── serveur du site (clé service) ─────────────
 begin;
 set local role service_role;

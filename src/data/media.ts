@@ -7,13 +7,15 @@ import { supabase } from '@/lib/supabase';
 /**
  * Photos et fichiers envoyés depuis l'app (supabase/migrations/20261101120000_photos_et_pieces_jointes.sql) :
  * couvertures des groupes et des événements, photos des publications, pièces jointes de la messagerie.
- * Trois buckets privés : on n'affiche un fichier qu'avec un lien temporaire.
+ * Et le coffre « Mes documents » (`vault`, supabase/migrations/20261108120000_coffre_documents.sql).
+ * Des buckets privés : on n'affiche un fichier qu'avec un lien temporaire.
  */
-export type Bucket = 'covers' | 'post-photos' | 'message-files';
+export type Bucket = 'covers' | 'post-photos' | 'message-files' | 'vault';
 
-/** Limites des buckets : 5 Mo pour les photos, 10 Mo pour les pièces jointes. */
+/** Limites des buckets : 5 Mo pour les photos, 10 Mo pour les pièces jointes, 20 Mo pour un document du coffre. */
 export const MAX_PHOTO_BYTES = 5 * 1024 * 1024;
 export const MAX_ATTACHMENT_BYTES = 10 * 1024 * 1024;
+export const MAX_VAULT_BYTES = 20 * 1024 * 1024;
 
 /** Un nom de fichier que la base accepte (`[a-z0-9]{6,32}`), unique en pratique. */
 export const fileName = () => `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 8)}`;
@@ -35,6 +37,14 @@ export async function prepareJpeg(pickedUri: string, width = 1600) {
 export async function uploadFile(bucket: Bucket, path: string, localUri: string, contentType: 'image/jpeg' | 'application/pdf') {
   if (!supabase) throw new Error('Pas de serveur');
   const body = Platform.OS === 'web' ? await (await fetch(localUri)).arrayBuffer() : await new File(localUri).arrayBuffer();
+  const { error } = await supabase.storage.from(bucket).upload(path, body, { contentType, upsert: false });
+  if (error) throw error;
+}
+
+/** Envoie des octets déjà en mémoire (un scan assemblé en PDF, par exemple). */
+export async function uploadBytes(bucket: Bucket, path: string, bytes: Uint8Array, contentType: 'image/jpeg' | 'application/pdf') {
+  if (!supabase) throw new Error('Pas de serveur');
+  const body = bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength) as ArrayBuffer;
   const { error } = await supabase.storage.from(bucket).upload(path, body, { contentType, upsert: false });
   if (error) throw error;
 }

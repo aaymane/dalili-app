@@ -11,7 +11,20 @@ import { makeStyles, useTheme } from '@/theme/scheme';
  * Une photo en plein écran, sur fond noir (publication d'un groupe, photo reçue en message).
  * On la ferme d'un tap n'importe où, ou avec la croix.
  */
-export function PhotoViewer({ uri, cacheKey, onClose }: { uri: string | null; cacheKey?: string; onClose: () => void }) {
+export function PhotoViewer({
+  uri,
+  cacheKey,
+  onClose,
+  secret,
+  label,
+}: {
+  uri: string | null;
+  cacheKey?: string;
+  onClose: () => void;
+  /** Papier sensible (coffre) : gardé en mémoire le temps de l'affichage, jamais écrit sur le disque. */
+  secret?: boolean;
+  label?: string;
+}) {
   const { c } = useTheme();
   const t = useT();
   const styles = useStyles();
@@ -20,7 +33,17 @@ export function PhotoViewer({ uri, cacheKey, onClose }: { uri: string | null; ca
     <Modal visible={!!uri} transparent animationType="fade" statusBarTranslucent onRequestClose={onClose}>
       <View style={styles.root}>
         <Pressable style={StyleSheet.absoluteFill} onPress={onClose} accessibilityRole="button" accessibilityLabel={t('common.close')}>
-          {uri ? <Image source={{ uri, cacheKey }} style={StyleSheet.absoluteFill} contentFit="contain" transition={150} accessibilityIgnoresInvertColors /> : null}
+          {uri ? (
+            <Image
+              source={{ uri, cacheKey }}
+              style={StyleSheet.absoluteFill}
+              contentFit="contain"
+              transition={150}
+              cachePolicy={secret ? 'memory' : undefined}
+              accessibilityLabel={label}
+              accessibilityIgnoresInvertColors
+            />
+          ) : null}
         </Pressable>
         <PressableScale onPress={onClose} style={[styles.close, { top: insets.top + 8 }]} accessibilityLabel={t('common.close')}>
           <X size={20} color={c.white} />

@@ -30,6 +30,8 @@ export type AnalyticsEvents = {
   school_story_finished: { school: string };
   school_interest_sent: { school: string; with_program: boolean };
   safety_report_sent: Record<string, never>;
+  /** Un document rangé dans le coffre : la rubrique et la façon de l'ajouter, jamais son titre ni son contenu. */
+  vault_document_added: { category: string; source: string };
 };
 
 /** Sans clé, ou en développement sans `EXPO_PUBLIC_POSTHOG_IN_DEV=1` : rien n'est envoyé, et la question n'est pas posée. */

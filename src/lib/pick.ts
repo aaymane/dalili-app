@@ -34,3 +34,30 @@ export async function pickPdf(): Promise<PickedPdf | null | 'unavailable'> {
   if (!asset) return null;
   return { uri: asset.uri, name: asset.name || 'document.pdf', size: asset.size ?? 0 };
 }
+
+export type PickedDocument = PickedPdf & { kind: 'pdf' | 'image' };
+
+/**
+ * Un PDF ou une image depuis les fichiers du téléphone (iCloud Drive, Téléchargements, Google Drive…).
+ * `'unsupported'` : un autre type de fichier (Word, vidéo…) ; `'unavailable'` : sélecteur absent de ce build.
+ */
+export async function pickDocument(): Promise<PickedDocument | null | 'unavailable' | 'unsupported'> {
+  let DocumentPicker: typeof import('expo-document-picker');
+  try {
+    DocumentPicker = await import('expo-document-picker');
+  } catch {
+    return 'unavailable';
+  }
+  const res = await DocumentPicker.getDocumentAsync({ type: ['application/pdf', 'image/*'], copyToCacheDirectory: true }).catch(() => null);
+  const asset = !res || res.canceled ? null : res.assets[0];
+  if (!asset) return null;
+  const name = asset.name || 'document';
+  const kind =
+    asset.mimeType === 'application/pdf' || /\.pdf$/i.test(name)
+      ? 'pdf'
+      : asset.mimeType?.startsWith('image/') || /\.(jpe?g|png|heic|heif|webp)$/i.test(name)
+        ? 'image'
+        : null;
+  if (!kind) return 'unsupported';
+  return { uri: asset.uri, name, size: asset.size ?? 0, kind };
+}

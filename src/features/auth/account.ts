@@ -4,6 +4,9 @@ import { env } from '@/lib/env';
 import { queryClient } from '@/lib/query';
 import { supabase } from '@/lib/supabase';
 import { fetchJourney, syncStep } from '@/features/journey/api';
+import { clearDemoFiles, clearViews } from '@/features/documents/files';
+import { lockVault } from '@/features/documents/lock';
+import { useVaultDemo } from '@/features/documents/store';
 import { cancelReminders } from '@/features/notifications/reminders';
 import { useJourneyStore } from '@/features/journey/store';
 import { fetchProfile, restoreAvatar, syncProfile } from '@/features/profile/api';
@@ -30,6 +33,11 @@ export function resetLocalData() {
   useLocalDb.getState().reset();
   useProfile.getState().reset();
   clearLocalAvatars();
+  // Le coffre : la liste et les fichiers du mode démo, les aperçus ouverts, et on le referme.
+  useVaultDemo.getState().reset();
+  clearDemoFiles();
+  clearViews();
+  lockVault();
   void cancelReminders();
 }
 

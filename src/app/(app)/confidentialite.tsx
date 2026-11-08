@@ -1,5 +1,5 @@
 import * as WebBrowser from 'expo-web-browser';
-import { BadgeCheck, ExternalLink, Flag, GraduationCap, IdCard, Image as ImageIcon, KeyRound, Lock, Map, MessageCircle, Paperclip, Sparkles, Trash2 } from 'lucide-react-native';
+import { BadgeCheck, ExternalLink, Flag, FolderLock, GraduationCap, IdCard, Image as ImageIcon, KeyRound, Lock, Map, MessageCircle, Paperclip, Sparkles, Trash2 } from 'lucide-react-native';
 import { useState, type ReactNode } from 'react';
 import { StyleSheet, Switch, View } from 'react-native';
 import Animated from 'react-native-reanimated';
@@ -26,6 +26,7 @@ const KEPT = [
   { icon: ImageIcon, key: 'groupPhotos' },
   { icon: MessageCircle, key: 'mentor' },
   { icon: Paperclip, key: 'attachments' },
+  { icon: FolderLock, key: 'vault' },
   { icon: Sparkles, key: 'ai' },
   { icon: GraduationCap, key: 'schools' },
   { icon: IdCard, key: 'mentorDocs' },
