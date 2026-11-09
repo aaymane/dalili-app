@@ -33,7 +33,7 @@ export function MentorTile({ m }: { m: Mentor }) {
   return (
     <PressableScale onPress={() => open(m.id)} style={styles.tile}>
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-        <Avatar name={`${m.firstName} ${m.lastName}`} color={m.avatarColor} size={52} online={m.availableThisWeek} />
+        <Avatar name={`${m.firstName} ${m.lastName}`} color={m.avatarColor} uri={m.avatarUrl} cacheKey={m.avatarPath} size={52} online={m.availableThisWeek} />
         <Rating value={m.rating} />
       </View>
       <View style={{ gap: 2, marginTop: 12 }}>
@@ -65,7 +65,7 @@ export function MentorRow({ m }: { m: Mentor }) {
       onPress={() => open(m.id)}
       style={styles.row}
       accessibilityLabel={`${m.firstName} ${m.lastName}, ${m.headline}, ${m.city}. ${m.availableThisWeek ? t('mentors.tile.available') : t('mentors.tile.full')}`}>
-      <Avatar name={`${m.firstName} ${m.lastName}`} color={m.avatarColor} size={52} online={m.availableThisWeek} />
+      <Avatar name={`${m.firstName} ${m.lastName}`} color={m.avatarColor} uri={m.avatarUrl} cacheKey={m.avatarPath} size={52} online={m.availableThisWeek} />
       <View style={{ flex: 1, gap: 2 }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
           <Text variant="h3" numberOfLines={1} style={{ flex: 1 }}>

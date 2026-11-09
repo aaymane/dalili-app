@@ -269,7 +269,7 @@
     "nice": "Nice photo!",
     "offline": "Photo saved on your phone, but not uploaded yet. Check your connection.",
     "title": "Your profile photo",
-    "text": "For now, only you can see it. Before uploading, we remove the location and hidden info from the photo.",
+    "text": "Members of your groups and the mentors you ask for a call can see it. If you’re a mentor, all students can see it. Before uploading, we remove the location and hidden info from the photo.",
     "take": "Take a photo",
     "choose": "Choose from gallery"
   },
@@ -1349,7 +1349,7 @@
       },
       "photo": {
         "title": "Your photo",
-        "text": "Private: for now, only you can see it. We remove the location and hidden data before uploading."
+        "text": "Visible to members of your groups and to the mentors you ask for a call (to all students if you’re a mentor). Never without an account, never after a block. We remove the location and hidden data before uploading."
       },
       "community": {
         "title": "Your posts in the community",

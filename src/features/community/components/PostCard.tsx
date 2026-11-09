@@ -30,7 +30,7 @@ export function PostCard({ p, city, onOpen, hideComments }: { p: PostWithState; 
   return (
     <View style={styles.card}>
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-        <Avatar name={p.author} size={40} color={p.authorColor} />
+        <Avatar name={p.author} size={40} color={p.authorColor} uri={p.authorAvatarUrl} cacheKey={p.authorAvatarPath} />
         <View style={{ flex: 1 }}>
           <Text variant="smallStrong">{p.author}</Text>
           <Text variant="caption" color={colors.muted}>
@@ -96,7 +96,7 @@ export function PostCard({ p, city, onOpen, hideComments }: { p: PostWithState; 
       </View>
       {hideComments ? null : p.comments.slice(-2).map((c, i) => (
         <View key={i} style={[styles.comment, c.isAuthor && { marginStart: 28, backgroundColor: colors.electricSoft }]}>
-          <Avatar name={c.author} size={26} color={colors.muted} />
+          <Avatar name={c.author} size={26} color={colors.muted} uri={c.avatarUrl} cacheKey={c.avatarPath} />
           <View style={{ flex: 1 }}>
             <Text variant="caption" color={colors.navy}>
               {c.isAuthor ? t('community.post.authorTag', { name: c.author }) : c.author}

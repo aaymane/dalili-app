@@ -1175,6 +1175,74 @@ select tests.must_count('le téléphone de B ne retire pas celui de A', 'select 
 reset role;
 rollback;
 
+-- ───────────── photos visibles (09/11) : on voit la photo de ceux dont on voit le nom ─────────────
+-- A et B : même groupe. C : mentor validé. D : étudiant qui a demandé un appel à C. Aucun lien entre A et D.
+begin;
+update public.profiles set first_name = 'Aymen', avatar_url = '00000000-0000-0000-0000-00000000000a/photoa1.jpg' where id = '00000000-0000-0000-0000-00000000000a';
+update public.profiles set first_name = 'Salma', avatar_url = '00000000-0000-0000-0000-00000000000b/photob1.jpg' where id = '00000000-0000-0000-0000-00000000000b';
+update public.profiles set first_name = 'Yassine', avatar_url = '00000000-0000-0000-0000-00000000000c/photoc1.jpg' where id = '00000000-0000-0000-0000-00000000000c';
+update public.profiles set first_name = 'Nadia', avatar_url = '00000000-0000-0000-0000-00000000000d/photod1.jpg' where id = '00000000-0000-0000-0000-00000000000d';
+insert into storage.objects (bucket_id, name) values
+  ('avatars', '00000000-0000-0000-0000-00000000000a/photoa1.jpg'),
+  ('avatars', '00000000-0000-0000-0000-00000000000b/photob1.jpg'),
+  ('avatars', '00000000-0000-0000-0000-00000000000b/ancienne1.jpg'),
+  ('avatars', '00000000-0000-0000-0000-00000000000c/photoc1.jpg'),
+  ('avatars', '00000000-0000-0000-0000-00000000000d/photod1.jpg'),
+  ('avatars', 'pas-un-dossier-de-compte/x.jpg');
+insert into public.group_members (group_id, user_id) values
+  ('00000000-0000-0000-0000-0000000000c1', '00000000-0000-0000-0000-00000000000a'),
+  ('00000000-0000-0000-0000-0000000000c1', '00000000-0000-0000-0000-00000000000b');
+insert into public.posts (id, group_id, author_id, body) values
+  ('00000000-0000-0000-0000-0000000000a1', '00000000-0000-0000-0000-0000000000c1', '00000000-0000-0000-0000-00000000000a', 'Qui a fait sa CAF ?');
+insert into public.comments (post_id, author_id, body) values
+  ('00000000-0000-0000-0000-0000000000a1', '00000000-0000-0000-0000-00000000000b', 'Moi !');
+insert into public.mentors (id, user_id, first_name, last_name, city, is_active) values
+  ('00000000-0000-0000-0000-0000000000e1', '00000000-0000-0000-0000-00000000000c', 'Yassine', 'Kadiri', 'Lyon', true);
+set local request.jwt.claims = '{}';
+insert into public.bookings (id, student_id, mentor_id, starts_at, topic) values
+  ('00000000-0000-0000-0000-0000000000f1', '00000000-0000-0000-0000-00000000000d', '00000000-0000-0000-0000-0000000000e1', now() + interval '2 days', 'Visa');
+
+set local role authenticated;
+set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-00000000000a","role":"authenticated"}';
+select tests.must_count('A voit sa photo, celle de B (même groupe) et celle de C (mentor validé)',
+  $q$select * from storage.objects where bucket_id = 'avatars' and name in ('00000000-0000-0000-0000-00000000000a/photoa1.jpg', '00000000-0000-0000-0000-00000000000b/photob1.jpg', '00000000-0000-0000-0000-00000000000c/photoc1.jpg')$q$, 3);
+select tests.must_count('… mais ni l''ancienne photo de B, ni D (aucun lien), ni un fichier hors dossier', $q$select * from storage.objects where bucket_id = 'avatars'$q$, 3);
+select tests.must_count('avatars_of : B et C, pas D', $q$select * from public.avatars_of(array['00000000-0000-0000-0000-00000000000b', '00000000-0000-0000-0000-00000000000c', '00000000-0000-0000-0000-00000000000d']::uuid[])$q$, 2);
+select tests.must_fail('A appelle la règle interne', $q$select public.can_see_person('00000000-0000-0000-0000-00000000000d')$q$);
+update public.profiles set avatar_url = null where id = '00000000-0000-0000-0000-00000000000b';
+select tests.must_count('A ne peut pas retirer la photo de B', $q$select * from public.avatars_of(array['00000000-0000-0000-0000-00000000000b']::uuid[])$q$, 1);
+set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-00000000000b","role":"authenticated"}';
+select tests.must_count('le fil : la photo de l''auteur et celle de qui commente',
+  $q$select 1 from public.posts_with_author where author_avatar = '00000000-0000-0000-0000-00000000000a/photoa1.jpg' and comments -> 0 ->> 'avatar' = '00000000-0000-0000-0000-00000000000b/photob1.jpg'$q$, 1);
+select tests.must_count('les commentaires : la photo de qui commente',
+  $q$select 1 from public.comments_with_author where author_avatar = '00000000-0000-0000-0000-00000000000b/photob1.jpg'$q$, 1);
+
+set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-00000000000c","role":"authenticated"}';
+select tests.must_count('le mentor voit la photo de l''étudiante qui lui a demandé un appel',
+  $q$select * from public.mentor_requests() where student_avatar = '00000000-0000-0000-0000-00000000000d/photod1.jpg'$q$, 1);
+select tests.must_count('… pas celles d''étudiants sans lien avec lui', $q$select * from storage.objects where bucket_id = 'avatars'$q$, 2);
+update public.bookings set status = 'confirmed' where id = '00000000-0000-0000-0000-0000000000f1';
+select tests.must_count('conversation : le mentor voit la photo de l''étudiante',
+  $q$select * from public.my_conversations() where other_avatar = '00000000-0000-0000-0000-00000000000d/photod1.jpg'$q$, 1);
+set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-00000000000d","role":"authenticated"}';
+select tests.must_count('… et l''étudiante celle de son mentor',
+  $q$select * from public.my_conversations() where other_avatar = '00000000-0000-0000-0000-00000000000c/photoc1.jpg'$q$, 1);
+
+reset role;
+insert into public.mentorat_blocks (blocker_id, blocked_id) values ('00000000-0000-0000-0000-00000000000c', '00000000-0000-0000-0000-00000000000d');
+set local role authenticated;
+select tests.must_count('après un blocage, plus de photo dans un sens…',
+  $q$select * from storage.objects where bucket_id = 'avatars' and name like '00000000-0000-0000-0000-00000000000c/%'$q$, 0);
+set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-00000000000c","role":"authenticated"}';
+select tests.must_count('… ni dans l''autre', $q$select * from public.avatars_of(array['00000000-0000-0000-0000-00000000000d']::uuid[])$q$, 0);
+reset role;
+set local role anon;
+set local request.jwt.claims = '{}';
+select tests.must_count('anon ne voit toujours aucune photo', $q$select * from storage.objects where bucket_id = 'avatars'$q$, 0);
+select tests.must_fail('anon appelle avatar_of', $q$select public.avatar_of('00000000-0000-0000-0000-00000000000c')$q$);
+reset role;
+rollback;
+
 -- ───────────── serveur du site (clé service) ─────────────
 begin;
 set local role service_role;

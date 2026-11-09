@@ -72,7 +72,7 @@ export default function MentorProfile() {
       }>
       <View style={{ paddingHorizontal: 20, gap: 28 }}>
         <Animated.View entering={rise()} style={styles.hero}>
-          <Avatar name={`${m.firstName} ${m.lastName}`} color={m.avatarColor} size={84} online={m.availableThisWeek} />
+          <Avatar name={`${m.firstName} ${m.lastName}`} color={m.avatarColor} uri={m.avatarUrl} cacheKey={m.avatarPath} size={84} online={m.availableThisWeek} />
           <View style={{ flex: 1, gap: 3 }}>
             <Text variant="h1">
               {m.firstName} {m.lastName}

@@ -16,6 +16,10 @@ export type Mentor = {
   reviews: { author: string; text: string; rating: number }[];
   availableThisWeek: boolean;
   avatarColor: string;
+  /** Le compte du mentor (absent en démo), et sa photo de profil : chemin dans `avatars` et lien temporaire. */
+  userId?: string | null;
+  avatarPath?: string | null;
+  avatarUrl?: string | null;
 };
 
 export type Booking = {
@@ -54,7 +58,10 @@ export type Post = {
   likes: number;
   /** Avec un compte : tu l'aimes (lu dans la base). Absent en mode démo : le téléphone s'en souvient. */
   liked?: boolean;
-  comments: { author: string; body: string; isAuthor?: boolean }[];
+  comments: { author: string; body: string; isAuthor?: boolean; avatarPath?: string | null; avatarUrl?: string | null }[];
+  /** La photo de l'auteur, si tu la vois (même groupe) : chemin dans `avatars` et lien temporaire. */
+  authorAvatarPath?: string | null;
+  authorAvatarUrl?: string | null;
   /** Photo de la publication (bucket `post-photos`, lue par les membres) et son lien temporaire. */
   imagePath?: string | null;
   imageUrl?: string | null;

@@ -13,12 +13,15 @@ import { makeStyles, useTheme } from '@/theme/scheme';
 import { lightPalette } from '@/theme/tokens';
 
 /** Fond nuit de l'écran d'appel (dégradé décoratif). */
+/** La photo de l'autre (lien temporaire et chemin pour le cache), si on la voit. Sinon, ses initiales. */
+export type Face = { uri?: string | null; cacheKey?: string | null };
+
 export function CallBackdrop() {
   return <LinearGradient colors={['#1B2470', '#0A0F2A']} style={StyleSheet.absoluteFill} />;
 }
 
 /** En haut : la personne, l'état ou la durée de l'appel, et le drapeau Signaler / Bloquer. */
-export function CallTop({ name, color, status, onFlag }: { name: string; color?: string; status: string; onFlag?: () => void }) {
+export function CallTop({ name, color, face, status, onFlag }: { name: string; color?: string; face?: Face; status: string; onFlag?: () => void }) {
   const { c } = useTheme();
   const t = useT();
   const styles = useStyles();
@@ -26,7 +29,7 @@ export function CallTop({ name, color, status, onFlag }: { name: string; color?:
   return (
     <View style={[styles.top, { paddingTop: insets.top + 10 }]}>
       <View style={styles.pill}>
-        <Avatar name={name} color={color} size={34} />
+        <Avatar name={name} color={color} uri={face?.uri} cacheKey={face?.cacheKey} size={34} />
         <View>
           <Text variant="smallStrong" color={c.white}>
             {name}
@@ -46,7 +49,7 @@ export function CallTop({ name, color, status, onFlag }: { name: string; color?:
 }
 
 /** Le grand avatar au centre, avec l'onde qui s'élargit tant qu'on attend. */
-export function CallAvatar({ name, color, waiting }: { name: string; color?: string; waiting: boolean }) {
+export function CallAvatar({ name, color, face, waiting }: { name: string; color?: string; face?: Face; waiting: boolean }) {
   const styles = useStyles();
   const ring = useSharedValue(0);
   useEffect(() => {
@@ -56,7 +59,7 @@ export function CallAvatar({ name, color, waiting }: { name: string; color?: str
   return (
     <View style={styles.avatar}>
       {waiting ? <Animated.View style={[styles.ring, ringStyle]} /> : null}
-      <Avatar name={name} color={color} size={150} />
+      <Avatar name={name} color={color} uri={face?.uri} cacheKey={face?.cacheKey} size={150} />
     </View>
   );
 }

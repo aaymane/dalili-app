@@ -5,7 +5,7 @@
  */
 import { File } from 'expo-file-system';
 
-import { fileName, prepareJpeg, removeFiles, uploadFile } from '@/data/media';
+import { avatarUrls, fileName, prepareJpeg, removeFiles, uploadFile } from '@/data/media';
 import { supabase } from '@/lib/supabase';
 
 import { DEMO_CONVERSATIONS, useLocalMessages } from './local';
@@ -25,6 +25,9 @@ export type Conversation = {
   lastFromMe: boolean;
   lastMessageAt: string | null;
   unread: number;
+  /** La photo de l'autre (chemin dans `avatars`, lien temporaire). Absente en démo, ou après un blocage. */
+  otherAvatarPath?: string | null;
+  otherAvatarUrl?: string | null;
 };
 
 /**
@@ -95,6 +98,7 @@ export async function fetchConversations(): Promise<Conversation[]> {
   if (!supabase || !uid) return demoConversations();
   const { data, error } = await supabase.rpc('my_conversations');
   if (error) throw error;
+  const urls = await avatarUrls((data ?? []).map((r: Record<string, any>) => r.other_avatar));
   return (data ?? []).map((r: Record<string, any>) => ({
     id: r.id,
     asRole: r.as_role,
@@ -106,6 +110,8 @@ export async function fetchConversations(): Promise<Conversation[]> {
     lastFromMe: !!r.last_from_me,
     lastMessageAt: r.last_message_at,
     unread: r.unread ?? 0,
+    otherAvatarPath: r.other_avatar ?? null,
+    otherAvatarUrl: r.other_avatar ? (urls[r.other_avatar] ?? null) : null,
   }));
 }
 

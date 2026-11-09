@@ -9,12 +9,13 @@ import { useT } from '@/i18n';
 import { rise } from '@/theme/motion';
 import { useTheme } from '@/theme/scheme';
 
-import { CallAvatar, CallBackdrop, CallTop } from './CallParts';
+import { CallAvatar, CallBackdrop, CallTop, type Face } from './CallParts';
 
 /** Pas (encore) d'appel : trop tôt, terminé, plus confirmé, ou pas de connexion. On dit pourquoi, simplement. */
 export function CallWaiting({
   name,
   color,
+  face,
   title,
   text,
   icon = Clock,
@@ -22,6 +23,7 @@ export function CallWaiting({
 }: {
   name: string;
   color?: string;
+  face?: Face;
   title: string;
   text: string;
   icon?: LucideIcon;
@@ -33,9 +35,9 @@ export function CallWaiting({
   return (
     <View style={styles.root}>
       <CallBackdrop />
-      <CallTop name={name} color={color} status={t('call.notYet')} />
+      <CallTop name={name} color={color} face={face} status={t('call.notYet')} />
       <View style={styles.center}>
-        <CallAvatar name={name} color={color} waiting={false} />
+        <CallAvatar name={name} color={color} face={face} waiting={false} />
         <Animated.View entering={rise(80)} style={styles.card}>
           <Icon size={20} color="#7FA6FF" />
           <Text variant="h2" color={c.white} align="center">

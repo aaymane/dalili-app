@@ -12,13 +12,13 @@ import { haptics } from '@/lib/haptics';
 import { pop } from '@/theme/motion';
 import { useTheme } from '@/theme/scheme';
 
-import { CallAvatar, CallBackdrop, CallControls, CallTop, duration } from './CallParts';
+import { CallAvatar, CallBackdrop, CallControls, CallTop, duration, type Face } from './CallParts';
 
 /**
  * Aperçu sans vraie vidéo : en mode démo, ou dans Expo Go (pas de code natif pour la vidéo).
  * L'appel « décroche » au bout de 2 secondes pour montrer l'écran tel qu'il sera.
  */
-export function CallPreview({ name, color, topic, note, onFlag }: { name: string; color?: string; topic?: string; note: string; onFlag?: () => void }) {
+export function CallPreview({ name, color, face, topic, note, onFlag }: { name: string; color?: string; face?: Face; topic?: string; note: string; onFlag?: () => void }) {
   const { c } = useTheme();
   const t = useT();
   const insets = useSafeAreaInsets();
@@ -44,9 +44,9 @@ export function CallPreview({ name, color, topic, note, onFlag }: { name: string
   return (
     <View style={styles.root}>
       <CallBackdrop />
-      <CallTop name={name} color={color} status={connected ? duration(secs) : t('call.connecting')} onFlag={onFlag} />
+      <CallTop name={name} color={color} face={face} status={connected ? duration(secs) : t('call.connecting')} onFlag={onFlag} />
       <View style={styles.center}>
-        <CallAvatar name={name} color={color} waiting={!connected} />
+        <CallAvatar name={name} color={color} face={face} waiting={!connected} />
         <Text variant="h1" color={c.white} style={{ marginTop: 18 }}>
           {connected ? t('call.inCall', { name }) : t('call.calling', { name })}
         </Text>

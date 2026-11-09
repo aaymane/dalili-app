@@ -13,14 +13,28 @@ import { haptics } from '@/lib/haptics';
 import { pop, rise } from '@/theme/motion';
 import { useTheme } from '@/theme/scheme';
 
-import { CallAvatar, CallBackdrop } from './CallParts';
+import { CallAvatar, CallBackdrop, type Face } from './CallParts';
 
 /**
  * L'appel est fini (le mentor l'a terminé, ou la salle a fermé). L'étudiant est invité à noter son mentor — la
  * feuille s'ouvre d'elle-même s'il ne l'a pas encore fait — et peut réserver un autre appel tout de suite.
  * Le mentor est remercié et retrouve son agenda.
  */
-export function CallEnded({ bookingId, role, name, color, mentorId }: { bookingId: string; role: 'student' | 'mentor'; name: string; color?: string; mentorId?: string }) {
+export function CallEnded({
+  bookingId,
+  role,
+  name,
+  color,
+  face,
+  mentorId,
+}: {
+  bookingId: string;
+  role: 'student' | 'mentor';
+  name: string;
+  color?: string;
+  face?: Face;
+  mentorId?: string;
+}) {
   const { c } = useTheme();
   const t = useT();
   const { data: reviewed = [] } = useMyReviewedBookings();
@@ -38,7 +52,7 @@ export function CallEnded({ bookingId, role, name, color, mentorId }: { bookingI
     <View style={styles.root}>
       <CallBackdrop />
       <View style={styles.center}>
-        <CallAvatar name={name} color={color} waiting={false} />
+        <CallAvatar name={name} color={color} face={face} waiting={false} />
         <Animated.View entering={pop(120)}>
           <CircleCheck size={28} color={c.mentorGlow} />
         </Animated.View>

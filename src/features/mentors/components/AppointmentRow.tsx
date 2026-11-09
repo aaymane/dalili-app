@@ -64,7 +64,7 @@ export function AppointmentRow({ booking, mentor, first, reviewed, onReview }: {
         style={styles.main}
         accessibilityRole="button"
         accessibilityLabel={t('appointments.rowA11y', { name, topic: booking.topic, when, state: t(`appointments.state.${state}`) })}>
-        <Avatar name={name} color={mentor?.avatarColor ?? c.muted} size={44} />
+        <Avatar name={name} color={mentor?.avatarColor ?? c.muted} uri={mentor?.avatarUrl} cacheKey={mentor?.avatarPath} size={44} />
         <View style={{ flex: 1, gap: 2 }}>
           <Text variant="bodyStrong" numberOfLines={1}>
             {name}

@@ -126,7 +126,10 @@ export function usePosts(groupId?: string) {
       const isLiked = online ? !!p.liked : liked.includes(p.id);
       return {
         ...p,
-        comments: [...p.comments, ...localComments.filter((c) => c.postId === p.id).map((c) => ({ author: c.author, body: c.body, isAuthor: false }))],
+        comments: [
+          ...p.comments,
+          ...localComments.filter((c) => c.postId === p.id).map((c): Post['comments'][number] => ({ author: c.author, body: c.body, isAuthor: false })),
+        ],
         online,
         liked: isLiked,
         likes: online ? p.likes : p.likes + (isLiked ? 1 : 0),

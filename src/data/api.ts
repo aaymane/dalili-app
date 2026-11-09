@@ -7,7 +7,7 @@ import { supabase } from '@/lib/supabase';
 
 import { demoEvents, demoGroups, demoMentors, demoPosts } from './demo';
 import { useLocalDb } from './local-db';
-import { fileName, prepareJpeg, removeFiles, signedUrls, uploadFile, type Bucket } from './media';
+import { avatarUrls, fileName, prepareJpeg, removeFiles, signedUrls, uploadFile, type Bucket } from './media';
 import type { Booking, CommunityEvent, Group, Mentor, Post } from './types';
 
 /* ---------- Mappers (snake_case SQL → camelCase app) ---------- */
@@ -32,6 +32,7 @@ export const toMentor = (r: Row): Mentor => ({
   reviews: r.reviews ?? [],
   availableThisWeek: r.available_this_week ?? true,
   avatarColor: r.avatar_color ?? '#3D78FF',
+  userId: r.user_id ?? null,
 });
 
 const toGroup = (r: Row): Group => ({
@@ -75,7 +76,8 @@ const toPost = (r: Row): Post => ({
   createdAt: r.created_at,
   body: r.body,
   likes: r.likes_count ?? 0,
-  comments: r.comments ?? [],
+  comments: (r.comments ?? []).map((c: Row) => ({ author: c.author, body: c.body, isAuthor: c.isAuthor, avatarPath: c.avatar ?? null })),
+  authorAvatarPath: r.author_avatar ?? null,
   imagePath: r.image_path ?? null,
 });
 
@@ -104,7 +106,16 @@ export async function fetchMentors(): Promise<Mentor[]> {
     .or(`user_id.is.null,user_id.neq.${s.session.user.id}`)
     .order('rating', { ascending: false });
   if (error) throw error;
-  return (data ?? []).map(toMentor);
+  const mentors = (data ?? []).map(toMentor);
+  // Les visages des mentors : la base donne le chemin des photos (mentors validés), l'app en fait des liens.
+  const ids = mentors.map((m) => m.userId).filter((id): id is string => !!id);
+  const { data: faces } = ids.length ? await supabase.rpc('avatars_of', { p_users: ids }) : { data: [] };
+  const pathOf = new Map<string, string>((faces ?? []).map((f: Row) => [f.user_id, f.avatar_path]));
+  const urls = await avatarUrls([...pathOf.values()]);
+  return mentors.map((m) => {
+    const avatarPath = (m.userId && pathOf.get(m.userId)) || null;
+    return { ...m, avatarPath, avatarUrl: avatarPath ? (urls[avatarPath] ?? null) : null };
+  });
 }
 
 /** Profils de test sans session (captures) : la base refuserait, on montre les données d'exemple. */
@@ -143,7 +154,15 @@ export async function fetchPosts(groupId: string): Promise<Post[]> {
   if (likes.error) throw likes.error;
   const liked = new Set((likes.data ?? []).map((r) => r.post_id as string));
   const list = (posts.data ?? []).map((r) => ({ ...toPost(r), liked: liked.has(r.id) }));
-  return withUrls(list, 'post-photos', (p) => p.imagePath, (p, imageUrl) => ({ ...p, imageUrl }));
+  // Les visages : auteurs et commentaires, en une seule demande de liens.
+  const faces = await avatarUrls(list.flatMap((p) => [p.authorAvatarPath, ...p.comments.map((c) => c.avatarPath)]));
+  const face = (path?: string | null) => (path ? (faces[path] ?? null) : null);
+  const withFaces = list.map((p) => ({
+    ...p,
+    authorAvatarUrl: face(p.authorAvatarPath),
+    comments: p.comments.map((c) => ({ ...c, avatarUrl: face(c.avatarPath) })),
+  }));
+  return withUrls(withFaces, 'post-photos', (p) => p.imagePath, (p, imageUrl) => ({ ...p, imageUrl }));
 }
 
 /** Aimer ou ne plus aimer une publication. Un refus de la base remonte : la carte remet l'état d'avant. */

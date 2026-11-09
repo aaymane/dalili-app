@@ -9,6 +9,7 @@ import { Platform } from 'react-native';
 import { toMentor } from '@/data/api';
 import { demoMentorRequests, demoMentors } from '@/data/demo';
 import { useLocalDb } from '@/data/local-db';
+import { avatarUrls } from '@/data/media';
 import type { Mentor } from '@/data/types';
 import type { WeeklySlot } from '@/lib/paris';
 import { supabase } from '@/lib/supabase';
@@ -27,6 +28,9 @@ export type MentorRequest = {
   student: string | null;
   city: string | null;
   country: string | null;
+  /** La photo de l'étudiant (chemin dans `avatars`, lien temporaire), s'il en a mis une. */
+  studentAvatarPath?: string | null;
+  studentAvatarUrl?: string | null;
 };
 
 /**
@@ -249,6 +253,7 @@ export async function fetchMentorRequests(): Promise<MentorRequest[]> {
   }
   const { data, error } = await supabase.rpc('mentor_requests');
   if (error) throw error;
+  const urls = await avatarUrls((data ?? []).map((r: Record<string, any>) => r.student_avatar));
   return (data ?? []).map((r: Record<string, any>) => ({
     id: r.id,
     startsAt: r.starts_at,
@@ -257,6 +262,8 @@ export async function fetchMentorRequests(): Promise<MentorRequest[]> {
     student: r.student_name,
     city: r.student_city,
     country: r.student_country,
+    studentAvatarPath: r.student_avatar ?? null,
+    studentAvatarUrl: r.student_avatar ? (urls[r.student_avatar] ?? null) : null,
   }));
 }
 

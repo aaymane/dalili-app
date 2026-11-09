@@ -108,7 +108,7 @@ export default function Thread() {
       <PressableScale onPress={() => router.back()} style={styles.round} accessibilityLabel={t('common.back')}>
         <ChevronLeft size={20} color={colors.navy} />
       </PressableScale>
-      <Avatar name={name || '?'} size={38} color={c?.asRole === 'student' ? colors.mentor : colors.electricLight} />
+      <Avatar name={name || '?'} size={38} color={c?.asRole === 'student' ? colors.mentor : colors.electricLight} uri={c?.otherAvatarUrl} cacheKey={c?.otherAvatarPath} />
       <View style={{ flex: 1 }}>
         <Text variant="h3" numberOfLines={1}>
           {name}

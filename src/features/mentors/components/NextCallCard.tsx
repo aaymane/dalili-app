@@ -64,7 +64,7 @@ export function NextCallCard({ r }: { r: MentorRequest }) {
         </View>
       </View>
       <View style={styles.row}>
-        <Avatar name={name} size={50} color={palette.mentor} />
+        <Avatar name={name} size={50} color={palette.mentor} uri={r.studentAvatarUrl} cacheKey={r.studentAvatarPath} />
         <View style={{ flex: 1, gap: 2 }}>
           <Text variant="h3" color="#fff" numberOfLines={1}>
             {name}

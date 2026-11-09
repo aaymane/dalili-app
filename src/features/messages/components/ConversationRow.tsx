@@ -32,7 +32,7 @@ export function ConversationRow({ c }: { c: Conversation }) {
       scaleTo={0.985}
       style={styles.row}
       accessibilityLabel={[name + '.', unread ? t('messages.unread', { count: c.unread }) : '', preview].filter(Boolean).join(' ')}>
-      <Avatar name={name} size={48} color={c.asRole === 'student' ? colors.mentor : colors.electricLight} />
+      <Avatar name={name} size={48} color={c.asRole === 'student' ? colors.mentor : colors.electricLight} uri={c.otherAvatarUrl} cacheKey={c.otherAvatarPath} />
       <View style={{ flex: 1, gap: 2 }}>
         <View style={styles.top}>
           <Text variant="bodyStrong" style={{ flex: 1 }} numberOfLines={1}>

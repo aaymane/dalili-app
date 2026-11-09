@@ -6,6 +6,7 @@
 import { demoPosts } from '@/data/demo';
 import { useLocalDb } from '@/data/local-db';
 import { displayName, useProfile } from '@/features/profile/store';
+import { avatarUrls } from '@/data/media';
 import { supabase } from '@/lib/supabase';
 
 export type Comment = {
@@ -16,6 +17,9 @@ export type Comment = {
   createdAt: string;
   isPostAuthor: boolean;
   mine: boolean;
+  /** La photo de qui commente (chemin dans `avatars`, lien temporaire), si tu la vois. */
+  avatarPath?: string | null;
+  avatarUrl?: string | null;
   /** Envoi en cours (affiché tout de suite), ou raté (à renvoyer). */
   pending?: boolean;
   failed?: boolean;
@@ -45,7 +49,14 @@ const toComment = (r: Record<string, any>): Comment => ({
   createdAt: r.created_at,
   isPostAuthor: !!r.is_post_author,
   mine: !!r.is_mine,
+  avatarPath: r.author_avatar ?? null,
 });
+
+/** Les liens des photos de ceux qui commentent (une seule demande pour la liste). */
+async function withFaces(list: Comment[]): Promise<Comment[]> {
+  const urls = await avatarUrls(list.map((c) => c.avatarPath));
+  return list.map((c) => ({ ...c, avatarUrl: c.avatarPath ? (urls[c.avatarPath] ?? null) : null }));
+}
 
 function demoComments(postId: string): Comment[] {
   const post = demoPosts.find((p) => p.id === postId);
@@ -70,7 +81,7 @@ export async function fetchComments(postId: string): Promise<Comment[]> {
   if (!db) return demoComments(postId);
   const { data, error } = await db.from('comments_with_author').select('*').eq('post_id', postId).order('created_at');
   if (error) throw error;
-  return (data ?? []).map(toComment);
+  return withFaces((data ?? []).map(toComment));
 }
 
 export async function sendComment(postId: string, body: string): Promise<Comment> {

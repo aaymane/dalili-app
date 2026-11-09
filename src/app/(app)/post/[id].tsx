@@ -18,6 +18,7 @@ import { useJoinGroup } from '@/features/community/components/GroupCard';
 import { PostCard } from '@/features/community/components/PostCard';
 import { commentsKey, useComments, useDeleteComment, useSendComment } from '@/features/community/hooks';
 import { Composer } from '@/features/messages/components/Thread';
+import { useProfile } from '@/features/profile/store';
 import { useT } from '@/i18n';
 import { haptics } from '@/lib/haptics';
 import { rise } from '@/theme/motion';
@@ -30,6 +31,7 @@ export default function PostScreen() {
   const t = useT();
   const styles = useStyles();
   const { id, groupId } = useLocalSearchParams<{ id: string; groupId?: string }>();
+  const myAvatar = useProfile((s) => s.profile.avatarUri);
   const qc = useQueryClient();
   const { data: group } = useGroup(groupId);
   const post = usePosts(groupId).data.find((p) => p.id === id);
@@ -98,7 +100,8 @@ export default function PostScreen() {
           const style = [styles.comment, c.isPostAuthor && styles.byAuthor, (c.pending || c.failed) && { opacity: 0.6 }];
           const body = (
             <>
-              <Avatar name={c.author} size={30} color="#94A3B8" />
+              {/* Ton commentaire en cours d'envoi : ta photo, depuis le téléphone. */}
+              <Avatar name={c.author} size={30} color="#94A3B8" uri={c.avatarUrl ?? (c.mine ? myAvatar : null)} cacheKey={c.avatarUrl ? c.avatarPath : null} />
               <View style={{ flex: 1, gap: 2 }}>
                 <Text variant="caption" color={colors.electric}>
                   {c.isPostAuthor ? t('community.post.authorTag', { name: c.mine ? t('community.post.you') : c.author }) : c.mine ? t('community.post.you') : c.author}

@@ -20,10 +20,10 @@ import type { CallInfo } from '../api';
 import { loadDaily } from '../daily';
 import { useEndCall } from '../hooks';
 import { audioTrack, useDailyCall, videoTrack } from '../useDailyCall';
-import { CallAvatar, CallBackdrop, CallControls, CallTop, duration } from './CallParts';
+import { CallAvatar, CallBackdrop, CallControls, CallTop, duration, type Face } from './CallParts';
 
 /** Le vrai appel : la vidéo de l'autre en plein écran, la tienne en vignette, les commandes en bas. */
-export function LiveCall({ bookingId, info, color, onRetry }: { bookingId: string; info: CallInfo; color?: string; onRetry: () => void }) {
+export function LiveCall({ bookingId, info, color, face, onRetry }: { bookingId: string; info: CallInfo; color?: string; face?: Face; onRetry: () => void }) {
   const { c } = useTheme();
   const t = useT();
   const insets = useSafeAreaInsets();
@@ -89,11 +89,11 @@ export function LiveCall({ bookingId, info, color, onRetry }: { bookingId: strin
         <MediaView videoTrack={remoteVideo} audioTrack={audioTrack(call.remote)} objectFit="cover" zOrder={0} style={StyleSheet.absoluteFill} />
       ) : null}
 
-      <CallTop name={name} color={color} status={status} onFlag={() => setReporting(true)} />
+      <CallTop name={name} color={color} face={face} status={status} onFlag={() => setReporting(true)} />
 
       {!remoteVideo ? (
         <View style={styles.center}>
-          <CallAvatar name={name} color={color} waiting={call.phase === 'joining' || (call.phase === 'joined' && !call.remote)} />
+          <CallAvatar name={name} color={color} face={face} waiting={call.phase === 'joining' || (call.phase === 'joined' && !call.remote)} />
           <Animated.View key={status} entering={rise()} style={{ alignItems: 'center', gap: 4, marginTop: 18 }}>
             <Text variant="h1" color={c.white} align="center">
               {call.phase === 'error'

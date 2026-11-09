@@ -48,10 +48,10 @@ export function useCallPeer(bookingId: string) {
   const { data: requests = [] } = useMentorRequests();
   if (role === 'mentor') {
     const r = requests.find((x) => x.id === bookingId);
-    return { name: r?.student ?? t('call.yourStudent'), color: undefined, topic: r?.topic, mentorId: undefined };
+    return { name: r?.student ?? t('call.yourStudent'), color: undefined, face: { uri: r?.studentAvatarUrl, cacheKey: r?.studentAvatarPath }, topic: r?.topic, mentorId: undefined };
   }
   const booking = bookings.find((b) => b.id === bookingId);
   // Mode démo sans rendez-vous enregistré : le premier mentor d'exemple, pour que l'aperçu ait un visage.
   const m = mentors.find((x) => x.id === booking?.mentorId) ?? (booking ? undefined : mentors[0]);
-  return { name: m ? m.firstName : t('call.yourMentor'), color: m?.avatarColor, topic: booking?.topic, mentorId: m?.id };
+  return { name: m ? m.firstName : t('call.yourMentor'), color: m?.avatarColor, face: { uri: m?.avatarUrl, cacheKey: m?.avatarPath }, topic: booking?.topic, mentorId: m?.id };
 }

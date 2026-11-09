@@ -6,7 +6,8 @@ import { makeStyles, useTheme } from '@/theme/scheme';
 
 import { Text } from './Text';
 
-type Props = { name: string; size?: number; color?: string; uri?: string | null; ring?: string; online?: boolean };
+/** `cacheKey` : le chemin de la photo, pour ne pas la retélécharger quand son lien temporaire change. */
+type Props = { name: string; size?: number; color?: string; uri?: string | null; cacheKey?: string | null; ring?: string; online?: boolean };
 
 const shade = (hex: string, amt: number) => {
   const n = parseInt(hex.slice(1), 16);
@@ -15,7 +16,7 @@ const shade = (hex: string, amt: number) => {
 };
 
 /** Avatar : photo si dispo, sinon initiales sur dégradé. */
-export function Avatar({ name, size = 44, color, uri, ring, online }: Props) {
+export function Avatar({ name, size = 44, color, uri, cacheKey, ring, online }: Props) {
   const { c } = useTheme();
   const styles = useStyles();
   color ??= c.electricLight;
@@ -35,7 +36,7 @@ export function Avatar({ name, size = 44, color, uri, ring, online }: Props) {
           ring && { borderWidth: Math.max(2, size / 22), borderColor: ring },
         ]}>
         {uri ? (
-          <Image source={{ uri }} style={StyleSheet.absoluteFill} contentFit="cover" transition={200} />
+          <Image source={{ uri, cacheKey: cacheKey ?? undefined }} style={StyleSheet.absoluteFill} contentFit="cover" transition={200} accessibilityIgnoresInvertColors />
         ) : (
           <LinearGradient colors={[shade(color, 40), shade(color, -30)]} style={[StyleSheet.absoluteFill, styles.center]}>
             <Text variant="h3" color="#fff" style={{ fontSize: size * 0.36, lineHeight: size * 0.44 }}>

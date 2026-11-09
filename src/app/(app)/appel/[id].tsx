@@ -31,14 +31,14 @@ export default function Call() {
 
   let screen;
   if (!a) {
-    screen = <CallWaiting name={peer.name} color={peer.color} title={t('call.connecting')} text={t('call.preparing')} />;
+    screen = <CallWaiting name={peer.name} color={peer.color} face={peer.face} title={t('call.connecting')} text={t('call.preparing')} />;
   } else if (a.kind === 'ready' && loadDaily()) {
-    screen = <LiveCall bookingId={id} info={a} color={peer.color} onRetry={retry} />;
+    screen = <LiveCall bookingId={id} info={a} color={peer.color} face={peer.face} onRetry={retry} />;
   } else if (a.kind === 'ready' || a.kind === 'demo') {
     screen = (
       <CallPreview
         name={a.kind === 'ready' ? a.otherName : peer.name}
-        color={peer.color}
+        color={peer.color} face={peer.face}
         topic={a.kind === 'ready' ? a.topic : peer.topic}
         note={a.kind === 'demo' ? t('call.demoNote') : t('call.expoGoNote')}
         onFlag={() => setReporting(true)}
@@ -46,24 +46,24 @@ export default function Call() {
     );
   } else if (a.kind === 'waiting') {
     // C'est le mentor qui ouvre le salon : l'écran réessaie tout seul, et une notification arrive s'il est fermé.
-    screen = <CallWaiting name={peer.name} color={peer.color} title={t('call.waitingFor', { name: peer.name })} text={t('call.mentorOpens', { name: peer.name })} />;
+    screen = <CallWaiting name={peer.name} color={peer.color} face={peer.face} title={t('call.waitingFor', { name: peer.name })} text={t('call.mentorOpens', { name: peer.name })} />;
   } else if (a.kind === 'early') {
     screen = (
       <CallWaiting
         name={peer.name}
-        color={peer.color}
+        color={peer.color} face={peer.face}
         title={t('call.opensAt', { time: formatTime(a.opensAt) })}
         text={t('call.earlyText')}
       />
     );
   } else if (a.kind === 'ended') {
-    screen = <CallEnded bookingId={id} role={role === 'mentor' ? 'mentor' : 'student'} name={peer.name} color={peer.color} mentorId={peer.mentorId} />;
+    screen = <CallEnded bookingId={id} role={role === 'mentor' ? 'mentor' : 'student'} name={peer.name} color={peer.color} face={peer.face} mentorId={peer.mentorId} />;
   } else if (a.kind === 'offline') {
-    screen = <CallWaiting name={peer.name} color={peer.color} title={t('call.offlineTitle')} text={t('call.offlineText')} onRetry={retry} />;
+    screen = <CallWaiting name={peer.name} color={peer.color} face={peer.face} title={t('call.offlineTitle')} text={t('call.offlineText')} onRetry={retry} />;
   } else {
     // Le site explique le refus en français : dans une autre langue, une phrase générale.
     const text = a.message && currentLanguage() === 'fr' ? a.message : t('call.unavailableText');
-    screen = <CallWaiting name={peer.name} color={peer.color} title={t('call.unavailableTitle')} text={text} />;
+    screen = <CallWaiting name={peer.name} color={peer.color} face={peer.face} title={t('call.unavailableTitle')} text={text} />;
   }
 
   return (

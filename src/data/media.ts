@@ -10,7 +10,7 @@ import { supabase } from '@/lib/supabase';
  * Et le coffre « Mes documents » (`vault`, supabase/migrations/20261108120000_coffre_documents.sql).
  * Des buckets privés : on n'affiche un fichier qu'avec un lien temporaire.
  */
-export type Bucket = 'covers' | 'post-photos' | 'message-files' | 'vault';
+export type Bucket = 'avatars' | 'covers' | 'post-photos' | 'message-files' | 'vault';
 
 /** Limites des buckets : 5 Mo pour les photos, 10 Mo pour les pièces jointes, 20 Mo pour un document du coffre. */
 export const MAX_PHOTO_BYTES = 5 * 1024 * 1024;
@@ -66,6 +66,15 @@ export async function signedUrls(bucket: Bucket, paths: string[], expiresIn = 86
   const out: Record<string, string> = {};
   for (const d of data ?? []) if (d.path && d.signedUrl) out[d.path] = d.signedUrl;
   return out;
+}
+
+/**
+ * Les photos de profil des autres (supabase/migrations/20261109200000_photos_visibles.sql) : la base ne donne
+ * le chemin que si tu vois déjà le nom de la personne. Une photo est un plus : en cas d'échec, les initiales restent.
+ */
+export async function avatarUrls(paths: (string | null | undefined)[]): Promise<Record<string, string>> {
+  const unique = [...new Set(paths.filter((p): p is string => !!p))];
+  return signedUrls('avatars', unique).catch(() => ({}));
 }
 
 /** Lien temporaire d'un seul fichier (une pièce jointe qu'on ouvre). */

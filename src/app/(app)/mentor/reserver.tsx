@@ -136,7 +136,7 @@ export default function Reserve() {
       }>
       <View style={{ paddingHorizontal: 20, gap: 18 }}>
         <Animated.View entering={rise()} style={styles.who}>
-          <Avatar name={`${m.firstName} ${m.lastName}`} color={m.avatarColor} size={52} />
+          <Avatar name={`${m.firstName} ${m.lastName}`} color={m.avatarColor} uri={m.avatarUrl} cacheKey={m.avatarPath} size={52} />
           <View style={{ flex: 1 }}>
             <Text variant="smallStrong" color={c.electric}>
               {t('mentors.book.freeCall')}

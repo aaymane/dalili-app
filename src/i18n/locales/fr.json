@@ -269,7 +269,7 @@
     "nice": "Belle photo !",
     "offline": "Photo gardée sur ton téléphone, mais pas encore envoyée en ligne. Vérifie ta connexion.",
     "title": "Ta photo de profil",
-    "text": "Pour l’instant, toi seul·e la vois. Avant l’envoi, on retire le lieu et les infos cachées de la photo.",
+    "text": "Les membres de tes groupes et les mentors à qui tu demandes un appel la voient. Si tu es mentor, tous les étudiants la voient. Avant l’envoi, on retire le lieu et les infos cachées de la photo.",
     "take": "Prendre une photo",
     "choose": "Choisir dans la galerie"
   },
@@ -1349,7 +1349,7 @@
       },
       "photo": {
         "title": "Ta photo",
-        "text": "Privée : pour l’instant, toi seul·e la vois. On retire le lieu et les infos cachées avant l’envoi."
+        "text": "Visible par les membres de tes groupes et par les mentors à qui tu demandes un appel (par tous les étudiants si tu es mentor). Jamais sans compte, jamais après un blocage. On retire le lieu et les infos cachées avant l’envoi."
       },
       "community": {
         "title": "Tes messages dans la communauté",

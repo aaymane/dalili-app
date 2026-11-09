@@ -70,7 +70,7 @@ export function RequestCard({ r, first, onReport }: { r: MentorRequest; first?: 
   return (
     <View style={[styles.card, !first && styles.sep, past && { opacity: 0.75 }]}>
       <View style={styles.top}>
-        <Avatar name={name} size={46} color={avatarTone(r.student ?? r.id)} />
+        <Avatar name={name} size={46} color={avatarTone(r.student ?? r.id)} uri={r.studentAvatarUrl} cacheKey={r.studentAvatarPath} />
         <View style={{ flex: 1, gap: 1 }}>
           <Text variant="bodyStrong" numberOfLines={1}>
             {name}

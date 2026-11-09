@@ -74,7 +74,7 @@ export function BookingCard({ booking, mentor }: { booking: Booking; mentor: Men
     <View style={styles.slideShadow}>
       <LinearGradient colors={gradients.hero} style={styles.slide}>
         <View style={styles.row}>
-          <Avatar name={`${mentor.firstName} ${mentor.lastName}`} color={mentor.avatarColor} size={46} />
+          <Avatar name={`${mentor.firstName} ${mentor.lastName}`} color={mentor.avatarColor} uri={mentor.avatarUrl} cacheKey={mentor.avatarPath} size={46} />
           <View style={{ flex: 1 }}>
             <Text variant="h3" color={c.white}>
               {t('mentors.booking.callWith', { name: mentor.firstName })}
