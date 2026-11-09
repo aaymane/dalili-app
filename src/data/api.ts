@@ -107,15 +107,23 @@ export async function fetchMentors(): Promise<Mentor[]> {
     .order('rating', { ascending: false });
   if (error) throw error;
   const mentors = (data ?? []).map(toMentor);
-  // Les visages des mentors : la base donne le chemin des photos (mentors validés), l'app en fait des liens.
+  // Les visages : les mentors, et les étudiants qui ont laissé un avis. La base ne donne que les chemins qu'on a le
+  // droit de voir (photos_visibles, photos_avis) ; l'app en fait des liens, en une seule demande.
   const ids = mentors.map((m) => m.userId).filter((id): id is string => !!id);
-  const { data: faces } = ids.length ? await supabase.rpc('avatars_of', { p_users: ids }) : { data: [] };
-  const pathOf = new Map<string, string>((faces ?? []).map((f: Row) => [f.user_id, f.avatar_path]));
-  const urls = await avatarUrls([...pathOf.values()]);
-  return mentors.map((m) => {
-    const avatarPath = (m.userId && pathOf.get(m.userId)) || null;
-    return { ...m, avatarPath, avatarUrl: avatarPath ? (urls[avatarPath] ?? null) : null };
-  });
+  const reviewIds = mentors.flatMap((m) => m.reviews.map((r) => r.id)).filter((id): id is string => !!id);
+  const [mentorFaces, reviewFaces] = await Promise.all([
+    ids.length ? supabase.rpc('avatars_of', { p_users: ids }) : Promise.resolve({ data: [] }),
+    reviewIds.length ? supabase.rpc('review_avatars', { p_reviews: reviewIds }) : Promise.resolve({ data: [] }),
+  ]);
+  const mentorPath = new Map<string, string>(((mentorFaces.data ?? []) as Row[]).map((f) => [f.user_id, f.avatar_path]));
+  const reviewPath = new Map<string, string>(((reviewFaces.data ?? []) as Row[]).map((f) => [f.review_id, f.avatar_path]));
+  const urls = await avatarUrls([...mentorPath.values(), ...reviewPath.values()]);
+  const face = (path?: string | null) => ({ avatarPath: path ?? null, avatarUrl: path ? (urls[path] ?? null) : null });
+  return mentors.map((m) => ({
+    ...m,
+    ...face(m.userId ? mentorPath.get(m.userId) : null),
+    reviews: m.reviews.map((r) => ({ ...r, ...face(r.id ? reviewPath.get(r.id) : null) })),
+  }));
 }
 
 /** Profils de test sans session (captures) : la base refuserait, on montre les données d'exemple. */

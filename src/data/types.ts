@@ -13,7 +13,8 @@ export type Mentor = {
   specialties: string[];
   languages: ('ar' | 'fr' | 'en' | 'ber')[];
   journey: { year: string; title: string; detail: string }[];
-  reviews: { author: string; text: string; rating: number }[];
+  /** Les 5 derniers avis publiés. `id` : l'avis (jamais l'étudiant) ; la photo de l'auteur, si la base la donne. */
+  reviews: { id?: string; author: string; text: string; rating: number; avatarPath?: string | null; avatarUrl?: string | null }[];
   availableThisWeek: boolean;
   avatarColor: string;
   /** Le compte du mentor (absent en démo), et sa photo de profil : chemin dans `avatars` et lien temporaire. */

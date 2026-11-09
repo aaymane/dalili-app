@@ -269,7 +269,7 @@
     "nice": "Belle photo !",
     "offline": "Photo gardée sur ton téléphone, mais pas encore envoyée en ligne. Vérifie ta connexion.",
     "title": "Ta photo de profil",
-    "text": "Les membres de tes groupes et les mentors à qui tu demandes un appel la voient. Si tu es mentor, tous les étudiants la voient. Avant l’envoi, on retire le lieu et les infos cachées de la photo.",
+    "text": "Les membres de tes groupes et les mentors à qui tu demandes un appel la voient, et tous les étudiants si tu publies un avis. Si tu es mentor, tous les étudiants la voient. Avant l’envoi, on retire le lieu et les infos cachées de la photo.",
     "take": "Prendre une photo",
     "choose": "Choisir dans la galerie"
   },
@@ -1028,7 +1028,8 @@
     },
     "tile": {
       "available": "Disponible cette semaine",
-      "full": "Complet cette semaine"
+      "full": "Complet cette semaine",
+      "reviewedBy": "Avis de {{names}}"
     },
     "soon": {
       "title": "Les premiers mentors arrivent bientôt",
@@ -1349,7 +1350,7 @@
       },
       "photo": {
         "title": "Ta photo",
-        "text": "Visible par les membres de tes groupes et par les mentors à qui tu demandes un appel (par tous les étudiants si tu es mentor). Jamais sans compte, jamais après un blocage. On retire le lieu et les infos cachées avant l’envoi."
+        "text": "Visible par les membres de tes groupes, par les mentors à qui tu demandes un appel, et par tous les étudiants si tu publies un avis (ou si tu es mentor). Jamais sans compte, jamais après un blocage. On retire le lieu et les infos cachées avant l’envoi."
       },
       "community": {
         "title": "Tes messages dans la communauté",
@@ -1637,7 +1638,7 @@
       "5": "Génial, merci !"
     },
     "placeholder": "Un mot pour les autres étudiants (facultatif)",
-    "public": "Ton avis s’affiche sur sa fiche avec ton prénom seulement.",
+    "public": "Ton avis s’affiche sur sa fiche avec ton prénom et ta photo de profil. Une note sans texte reste anonyme.",
     "send": "Envoyer mon avis",
     "thanks": "Merci ! {{name}} va être content·e.",
     "cta": "Noter l’appel",

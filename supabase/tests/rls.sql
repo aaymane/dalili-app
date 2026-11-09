@@ -1243,6 +1243,47 @@ select tests.must_fail('anon appelle avatar_of', $q$select public.avatar_of('000
 reset role;
 rollback;
 
+-- ───────────── avis avec photo (09/11) : l'auteur d'un avis publié montre son visage sur la fiche ─────────────
+-- C : mentor validé. D a laissé un avis avec texte, B une note sans texte. A n'a aucun lien avec eux.
+begin;
+update public.profiles set first_name = 'Nadia', avatar_url = '00000000-0000-0000-0000-00000000000d/photod1.jpg' where id = '00000000-0000-0000-0000-00000000000d';
+update public.profiles set first_name = 'Salma', avatar_url = '00000000-0000-0000-0000-00000000000b/photob1.jpg' where id = '00000000-0000-0000-0000-00000000000b';
+insert into storage.objects (bucket_id, name) values
+  ('avatars', '00000000-0000-0000-0000-00000000000d/photod1.jpg'),
+  ('avatars', '00000000-0000-0000-0000-00000000000b/photob1.jpg');
+insert into public.mentors (id, user_id, first_name, last_name, city, is_active) values
+  ('00000000-0000-0000-0000-0000000000e1', '00000000-0000-0000-0000-00000000000c', 'Yassine', 'Kadiri', 'Lyon', true);
+insert into public.bookings (id, student_id, mentor_id, starts_at, topic, status) values
+  ('00000000-0000-0000-0000-0000000000f7', '00000000-0000-0000-0000-00000000000d', '00000000-0000-0000-0000-0000000000e1', now() - interval '2 hours', 'CAF', 'confirmed'),
+  ('00000000-0000-0000-0000-0000000000f8', '00000000-0000-0000-0000-00000000000b', '00000000-0000-0000-0000-0000000000e1', now() - interval '3 hours', 'Visa', 'confirmed');
+set local role authenticated;
+set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-00000000000d","role":"authenticated"}';
+insert into public.mentor_reviews (booking_id, mentor_id, rating, comment) values ('00000000-0000-0000-0000-0000000000f7', '00000000-0000-0000-0000-0000000000e1', 5, 'Merci pour la CAF !');
+set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-00000000000b","role":"authenticated"}';
+insert into public.mentor_reviews (booking_id, mentor_id, rating) values ('00000000-0000-0000-0000-0000000000f8', '00000000-0000-0000-0000-0000000000e1', 4);
+
+set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-00000000000a","role":"authenticated"}';
+select tests.must_count('la fiche garde l''identifiant de l''avis, jamais celui de l''étudiante',
+  $q$select 1 from public.mentors where reviews -> 0 ->> 'author' = 'Nadia' and reviews -> 0 ? 'id' and reviews::text not like '%00000000-0000-0000-0000-00000000000d%'$q$, 1);
+select tests.must_count('A, sans lien avec Nadia, voit la photo de son avis',
+  $q$select * from public.review_avatars((select array_agg((x ->> 'id')::uuid) from public.mentors, jsonb_array_elements(reviews) x))
+     where avatar_path = '00000000-0000-0000-0000-00000000000d/photod1.jpg'$q$, 1);
+select tests.must_count('… et le fichier lui-même', $q$select * from storage.objects where name = '00000000-0000-0000-0000-00000000000d/photod1.jpg'$q$, 1);
+select tests.must_count('une note sans texte reste anonyme : la photo de Salma reste privée',
+  $q$select * from storage.objects where name = '00000000-0000-0000-0000-00000000000b/photob1.jpg'$q$, 0);
+select tests.must_fail('A appelle la fabrique de la fiche', $q$select public.mentor_reviews_card('00000000-0000-0000-0000-0000000000e1')$q$);
+reset role;
+insert into public.mentorat_blocks (blocker_id, blocked_id) values ('00000000-0000-0000-0000-00000000000d', '00000000-0000-0000-0000-00000000000a');
+set local role authenticated;
+select tests.must_count('après un blocage, plus de photo d''avis',
+  $q$select * from public.review_avatars((select array_agg((x ->> 'id')::uuid) from public.mentors, jsonb_array_elements(reviews) x))$q$, 0);
+reset role;
+set local role anon;
+set local request.jwt.claims = '{}';
+select tests.must_fail('anon appelle review_avatars', $q$select * from public.review_avatars(array[]::uuid[])$q$);
+reset role;
+rollback;
+
 -- ───────────── serveur du site (clé service) ─────────────
 begin;
 set local role service_role;

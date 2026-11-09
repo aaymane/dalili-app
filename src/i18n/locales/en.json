@@ -269,7 +269,7 @@
     "nice": "Nice photo!",
     "offline": "Photo saved on your phone, but not uploaded yet. Check your connection.",
     "title": "Your profile photo",
-    "text": "Members of your groups and the mentors you ask for a call can see it. If you’re a mentor, all students can see it. Before uploading, we remove the location and hidden info from the photo.",
+    "text": "Members of your groups and the mentors you ask for a call can see it, and all students if you post a review. If you’re a mentor, all students can see it. Before uploading, we remove the location and hidden info from the photo.",
     "take": "Take a photo",
     "choose": "Choose from gallery"
   },
@@ -1028,7 +1028,8 @@
     },
     "tile": {
       "available": "Available this week",
-      "full": "Fully booked this week"
+      "full": "Fully booked this week",
+      "reviewedBy": "Reviews from {{names}}"
     },
     "soon": {
       "title": "The first mentors are coming soon",
@@ -1349,7 +1350,7 @@
       },
       "photo": {
         "title": "Your photo",
-        "text": "Visible to members of your groups and to the mentors you ask for a call (to all students if you’re a mentor). Never without an account, never after a block. We remove the location and hidden data before uploading."
+        "text": "Visible to members of your groups, to the mentors you ask for a call, and to all students if you post a review (or if you’re a mentor). Never without an account, never after a block. We remove the location and hidden data before uploading."
       },
       "community": {
         "title": "Your posts in the community",
@@ -1637,7 +1638,7 @@
       "5": "Amazing, thank you!"
     },
     "placeholder": "A few words for other students (optional)",
-    "public": "Your review shows on their profile with your first name only.",
+    "public": "Your review shows on their profile with your first name and profile photo. A rating without text stays anonymous.",
     "send": "Send my review",
     "thanks": "Thank you! {{name}} will be happy.",
     "cta": "Rate the call",

@@ -187,9 +187,9 @@ export default function MentorProfile() {
             <Text variant="h3">{t('mentors.profile.reviews')}</Text>
             <ListGroup>
               {m.reviews.map((r) => (
-                <View key={r.author} style={styles.review}>
+                <View key={r.id ?? r.author} style={styles.review}>
                   <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-                    <Avatar name={r.author} size={30} color={c.muted} />
+                    <Avatar name={r.author} size={30} color={c.muted} uri={r.avatarUrl} cacheKey={r.avatarPath} />
                     <Text variant="smallStrong" style={{ flex: 1 }}>
                       {r.author}
                     </Text>
