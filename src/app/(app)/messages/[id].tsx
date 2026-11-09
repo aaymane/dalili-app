@@ -30,6 +30,8 @@ const GAP_MS = 5 * 60_000;
 /** L'identifiant provisoire d'une bulle, le temps que la base renvoie le vrai. */
 const tempId = () => `temp-${Date.now()}`;
 
+type AttachSource = 'camera' | 'library' | 'pdf';
+
 /** Une conversation : bulles, « en train d'écrire », envoi immédiat, signaler ou bloquer en haut. */
 export default function Thread() {
   const { c: colors } = useTheme();
@@ -43,6 +45,8 @@ export default function Thread() {
   const send = useSendMessage(id);
   const [safety, setSafety] = useState(false);
   const [attaching, setAttaching] = useState(false);
+  // Choix en attente : iOS ignore un écran système ouvert pendant que la feuille se ferme.
+  const pendingAttach = useRef<AttachSource | null>(null);
   const list = useRef<FlatList<Message>>(null);
   // Ouverture de l'écran : seules les bulles arrivées après montent en douceur.
   const [openedAt] = useState(Date.now);
@@ -67,8 +71,7 @@ export default function Thread() {
   };
 
   // Une pièce jointe part tout de suite, comme dans une messagerie : la bulle apparaît, puis le fichier monte.
-  const attach = async (source: 'camera' | 'library' | 'pdf') => {
-    setAttaching(false);
+  const attach = async (source: AttachSource) => {
     let file: PickedFile | null = null;
     if (source === 'pdf') {
       const pdf = await pickPdf();
@@ -87,6 +90,17 @@ export default function Thread() {
     } catch {
       toast(t('messages.notSent'), 'info');
     }
+  };
+
+  const chooseAttachment = (source: AttachSource) => {
+    pendingAttach.current = source;
+    setAttaching(false);
+  };
+
+  const onAttachSheetClosed = () => {
+    const source = pendingAttach.current;
+    pendingAttach.current = null;
+    if (source) void attach(source);
   };
 
   const header = (
@@ -152,7 +166,7 @@ export default function Thread() {
           );
         }}
       />
-      <BottomSheet visible={attaching} onClose={() => setAttaching(false)}>
+      <BottomSheet visible={attaching} onClose={() => setAttaching(false)} onClosed={onAttachSheetClosed}>
         <View style={{ gap: 14 }}>
           <Text variant="h2">{t('messages.attachTitle', { name: first || t('messages.yourMentor') })}</Text>
           <ListGroup>
@@ -163,7 +177,7 @@ export default function Thread() {
                 ['pdf', FileText, t('messages.attachPdf')],
               ] as const
             ).map(([source, Icon, label]) => (
-              <PressableScale key={source} onPress={() => attach(source)} scaleTo={0.985} style={styles.attachRow} accessibilityRole="button">
+              <PressableScale key={source} onPress={() => chooseAttachment(source)} scaleTo={0.985} style={styles.attachRow} accessibilityRole="button">
                 <Icon size={20} color={colors.electric} />
                 <Text variant="bodyStrong" style={{ flex: 1 }}>
                   {label}
