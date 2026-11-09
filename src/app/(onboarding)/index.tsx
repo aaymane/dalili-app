@@ -28,7 +28,7 @@ export default function Welcome() {
   const name = profile.firstName || t('onboarding.welcome.you');
 
   return (
-    <Screen top={gradients.sky} bg="#fff" footer={<Button label={t('onboarding.welcome.cta')} icon={<ArrowRight size={18} color="#fff" />} onPress={() => router.push('/(onboarding)/situation')} />}>
+    <Screen top={gradients.sky} bg={gradients.sky[2]} footer={<Button label={t('onboarding.welcome.cta')} icon={<ArrowRight size={18} color="#fff" />} onPress={() => router.push('/(onboarding)/situation')} />}>
       <View style={styles.wrap}>
         <Animated.View entering={pop()}>
           <PressableScale

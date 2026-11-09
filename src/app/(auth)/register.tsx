@@ -124,7 +124,7 @@ export default function Register() {
   return (
     <Screen
       top={gradients.sky}
-      bg="#fff"
+      bg={gradients.sky[2]}
       keyboard
       padded={false}
       header={

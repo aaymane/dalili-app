@@ -67,7 +67,7 @@ export default function Verify() {
   return (
     <Screen
       top={gradients.sky}
-      bg="#fff"
+      bg={gradients.sky[2]}
       keyboard
       footer={<Button label={t('auth.verify.cta')} icon={<Check size={18} color="#fff" strokeWidth={3} />} loading={loading} disabled={code.length !== LEN} onPress={() => submit()} />}>
       <View style={styles.wrap}>

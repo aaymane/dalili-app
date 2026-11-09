@@ -79,7 +79,7 @@ export function CharterScreen({ step, total, hasSheet, onNext, onBack, onDone }:
   return (
     <Screen
       top={gradients.mint}
-      bg="#fff"
+      bg={gradients.mint[2]}
       padded={false}
       keyboard
       header={

@@ -75,7 +75,7 @@ export default function StudentQuestions() {
   return (
     <Screen
       top={gradients[TOPS[i]]}
-      bg="#fff"
+      bg={gradients[TOPS[i]][2]}
       padded={false}
       header={
         <StepHeader

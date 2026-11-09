@@ -31,7 +31,7 @@ export default function MentorSetup() {
   return (
     <Screen
       top={i === 0 ? gradients.mint : gradients.lilac}
-      bg="#fff"
+      bg={gradients.mint[2]}
       padded={false}
       header={
         <StepHeader
