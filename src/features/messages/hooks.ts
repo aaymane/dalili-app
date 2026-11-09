@@ -9,6 +9,8 @@ import { track } from '@/lib/analytics';
 
 import {
   conversationForBooking,
+  deleteMessage,
+  editMessage,
   fetchConversations,
   fetchMessages,
   markConversationRead,
@@ -68,6 +70,10 @@ export function useThread(id: string) {
         clearTimeout(quiet);
         quiet = setTimeout(() => setTyping(false), 3500);
       },
+      changed: () => {
+        void qc.invalidateQueries({ queryKey: thread(id) });
+        void qc.invalidateQueries({ queryKey: CONVERSATIONS });
+      },
     });
     return () => {
       clearTimeout(quiet);
@@ -91,7 +97,42 @@ export function useThread(id: string) {
     live.current?.typing();
   };
 
-  return { ...q, typing: typing || demoTyping, notifyTyping };
+  /** Tu as modifié ou supprimé un message : l'autre relit la conversation tout de suite. */
+  const notifyChanged = () => live.current?.changed();
+
+  return { ...q, typing: typing || demoTyping, notifyTyping, notifyChanged };
+}
+
+/** Modifier ton message : le nouveau texte s'affiche tout de suite, et revient comme avant si la base refuse. */
+export function useEditMessage(conversationId: string) {
+  const qc = useQueryClient();
+  const key = thread(conversationId);
+  return useMutation({
+    mutationFn: ({ m, body }: { m: Message; body: string }) => editMessage(m, body),
+    onMutate: ({ m, body }) => {
+      const before = qc.getQueryData<Message[]>(key);
+      qc.setQueryData<Message[]>(key, (list = []) => list.map((x) => (x.id === m.id ? { ...x, body, editedAt: new Date().toISOString() } : x)));
+      return { before };
+    },
+    onError: (_e, _v, ctx) => qc.setQueryData(key, ctx?.before),
+    onSettled: () => qc.invalidateQueries({ queryKey: CONVERSATIONS }),
+  });
+}
+
+/** Supprimer ton message, pour vous deux : il disparaît tout de suite, et revient si la base refuse. */
+export function useDeleteMessage(conversationId: string) {
+  const qc = useQueryClient();
+  const key = thread(conversationId);
+  return useMutation({
+    mutationFn: (m: Message) => deleteMessage(m),
+    onMutate: (m) => {
+      const before = qc.getQueryData<Message[]>(key);
+      qc.setQueryData<Message[]>(key, (list = []) => list.filter((x) => x.id !== m.id));
+      return { before };
+    },
+    onError: (_e, _m, ctx) => qc.setQueryData(key, ctx?.before),
+    onSettled: () => qc.invalidateQueries({ queryKey: CONVERSATIONS }),
+  });
 }
 
 /**

@@ -5,6 +5,7 @@ import { FlatList, View } from 'react-native';
 import { useQueryClient } from '@tanstack/react-query';
 
 import { BottomSheet } from '@/components/feedback/BottomSheet';
+import { OwnContentSheet, type OwnContent } from '@/components/feedback/OwnContentSheet';
 import { toast } from '@/components/feedback/Toast';
 import { ListGroup } from '@/components/ui/ListGroup';
 import { Screen } from '@/components/layout/Screen';
@@ -13,13 +14,14 @@ import { ChevronLeft } from '@/components/ui/DirIcons';
 import { PressableScale } from '@/components/ui/PressableScale';
 import { Text } from '@/components/ui/Text';
 import { MAX_ATTACHMENT_BYTES } from '@/data/media';
-import { MessageRefused, prepareAttachment, type Attachment, type Message, type PickedFile } from '@/features/messages/api';
+import { canStillEdit, MessageRefused, prepareAttachment, type Attachment, type Message, type PickedFile } from '@/features/messages/api';
 import { nameOf } from '@/features/messages/components/ConversationRow';
 import { Bubble, Composer, DaySeparator, TrustNote, TypingBubble } from '@/features/messages/components/Thread';
 import { isSameDay } from '@/lib/date';
-import { threadKey, useConversation, useSendMessage, useThread } from '@/features/messages/hooks';
+import { threadKey, useConversation, useDeleteMessage, useEditMessage, useSendMessage, useThread } from '@/features/messages/hooks';
 import { SafetySheet } from '@/features/safety/components/SafetySheet';
 import { useT } from '@/i18n';
+import { haptics } from '@/lib/haptics';
 import { pickPdf, pickPhoto } from '@/lib/pick';
 import { useRoleTheme } from '@/theme';
 import { makeStyles, useTheme } from '@/theme/scheme';
@@ -43,6 +45,10 @@ export default function Thread() {
   const { data: c } = useConversation(id);
   const thread = useThread(id);
   const send = useSendMessage(id);
+  const editMessage = useEditMessage(id);
+  const deleteMessage = useDeleteMessage(id);
+  // Appui long sur un de tes messages : le menu « Modifier / Supprimer ».
+  const [menu, setMenu] = useState<{ m: Message; content: OwnContent } | null>(null);
   const [safety, setSafety] = useState(false);
   const [attaching, setAttaching] = useState(false);
   // Choix en attente : iOS ignore un écran système ouvert pendant que la feuille se ferme.
@@ -53,6 +59,23 @@ export default function Thread() {
   const messages = thread.data ?? [];
   const name = c ? nameOf(c) : '';
   const first = name.split(' ')[0] || name;
+
+  const openMenu = (m: Message) => {
+    haptics.select();
+    const open = c?.canWrite !== false;
+    setMenu({
+      m,
+      content: {
+        body: m.body,
+        maxLength: 2000,
+        canEdit: open && canStillEdit(m),
+        lockedHint: open ? t('own.lockedMessage') : t('own.lockedClosed'),
+        allowEmpty: !!m.attachment,
+        deleteTitle: t('own.messageDeleteTitle'),
+        deleteText: t('own.messageDeleteText', { name: first || t('messages.yourMentor') }),
+      },
+    });
+  };
 
   useEffect(() => {
     const timer = setTimeout(() => list.current?.scrollToEnd({ animated: true }), 60);
@@ -161,9 +184,25 @@ export default function Thread() {
           return (
             <>
               {!prev || !isSameDay(prev.createdAt, item.createdAt) ? <DaySeparator iso={item.createdAt} /> : null}
-              <Bubble m={item} fresh={new Date(item.createdAt).getTime() > openedAt - 1000} showTime={showTime} onRetry={retry} />
+              <Bubble m={item} fresh={new Date(item.createdAt).getTime() > openedAt - 1000} showTime={showTime} onRetry={retry} onLongPress={openMenu} />
             </>
           );
+        }}
+      />
+      <OwnContentSheet
+        target={menu?.content ?? null}
+        onClose={() => setMenu(null)}
+        onSave={async (body) => {
+          if (!menu) return;
+          await editMessage.mutateAsync({ m: menu.m, body });
+          thread.notifyChanged();
+        }}
+        onDelete={() => {
+          if (!menu) return;
+          deleteMessage.mutate(menu.m, {
+            onSuccess: () => thread.notifyChanged(),
+            onError: () => toast(t('own.deleteFailed'), 'info'),
+          });
         }}
       />
       <BottomSheet visible={attaching} onClose={() => setAttaching(false)} onClosed={onAttachSheetClosed}>

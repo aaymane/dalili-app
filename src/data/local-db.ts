@@ -38,7 +38,11 @@ type LocalDb = {
   toggleGroup: (id: string) => void;
   addGroup: (g: Group) => void;
   addPost: (p: Post) => void;
+  /** Mode démo : modifier ou supprimer ce que tu as écrit, sur le téléphone. */
+  editPost: (id: string, body: string) => void;
+  removePost: (id: string) => void;
   addComment: (c: LocalComment) => void;
+  editComment: (id: string, body: string) => void;
   removeComment: (id: string) => void;
   toggleLike: (id: string) => void;
   toggleEvent: (id: string) => void;
@@ -86,7 +90,10 @@ export const useLocalDb = create<LocalDb>()(
       toggleGroup: (id) => set((s) => ({ joinedGroups: toggleIn(s.joinedGroups, id) })),
       addGroup: (g) => set((s) => ({ createdGroups: [g, ...s.createdGroups], joinedGroups: [...s.joinedGroups, g.id] })),
       addPost: (p) => set((s) => ({ posts: [p, ...s.posts] })),
+      editPost: (id, body) => set((s) => ({ posts: s.posts.map((p) => (p.id === id ? { ...p, body, editedAt: new Date().toISOString() } : p)) })),
+      removePost: (id) => set((s) => ({ posts: s.posts.filter((p) => p.id !== id), comments: s.comments.filter((c) => c.postId !== id) })),
       addComment: (c) => set((s) => ({ comments: [...s.comments, c] })),
+      editComment: (id, body) => set((s) => ({ comments: s.comments.map((c) => (c.id === id ? { ...c, body, editedAt: new Date().toISOString() } : c)) })),
       removeComment: (id) => set((s) => ({ comments: s.comments.filter((c) => c.id !== id) })),
       toggleLike: (id) => set((s) => ({ likedPosts: toggleIn(s.likedPosts, id) })),
       toggleEvent: (id) => set((s) => ({ joinedEvents: toggleIn(s.joinedEvents, id) })),

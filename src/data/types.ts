@@ -59,6 +59,9 @@ export type Post = {
   likes: number;
   /** Avec un compte : tu l'aimes (lu dans la base). Absent en mode démo : le téléphone s'en souvient. */
   liked?: boolean;
+  /** C'est la tienne (tu peux la modifier ou la supprimer), et l'heure de sa dernière modification. */
+  mine?: boolean;
+  editedAt?: string | null;
   comments: { author: string; body: string; isAuthor?: boolean; avatarPath?: string | null; avatarUrl?: string | null }[];
   /** La photo de l'auteur, si tu la vois (même groupe) : chemin dans `avatars` et lien temporaire. */
   authorAvatarPath?: string | null;
@@ -69,7 +72,7 @@ export type Post = {
 };
 
 /** Un commentaire écrit sur ce téléphone en mode démo. */
-export type LocalComment = { id: string; postId: string; author: string; body: string; createdAt: string };
+export type LocalComment = { id: string; postId: string; author: string; body: string; createdAt: string; editedAt?: string | null };
 
 export type CommunityEvent = {
   id: string;

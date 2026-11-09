@@ -1358,7 +1358,7 @@
       },
       "mentor": {
         "title": "Your conversations with a mentor",
-        "text": "Visible only to the two of you. They’re deleted with your account."
+        "text": "Visible only to the two of you. If you edit or delete a message, the previous version is kept for 30 days, readable only by the team if someone reports it. They go with your account."
       },
       "ai": {
         "title": "Your questions to Dalili AI",
@@ -1491,6 +1491,25 @@
     "mentorSoonTitle": "Call with {{name}} in 10 minutes",
     "mentorSoonBody": "Open your agenda to start the call when you’re ready.",
     "someone": "a student"
+  },
+  "own": {
+    "edit": "Edit",
+    "delete": "Delete",
+    "keep": "Keep",
+    "editTitle": "Edit",
+    "save": "Save",
+    "editNote": "“edited” will show next to it.",
+    "edited": "edited",
+    "hint": "Long press to edit or delete",
+    "saveFailed": "Not saved. Check your connection and try again.",
+    "deleteFailed": "Not deleted. Check your connection and try again.",
+    "tooLate": "A message can only be edited for 15 minutes.",
+    "lockedMessage": "No longer possible after 15 minutes",
+    "lockedClosed": "Conversation closed",
+    "messageDeleteTitle": "Delete this message?",
+    "messageDeleteText": "It also disappears for {{name}}.",
+    "postDeleteTitle": "Delete your post?",
+    "postDeleteText": "It disappears for the whole group, with its comments."
   },
   "appointments": {
     "title": "My appointments",

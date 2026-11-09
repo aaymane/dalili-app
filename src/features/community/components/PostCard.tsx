@@ -4,21 +4,37 @@ import { useState } from 'react';
 import { Share, StyleSheet, View } from 'react-native';
 import Animated, { useAnimatedStyle, useSharedValue, withSequence, withSpring } from 'react-native-reanimated';
 
+import { OwnContentSheet, type OwnContent } from '@/components/feedback/OwnContentSheet';
 import { PhotoViewer } from '@/components/feedback/PhotoViewer';
+import { toast } from '@/components/feedback/Toast';
 import { Avatar } from '@/components/ui/Avatar';
 import { PressableScale } from '@/components/ui/PressableScale';
 import { Text } from '@/components/ui/Text';
-import { useToggleLike, type PostWithState } from '@/data/hooks';
+import { useDeletePost, useEditPost, useToggleLike, type PostWithState } from '@/data/hooks';
 import { useT } from '@/i18n';
 import { timeAgo } from '@/lib/date';
+import { haptics } from '@/lib/haptics';
 import { makeStyles, useTheme } from '@/theme/scheme';
 import { radius } from '@/theme/tokens';
 
 /**
  * Un post du fil. `onOpen` : ouvrir la publication et tous ses commentaires (sur la carte, les 2 derniers).
  * `hideComments` : sur l'écran du post, qui les affiche lui-même.
+ * La tienne : appui long (en-tête, texte ou photo) pour la modifier ou la supprimer ; `onDeleted` après la suppression.
  */
-export function PostCard({ p, city, onOpen, hideComments }: { p: PostWithState; city?: string; onOpen?: () => void; hideComments?: boolean }) {
+export function PostCard({
+  p,
+  city,
+  onOpen,
+  hideComments,
+  onDeleted,
+}: {
+  p: PostWithState;
+  city?: string;
+  onOpen?: () => void;
+  hideComments?: boolean;
+  onDeleted?: () => void;
+}) {
   const { c: colors } = useTheme();
   const t = useT();
   const styles = useStyles();
@@ -26,21 +42,56 @@ export function PostCard({ p, city, onOpen, hideComments }: { p: PostWithState; 
   const scale = useSharedValue(1);
   const heart = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }));
   const [viewing, setViewing] = useState(false);
+  const [menu, setMenu] = useState<OwnContent | null>(null);
+  const editPost = useEditPost(p.groupId);
+  const deletePost = useDeletePost(p.groupId);
   const hasText = p.body.trim().length > 0;
+  const openMenu = p.mine
+    ? () => {
+        haptics.select();
+        setMenu({
+          body: p.body,
+          maxLength: 4000,
+          canEdit: true,
+          allowEmpty: !!p.imagePath,
+          deleteTitle: t('own.postDeleteTitle'),
+          deleteText: t('own.postDeleteText'),
+        });
+      }
+    : undefined;
+  const ownHint = openMenu ? t('own.hint') : undefined;
+  const header = (
+    <>
+      <Avatar name={p.author} size={40} color={p.authorColor} uri={p.authorAvatarUrl} cacheKey={p.authorAvatarPath} />
+      <View style={{ flex: 1 }}>
+        <Text variant="smallStrong">{p.author}</Text>
+        <Text variant="caption" color={colors.muted}>
+          {timeAgo(p.createdAt)}
+          {city ? ` · ${city}` : ''}
+          {p.editedAt ? ` · ${t('own.edited')}` : ''}
+        </Text>
+      </View>
+    </>
+  );
   return (
     <View style={styles.card}>
-      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-        <Avatar name={p.author} size={40} color={p.authorColor} uri={p.authorAvatarUrl} cacheKey={p.authorAvatarPath} />
-        <View style={{ flex: 1 }}>
-          <Text variant="smallStrong">{p.author}</Text>
-          <Text variant="caption" color={colors.muted}>
-            {timeAgo(p.createdAt)}
-            {city ? ` · ${city}` : ''}
-          </Text>
-        </View>
-      </View>
-      {!hasText ? null : onOpen ? (
-        <PressableScale onPress={onOpen} scaleTo={0.99} haptic={false} accessibilityLabel={t('community.post.openA11y', { name: p.author })}>
+      {openMenu ? (
+        <PressableScale onLongPress={openMenu} delayLongPress={350} scaleTo={0.99} haptic={false} style={styles.header} accessibilityRole="text" accessibilityHint={ownHint}>
+          {header}
+        </PressableScale>
+      ) : (
+        <View style={styles.header}>{header}</View>
+      )}
+      {!hasText ? null : onOpen || openMenu ? (
+        <PressableScale
+          onPress={onOpen}
+          onLongPress={openMenu}
+          delayLongPress={350}
+          scaleTo={0.99}
+          haptic={false}
+          accessibilityRole={onOpen ? 'button' : 'text'}
+          accessibilityLabel={onOpen ? t('community.post.openA11y', { name: p.author }) : undefined}
+          accessibilityHint={ownHint}>
           <Text variant="body">{p.body}</Text>
         </PressableScale>
       ) : (
@@ -48,7 +99,15 @@ export function PostCard({ p, city, onOpen, hideComments }: { p: PostWithState; 
       )}
       {p.imageUrl ? (
         // La photo de la publication : carrée dans le fil, en entier quand on la touche.
-        <PressableScale onPress={() => setViewing(true)} scaleTo={0.99} style={styles.photo} accessibilityRole="imagebutton" accessibilityLabel={t('community.post.photoA11y', { name: p.author })}>
+        <PressableScale
+          onPress={() => setViewing(true)}
+          onLongPress={openMenu}
+          delayLongPress={350}
+          scaleTo={0.99}
+          style={styles.photo}
+          accessibilityRole="imagebutton"
+          accessibilityLabel={t('community.post.photoA11y', { name: p.author })}
+          accessibilityHint={ownHint}>
           <Image source={{ uri: p.imageUrl, cacheKey: p.imagePath ?? undefined }} style={StyleSheet.absoluteFill} contentFit="cover" transition={200} />
         </PressableScale>
       ) : null}
@@ -113,12 +172,24 @@ export function PostCard({ p, city, onOpen, hideComments }: { p: PostWithState; 
         </PressableScale>
       ) : null}
       <PhotoViewer uri={viewing ? (p.imageUrl ?? null) : null} cacheKey={p.imagePath ?? undefined} onClose={() => setViewing(false)} />
+      {p.mine ? (
+        <OwnContentSheet
+          target={menu}
+          onClose={() => setMenu(null)}
+          onSave={(body) => editPost.mutateAsync({ id: p.id, body })}
+          onDelete={() => {
+            deletePost.mutate({ id: p.id, imagePath: p.imagePath }, { onError: () => toast(t('own.deleteFailed'), 'info') });
+            onDeleted?.();
+          }}
+        />
+      ) : null}
     </View>
   );
 }
 
 const useStyles = makeStyles(({ c, shadow }) => ({
   card: { padding: 16, gap: 12, borderRadius: radius.xl, backgroundColor: c.card, ...shadow.sm },
+  header: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   photo: { width: '100%', aspectRatio: 1, borderRadius: radius.lg, overflow: 'hidden', backgroundColor: c.fill },
   actions: { flexDirection: 'row', alignItems: 'center', gap: 18, borderTopWidth: 1, borderTopColor: c.line, paddingTop: 12 },
   action: { flexDirection: 'row', alignItems: 'center', gap: 6 },

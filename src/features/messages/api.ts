@@ -46,10 +46,16 @@ export type Message = {
   body: string;
   attachment?: Attachment;
   createdAt: string;
+  /** Heure de la dernière modification (« modifié » s'affiche). */
+  editedAt?: string | null;
   /** Envoi en cours (affiché tout de suite), ou raté (à renvoyer). */
   pending?: boolean;
   failed?: boolean;
 };
+
+/** Un message se modifie pendant 15 minutes après l'envoi (la base refuse ensuite). */
+export const EDIT_WINDOW_MS = 15 * 60_000;
+export const canStillEdit = (m: Message, now = Date.now()) => now - new Date(m.createdAt).getTime() < EDIT_WINDOW_MS - 5_000;
 
 /** Refus de la base (trop de messages d'un coup) : l'écran l'explique dans la langue en cours. */
 export class MessageRefused extends Error {}
@@ -60,7 +66,7 @@ async function me() {
   return data.session?.user.id ?? null;
 }
 
-const COLUMNS = 'id, conversation_id, sender_id, body, created_at, attachment_path, attachment_name, attachment_type, attachment_size';
+const COLUMNS = 'id, conversation_id, sender_id, body, created_at, edited_at, attachment_path, attachment_name, attachment_type, attachment_size';
 
 const toMessage = (r: Record<string, any>, uid: string): Message => ({
   id: r.id,
@@ -69,6 +75,7 @@ const toMessage = (r: Record<string, any>, uid: string): Message => ({
   body: r.body ?? '',
   attachment: r.attachment_name ? { path: r.attachment_path ?? null, name: r.attachment_name, type: r.attachment_type, size: r.attachment_size ?? 0 } : undefined,
   createdAt: r.created_at,
+  editedAt: r.edited_at ?? null,
 });
 
 function demoConversations(): Conversation[] {
@@ -169,6 +176,28 @@ export async function sendMessage(conversationId: string, body: string, attachme
   return toMessage(data, uid);
 }
 
+/**
+ * Modifier ton message (le texte seulement, 15 minutes après l'envoi). La base vérifie que c'est le tien, garde
+ * l'ancienne version pour l'équipe et note l'heure. Mode démo : sur le téléphone.
+ */
+export async function editMessage(m: Message, body: string): Promise<void> {
+  const uid = await me();
+  if (!supabase || !uid) return useLocalMessages.getState().edit(m.conversationId, m.id, body);
+  const { data, error } = await supabase.from('messages').update({ body }).eq('id', m.id).select('id');
+  if (error) throw error;
+  if (!data?.length) throw new Error('not-allowed');
+}
+
+/** Supprimer ton message, pour vous deux. Sa pièce jointe part avec lui. Mode démo : sur le téléphone. */
+export async function deleteMessage(m: Message): Promise<void> {
+  const uid = await me();
+  if (!supabase || !uid) return useLocalMessages.getState().remove(m.conversationId, m.id);
+  const { data, error } = await supabase.from('messages').delete().eq('id', m.id).select('id');
+  if (error) throw error;
+  if (!data?.length) throw new Error('not-allowed');
+  if (m.attachment?.path) await removeFiles('message-files', [m.attachment.path]).catch(() => {});
+}
+
 export async function markConversationRead(conversationId: string) {
   const uid = await me();
   if (!supabase || !uid) return useLocalMessages.getState().markRead(conversationId);
@@ -188,7 +217,7 @@ export async function conversationForBooking(bookingId: string, role: 'student' 
  * Le temps réel d'une conversation ouverte : les nouveaux messages de l'autre, et « en train d'écrire ».
  * Canal privé `conv:<id>` : la base n'y laisse entrer que les deux participants.
  */
-export function subscribeToConversation(conversationId: string, on: { message: (m: Message) => void; typing: () => void }) {
+export function subscribeToConversation(conversationId: string, on: { message: (m: Message) => void; typing: () => void; changed: () => void }) {
   let closed = false;
   let channel: ReturnType<NonNullable<typeof supabase>['channel']> | null = null;
   void (async () => {
@@ -203,11 +232,14 @@ export function subscribeToConversation(conversationId: string, on: { message: (
         if (!m.mine) on.message(m);
       })
       .on('broadcast', { event: 'typing' }, () => on.typing())
+      // L'autre a modifié ou supprimé un message : on relit la conversation (le contenu ne passe pas par le canal).
+      .on('broadcast', { event: 'changed' }, () => on.changed())
       .subscribe();
   })();
   return {
     /** « J'écris » : envoyé au plus toutes les 2 secondes par l'écran. */
     typing: () => void channel?.send({ type: 'broadcast', event: 'typing', payload: {} }),
+    changed: () => void channel?.send({ type: 'broadcast', event: 'changed', payload: {} }),
     close: () => {
       closed = true;
       if (channel && supabase) void supabase.removeChannel(channel);

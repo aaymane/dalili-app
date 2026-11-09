@@ -79,6 +79,8 @@ const toPost = (r: Row): Post => ({
   comments: (r.comments ?? []).map((c: Row) => ({ author: c.author, body: c.body, isAuthor: c.isAuthor, avatarPath: c.avatar ?? null })),
   authorAvatarPath: r.author_avatar ?? null,
   imagePath: r.image_path ?? null,
+  mine: !!r.is_mine,
+  editedAt: r.edited_at ?? null,
 });
 
 /** Les liens temporaires des photos d'une liste (couvertures, photos des publications). */
@@ -171,6 +173,25 @@ export async function fetchPosts(groupId: string): Promise<Post[]> {
     comments: p.comments.map((c) => ({ ...c, avatarUrl: face(c.avatarPath) })),
   }));
   return withUrls(withFaces, 'post-photos', (p) => p.imagePath, (p, imageUrl) => ({ ...p, imageUrl }));
+}
+
+/** Modifier ta publication (le texte seulement ; la photo reste). La base vérifie que c'est la tienne. */
+export async function remoteEditPost(id: string, body: string) {
+  if (!supabase) return;
+  if (await noSession()) return;
+  const { data, error } = await supabase.from('posts').update({ body }).eq('id', id).select('id');
+  if (error) throw error;
+  if (!data?.length) throw new Error('not-allowed');
+}
+
+/** Supprimer ta publication : ses commentaires et ses cœurs partent avec elle, sa photo aussi. */
+export async function remoteDeletePost(id: string, imagePath?: string | null) {
+  if (!supabase) return;
+  if (await noSession()) return;
+  const { data, error } = await supabase.from('posts').delete().eq('id', id).select('id');
+  if (error) throw error;
+  if (!data?.length) throw new Error('not-allowed');
+  if (imagePath) await removeFiles('post-photos', [imagePath]).catch(() => {});
 }
 
 /** Aimer ou ne plus aimer une publication. Un refus de la base remonte : la carte remet l'état d'avant. */

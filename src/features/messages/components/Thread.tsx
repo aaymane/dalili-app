@@ -14,7 +14,7 @@ import { Text } from '@/components/ui/Text';
 import { useT } from '@/i18n';
 import { daysFromToday, formatLong, formatTime } from '@/lib/date';
 import { useRoleTheme } from '@/theme';
-import { pop, rise } from '@/theme/motion';
+import { pop, reflow, rise } from '@/theme/motion';
 import { makeStyles, useTheme } from '@/theme/scheme';
 import { fonts, radius } from '@/theme/tokens';
 
@@ -28,7 +28,7 @@ const sizeLabel = (bytes: number) => (bytes < 1024 * 1024 ? `${Math.max(1, Math.
  * Une pièce jointe dans la conversation : la photo (on la touche pour la voir en grand) ou le PDF (il s'ouvre).
  * Après 30 jours, le fichier est supprimé : on garde son nom, et on le dit.
  */
-function AttachmentView({ m }: { m: Message }) {
+function AttachmentView({ m, onLongPress }: { m: Message; onLongPress?: () => void }) {
   const { c } = useTheme();
   const t = useT();
   const styles = useStyles();
@@ -53,7 +53,14 @@ function AttachmentView({ m }: { m: Message }) {
   if (a.type === 'image/jpeg')
     return (
       <>
-        <PressableScale onPress={() => url && setViewing(true)} scaleTo={0.98} style={[styles.photo, (m.pending || m.failed) && { opacity: 0.6 }]} accessibilityRole="imagebutton" accessibilityLabel={t('messages.photoA11y', { name: a.name })}>
+        <PressableScale
+          onPress={() => url && setViewing(true)}
+          onLongPress={onLongPress}
+          scaleTo={0.98}
+          style={[styles.photo, (m.pending || m.failed) && { opacity: 0.6 }]}
+          accessibilityRole="imagebutton"
+          accessibilityLabel={t('messages.photoA11y', { name: a.name })}
+          accessibilityHint={onLongPress ? t('own.hint') : undefined}>
           {url ? <Image source={{ uri: url, cacheKey: a.path ?? a.localUri }} style={StyleSheet.absoluteFill} contentFit="cover" transition={150} /> : null}
         </PressableScale>
         <PhotoViewer uri={viewing ? url : null} cacheKey={a.path ?? a.localUri} onClose={() => setViewing(false)} />
@@ -62,6 +69,7 @@ function AttachmentView({ m }: { m: Message }) {
   return (
     <PressableScale
       onPress={() => (url ? WebBrowser.openBrowserAsync(url) : toast(t('messages.fileOpening'), 'info'))}
+      onLongPress={onLongPress}
       scaleTo={0.98}
       style={[styles.file, m.mine && styles.fileMine, (m.pending || m.failed) && { opacity: 0.6 }]}
       accessibilityRole="link"
@@ -84,8 +92,21 @@ function AttachmentView({ m }: { m: Message }) {
 /**
  * Une bulle. Les tiennes à droite, dans la couleur de ton rôle ; celles de l'autre à gauche.
  * `fresh` : arrivée pendant que l'écran est ouvert, elle monte en douceur (pas au chargement).
+ * `onLongPress` : seulement sur les tiennes, envoyées (modifier, supprimer). « modifié » s'affiche sous la bulle.
  */
-export function Bubble({ m, fresh, showTime, onRetry }: { m: Message; fresh: boolean; showTime: boolean; onRetry: (m: Message) => void }) {
+export function Bubble({
+  m,
+  fresh,
+  showTime,
+  onRetry,
+  onLongPress,
+}: {
+  m: Message;
+  fresh: boolean;
+  showTime: boolean;
+  onRetry: (m: Message) => void;
+  onLongPress?: (m: Message) => void;
+}) {
   const { c } = useTheme();
   const t = useT();
   const styles = useStyles();
@@ -96,13 +117,24 @@ export function Bubble({ m, fresh, showTime, onRetry }: { m: Message; fresh: boo
     </Text>
   );
   const hasText = m.body.trim().length > 0;
+  const press = onLongPress && m.mine && !m.pending && !m.failed ? () => onLongPress(m) : undefined;
+  const mine = (
+    <LinearGradient colors={theme.gradient} style={[styles.bubble, styles.mine, (m.pending || m.failed) && { opacity: 0.6 }]}>
+      {body}
+    </LinearGradient>
+  );
+  const edited = m.editedAt ? t('own.edited') : null;
   return (
-    <Animated.View entering={fresh ? rise() : undefined} style={[styles.bubbleRow, m.mine && styles.mineRow]}>
-      {m.attachment ? <AttachmentView m={m} /> : null}
+    <Animated.View entering={fresh ? rise() : undefined} layout={reflow} style={[styles.bubbleRow, m.mine && styles.mineRow]}>
+      {m.attachment ? <AttachmentView m={m} onLongPress={press} /> : null}
       {!hasText ? null : m.mine ? (
-        <LinearGradient colors={theme.gradient} style={[styles.bubble, styles.mine, (m.pending || m.failed) && { opacity: 0.6 }]}>
-          {body}
-        </LinearGradient>
+        press ? (
+          <PressableScale onLongPress={press} delayLongPress={350} scaleTo={0.97} haptic={false} accessibilityRole="text" accessibilityHint={t('own.hint')}>
+            {mine}
+          </PressableScale>
+        ) : (
+          mine
+        )
       ) : (
         <View style={[styles.bubble, styles.theirs]}>{body}</View>
       )}
@@ -113,9 +145,9 @@ export function Bubble({ m, fresh, showTime, onRetry }: { m: Message; fresh: boo
             {t('messages.notSentRetry')}
           </Text>
         </PressableScale>
-      ) : showTime ? (
+      ) : showTime || edited ? (
         <Text variant="caption" color={c.muted} style={styles.time}>
-          {m.pending ? t('messages.sending') : formatTime(m.createdAt)}
+          {[m.pending ? t('messages.sending') : showTime ? formatTime(m.createdAt) : null, edited].filter(Boolean).join(' · ')}
         </Text>
       ) : null}
     </Animated.View>

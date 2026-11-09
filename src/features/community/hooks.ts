@@ -2,7 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { notifyServer } from '@/features/notifications/push';
 
-import { deleteComment, fetchComments, sendComment, type Comment } from './api';
+import { deleteComment, editComment, fetchComments, sendComment, type Comment } from './api';
 
 export const commentsKey = (postId: string) => ['comments', postId] as const;
 
@@ -29,6 +29,22 @@ export function useSendComment(postId: string, groupId?: string) {
     },
     onError: (_e, _v, ctx) => qc.setQueryData<Comment[]>(key, (list = []) => list.map((x) => (x.id === ctx?.tempId ? { ...x, pending: false, failed: true } : x))),
     // Le compteur et l'aperçu de la carte, dans le fil du groupe.
+    onSettled: () => qc.invalidateQueries({ queryKey: ['posts', groupId] }),
+  });
+}
+
+/** Modifier le sien : le nouveau texte s'affiche tout de suite, « modifié » aussi ; si ça rate, il revient. */
+export function useEditComment(postId: string, groupId?: string) {
+  const qc = useQueryClient();
+  const key = commentsKey(postId);
+  return useMutation({
+    mutationFn: ({ id, body }: { id: string; body: string }) => editComment(id, body),
+    onMutate: ({ id, body }) => {
+      const before = qc.getQueryData<Comment[]>(key);
+      qc.setQueryData<Comment[]>(key, (list = []) => list.map((c) => (c.id === id ? { ...c, body, editedAt: new Date().toISOString() } : c)));
+      return { before };
+    },
+    onError: (_e, _v, ctx) => qc.setQueryData(key, ctx?.before),
     onSettled: () => qc.invalidateQueries({ queryKey: ['posts', groupId] }),
   });
 }

@@ -1,10 +1,11 @@
 import { useQueryClient } from '@tanstack/react-query';
-import { useLocalSearchParams } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { RotateCcw } from 'lucide-react-native';
 import { useState } from 'react';
-import { Alert, FlatList, View } from 'react-native';
+import { FlatList, View } from 'react-native';
 import Animated from 'react-native-reanimated';
 
+import { OwnContentSheet, type OwnContent } from '@/components/feedback/OwnContentSheet';
 import { toast } from '@/components/feedback/Toast';
 import { AppHeader } from '@/components/layout/AppHeader';
 import { Screen } from '@/components/layout/Screen';
@@ -16,7 +17,7 @@ import { useGroup, usePosts } from '@/data/hooks';
 import { CommentRefused, myName, type Comment } from '@/features/community/api';
 import { useJoinGroup } from '@/features/community/components/GroupCard';
 import { PostCard } from '@/features/community/components/PostCard';
-import { commentsKey, useComments, useDeleteComment, useSendComment } from '@/features/community/hooks';
+import { commentsKey, useComments, useDeleteComment, useEditComment, useSendComment } from '@/features/community/hooks';
 import { Composer } from '@/features/messages/components/Thread';
 import { useProfile } from '@/features/profile/store';
 import { useT } from '@/i18n';
@@ -38,6 +39,9 @@ export default function PostScreen() {
   const comments = useComments(id);
   const send = useSendComment(id, groupId);
   const remove = useDeleteComment(id, groupId);
+  const editComment = useEditComment(id, groupId);
+  // Appui long sur un de tes commentaires : le menu « Modifier / Supprimer ».
+  const [menu, setMenu] = useState<{ c: Comment; content: OwnContent } | null>(null);
   const join = useJoinGroup();
   // Seules les bulles écrites après l'ouverture montent en douceur.
   const [openedAt] = useState(Date.now);
@@ -54,12 +58,18 @@ export default function PostScreen() {
     post_(c.body);
   };
 
-  const askDelete = (c: Comment) => {
+  const openMenu = (c: Comment) => {
     haptics.select();
-    Alert.alert(t('community.post.deleteTitle'), t('community.post.deleteText'), [
-      { text: t('community.post.keep'), style: 'cancel' },
-      { text: t('community.post.delete'), style: 'destructive', onPress: () => remove.mutate(c.id, { onError: () => toast(t('community.post.deleteFailed'), 'info') }) },
-    ]);
+    setMenu({
+      c,
+      content: {
+        body: c.body,
+        maxLength: 2000,
+        canEdit: true,
+        deleteTitle: t('community.post.deleteTitle'),
+        deleteText: t('community.post.deleteText'),
+      },
+    });
   };
 
   // Le groupe dit si tu peux commenter (en mode démo, rejoindre le groupe suffit aussi).
@@ -82,7 +92,7 @@ export default function PostScreen() {
         ListHeaderComponent={
           post ? (
             <View style={{ gap: 14, marginBottom: 6 }}>
-              <PostCard p={post} city={group?.city} hideComments />
+              <PostCard p={post} city={group?.city} hideComments onDeleted={() => router.back()} />
               <Text variant="overline" color={colors.muted}>
                 {list.length ? t('community.post.count', { count: list.length }) : t('community.post.comments')}
               </Text>
@@ -105,6 +115,7 @@ export default function PostScreen() {
               <View style={{ flex: 1, gap: 2 }}>
                 <Text variant="caption" color={colors.electric}>
                   {c.isPostAuthor ? t('community.post.authorTag', { name: c.mine ? t('community.post.you') : c.author }) : c.mine ? t('community.post.you') : c.author}
+                  {c.editedAt ? <Text variant="caption" color={colors.muted}>{` · ${t('own.edited')}`}</Text> : null}
                 </Text>
                 <Text variant="small">{c.body}</Text>
                 {c.failed ? (
@@ -120,15 +131,16 @@ export default function PostScreen() {
           );
           return (
             <Animated.View entering={new Date(c.createdAt).getTime() > openedAt - 1000 ? rise() : undefined}>
-              {/* Seuls les tiens réagissent au doigt : appui long pour supprimer, toucher pour renvoyer s'il est raté. */}
+              {/* Seuls les tiens réagissent au doigt : appui long pour modifier ou supprimer, toucher pour renvoyer s'il est raté. */}
               {c.mine ? (
                 <PressableScale
-                  onLongPress={c.pending ? undefined : () => askDelete(c)}
+                  onLongPress={c.pending || c.failed ? undefined : () => openMenu(c)}
+                  delayLongPress={350}
                   onPress={c.failed ? () => retry(c) : undefined}
                   scaleTo={0.98}
                   haptic={false}
                   style={style}
-                  accessibilityHint={t('community.post.deleteHint')}>
+                  accessibilityHint={t('own.hint')}>
                   {body}
                 </PressableScale>
               ) : (
@@ -137,6 +149,12 @@ export default function PostScreen() {
             </Animated.View>
           );
         }}
+      />
+      <OwnContentSheet
+        target={menu?.content ?? null}
+        onClose={() => setMenu(null)}
+        onSave={(body) => (menu ? editComment.mutateAsync({ id: menu.c.id, body }) : Promise.resolve())}
+        onDelete={() => menu && remove.mutate(menu.c.id, { onError: () => toast(t('community.post.deleteFailed'), 'info') })}
       />
     </Screen>
   );

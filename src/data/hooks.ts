@@ -1,7 +1,18 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useMemo } from 'react';
 
-import { fetchEvents, fetchGroups, fetchMentors, fetchMyBookings, fetchMyGroupIds, fetchPosts, remoteCancelBooking, remoteSetLike } from './api';
+import {
+  fetchEvents,
+  fetchGroups,
+  fetchMentors,
+  fetchMyBookings,
+  fetchMyGroupIds,
+  fetchPosts,
+  remoteCancelBooking,
+  remoteDeletePost,
+  remoteEditPost,
+  remoteSetLike,
+} from './api';
 import { fetchCore, fetchGuide, snapshot, snapshotGuide, type Core, type CoreKey } from './content';
 import { toast } from '@/components/feedback/Toast';
 import { useAuth } from '@/features/auth/store';
@@ -126,6 +137,8 @@ export function usePosts(groupId?: string) {
       const isLiked = online ? !!p.liked : liked.includes(p.id);
       return {
         ...p,
+        // Écrite sur ce téléphone (mode démo) : elle est à toi.
+        mine: p.mine ?? local.some((l) => l.id === p.id),
         comments: [
           ...p.comments,
           ...localComments.filter((c) => c.postId === p.id).map((c): Post['comments'][number] => ({ author: c.author, body: c.body, isAuthor: false })),
@@ -163,6 +176,44 @@ export function useToggleLike(groupId: string) {
     },
   });
   return (p: { id: string; liked: boolean; online: boolean }) => (p.online ? m.mutate({ id: p.id, like: !p.liked }) : toggleLocal(p.id));
+}
+
+/**
+ * Modifier ou supprimer ta publication : le fil change tout de suite, et revient comme avant si la base refuse.
+ * En mode démo, seulement les publications écrites sur ce téléphone.
+ */
+export function useEditPost(groupId: string) {
+  const qc = useQueryClient();
+  const editLocal = useLocalDb((s) => s.editPost);
+  return useMutation({
+    mutationFn: async ({ id, body }: { id: string; body: string }) => {
+      if (useLocalDb.getState().posts.some((p) => p.id === id)) return editLocal(id, body);
+      await remoteEditPost(id, body);
+    },
+    onMutate: ({ id, body }) => {
+      const before = qc.getQueryData<Post[]>(postsKey(groupId));
+      qc.setQueryData<Post[]>(postsKey(groupId), (list) => list?.map((p) => (p.id === id ? { ...p, body, editedAt: new Date().toISOString() } : p)));
+      return { before };
+    },
+    onError: (_e, _v, ctx) => qc.setQueryData(postsKey(groupId), ctx?.before),
+  });
+}
+
+export function useDeletePost(groupId: string) {
+  const qc = useQueryClient();
+  const removeLocal = useLocalDb((s) => s.removePost);
+  return useMutation({
+    mutationFn: async (p: { id: string; imagePath?: string | null }) => {
+      if (useLocalDb.getState().posts.some((x) => x.id === p.id)) return removeLocal(p.id);
+      await remoteDeletePost(p.id, p.imagePath);
+    },
+    onMutate: (p) => {
+      const before = qc.getQueryData<Post[]>(postsKey(groupId));
+      qc.setQueryData<Post[]>(postsKey(groupId), (list) => list?.filter((x) => x.id !== p.id));
+      return { before };
+    },
+    onError: (_e, _p, ctx) => qc.setQueryData(postsKey(groupId), ctx?.before),
+  });
 }
 
 export type GroupWithState = ReturnType<typeof useGroups>['data'][number];

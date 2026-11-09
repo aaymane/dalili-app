@@ -257,7 +257,8 @@ select tests.must_fail('B commente au nom de A',
 select tests.must_fail('B antidate un commentaire',
   $q$insert into public.comments (post_id, body, created_at) values ('00000000-0000-0000-0000-0000000000a1', 'Hier', now() - interval '1 day')$q$);
 select tests.must_fail('B commente avec des espaces seulement', $q$insert into public.comments (post_id, body) values ('00000000-0000-0000-0000-0000000000a1', '   ')$q$);
-select tests.must_fail('B modifie son commentaire', $q$update public.comments set body = 'Autre chose'$q$);
+select tests.must_fail('B déplace son commentaire ou change son auteur (seul le texte se modifie)',
+  $q$update public.comments set author_id = '00000000-0000-0000-0000-00000000000a'$q$);
 
 set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-00000000000a","role":"authenticated"}';
 insert into public.comments (post_id, body) values ('00000000-0000-0000-0000-0000000000a1', 'Merci Salma !');
@@ -735,7 +736,8 @@ select tests.must_fail('A antidate un message',
   $q$insert into public.messages (conversation_id, body, created_at) select id, 'Hier', now() - interval '1 day' from public.my_conversations()$q$);
 select tests.must_fail('A envoie un message vide', $q$insert into public.messages (conversation_id, body) select id, '   ' from public.my_conversations()$q$);
 select tests.must_fail('A envoie plus de 2000 caractères', $q$insert into public.messages (conversation_id, body) select id, repeat('x', 2001) from public.my_conversations()$q$);
-select tests.must_fail('A modifie son message', $q$update public.messages set body = 'Autre chose'$q$);
+select tests.must_fail('A change l''auteur ou l''heure de son message (seul le texte se modifie)',
+  $q$update public.messages set created_at = now() - interval '1 day'$q$);
 select tests.must_fail('A lit les conversations à la main', 'select * from public.conversations');
 select tests.must_fail('A marque lu à la place du mentor', 'update public.conversations set mentor_read_at = now()');
 
@@ -1282,6 +1284,90 @@ set local role anon;
 set local request.jwt.claims = '{}';
 select tests.must_fail('anon appelle review_avatars', $q$select * from public.review_avatars(array[]::uuid[])$q$);
 reset role;
+rollback;
+
+-- ───────────── modifier, supprimer (09/11) : seul l'auteur, et la base le vérifie ─────────────
+begin;
+insert into public.group_members (group_id, user_id) values
+  ('00000000-0000-0000-0000-0000000000c1', '00000000-0000-0000-0000-00000000000a'),
+  ('00000000-0000-0000-0000-0000000000c1', '00000000-0000-0000-0000-00000000000b');
+insert into public.posts (id, group_id, author_id, body) values
+  ('00000000-0000-0000-0000-0000000000a1', '00000000-0000-0000-0000-0000000000c1', '00000000-0000-0000-0000-00000000000a', 'Qui a fait sa CAF ?');
+insert into public.comments (id, post_id, author_id, body) values
+  ('00000000-0000-0000-0000-0000000000b1', '00000000-0000-0000-0000-0000000000a1', '00000000-0000-0000-0000-00000000000b', 'Moi !');
+insert into public.mentors (id, user_id, first_name, last_name, city, is_active) values
+  ('00000000-0000-0000-0000-0000000000e1', '00000000-0000-0000-0000-00000000000c', 'Yassine', 'Kadiri', 'Lyon', true);
+insert into public.bookings (id, student_id, mentor_id, starts_at, topic) values
+  ('00000000-0000-0000-0000-0000000000f1', '00000000-0000-0000-0000-00000000000a', '00000000-0000-0000-0000-0000000000e1', now() + interval '2 days', 'Visa');
+set local role authenticated;
+set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-00000000000c","role":"authenticated"}';
+update public.bookings set status = 'confirmed' where id = '00000000-0000-0000-0000-0000000000f1';
+set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-00000000000a","role":"authenticated"}';
+insert into public.messages (conversation_id, body) select id, 'Salut Yasine !' from public.my_conversations();
+reset role;
+-- Un message de A envoyé il y a 20 minutes, et un du mentor.
+insert into public.messages (conversation_id, sender_id, body, created_at)
+  select id, '00000000-0000-0000-0000-00000000000a', 'Message d''avant', now() - interval '20 minutes' from public.conversations;
+insert into public.messages (conversation_id, sender_id, body)
+  select id, '00000000-0000-0000-0000-00000000000c', 'Bonjour Aymen' from public.conversations;
+set local role authenticated;
+
+-- Publications
+set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-00000000000a","role":"authenticated"}';
+update public.posts set body = '  Qui a déjà fait sa CAF ?  ' where id = '00000000-0000-0000-0000-0000000000a1';
+select tests.must_count('A modifie sa publication : texte nettoyé, « modifié », « à toi »',
+  $q$select * from public.posts_with_author where body = 'Qui a déjà fait sa CAF ?' and edited_at is not null and is_mine$q$, 1);
+select tests.must_fail('A déplace sa publication dans un autre groupe (seul le texte se modifie)',
+  $q$update public.posts set group_id = gen_random_uuid() where id = '00000000-0000-0000-0000-0000000000a1'$q$);
+select tests.must_fail('A vide sa publication (sans photo, il faut un texte)',
+  $q$update public.posts set body = '   ' where id = '00000000-0000-0000-0000-0000000000a1'$q$);
+set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-00000000000b","role":"authenticated"}';
+update public.posts set body = 'Piraté' where id = '00000000-0000-0000-0000-0000000000a1';
+delete from public.posts where id = '00000000-0000-0000-0000-0000000000a1';
+select tests.must_count('B, membre, ne modifie ni ne supprime la publication de A (et la voit sans « à toi »)',
+  $q$select * from public.posts_with_author where body = 'Qui a déjà fait sa CAF ?' and not is_mine$q$, 1);
+
+-- Commentaires
+update public.comments set body = 'Moi, la semaine dernière !' where id = '00000000-0000-0000-0000-0000000000b1';
+select tests.must_count('B modifie son commentaire : « modifié »',
+  $q$select * from public.comments_with_author where body = 'Moi, la semaine dernière !' and edited_at is not null and is_mine$q$, 1);
+set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-00000000000a","role":"authenticated"}';
+update public.comments set body = 'Piraté' where id = '00000000-0000-0000-0000-0000000000b1';
+select tests.must_count('A, auteur de la publication, ne modifie pas le commentaire de B',
+  $q$select * from public.comments_with_author where body = 'Moi, la semaine dernière !'$q$, 1);
+
+-- Messages
+update public.messages set body = 'Salut Yassine !' where body = 'Salut Yasine !';
+select tests.must_count('A corrige son message dans les 15 minutes : « modifié »',
+  $q$select * from public.messages where body = 'Salut Yassine !' and edited_at is not null$q$, 1);
+select tests.must_fail('A modifie un message envoyé il y a 20 minutes',
+  $q$update public.messages set body = 'Trop tard' where body = 'Message d''avant'$q$);
+update public.messages set body = 'Piraté' where body = 'Bonjour Aymen';
+select tests.must_count('A ne modifie pas le message du mentor', $q$select * from public.messages where body = 'Bonjour Aymen' and edited_at is null$q$, 1);
+delete from public.messages where body = 'Bonjour Aymen';
+select tests.must_count('A ne supprime pas le message du mentor', $q$select * from public.messages where body = 'Bonjour Aymen'$q$, 1);
+delete from public.messages where body = 'Message d''avant';
+select tests.must_count('A supprime son message, pour les deux, à tout moment', $q$select * from public.messages where body = 'Message d''avant'$q$, 0);
+select tests.must_fail('A lit l''historique des messages', 'select * from public.message_history');
+set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-00000000000c","role":"authenticated"}';
+select tests.must_count('le mentor ne voit plus le message supprimé', $q$select * from public.messages where body = 'Message d''avant'$q$, 0);
+reset role;
+select tests.must_count('l''équipe garde l''ancienne version et le message supprimé (30 jours)',
+  $q$select * from public.message_history where (action = 'edited' and body = 'Salut Yasine !') or (action = 'deleted' and body = 'Message d''avant')$q$, 2);
+set local role anon;
+set local request.jwt.claims = '{}';
+select tests.must_fail('anon lit l''historique des messages', 'select * from public.message_history');
+reset role;
+-- Après un blocage, la conversation est fermée : plus de modification.
+insert into public.mentorat_blocks (blocker_id, blocked_id) values ('00000000-0000-0000-0000-00000000000c', '00000000-0000-0000-0000-00000000000a');
+set local role authenticated;
+set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-00000000000a","role":"authenticated"}';
+update public.messages set body = 'Encore' where body = 'Salut Yassine !';
+reset role;
+select tests.must_count('bloqué : A ne modifie plus rien', $q$select * from public.messages where body = 'Salut Yassine !'$q$, 1);
+-- Le compte effacé emporte son historique, et sa suppression ne crée rien.
+delete from auth.users where id = '00000000-0000-0000-0000-00000000000a';
+select tests.must_count('compte effacé : plus aucune version gardée', 'select * from public.message_history', 0);
 rollback;
 
 -- ───────────── serveur du site (clé service) ─────────────

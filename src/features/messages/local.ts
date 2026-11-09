@@ -32,6 +32,9 @@ type LocalMessages = {
   /** Conversations où l'autre « écrit » en ce moment (réponse simulée). */
   typing: Record<string, boolean>;
   add: (m: Message) => void;
+  /** Mode démo : modifier ou supprimer un de tes messages, sur le téléphone. */
+  edit: (conversationId: string, id: string, body: string) => void;
+  remove: (conversationId: string, id: string) => void;
   markRead: (conversationId: string) => void;
   setTyping: (conversationId: string, typing: boolean) => void;
 };
@@ -43,6 +46,11 @@ export const useLocalMessages = create<LocalMessages>()(
       read: {},
       typing: {},
       add: (m) => set((s) => ({ messages: { ...s.messages, [m.conversationId]: [...(s.messages[m.conversationId] ?? []), m] } })),
+      edit: (cid, id, body) =>
+        set((s) => ({
+          messages: { ...s.messages, [cid]: (s.messages[cid] ?? []).map((m) => (m.id === id ? { ...m, body, editedAt: new Date().toISOString() } : m)) },
+        })),
+      remove: (cid, id) => set((s) => ({ messages: { ...s.messages, [cid]: (s.messages[cid] ?? []).filter((m) => m.id !== id) } })),
       markRead: (id) => set((s) => ({ read: { ...s.read, [id]: new Date().toISOString() } })),
       setTyping: (id, typing) => set((s) => ({ typing: { ...s.typing, [id]: typing } })),
     }),

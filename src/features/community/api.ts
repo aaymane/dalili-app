@@ -17,6 +17,8 @@ export type Comment = {
   createdAt: string;
   isPostAuthor: boolean;
   mine: boolean;
+  /** Heure de la dernière modification (« modifié » s'affiche). */
+  editedAt?: string | null;
   /** La photo de qui commente (chemin dans `avatars`, lien temporaire), si tu la vois. */
   avatarPath?: string | null;
   avatarUrl?: string | null;
@@ -50,6 +52,7 @@ const toComment = (r: Record<string, any>): Comment => ({
   isPostAuthor: !!r.is_post_author,
   mine: !!r.is_mine,
   avatarPath: r.author_avatar ?? null,
+  editedAt: r.edited_at ?? null,
 });
 
 /** Les liens des photos de ceux qui commentent (une seule demande pour la liste). */
@@ -96,6 +99,15 @@ export async function sendComment(postId: string, body: string): Promise<Comment
   const { data: row, error: readError } = await db.from('comments_with_author').select('*').eq('id', data.id).single();
   if (readError) throw readError;
   return toComment(row);
+}
+
+/** Modifier ton commentaire (le texte seulement). La base vérifie que c'est le tien et note l'heure. */
+export async function editComment(id: string, body: string): Promise<void> {
+  const db = await online();
+  if (!db) return useLocalDb.getState().editComment(id, body.trim());
+  const { data, error } = await db.from('comments').update({ body }).eq('id', id).select('id');
+  if (error) throw error;
+  if (!data?.length) throw new Error('not-allowed');
 }
 
 export async function deleteComment(id: string) {

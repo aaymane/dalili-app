@@ -1,4 +1,4 @@
-import { fetchConversations, fetchMessages, markConversationRead, sendMessage } from '../api';
+import { canStillEdit, deleteMessage, editMessage, fetchConversations, fetchMessages, markConversationRead, sendMessage } from '../api';
 import { DEMO_CONVERSATIONS, useLocalMessages } from '../local';
 
 // Sans clés Supabase (tests) : la messagerie tourne en mode démo, sur le téléphone.
@@ -39,5 +39,23 @@ describe('messagerie en mode démo', () => {
     const sent = await sendMessage(id, '', attachment);
     expect(sent).toMatchObject({ mine: true, body: '', attachment });
     expect((await fetchMessages(id)).some((m) => m.attachment?.name === 'attestation.pdf')).toBe(true);
+  });
+
+  it('tu modifies ton message (« modifié ») puis le supprimes : il disparaît', async () => {
+    const id = DEMO_CONVERSATIONS.student.id;
+    const sent = await sendMessage(id, 'Salut Yasine');
+    await editMessage(sent, 'Salut Yassine');
+    const edited = (await fetchMessages(id)).find((m) => m.id === sent.id);
+    expect(edited).toMatchObject({ body: 'Salut Yassine' });
+    expect(edited?.editedAt).toBeTruthy();
+    await deleteMessage(sent);
+    expect((await fetchMessages(id)).some((m) => m.id === sent.id)).toBe(false);
+  });
+
+  it('un message se modifie pendant 15 minutes, pas après', () => {
+    const now = Date.parse('2026-11-09T12:00:00Z');
+    const m = (minutes: number) => ({ id: 'x', conversationId: 'c', mine: true, body: 'x', createdAt: new Date(now - minutes * 60_000).toISOString() });
+    expect(canStillEdit(m(14), now)).toBe(true);
+    expect(canStillEdit(m(16), now)).toBe(false);
   });
 });

@@ -1358,7 +1358,7 @@
       },
       "mentor": {
         "title": "Tes conversations avec un mentor",
-        "text": "Visibles seulement par vous deux. Elles partent avec ton compte."
+        "text": "Visibles seulement par vous deux. Si tu modifies ou supprimes un message, l’ancienne version est gardée 30 jours, lisible par l’équipe seulement en cas de signalement. Elles partent avec ton compte."
       },
       "ai": {
         "title": "Tes questions à Dalili IA",
@@ -1491,6 +1491,25 @@
     "mentorSoonTitle": "Appel avec {{name}} dans 10 minutes",
     "mentorSoonBody": "Ouvre ton agenda pour lancer l’appel quand tu es prêt·e.",
     "someone": "un·e étudiant·e"
+  },
+  "own": {
+    "edit": "Modifier",
+    "delete": "Supprimer",
+    "keep": "Garder",
+    "editTitle": "Modifier",
+    "save": "Enregistrer",
+    "editNote": "« modifié » s’affichera à côté.",
+    "edited": "modifié",
+    "hint": "Appui long pour modifier ou supprimer",
+    "saveFailed": "Pas enregistré. Vérifie ta connexion et réessaie.",
+    "deleteFailed": "Pas supprimé. Vérifie ta connexion et réessaie.",
+    "tooLate": "Un message se modifie pendant 15 minutes seulement.",
+    "lockedMessage": "Plus possible après 15 minutes",
+    "lockedClosed": "Conversation fermée",
+    "messageDeleteTitle": "Supprimer ce message ?",
+    "messageDeleteText": "Il disparaît aussi chez {{name}}.",
+    "postDeleteTitle": "Supprimer ta publication ?",
+    "postDeleteText": "Elle disparaît pour tout le groupe, avec ses commentaires."
   },
   "appointments": {
     "title": "Mes rendez-vous",
