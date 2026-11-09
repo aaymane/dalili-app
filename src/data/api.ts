@@ -132,14 +132,29 @@ export async function fetchEvents(): Promise<CommunityEvent[]> {
 }
 
 export async function fetchPosts(groupId: string): Promise<Post[]> {
-  if (!supabase || (await noSession())) return demoPosts.filter((p) => p.groupId === groupId);
-  const { data, error } = await supabase
-    .from('posts_with_author')
-    .select('*')
-    .eq('group_id', groupId)
-    .order('created_at', { ascending: false });
+  const uid = supabase ? (await supabase.auth.getSession()).data.session?.user.id : undefined;
+  if (!supabase || !uid) return demoPosts.filter((p) => p.groupId === groupId);
+  const [posts, likes] = await Promise.all([
+    supabase.from('posts_with_author').select('*').eq('group_id', groupId).order('created_at', { ascending: false }),
+    // Les publications de ce groupe que tu aimes, en une seule lecture.
+    supabase.from('post_likes').select('post_id, posts!inner(group_id)').eq('user_id', uid).eq('posts.group_id', groupId),
+  ]);
+  if (posts.error) throw posts.error;
+  if (likes.error) throw likes.error;
+  const liked = new Set((likes.data ?? []).map((r) => r.post_id as string));
+  const list = (posts.data ?? []).map((r) => ({ ...toPost(r), liked: liked.has(r.id) }));
+  return withUrls(list, 'post-photos', (p) => p.imagePath, (p, imageUrl) => ({ ...p, imageUrl }));
+}
+
+/** Aimer ou ne plus aimer une publication. Un refus de la base remonte : la carte remet l'état d'avant. */
+export async function remoteSetLike(postId: string, like: boolean) {
+  if (!supabase) return;
+  const uid = (await supabase.auth.getSession()).data.session?.user.id;
+  if (!uid) return;
+  const { error } = like
+    ? await supabase.from('post_likes').upsert({ post_id: postId, user_id: uid }, { ignoreDuplicates: true })
+    : await supabase.from('post_likes').delete().match({ post_id: postId, user_id: uid });
   if (error) throw error;
-  return withUrls((data ?? []).map(toPost), 'post-photos', (p) => p.imagePath, (p, imageUrl) => ({ ...p, imageUrl }));
 }
 
 /* ---------- Écritures (no-op en démo : la base locale suffit) ---------- */

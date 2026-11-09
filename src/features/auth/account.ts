@@ -7,7 +7,7 @@ import { fetchJourney, syncStep } from '@/features/journey/api';
 import { clearDemoFiles, clearViews } from '@/features/documents/files';
 import { lockVault } from '@/features/documents/lock';
 import { useVaultDemo } from '@/features/documents/store';
-import { cancelReminders } from '@/features/notifications/reminders';
+import { cancelCallReminders, cancelReminders } from '@/features/notifications/reminders';
 import { useJourneyStore } from '@/features/journey/store';
 import { fetchProfile, restoreAvatar, syncProfile } from '@/features/profile/api';
 import { clearLocalAvatars } from '@/features/profile/avatar';
@@ -39,6 +39,7 @@ export function resetLocalData() {
   clearViews();
   lockVault();
   void cancelReminders();
+  void cancelCallReminders();
 }
 
 /** Vrai pendant qu'on pose ce qui vient du serveur : `watchProfile` ne le renvoie pas. */

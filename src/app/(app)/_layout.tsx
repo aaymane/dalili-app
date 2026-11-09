@@ -1,12 +1,24 @@
 import * as Notifications from 'expo-notifications';
 import { router, Stack } from 'expo-router';
 import { useEffect } from 'react';
+import { AppState } from 'react-native';
 
+import { useMyBookings } from '@/data/hooks';
+import { useAuth } from '@/features/auth/store';
 import { useJourney, useJourneyStore } from '@/features/journey/store';
-import { useMentorRoleSync } from '@/features/mentors/hooks';
+import { useMentorRequests, useMentorRoleSync } from '@/features/mentors/hooks';
 import { AnalyticsConsentSheet, useAnalyticsTracking } from '@/features/profile/components/AnalyticsConsent';
-import { openFromNotification, registerPush } from '@/features/notifications/push';
-import { cancelReminders, planReminders, syncReminders } from '@/features/notifications/reminders';
+import { openFromNotification, syncNotifications } from '@/features/notifications/push';
+import {
+  cancelCallReminders,
+  cancelReminders,
+  planCallReminders,
+  planReminders,
+  syncCallReminders,
+  syncReminders,
+  type CallToRemind,
+  type Reminder,
+} from '@/features/notifications/reminders';
 import { useProfile } from '@/features/profile/store';
 import { useCurrentLanguage } from '@/i18n';
 import { useTheme } from '@/theme/scheme';
@@ -22,14 +34,19 @@ function useTicketUnlock() {
 }
 
 /**
- * Notifications : le téléphone est inscrit dès que le compte est connecté et a dit oui,
- * et toucher une alerte (app ouverte ou lancée par elle) ouvre le bon écran.
+ * Notifications : à l'ouverture, à la connexion d'un compte et à chaque retour sur l'app, l'interrupteur suit
+ * l'autorisation du téléphone et le téléphone est inscrit. Toucher une alerte (app ouverte ou lancée par elle)
+ * ouvre le bon écran.
  */
 function usePushNotifications() {
-  const enabled = useProfile((s) => s.profile.notificationsEnabled);
+  const uid = useAuth((s) => s.user?.id);
   useEffect(() => {
-    if (enabled) void registerPush();
-  }, [enabled]);
+    void syncNotifications();
+    const sub = AppState.addEventListener('change', (state) => {
+      if (state === 'active') void syncNotifications();
+    });
+    return () => sub.remove();
+  }, [uid]);
   useEffect(() => {
     openFromNotification(Notifications.getLastNotificationResponse());
     const sub = Notifications.addNotificationResponseReceivedListener(openFromNotification);
@@ -38,22 +55,43 @@ function usePushNotifications() {
 }
 
 /**
+ * Garde planifiée sur le téléphone exactement `list` (null = tout annuler). La liste change de forme à chaque
+ * rendu : on suit son contenu, pas l'objet.
+ */
+function usePlanned(list: Reminder[] | null, sync: (l: Reminder[]) => Promise<void>, cancel: () => Promise<void>) {
+  const language = useCurrentLanguage();
+  const key = list ? `${language}|${list.map((r) => `${r.id}@${r.date.getTime()}|${r.title}|${r.body}`).join(';')}` : 'off';
+  useEffect(() => {
+    if (list) void sync(list);
+    else void cancel();
+    // `list` est décrit par `key`.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [key]);
+}
+
+/**
  * Rappels d'échéances (7 jours avant et la veille), replanifiés quand le parcours, la date d'arrivée ou la langue
- * changent, annulés quand les rappels sont coupés. Seulement pour un compte étudiant : un mentor n'a pas de parcours.
+ * changent, annulés quand les notifications sont coupées. Seulement pour un compte étudiant : un mentor n'a pas de parcours.
  */
 function useDeadlineReminders() {
   const enabled = useProfile((s) => s.profile.notificationsEnabled && s.profile.roles.includes('student'));
   const { all } = useJourney();
-  const language = useCurrentLanguage();
-  const list = enabled ? planReminders(all) : null;
-  // La liste change de forme à chaque rendu : on suit son contenu, pas l'objet.
-  const key = list ? `${language}|${list.map((r) => `${r.id}@${r.date.getTime()}|${r.title}`).join(';')}` : 'off';
-  useEffect(() => {
-    if (list) void syncReminders(list);
-    else void cancelReminders();
-    // `list` est décrit par `key`.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [key]);
+  usePlanned(enabled ? planReminders(all) : null, syncReminders, cancelReminders);
+}
+
+/**
+ * Rappels d'appel (1 heure et 10 minutes avant chaque appel confirmé), pour l'étudiant comme pour le mentor.
+ * Les rendez-vous sont relus à chaque retour sur l'app : un appel annulé perd ses rappels.
+ */
+function useCallReminders() {
+  const enabled = useProfile((s) => s.profile.notificationsEnabled);
+  const isMentor = useProfile((s) => s.profile.activeRole === 'mentor');
+  const bookings = useMyBookings({ enabled: enabled && !isMentor });
+  const requests = useMentorRequests({ enabled: enabled && isMentor });
+  const confirmed: CallToRemind[] = isMentor
+    ? (requests.data ?? []).filter((r) => r.status === 'confirmed').map((r) => ({ id: r.id, startsAt: r.startsAt, topic: r.topic, with: r.student }))
+    : bookings.data.filter((b) => b.status === 'confirmed').map((b) => ({ id: b.id, startsAt: b.startsAt, topic: b.topic }));
+  usePlanned(enabled ? planCallReminders(confirmed, isMentor ? 'mentor' : 'student') : null, syncCallReminders, cancelCallReminders);
 }
 
 export default function AppLayout() {
@@ -61,6 +99,7 @@ export default function AppLayout() {
   useTicketUnlock();
   usePushNotifications();
   useDeadlineReminders();
+  useCallReminders();
   useAnalyticsTracking();
   useMentorRoleSync();
   return (

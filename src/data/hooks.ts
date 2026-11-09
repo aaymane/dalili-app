@@ -1,13 +1,15 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useMemo } from 'react';
 
-import { fetchEvents, fetchGroups, fetchMentors, fetchMyBookings, fetchMyGroupIds, fetchPosts, remoteCancelBooking } from './api';
+import { fetchEvents, fetchGroups, fetchMentors, fetchMyBookings, fetchMyGroupIds, fetchPosts, remoteCancelBooking, remoteSetLike } from './api';
 import { fetchCore, fetchGuide, snapshot, snapshotGuide, type Core, type CoreKey } from './content';
+import { toast } from '@/components/feedback/Toast';
 import { useAuth } from '@/features/auth/store';
 import { notifyServer } from '@/features/notifications/push';
+import { t } from '@/i18n';
 
 import { useLocalDb } from './local-db';
-import type { Booking } from './types';
+import type { Booking, Post } from './types';
 
 const MY_BOOKINGS = ['bookings', 'mine'] as const;
 /** Tes adhésions aux groupes (base), sous la clé des groupes : actualiser les groupes les relit aussi. */
@@ -17,8 +19,8 @@ export const MY_GROUPS = ['groups', 'mine'] as const;
  * Tes demandes et rendez-vous. Avec un compte : la base (la réponse du mentor est relue à chaque retour sur l'app, voir lib/query.ts).
  * En mode démo : ceux enregistrés sur le téléphone.
  */
-export function useMyBookings() {
-  const q = useQuery({ queryKey: MY_BOOKINGS, queryFn: fetchMyBookings });
+export function useMyBookings(options?: { enabled?: boolean }) {
+  const q = useQuery({ queryKey: MY_BOOKINGS, queryFn: fetchMyBookings, enabled: options?.enabled ?? true });
   const local = useLocalDb((s) => s.bookings);
   return { ...q, data: q.data ?? local };
 }
@@ -109,21 +111,55 @@ export function useEvent(id?: string) {
   return { ...q, data: q.data.find((e) => e.id === id) };
 }
 
+const postsKey = (groupId?: string) => ['posts', groupId] as const;
+
 export function usePosts(groupId?: string) {
-  const q = useQuery({ queryKey: ['posts', groupId], queryFn: () => fetchPosts(groupId!), enabled: !!groupId });
+  const q = useQuery({ queryKey: postsKey(groupId), queryFn: () => fetchPosts(groupId!), enabled: !!groupId });
   const local = useLocalDb((s) => s.posts);
   const liked = useLocalDb((s) => s.likedPosts);
   const localComments = useLocalDb((s) => s.comments);
   const data = useMemo(() => {
     const all = [...local.filter((p) => p.groupId === groupId), ...(q.data ?? [])];
-    return all.map((p) => ({
-      ...p,
-      comments: [...p.comments, ...localComments.filter((c) => c.postId === p.id).map((c) => ({ author: c.author, body: c.body, isAuthor: false }))],
-      liked: liked.includes(p.id),
-      likes: p.likes + (liked.includes(p.id) ? 1 : 0),
-    }));
+    return all.map((p) => {
+      // Avec un compte, la base dit qui aime et combien ; en démo, le téléphone ajoute ton cœur au compteur.
+      const online = p.liked !== undefined;
+      const isLiked = online ? !!p.liked : liked.includes(p.id);
+      return {
+        ...p,
+        comments: [...p.comments, ...localComments.filter((c) => c.postId === p.id).map((c) => ({ author: c.author, body: c.body, isAuthor: false }))],
+        online,
+        liked: isLiked,
+        likes: online ? p.likes : p.likes + (isLiked ? 1 : 0),
+      };
+    });
   }, [q.data, local, liked, localComments, groupId]);
   return { ...q, data };
+}
+
+/**
+ * Le cœur d'une publication : il change tout de suite, la base suit (un geste à la fois par groupe, pour qu'un
+ * double tap ne s'emmêle pas). Si la base refuse, il revient comme avant. L'auteur est prévenu d'un nouveau cœur.
+ */
+export function useToggleLike(groupId: string) {
+  const qc = useQueryClient();
+  const toggleLocal = useLocalDb((s) => s.toggleLike);
+  const flip = (id: string, like: boolean) =>
+    qc.setQueryData<Post[]>(postsKey(groupId), (list) =>
+      list?.map((p) => (p.id === id && p.liked !== like ? { ...p, liked: like, likes: Math.max(0, p.likes + (like ? 1 : -1)) } : p)),
+    );
+  const m = useMutation({
+    scope: { id: `likes-${groupId}` },
+    mutationFn: ({ id, like }: { id: string; like: boolean }) => remoteSetLike(id, like),
+    onMutate: ({ id, like }) => flip(id, like),
+    onSuccess: (_d, { id, like }) => {
+      if (like) void notifyServer('post_liked', id);
+    },
+    onError: (_e, { id, like }) => {
+      flip(id, !like);
+      toast(t('community.post.likeFailed'), 'info');
+    },
+  });
+  return (p: { id: string; liked: boolean; online: boolean }) => (p.online ? m.mutate({ id: p.id, like: !p.liked }) : toggleLocal(p.id));
 }
 
 export type GroupWithState = ReturnType<typeof useGroups>['data'][number];

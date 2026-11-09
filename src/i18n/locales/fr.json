@@ -167,11 +167,12 @@
     "charterToAccept": "Nouvelle version à accepter",
     "charterOk": "Acceptée, merci",
     "notifications": "Notifications",
-    "notificationsMentorSub": "Nouvelles demandes, messages et rappels d’appel",
+    "notificationsMentorSub": "Demandes, messages, rappels d’appel, cœurs et commentaires",
     "sectionMine": "Mon espace",
     "sectionMentor": "Mon activité de mentor",
     "sectionSettings": "Réglages",
-    "sectionHelp": "Aide et sécurité"
+    "sectionHelp": "Aide et sécurité",
+    "notificationsStudentSub": "Messages, rappels d’appel, cœurs, commentaires et échéances (visa, CAF…)"
   },
   "auth": {
     "welcomeA": "Bienvenue dans",
@@ -845,7 +846,10 @@
       "like": "J’aime",
       "share": "Partager",
       "shareMessage": "{{author}} sur DALILI : {{body}}",
-      "photoA11y": "Photo publiée par {{name}} : la voir en grand"
+      "photoA11y": "Photo publiée par {{name}} : la voir en grand",
+      "likeA11y_one": "J’aime, {{count}} cœur",
+      "likeA11y_other": "J’aime, {{count}} cœurs",
+      "likeFailed": "Ton cœur n’est pas passé. Vérifie ta connexion et réessaie."
     },
     "newPost": {
       "title": "Créer un post",
@@ -1474,6 +1478,18 @@
     "tomorrowTitle": "Demain : {{title}}",
     "tomorrowBody": "C’est demain. Vérifie que tout est prêt, on est là si tu bloques.",
     "channel": "Rappels d’échéances"
+  },
+  "callReminders": {
+    "channel": "Rappels d’appel",
+    "studentHourTitle": "Ton appel est dans 1 heure",
+    "studentHourBody": "« {{topic}} ». Ton mentor ouvre le salon : tu recevras une alerte.",
+    "studentSoonTitle": "Ton appel commence dans 10 minutes",
+    "studentSoonBody": "Prépare tes questions, ton mentor va ouvrir le salon.",
+    "mentorHourTitle": "Appel avec {{name}} dans 1 heure",
+    "mentorHourBody": "Sujet : {{topic}}",
+    "mentorSoonTitle": "Appel avec {{name}} dans 10 minutes",
+    "mentorSoonBody": "Ouvre ton agenda pour lancer l’appel quand tu es prêt·e.",
+    "someone": "un·e étudiant·e"
   },
   "appointments": {
     "title": "Mes rendez-vous",

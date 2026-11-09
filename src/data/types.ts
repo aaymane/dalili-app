@@ -52,6 +52,8 @@ export type Post = {
   createdAt: string;
   body: string;
   likes: number;
+  /** Avec un compte : tu l'aimes (lu dans la base). Absent en mode démo : le téléphone s'en souvient. */
+  liked?: boolean;
   comments: { author: string; body: string; isAuthor?: boolean }[];
   /** Photo de la publication (bucket `post-photos`, lue par les membres) et son lien temporaire. */
   imagePath?: string | null;

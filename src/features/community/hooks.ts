@@ -1,5 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
+import { notifyServer } from '@/features/notifications/push';
+
 import { deleteComment, fetchComments, sendComment, type Comment } from './api';
 
 export const commentsKey = (postId: string) => ['comments', postId] as const;
@@ -20,7 +22,11 @@ export function useSendComment(postId: string, groupId?: string) {
       qc.setQueryData<Comment[]>(key, (list = []) => [...list, temp]);
       return { tempId };
     },
-    onSuccess: (c, _v, ctx) => qc.setQueryData<Comment[]>(key, (list = []) => list.map((x) => (x.id === ctx?.tempId ? c : x))),
+    onSuccess: (c, _v, ctx) => {
+      qc.setQueryData<Comment[]>(key, (list = []) => list.map((x) => (x.id === ctx?.tempId ? c : x)));
+      // L'auteur de la publication est prévenu (le serveur vérifie et n'alerte qu'une fois). Rien en mode démo.
+      if (!c.id.startsWith('local-')) void notifyServer('comment_created', c.id);
+    },
     onError: (_e, _v, ctx) => qc.setQueryData<Comment[]>(key, (list = []) => list.map((x) => (x.id === ctx?.tempId ? { ...x, pending: false, failed: true } : x))),
     // Le compteur et l'aperçu de la carte, dans le fil du groupe.
     onSettled: () => qc.invalidateQueries({ queryKey: ['posts', groupId] }),

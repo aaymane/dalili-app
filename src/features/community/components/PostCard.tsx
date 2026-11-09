@@ -8,8 +8,7 @@ import { PhotoViewer } from '@/components/feedback/PhotoViewer';
 import { Avatar } from '@/components/ui/Avatar';
 import { PressableScale } from '@/components/ui/PressableScale';
 import { Text } from '@/components/ui/Text';
-import type { PostWithState } from '@/data/hooks';
-import { useLocalDb } from '@/data/local-db';
+import { useToggleLike, type PostWithState } from '@/data/hooks';
 import { useT } from '@/i18n';
 import { timeAgo } from '@/lib/date';
 import { makeStyles, useTheme } from '@/theme/scheme';
@@ -23,7 +22,7 @@ export function PostCard({ p, city, onOpen, hideComments }: { p: PostWithState; 
   const { c: colors } = useTheme();
   const t = useT();
   const styles = useStyles();
-  const toggleLike = useLocalDb((s) => s.toggleLike);
+  const toggleLike = useToggleLike(p.groupId);
   const scale = useSharedValue(1);
   const heart = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }));
   const [viewing, setViewing] = useState(false);
@@ -58,10 +57,12 @@ export function PostCard({ p, city, onOpen, hideComments }: { p: PostWithState; 
           haptic="select"
           onPress={() => {
             scale.set(withSequence(withSpring(1.35, { damping: 6 }), withSpring(1)));
-            toggleLike(p.id);
+            toggleLike(p);
           }}
           style={styles.action}
-          accessibilityLabel={t('community.post.like')}>
+          accessibilityRole="button"
+          accessibilityState={{ selected: p.liked }}
+          accessibilityLabel={t('community.post.likeA11y', { count: p.likes })}>
           <Animated.View style={heart}>
             <Heart size={18} color={p.liked ? colors.danger : colors.subtle} fill={p.liked ? colors.danger : 'transparent'} />
           </Animated.View>

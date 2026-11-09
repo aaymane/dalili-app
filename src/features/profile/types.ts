@@ -35,7 +35,10 @@ export type Profile = {
   roles: Role[];
   activeRole: Role;
   mentorCity: string | null;
+  /** Ce que montre l'interrupteur du Profil : le téléphone autorise les notifications et tu ne les as pas coupées. */
   notificationsEnabled: boolean;
+  /** Tu as coupé les notifications dans le Profil : l'app ne les rallume pas toute seule. */
+  notificationsOff: boolean;
 };
 
 export const emptyProfile: Profile = {
@@ -58,6 +61,7 @@ export const emptyProfile: Profile = {
   activeRole: 'student',
   mentorCity: null,
   notificationsEnabled: false,
+  notificationsOff: false,
 };
 
 export const countries: { id: Country; flag: string; city: string }[] = [

@@ -1,6 +1,6 @@
 # DALILI — Où on en est
 
-> Mis à jour le 08/11/2026. À relire en début de session, et à mettre à jour à la fin de chaque étape.
+> Mis à jour le 09/11/2026. À relire en début de session, et à mettre à jour à la fin de chaque étape.
 > Détails : `docs/SUPABASE.md` (base), `docs/VISION.md` (plan), `docs/AUDIT.md` (audit site ↔ app).
 
 ## Jalons
@@ -85,6 +85,10 @@ Ordre décidé le 21/10 : **l'app d'abord (e, f, g), le site ensuite.**
 5. **Webhook des notifications** (refusé en 401 le 30/10) : `NOTIFY_WEBHOOK_SECRET` (Vercel, Production) doit être exactement `notify_webhook_secret` (Vault), sans espace ni retour à la ligne, puis redéployer le site (une variable changée ne compte qu'au déploiement suivant). Contrôle : envoyer un message, puis dans l'éditeur SQL `select status_code, created from net._http_response order by created desc limit 5;` (200 attendu). En attendant, les alertes partent par l'app.
 6. **Contenu** : refaire l'instantané hors ligne (`npm run content:snapshot` : celui du 20/10 n'a pas les guides CVEC et « 17 ans ») ; vérifier sur le site que les guides du 01/11 sont indexés pour l'IA (`npm run generate-embeddings -- --dry-run`), puis reposer « C'est quoi la CVEC ? » dans l'app.
 7. **Coffre « Mes documents »** : ✅ migration `coffre_documents` appliquée le 08/11 ; pousser le site (`lib/vault.ts`), puis un **nouveau build** (le scanner et Face ID sont du code natif ; l'ancien build propose la photo à la place et n'a pas de verrou). Stockage : 1 Go pour tout le projet sur le plan gratuit, à surveiller.
+8. **Test du 09/11 à deux téléphones : 2 bugs corrigés (code du 09/11)**
+   - **Cœurs toujours à 0** : l'app ne les gardait que sur le téléphone. Ils vont maintenant dans `post_likes` (affichés tout de suite, remis comme avant si la base refuse).
+   - **Notifications rares ou « depuis Expo Go »** : le téléphone ne s'inscrivait que si un interrupteur interne était allumé, éteint après chaque nouvelle installation, même avec les notifications autorisées dans iOS. L'interrupteur suit maintenant l'autorisation d'iOS (relue à chaque retour sur l'app), Expo Go ne s'inscrit plus, un compte = le dernier téléphone ouvert. Nouveau : rappels d'appel 1 h et 10 min avant (étudiant et mentor), alerte à l'auteur pour un cœur ou un commentaire.
+   - **Reste** : appliquer `alertes_communaute` en prod (sauvegarde + feu vert), pousser le site, publier la mise à jour `preview`, refaire le test. Les messages gardent la règle « une alerte par série non lue ».
 
 ## Plus tard : le site
 

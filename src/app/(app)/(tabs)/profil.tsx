@@ -14,7 +14,7 @@ import { useLocalDb } from '@/data/local-db';
 import { resetLocalData } from '@/features/auth/account';
 import { isDemoMode, useAuth } from '@/features/auth/store';
 import { useJourney } from '@/features/journey/store';
-import { askNotifications, unregisterPush } from '@/features/notifications/push';
+import { askNotifications, turnOffNotifications } from '@/features/notifications/push';
 import { AvatarSheet } from '@/features/profile/components/AvatarSheet';
 import { IdentityCard } from '@/features/profile/components/IdentityCard';
 import { LanguageSheet } from '@/features/profile/components/LanguageSheet';
@@ -34,7 +34,6 @@ export default function Profil() {
   const { c } = useTheme();
   const styles = useStyles();
   const profile = useProfile((s) => s.profile);
-  const update = useProfile((s) => s.update);
   const [avatarOpen, setAvatarOpen] = useState(false);
   const [languageOpen, setLanguageOpen] = useState(false);
   const t = useT();
@@ -141,22 +140,19 @@ export default function Profil() {
         <ListSection title={t('profile.sectionSettings')} delay={140}>
           <ListRow
             icon={Bell}
-            label={isMentor ? t('profile.notifications') : t('profile.reminders')}
-            sub={isMentor ? t('profile.notificationsMentorSub') : t('profile.remindersSub')}
+            label={t('profile.notifications')}
+            sub={isMentor ? t('profile.notificationsMentorSub') : t('profile.notificationsStudentSub')}
             right={
               <Switch
                 value={profile.notificationsEnabled}
                 onValueChange={(v) => {
-                  // Oui : on demande l'autorisation au système et on inscrit le téléphone. Non : il ne reçoit plus rien.
-                  if (v) void askNotifications();
-                  else {
-                    update({ notificationsEnabled: false });
-                    void unregisterPush();
-                  }
+                  // Oui : on demande l'autorisation (ou on ouvre Réglages) et on inscrit le téléphone. Non : il ne reçoit plus rien.
+                  if (v) void askNotifications(true);
+                  else void turnOffNotifications();
                 }}
                 trackColor={{ true: accent, false: c.lineStrong }}
                 thumbColor={c.white}
-                accessibilityLabel={isMentor ? t('profile.notifications') : t('profile.reminders')}
+                accessibilityLabel={t('profile.notifications')}
               />
             }
           />

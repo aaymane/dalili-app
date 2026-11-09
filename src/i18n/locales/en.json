@@ -167,11 +167,12 @@
     "charterToAccept": "New version to accept",
     "charterOk": "Accepted, thank you",
     "notifications": "Notifications",
-    "notificationsMentorSub": "New requests, messages and call reminders",
+    "notificationsMentorSub": "Requests, messages, call reminders, likes and comments",
     "sectionMine": "My space",
     "sectionMentor": "My mentoring",
     "sectionSettings": "Settings",
-    "sectionHelp": "Help and safety"
+    "sectionHelp": "Help and safety",
+    "notificationsStudentSub": "Messages, call reminders, likes, comments and deadlines (visa, CAF…)"
   },
   "auth": {
     "welcomeA": "Welcome to",
@@ -845,7 +846,10 @@
       "like": "Like",
       "share": "Share",
       "shareMessage": "{{author}} on DALILI: {{body}}",
-      "photoA11y": "Photo posted by {{name}}: view it full screen"
+      "photoA11y": "Photo posted by {{name}}: view it full screen",
+      "likeA11y_one": "Like, {{count}} like",
+      "likeA11y_other": "Like, {{count}} likes",
+      "likeFailed": "Your like didn’t go through. Check your connection and try again."
     },
     "newPost": {
       "title": "Create a post",
@@ -1474,6 +1478,18 @@
     "tomorrowTitle": "Tomorrow: {{title}}",
     "tomorrowBody": "It’s tomorrow. Check that everything is ready, we’re here if you get stuck.",
     "channel": "Deadline reminders"
+  },
+  "callReminders": {
+    "channel": "Call reminders",
+    "studentHourTitle": "Your call is in 1 hour",
+    "studentHourBody": "“{{topic}}”. Your mentor opens the room: you’ll get an alert.",
+    "studentSoonTitle": "Your call starts in 10 minutes",
+    "studentSoonBody": "Get your questions ready, your mentor is about to open the room.",
+    "mentorHourTitle": "Call with {{name}} in 1 hour",
+    "mentorHourBody": "Topic: {{topic}}",
+    "mentorSoonTitle": "Call with {{name}} in 10 minutes",
+    "mentorSoonBody": "Open your agenda to start the call when you’re ready.",
+    "someone": "a student"
   },
   "appointments": {
     "title": "My appointments",

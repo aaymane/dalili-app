@@ -1123,6 +1123,58 @@ delete from auth.users where id = '00000000-0000-0000-0000-00000000000b';
 select tests.must_count('compte supprimé : plus aucun document', $q$select * from public.vault_documents$q$, 0);
 rollback;
 
+-- ───────────── cœurs, alertes de la communauté, un téléphone par compte (09/11) ─────────────
+begin;
+insert into vault.decrypted_secrets values ('notify_webhook_url', 'https://site.test/api/hooks/notify'), ('notify_webhook_secret', 'secret-test');
+insert into public.group_members (group_id, user_id) values
+  ('00000000-0000-0000-0000-0000000000c1', '00000000-0000-0000-0000-00000000000a'),
+  ('00000000-0000-0000-0000-0000000000c1', '00000000-0000-0000-0000-00000000000b');
+insert into public.posts (id, group_id, author_id, body) values
+  ('00000000-0000-0000-0000-0000000000a1', '00000000-0000-0000-0000-0000000000c1', '00000000-0000-0000-0000-00000000000a', 'Qui a fait sa CAF ?');
+set local role authenticated;
+set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-00000000000b","role":"authenticated"}';
+insert into public.post_likes (post_id, user_id) values ('00000000-0000-0000-0000-0000000000a1', auth.uid());
+select tests.must_count('B aime la publication de A : le compteur du fil le montre',
+  $q$select * from public.posts_with_author where id = '00000000-0000-0000-0000-0000000000a1' and likes_count = 1$q$, 1);
+select tests.must_count('… et la base prévient le site : la publication et qui aime, rien d''autre',
+  $q$select * from tests.webhook_calls where body ->> 'event' = 'post_liked' and body ->> 'id' = '00000000-0000-0000-0000-0000000000a1'
+     and body ->> 'by' = '00000000-0000-0000-0000-00000000000b' and (select count(*) from jsonb_object_keys(body)) = 3$q$, 1);
+insert into public.post_likes (post_id, user_id) values ('00000000-0000-0000-0000-0000000000a1', auth.uid()) on conflict do nothing;
+select tests.must_count('un double tap ne compte qu''une fois et ne prévient pas deux fois', $q$select * from tests.webhook_calls where body ->> 'event' = 'post_liked'$q$, 1);
+select tests.must_fail('B aime au nom de A',
+  $q$insert into public.post_likes (post_id, user_id) values ('00000000-0000-0000-0000-0000000000a1', '00000000-0000-0000-0000-00000000000a')$q$);
+delete from public.post_likes where post_id = '00000000-0000-0000-0000-0000000000a1' and user_id = auth.uid();
+select tests.must_count('B retire son cœur', $q$select * from public.posts_with_author where id = '00000000-0000-0000-0000-0000000000a1' and likes_count = 0$q$, 1);
+insert into public.post_likes (post_id, user_id) values ('00000000-0000-0000-0000-0000000000a1', auth.uid());
+insert into public.comments (post_id, body) values ('00000000-0000-0000-0000-0000000000a1', 'Moi, je t''explique !');
+select tests.must_count('B commente : le site est prévenu, sans le texte',
+  $q$select * from tests.webhook_calls where body ->> 'event' = 'comment_created' and (select count(*) from jsonb_object_keys(body)) = 2$q$, 1);
+
+set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-00000000000a","role":"authenticated"}';
+select tests.must_count('A, membre, voit le cœur de B', 'select * from public.post_likes', 1);
+delete from public.post_likes where user_id = '00000000-0000-0000-0000-00000000000b';
+select tests.must_count('A ne peut pas retirer le cœur de B', 'select * from public.post_likes', 1);
+
+set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-00000000000c","role":"authenticated"}';
+select tests.must_count('C, hors du groupe, ne voit pas qui aime', 'select * from public.post_likes', 0);
+select tests.must_fail('C, hors du groupe, aime la publication',
+  $q$insert into public.post_likes (post_id, user_id) values ('00000000-0000-0000-0000-0000000000a1', auth.uid())$q$);
+
+-- Un téléphone par compte : le dernier où l'app est ouverte (Expo Go et l'ancienne installation sont oubliés).
+set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-00000000000a","role":"authenticated"}';
+select public.register_push_token('ExponentPushToken[expo-go]', 'ios');
+select public.register_push_token('ExponentPushToken[vraie-app]', 'ios');
+select tests.must_count('A ouvre la vraie app : seul ce jeton reste', $q$select * from public.push_tokens where token = 'ExponentPushToken[vraie-app]'$q$, 1);
+select tests.must_count('… le jeton d''Expo Go est oublié', 'select * from public.push_tokens', 1);
+select tests.must_fail('A enregistre un jeton invalide', $q$select public.register_push_token('https://pirate.example', 'ios')$q$);
+select tests.must_count('… et garde son jeton', 'select * from public.push_tokens', 1);
+set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-00000000000b","role":"authenticated"}';
+select public.register_push_token('ExponentPushToken[telephone-b]', 'ios');
+set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-00000000000a","role":"authenticated"}';
+select tests.must_count('le téléphone de B ne retire pas celui de A', 'select * from public.push_tokens', 1);
+reset role;
+rollback;
+
 -- ───────────── serveur du site (clé service) ─────────────
 begin;
 set local role service_role;

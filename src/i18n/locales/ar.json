@@ -203,11 +203,12 @@
     "charterToAccept": "نسخة جديدة للموافقة",
     "charterOk": "تمت الموافقة، شكرًا",
     "notifications": "الإشعارات",
-    "notificationsMentorSub": "الطلبات الجديدة والرسائل وتذكير المكالمات",
+    "notificationsMentorSub": "الطلبات، الرسائل، تذكير المكالمات، الإعجابات والتعليقات",
     "sectionMine": "مساحتي",
     "sectionMentor": "نشاطي كمرشد",
     "sectionSettings": "الإعدادات",
-    "sectionHelp": "المساعدة والأمان"
+    "sectionHelp": "المساعدة والأمان",
+    "notificationsStudentSub": "الرسائل، تذكير المكالمات، الإعجابات، التعليقات والمواعيد النهائية (التأشيرة، CAF…)"
   },
   "auth": {
     "welcomeA": "مرحبًا بك في",
@@ -921,7 +922,14 @@
       "like": "إعجاب",
       "share": "مشاركة",
       "shareMessage": "{{author}} على DALILI: {{body}}",
-      "photoA11y": "صورة نشرها {{name}}: اعرضها بالحجم الكامل"
+      "photoA11y": "صورة نشرها {{name}}: اعرضها بالحجم الكامل",
+      "likeA11y_zero": "إعجاب، لا إعجابات",
+      "likeA11y_one": "إعجاب، إعجاب واحد",
+      "likeA11y_two": "إعجاب، إعجابان",
+      "likeA11y_few": "إعجاب، {{count}} إعجابات",
+      "likeA11y_many": "إعجاب، {{count}} إعجابًا",
+      "likeA11y_other": "إعجاب، {{count}} إعجاب",
+      "likeFailed": "لم يُسجَّل إعجابك. تحقّق من اتصالك وأعد المحاولة."
     },
     "newPost": {
       "title": "إنشاء منشور",
@@ -1590,6 +1598,18 @@
     "tomorrowTitle": "غدًا: {{title}}",
     "tomorrowBody": "الموعد غدًا. تأكّد أن كل شيء جاهز، نحن هنا إن تعثّرت.",
     "channel": "تذكيرات المواعيد"
+  },
+  "callReminders": {
+    "channel": "تذكير المكالمات",
+    "studentHourTitle": "مكالمتك بعد ساعة",
+    "studentHourBody": "«{{topic}}». سيفتح مرشدك الغرفة، وسيصلك تنبيه.",
+    "studentSoonTitle": "تبدأ مكالمتك بعد 10 دقائق",
+    "studentSoonBody": "جهّز أسئلتك، مرشدك على وشك فتح الغرفة.",
+    "mentorHourTitle": "مكالمة مع {{name}} بعد ساعة",
+    "mentorHourBody": "الموضوع: {{topic}}",
+    "mentorSoonTitle": "مكالمة مع {{name}} بعد 10 دقائق",
+    "mentorSoonBody": "افتح جدولك لبدء المكالمة عندما تكون جاهزًا.",
+    "someone": "أحد الطلاب"
   },
   "appointments": {
     "title": "مواعيدي",
