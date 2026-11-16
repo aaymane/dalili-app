@@ -1799,7 +1799,10 @@
       "body": "Tes documents restent privés, même si quelqu’un a ton téléphone en main.",
       "unlock": "Déverrouiller",
       "prompt": "Ouvrir tes documents",
-      "confirmOff": "Confirme pour enlever le verrou"
+      "confirmOff": "Confirme pour enlever le verrou",
+      "retry": "Pas reconnu. Réessaie, ou utilise le code de ton téléphone.",
+      "recognized": "C’est bien toi, ton coffre s’ouvre.",
+      "faceIdLabel": "Face ID"
     },
     "kb": "{{n}} Ko",
     "mb": "{{n}} Mo"

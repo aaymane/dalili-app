@@ -61,18 +61,27 @@ export async function keepOpen<T>(fn: () => Promise<T>): Promise<T> {
 }
 export const isBusy = () => busy > 0;
 
-/** Demande Face ID (ou le code du téléphone si Face ID échoue). */
-export async function authenticate(promptMessage: string, cancelLabel: string): Promise<boolean> {
+/** Issue d'une demande : `cancel` quand la personne (ou iOS) a fermé l'invite, `fail` quand elle n'a pas été reconnue. */
+export type AuthOutcome = 'ok' | 'cancel' | 'fail';
+
+/** Demande Face ID (ou le code du téléphone si Face ID échoue), en distinguant un refus d'une simple fermeture. */
+export async function authenticateOutcome(promptMessage: string, cancelLabel: string): Promise<AuthOutcome> {
   const m = await localAuth();
-  if (!m) return false;
+  if (!m) return 'cancel';
   return keepOpen(async () => {
     try {
       const r = await m.authenticateAsync({ promptMessage, cancelLabel, disableDeviceFallback: false });
-      return r.success;
+      if (r.success) return 'ok';
+      return r.error === 'authentication_failed' || r.error === 'lockout' ? 'fail' : 'cancel';
     } catch {
-      return false;
+      return 'cancel';
     }
   });
+}
+
+/** Demande Face ID (ou le code du téléphone si Face ID échoue). */
+export async function authenticate(promptMessage: string, cancelLabel: string): Promise<boolean> {
+  return (await authenticateOutcome(promptMessage, cancelLabel)) === 'ok';
 }
 
 /** Le choix de verrouiller, gardé sur le téléphone. */

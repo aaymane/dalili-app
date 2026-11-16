@@ -1799,7 +1799,10 @@
       "body": "Your documents stay private, even if someone is holding your phone.",
       "unlock": "Unlock",
       "prompt": "Open your documents",
-      "confirmOff": "Confirm to remove the lock"
+      "confirmOff": "Confirm to remove the lock",
+      "retry": "Not recognized. Try again, or use your phone passcode.",
+      "recognized": "It’s you, your vault is opening.",
+      "faceIdLabel": "Face ID"
     },
     "kb": "{{n}} KB",
     "mb": "{{n}} MB"

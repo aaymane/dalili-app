@@ -1,7 +1,7 @@
 import { LockKeyhole } from 'lucide-react-native';
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 import { AppState, StyleSheet, View } from 'react-native';
-import Animated from 'react-native-reanimated';
+import Animated, { useReducedMotion } from 'react-native-reanimated';
 
 import { NightBackground } from '@/components/layout/NightBackground';
 import { Button } from '@/components/ui/Button';
@@ -12,7 +12,18 @@ import { leave, pop, rise } from '@/theme/motion';
 import { makeStyles, useTheme } from '@/theme/scheme';
 
 import { clearViews } from '../files';
-import { authenticate, canLock, isBusy, lockSupport, lockVault, unlockVault, useVaultLockPref, useVaultSession, type LockSupport } from '../lock';
+import {
+  authenticateOutcome,
+  canLock,
+  isBusy,
+  lockSupport,
+  lockVault,
+  unlockVault,
+  useVaultLockPref,
+  useVaultSession,
+  type LockSupport,
+} from '../lock';
+import { FaceIdGlyph, type GlyphPhase } from './FaceIdGlyph';
 
 /** Ce que le téléphone permet, lu une fois par visite du coffre (partagé avec la carte « Protégé »). */
 export function useLockSupport() {
@@ -43,12 +54,17 @@ export function VaultGate({ children }: { children: ReactNode }) {
   // L'invite s'ouvre seule une fois par arrivée (ou retour d'arrière-plan) ; ensuite, le bouton. Pas en revenant
   // de l'invite elle-même (l'app passe « inactive » pendant Face ID) : un « Annuler » ne la relance pas en boucle.
   const asked = useRef(false);
+  const [phase, setPhase] = useState<GlyphPhase>('idle');
+  const reduced = useReducedMotion();
 
   useEffect(() => {
     const sub = AppState.addEventListener('change', (state) => {
       setAppActive(state === 'active');
       if (state === 'background') asked.current = false;
-      if (state === 'background' && !isBusy()) lockVault();
+      if (state === 'background' && !isBusy()) {
+        lockVault();
+        setPhase('idle');
+      }
     });
     return () => {
       sub.remove();
@@ -58,12 +74,21 @@ export function VaultGate({ children }: { children: ReactNode }) {
     };
   }, []);
 
+  // Le visage tourne pendant Face ID, la coche se trace, puis le coffre s'ouvre (le temps de la voir).
   const unlock = useCallback(async () => {
-    if (await authenticate(t('vault.lock.prompt'), t('common.cancel'))) {
+    setPhase('scanning');
+    const outcome = await authenticateOutcome(t('vault.lock.prompt'), t('common.cancel'));
+    if (outcome === 'ok') {
       haptics.success();
-      unlockVault();
+      setPhase('success');
+      setTimeout(unlockVault, reduced ? 250 : 720);
+    } else if (outcome === 'fail') {
+      haptics.warning();
+      setPhase('failed');
+    } else {
+      setPhase('idle');
     }
-  }, [t]);
+  }, [t, reduced]);
 
   useEffect(() => {
     if (!active || unlocked || !appActive || asked.current) return;
@@ -75,7 +100,7 @@ export function VaultGate({ children }: { children: ReactNode }) {
     <View style={{ flex: 1 }}>
       {children}
       {locked ? (
-        <LockScreen checking={support === 'checking'} onUnlock={unlock} />
+        <LockScreen checking={support === 'checking'} faceId={support === 'faceId'} phase={phase} onUnlock={unlock} />
       ) : !appActive ? (
         <Animated.View exiting={leave} style={StyleSheet.absoluteFill}>
           <NightBackground />
@@ -85,7 +110,9 @@ export function VaultGate({ children }: { children: ReactNode }) {
   );
 }
 
-function LockScreen({ checking, onUnlock }: { checking: boolean; onUnlock: () => void }) {
+type LockProps = { checking: boolean; faceId: boolean; phase: GlyphPhase; onUnlock: () => void };
+
+function LockScreen({ checking, faceId, phase, onUnlock }: LockProps) {
   const { c } = useTheme();
   const t = useT();
   const styles = useStyles();
@@ -94,19 +121,37 @@ function LockScreen({ checking, onUnlock }: { checking: boolean; onUnlock: () =>
       <NightBackground />
       {checking ? null : (
         <View style={styles.center}>
-          <Animated.View entering={pop()} style={styles.badge}>
-            <LockKeyhole size={34} color={c.white} strokeWidth={1.8} />
-          </Animated.View>
+          {faceId ? (
+            <Animated.View
+              entering={pop()}
+              accessible
+              accessibilityRole="image"
+              accessibilityLabel={t(phase === 'success' ? 'vault.lock.recognized' : 'vault.lock.faceIdLabel')}
+            >
+              <FaceIdGlyph phase={phase} color={c.white} success={c.success} />
+            </Animated.View>
+          ) : (
+            <Animated.View entering={pop()} style={styles.badge}>
+              <LockKeyhole size={34} color={c.white} strokeWidth={1.8} />
+            </Animated.View>
+          )}
           <Animated.View entering={rise(80)} style={{ gap: 8, alignItems: 'center' }}>
             <Text variant="h1" color={c.white} align="center">
               {t('vault.lock.title')}
             </Text>
-            <Text variant="body" color="rgba(255,255,255,0.72)" align="center">
-              {t('vault.lock.body')}
+            <Text variant="body" color="rgba(255,255,255,0.72)" align="center" accessibilityLiveRegion="polite">
+              {t(phase === 'failed' ? 'vault.lock.retry' : phase === 'success' ? 'vault.lock.recognized' : 'vault.lock.body')}
             </Text>
           </Animated.View>
           <Animated.View entering={rise(160)} style={{ alignSelf: 'stretch' }}>
-            <Button label={t('vault.lock.unlock')} variant="white" size="lg" full onPress={onUnlock} />
+            <Button
+              label={t('vault.lock.unlock')}
+              variant="white"
+              size="lg"
+              full
+              disabled={phase === 'scanning' || phase === 'success'}
+              onPress={onUnlock}
+            />
           </Animated.View>
         </View>
       )}
