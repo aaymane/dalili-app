@@ -518,7 +518,45 @@
     "slotsNone": "Aucun : les étudiants te proposent une heure",
     "start": "Démarrer l’appel",
     "startA11y": "Démarrer l’appel avec {{name}}",
-    "impactTitle": "Ton impact ce mois-ci"
+    "impactTitle": "Ton impact ce mois-ci",
+    "helloEvening": "Bonsoir {{name}}",
+    "stamp": "Accepté",
+    "board": {
+      "title": "Arrivées · {{city}}",
+      "next": "Ton prochain appel · {{day}}",
+      "nextA11y": "Ton prochain appel, {{day}} à {{time}}, avec {{name}}",
+      "opensAt": "La salle s’ouvre à {{time}}",
+      "waiting_one": "{{count}} étudiant attend ta réponse",
+      "waiting_other": "{{count}} étudiants attendent ta réponse",
+      "waitingHint": "Leurs demandes sont juste en dessous.",
+      "helped_one": "{{count}} étudiant accompagné ce mois",
+      "helped_other": "{{count}} étudiants accompagnés ce mois",
+      "quiet": "Ta porte est ouverte. Les demandes arrivent ici, avec une notification.",
+      "pausedHint": "Tu es en pause : personne ne peut te demander d’appel.",
+      "waitingUnit_one": "étudiant attend ta réponse",
+      "waitingUnit_other": "étudiants attendent ta réponse",
+      "helpedUnit_one": "étudiant accompagné ce mois",
+      "helpedUnit_other": "étudiants accompagnés ce mois"
+    },
+    "gate": {
+      "open": "Ouvert",
+      "paused": "En pause"
+    },
+    "thanks": {
+      "title": "Ils te disent merci",
+      "sub_one": "{{count}} mot laissé après un appel",
+      "sub_other": "{{count}} mots laissés après un appel",
+      "a11y": "{{name}}, {{rating}} sur 5 : {{text}}",
+      "emptyTitle": "Ton premier merci arrive bientôt",
+      "emptyText": "Après chaque appel, l’étudiant peut te laisser un mot. Il s’affichera ici."
+    },
+    "showcase": {
+      "title": "Ta vitrine",
+      "edit": "Modifier",
+      "slots_one": "{{count}} créneau",
+      "slots_other": "{{count}} créneaux",
+      "view": "Voir"
+    }
   },
   "journey": {
     "phase": {

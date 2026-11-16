@@ -1,7 +1,8 @@
 import { router } from 'expo-router';
 import { Check, Flag, MessageCircle, Video, X } from 'lucide-react-native';
+import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
-import Animated from 'react-native-reanimated';
+import Animated, { ReduceMotion, withSpring, withTiming } from 'react-native-reanimated';
 
 import { celebrate } from '@/components/feedback/Confetti';
 import { toast } from '@/components/feedback/Toast';
@@ -14,7 +15,7 @@ import { daysFromToday, formatDayMonth, formatTime, relativeDays } from '@/lib/d
 import { haptics } from '@/lib/haptics';
 import { pop } from '@/theme/motion';
 import { makeStyles, useTheme } from '@/theme/scheme';
-import { palette, radius } from '@/theme/tokens';
+import { fonts, palette, radius } from '@/theme/tokens';
 
 import type { MentorRequest } from '../api';
 import { appointmentState } from '../appointments';
@@ -22,6 +23,34 @@ import { useAnswerRequest } from '../hooks';
 
 const AVATAR_TONES = [palette.electricLight, palette.aiIndigo, palette.mentor, palette.host];
 const avatarTone = (name: string) => AVATAR_TONES[[...name].reduce((n, c) => n + c.charCodeAt(0), 0) % AVATAR_TONES.length];
+
+/** Le temps de voir le tampon se poser avant que la demande quitte la liste des « à traiter ». */
+const STAMP_MS = 750;
+
+/** Le tampon arrive de haut, plus grand, et s'écrase sur la carte : un vrai coup de tampon (moment de célébration). */
+const stampIn = () => {
+  'worklet';
+  return {
+    initialValues: { opacity: 0, transform: [{ scale: 1.7 }] },
+    animations: {
+      opacity: withTiming(1, { duration: 120, reduceMotion: ReduceMotion.System }),
+      transform: [{ scale: withSpring(1, { duration: 420, dampingRatio: 0.55, reduceMotion: ReduceMotion.System }) }],
+    },
+  };
+};
+
+/** « ACCEPTÉ », penché, à l'encre verte du mentor : le vocabulaire du voyage (DIRECTION.md §2). */
+function Stamp({ label }: { label: string }) {
+  const { tones } = useTheme();
+  const styles = useStyles();
+  return (
+    <View style={styles.stampWrap} pointerEvents="none">
+      <Animated.View entering={stampIn} style={[styles.stamp, { borderColor: tones.green.ink }]}>
+        <Text style={[styles.stampText, { color: tones.green.ink }]}>{label}</Text>
+      </Animated.View>
+    </View>
+  );
+}
 
 /** « demain », « dans 3 jours », puis la date au-delà d'une semaine. */
 const when = (iso: string) => (Math.abs(daysFromToday(iso)) <= 6 ? relativeDays(iso) : formatDayMonth(iso));
@@ -36,24 +65,33 @@ export function RequestCard({ r, first, onReport }: { r: MentorRequest; first?: 
   const styles = useStyles();
   const answer = useAnswerRequest();
   const open = useOpenFromBooking();
+  // Accepté : le tampon se pose, puis la réponse part (la carte quitte « à traiter » une fois le tampon vu).
+  const [stamped, setStamped] = useState(false);
   const state = appointmentState(r);
   const name = r.student ?? t('mentorHome.aStudent');
   const nameA11y = r.student ?? t('mentorHome.thisStudent');
   // Bouton plein : vert foncé, texte de la couleur du fond (contraste AA en clair comme en sombre).
   const solid = { backgroundColor: tones.green.ink };
 
-  const reply = (ok: boolean) => {
-    if (ok) {
-      haptics.success();
-      celebrate();
-    }
+  const send = (ok: boolean) =>
     answer.mutate(
       { id: r.id, status: ok ? 'confirmed' : 'cancelled' },
       {
         onSuccess: () => toast(ok ? t('mentorHome.accepted') : t('mentorHome.declined'), ok ? 'success' : 'info'),
-        onError: () => toast(t('common.notSaved'), 'info'),
+        onError: () => {
+          setStamped(false);
+          toast(t('common.notSaved'), 'info');
+        },
       },
     );
+
+  const reply = (ok: boolean) => {
+    if (!ok) return send(false);
+    if (stamped) return;
+    setStamped(true);
+    haptics.success();
+    celebrate();
+    setTimeout(() => send(true), STAMP_MS);
   };
 
   const write = () =>
@@ -69,6 +107,7 @@ export function RequestCard({ r, first, onReport }: { r: MentorRequest; first?: 
 
   return (
     <View style={[styles.card, !first && styles.sep, past && { opacity: 0.75 }]}>
+      {stamped ? <Stamp label={t('mentorHome.stamp')} /> : null}
       <View style={styles.top}>
         <Avatar name={name} size={46} color={avatarTone(r.student ?? r.id)} uri={r.studentAvatarUrl} cacheKey={r.studentAvatarPath} />
         <View style={{ flex: 1, gap: 1 }}>
@@ -103,13 +142,13 @@ export function RequestCard({ r, first, onReport }: { r: MentorRequest; first?: 
         <View style={styles.actions}>
           {state === 'pending' ? (
             <>
-              <PressableScale haptic="press" onPress={() => reply(true)} disabled={answer.isPending} style={[styles.btn, solid]} accessibilityLabel={t('mentorHome.acceptA11y', { name: nameA11y })}>
+              <PressableScale haptic="press" onPress={() => reply(true)} disabled={answer.isPending || stamped} style={[styles.btn, solid]} accessibilityLabel={t('mentorHome.acceptA11y', { name: nameA11y })}>
                 <Check size={16} color={c.bg} strokeWidth={2.6} />
                 <Text variant="smallStrong" color={c.bg}>
                   {t('mentorHome.accept')}
                 </Text>
               </PressableScale>
-              <PressableScale onPress={() => reply(false)} disabled={answer.isPending} style={[styles.btn, styles.ghost]} accessibilityLabel={t('mentorHome.declineA11y', { name: nameA11y })}>
+              <PressableScale onPress={() => reply(false)} disabled={answer.isPending || stamped} style={[styles.btn, styles.ghost]} accessibilityLabel={t('mentorHome.declineA11y', { name: nameA11y })}>
                 <X size={15} color={c.subtle} />
                 <Text variant="smallStrong" color={c.subtle}>
                   {t('mentorHome.decline')}
@@ -165,4 +204,7 @@ const useStyles = makeStyles(({ c }) => ({
   confirmed: { flexDirection: 'row', alignItems: 'center', gap: 6, minHeight: 44 },
   pill: { marginTop: 2, paddingHorizontal: 8, paddingVertical: 2, borderRadius: radius.pill, backgroundColor: c.fill },
   flag: { width: 44, height: 44, marginStart: 'auto', alignItems: 'center', justifyContent: 'center', borderRadius: radius.pill },
+  stampWrap: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, alignItems: 'center', justifyContent: 'center', zIndex: 2, transform: [{ rotate: '-12deg' }] },
+  stamp: { paddingHorizontal: 16, paddingVertical: 6, borderWidth: 3, borderRadius: 10, backgroundColor: c.surface },
+  stampText: { fontFamily: fonts.displayBlack, fontSize: 22, lineHeight: 28, letterSpacing: 3, textTransform: 'uppercase' },
 }));

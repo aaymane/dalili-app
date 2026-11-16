@@ -94,6 +94,8 @@ Ordre décidé le 21/10 : **l'app d'abord (e, f, g), le site ensuite.**
    - **Avis avec photo (code du 09/11)** : les visages des auteurs d'avis sur la fiche du mentor et sur ses cartes (rangée de 3 visages près de la note). Une note sans texte reste anonyme ; la feuille d'avis, la feuille photo et Confidentialité le disent. ✅ Migration `photos_avis` appliquée le 09/11. **Reste** : publier la mise à jour.
 10. **Modifier, supprimer (code du 09/11)** : appui long sur son message, son commentaire ou sa publication → « Modifier » / « Supprimer » (l'auteur seulement, vérifié par la base). Un message se modifie 15 minutes et se supprime pour les deux ; « modifié » s'affiche partout ; l'autre voit le changement tout de suite (canal temps réel). L'ancienne version d'un message est gardée 30 jours pour l'équipe (Confidentialité le dit). ✅ Migration `modifier_supprimer` appliquée le 09/11. **Reste** : pousser, puis publier la mise à jour (pas avant : la nouvelle app lit `messages.edited_at`).
 
+11. **Accueil mentor refait (code du 09/11)** : « le hall des arrivées » (voir `docs/DIRECTION.md`, L'espace Mentor) : grand tableau à volets, porte en petit interrupteur, tampon « ACCEPTÉ », « Ils te disent merci » avec les visages, « Ta vitrine ». Vu dans le simulateur (Expo Go, profil de démo et compte réel) ; reste à juger la fluidité sur un vrai iPhone (build de production).
+
 ## Plus tard : le site
 
 - **Étape 8 — emails du site** :

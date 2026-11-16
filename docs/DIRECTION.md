@@ -217,9 +217,17 @@ Ce qui reste des pistes vit dans M2 : le **chemin** (tracé au défilement, avio
 
 Un **avion vectoriel en perspective** (pas de moteur 3D, §5) : sur la carte « Ta mobilité », il vole le long d'un arc de ta ville à ta ville d'arrivée et s'arrête à ta progression (`features/journey/components/RouteArc.tsx`). Le même avion suit « Ton chemin » sur l'accueil (M2.1).
 
-### L'espace Mentor
+### L'espace Mentor : « le hall des arrivées » (refait le 09/11)
 
-`features/home/MentorHome.tsx` reprend la grammaire du Brief : une **carte nuit** (ciel étoilé) avec la **constellation** du mentor (`features/mentors/components/Constellation.tsx`) : il est l'étoile du centre, reliée par un trait plein aux étudiants qu'il aide et en pointillés à ceux qui attendent sa réponse ; les traits se tracent une fois à l'affichage. Dessous, une phrase (« 2 étudiants attendent ta réponse. ») et trois chiffres sobres. Puis les demandes sur **une seule surface** (« Accepter » plein, « Décliner » en texte) et les créneaux par jour.
+Dalili veut dire « mon guide ». Le mentor a déjà fait le voyage : son accueil est le **hall des arrivées** où il accueille ceux qui arrivent de Casablanca, d'Alger ou de Tunis (`features/home/MentorHome.tsx`, pièces dans `features/home/mentor/`).
+
+1. **Le tableau des arrivées** (`ArrivalsBoard`) : le héros, seul moment nuit, ≈ 58 % de la hauteur de l'écran. Des **volets à charnière** géants (`SplitFlap`, Montserrat Black, le seul 900 de l'écran) disent la seule chose qui compte maintenant : l'heure du prochain appel, sinon combien t'attendent (avec leurs visages), sinon combien tu as accompagnés ce mois. À l'apparition, chaque tuile fait défiler 3 à 5 chiffres puis se pose (120 ms par volet, 340 ms pour le dernier, cascade de 90 ms de gauche à droite) ; ensuite, un seul volet quand la valeur change. Rotation en perspective autour de la charnière, ombre qui s'assombrit pendant la chute, tout sur le thread de l'interface. Les tuiles : moitiés en dégradé (lumière venue d'en haut), liseré posé par-dessus (jamais une bordure qui rétrécit les moitiés : le chiffre ferait une marche), arête haute éclairée, charnière fine, ergots discrets. Fond : nuit + ciel étoilé (la boucle de l'écran) + **aurore** Skia statique (vert du mentor en haut, reflet bleu-violet, halo derrière les volets), qui baisse quand le mentor est en pause. En bas : le mois en trois pastilles de verre. Au défilement, la carte recule (≤ 12 px, ≤ 4°, 0,96) ; tirée vers le bas, elle s'avance (1,03).
+2. **La porte** (`AvailabilityToggle`) : un petit interrupteur « Ouvert / En pause » dans le coin du tableau (bouton qui glisse en ressort net, couleur qui suit, retour haptique ; revient et le dit si la base refuse). Pas de gros sélecteur sous la carte.
+3. **Les demandes** à traiter, seulement s'il y en a, sur une seule surface. Accepter pose un **tampon « ACCEPTÉ »** penché de 12° (ressort avec un léger rebond : c'est la célébration), puis la réponse part 750 ms plus tard.
+4. **« Ils te disent merci »** (`ThanksCarousel`) : les avis avec le visage de leur auteur, en carrousel qui suit le doigt (la carte au centre à sa taille, les voisines reculent à 0,94 et 50 %). Un mot court devient une citation (semi-gras 18).
+5. **« Ta vitrine »** (`Showcase`) : ta fiche comme un étudiant la voit (photo, note, ville, spécialités), et Modifier · Créneaux · Voir.
+
+Retirés le 09/11 : la carte « constellation » du bas (décorative), la grosse carte de disponibilité, « Tout est à jour ».
 
 ### Changer de rôle
 

@@ -518,7 +518,45 @@
     "slotsNone": "None: students suggest a time",
     "start": "Start the call",
     "startA11y": "Start the call with {{name}}",
-    "impactTitle": "Your impact this month"
+    "impactTitle": "Your impact this month",
+    "helloEvening": "Good evening {{name}}",
+    "stamp": "Accepted",
+    "board": {
+      "title": "Arrivals · {{city}}",
+      "next": "Your next call · {{day}}",
+      "nextA11y": "Your next call, {{day}} at {{time}}, with {{name}}",
+      "opensAt": "The room opens at {{time}}",
+      "waiting_one": "{{count}} student is waiting for your answer",
+      "waiting_other": "{{count}} students are waiting for your answer",
+      "waitingHint": "Their requests are right below.",
+      "helped_one": "{{count}} student supported this month",
+      "helped_other": "{{count}} students supported this month",
+      "quiet": "Your door is open. Requests arrive here, with a notification.",
+      "pausedHint": "You’re on pause: no one can ask you for a call.",
+      "waitingUnit_one": "student waiting for your answer",
+      "waitingUnit_other": "students waiting for your answer",
+      "helpedUnit_one": "student supported this month",
+      "helpedUnit_other": "students supported this month"
+    },
+    "gate": {
+      "open": "Open",
+      "paused": "Paused"
+    },
+    "thanks": {
+      "title": "They say thank you",
+      "sub_one": "{{count}} note left after a call",
+      "sub_other": "{{count}} notes left after a call",
+      "a11y": "{{name}}, {{rating}} out of 5: {{text}}",
+      "emptyTitle": "Your first thank-you is on its way",
+      "emptyText": "After each call, the student can leave you a note. It will show here."
+    },
+    "showcase": {
+      "title": "Your showcase",
+      "edit": "Edit",
+      "slots_one": "{{count}} slot",
+      "slots_other": "{{count}} slots",
+      "view": "View"
+    }
   },
   "journey": {
     "phase": {

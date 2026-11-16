@@ -60,7 +60,18 @@ export async function fetchMyMentor(): Promise<MyMentor | null> {
   const data = mentor.data;
   // La charte n'est qu'un rappel ici (la base tient la règle) : une lecture ratée ne bloque pas l'espace Mentor.
   const charterOk = trust.error ? true : trust.data?.charter_version === CHARTER_VERSION;
-  return data ? { ...toMentor(data), isActive: !!data.is_active, charterOk } : null;
+  if (!data) return null;
+  const sheet = toMentor(data);
+  // Les visages de ceux qui t'ont remercié (« Ils te disent merci ») : une photo est un plus, jamais un blocage.
+  const ids = sheet.reviews.map((r) => r.id).filter((id): id is string => !!id);
+  const { data: faces } = ids.length ? await supabase.rpc('review_avatars', { p_reviews: ids }) : { data: [] };
+  const pathOf = new Map<string, string>(((faces ?? []) as Record<string, any>[]).map((f) => [f.review_id, f.avatar_path]));
+  const urls = await avatarUrls([...pathOf.values()]);
+  const reviews = sheet.reviews.map((r) => {
+    const path = r.id ? (pathOf.get(r.id) ?? null) : null;
+    return { ...r, avatarPath: path, avatarUrl: path ? (urls[path] ?? null) : null };
+  });
+  return { ...sheet, reviews, isActive: !!data.is_active, charterOk };
 }
 
 /**
